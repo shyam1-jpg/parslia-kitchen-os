@@ -1,10 +1,6 @@
 (function () {
   "use strict";
 
-  // Current year in footer
-  var yearEl = document.getElementById("year");
-  if (yearEl) yearEl.textContent = String(new Date().getFullYear());
-
   // Mobile menu toggle
   var toggle = document.querySelector(".nav-toggle");
   var mobileNav = document.getElementById("mobileNav");
@@ -21,7 +17,30 @@
     });
   }
 
-  // Contact form -> compose an email to hello@parslia.app
+  // Subtle fade-up on section entry
+  if ("IntersectionObserver" in window) {
+    var fadeEls = document.querySelectorAll(".fade-up");
+    var observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    );
+    fadeEls.forEach(function (el) {
+      observer.observe(el);
+    });
+  } else {
+    document.querySelectorAll(".fade-up").forEach(function (el) {
+      el.classList.add("visible");
+    });
+  }
+
+  // Early access form -> mailto:hello@parslia.app
   var form = document.getElementById("contactForm");
   var note = document.getElementById("formNote");
   if (form) {
@@ -57,7 +76,10 @@
         encodeURIComponent(body);
 
       window.location.href = mailto;
-      setNote("Thanks, " + name + "! Your email app is opening — just hit send.", "ok");
+      setNote(
+        "Thank you. Your early access request has been received. We will contact you soon.",
+        "ok"
+      );
       form.reset();
     });
   }
