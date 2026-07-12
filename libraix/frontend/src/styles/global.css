@@ -85,6 +85,18 @@ button, input, textarea, select {
   line-height: 1.5;
 }
 
+.site-banner {
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  text-align: center;
+}
+
+.maintenance-banner {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
 .error-banner {
   padding: 12px 16px;
   background: rgba(239, 68, 68, 0.1);

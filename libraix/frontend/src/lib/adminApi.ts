@@ -51,4 +51,10 @@ export const adminApi = {
   setup2fa: () => adminFetch<{ secret: string; qrDataUrl: string }>("/api/admin/2fa/setup", { method: "POST", body: "{}" }),
   enable2fa: (code: string) =>
     adminFetch<{ ok: boolean }>("/api/admin/2fa/enable", { method: "POST", body: JSON.stringify({ code }) }),
+  supportRequests: () => adminFetch<{ requests: Array<Record<string, unknown>> }>("/api/admin/support-requests"),
+  privacyRequests: () => adminFetch<{ requests: Array<Record<string, unknown>> }>("/api/admin/privacy-requests"),
+  updateSupportRequest: (id: string, status: string) =>
+    adminFetch<{ ok: boolean }>(`/api/admin/support-requests/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  updatePrivacyRequest: (id: string, status: string) =>
+    adminFetch<{ ok: boolean }>(`/api/admin/privacy-requests/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
 };

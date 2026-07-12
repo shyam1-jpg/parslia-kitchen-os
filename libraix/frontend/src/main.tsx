@@ -9,11 +9,15 @@ import { ScrollToTop } from "./components/ScrollToTop";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage, PricingPage, ForgotPasswordPage, ResetPasswordPage } from "./pages/AuthPages";
 import { CookieBanner } from "./components/CookieBanner";
+import { AnnouncementBanner } from "./components/AnnouncementBanner";
 import { AppPage } from "./pages/AppPage";
 import { SettingsPage, PrivacyPage, TermsPage } from "./pages/AccountPages";
 import { BillingPage } from "./pages/BillingPage";
 import { AdminLoginPage } from "./pages/admin/AdminLoginPage";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
+import { SupportPage } from "./pages/SupportPage";
+import { AboutPage, BlogPage, ContactPage, CookiePolicyPage, RefundPolicyPage } from "./pages/LegalPages";
+import { NoIndex } from "./components/NoIndex";
 import "./styles/global.css";
 
 createRoot(document.getElementById("root")!).render(
@@ -22,12 +26,19 @@ createRoot(document.getElementById("root")!).render(
       <AdminAuthProvider>
         <BrowserRouter>
           <ScrollToTop />
+          <AnnouncementBanner />
           <CookieBanner />
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/refund-policy" element={<RefundPolicyPage />} />
+            <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+            <Route path="/support" element={<SupportPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
 
@@ -37,18 +48,18 @@ createRoot(document.getElementById("root")!).render(
             </Route>
 
             <Route element={<ProtectedRoute />}>
-              <Route path="/app" element={<AppPage />} />
-              <Route path="/app/settings" element={<SettingsPage />} />
-              <Route path="/app/billing" element={<BillingPage />} />
+              <Route path="/app" element={<><NoIndex /><AppPage /></>} />
+              <Route path="/app/settings" element={<><NoIndex /><SettingsPage /></>} />
+              <Route path="/app/billing" element={<><NoIndex /><BillingPage /></>} />
               <Route path="/account" element={<Navigate to="/app/billing" replace />} />
               <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
             </Route>
 
             <Route element={<AdminPublicRoute />}>
-              <Route path="/admin/login" element={<AdminLoginPage />} />
+              <Route path="/admin/login" element={<><NoIndex /><AdminLoginPage /></>} />
             </Route>
             <Route element={<AdminProtectedRoute />}>
-              <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/admin" element={<><NoIndex /><AdminDashboardPage /></>} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,3 +1,5 @@
+import { getFeatureFlagOverrides } from "../services/siteConfig.js";
+
 export type FeatureFlagState = "disabled" | "internal" | "beta" | "enabled";
 
 export interface FeatureFlag {
@@ -33,9 +35,11 @@ const PLAN_ORDER = { free: 0, pro: 1, enterprise: 2 };
 export function isFeatureEnabled(flagId: string, userPlan: "free" | "pro" | "enterprise" = "free"): boolean {
   const flag = FEATURE_FLAGS.find((f) => f.id === flagId);
   if (!flag) return false;
-  if (flag.state === "disabled") return false;
+  const overrides = getFeatureFlagOverrides();
+  const state = overrides[flagId] ?? flag.state;
+  if (state === "disabled") return false;
   if (flag.minPlan && PLAN_ORDER[userPlan] < PLAN_ORDER[flag.minPlan]) return false;
-  return flag.state === "enabled" || flag.state === "beta" || flag.state === "internal";
+  return state === "enabled" || state === "beta" || state === "internal";
 }
 
 export function getPublicFeatures(userPlan: "free" | "pro" | "enterprise") {
