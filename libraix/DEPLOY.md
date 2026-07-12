@@ -21,9 +21,16 @@ After deploy, add **`OPENAI_API_KEY`** in the Render dashboard (Environment → 
 
 | Libraix model | Default OpenAI model | Override env var |
 |---|---|---|
-| Libraix Fast | `gpt-4o-mini` | `OPENAI_MODEL_FAST` |
+| Libraix Fast | `gpt-4o` | `OPENAI_MODEL_FAST` |
 | Libraix Smart | `gpt-4o` | `OPENAI_MODEL_SMART` |
 | Libraix Advanced | `o3-mini` | `OPENAI_MODEL_ADVANCED` |
+
+Optional tuning on Render:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `OPENAI_TEMPERATURE` | `0.7` | Response creativity |
+| `OPENAI_MAX_TOKENS` | `4096` | Max reply length |
 
 Service URL: `https://libraix-api.onrender.com`
 

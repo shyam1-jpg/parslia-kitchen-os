@@ -214,7 +214,7 @@ See `libraix/backend/.env.example` and `libraix/DEPLOY.md`.
 
 | Libraix name | Provider | API model | Tier | Status |
 |--------------|----------|-----------|------|--------|
-| Libraix Fast | OpenAI | gpt-4o-mini | Free | Live |
+| Libraix Fast | OpenAI | gpt-4o | Free | Live |
 | Libraix Smart | OpenAI | gpt-4o | Pro | Beta |
 | Libraix Advanced | OpenAI | o3-mini | Pro | Beta |
 | Libraix Image | OpenAI | dall-e-3 | Pro | Coming Soon |

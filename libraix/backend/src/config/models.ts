@@ -55,11 +55,11 @@ export const PRODUCT_CATALOG: ProductCatalog = {
       id: "libraix-fast",
       displayName: "Libraix Fast",
       provider: "openai",
-      providerModelId: process.env.OPENAI_MODEL_FAST ?? "gpt-4o-mini",
+      providerModelId: process.env.OPENAI_MODEL_FAST ?? "gpt-4o",
       tier: "free",
       capabilities: { chat: true, streaming: true },
       enabled: true,
-      description: "Cost-efficient responses for everyday tasks.",
+      description: "GPT-4o quality for everyday tasks.",
     },
     {
       id: "libraix-smart",
@@ -111,7 +111,7 @@ export const PRODUCT_CATALOG: ProductCatalog = {
     { id: "data", name: "Data Analyst", description: "SQL, Python and statistics.", systemPrompt: "You are a data analyst.", tier: "pro", enabled: true },
   ],
   plans: {
-    free: { dailyMessages: 20, premiumModelMessages: 5, images: 0 },
+    free: { dailyMessages: 30, premiumModelMessages: 10, images: 0 },
     pro: { dailyMessages: 500, premiumModelMessages: 200, images: 50 },
     enterprise: { dailyMessages: 5000, premiumModelMessages: 2000, images: 500 },
   },

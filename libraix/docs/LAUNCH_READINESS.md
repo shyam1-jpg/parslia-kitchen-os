@@ -32,7 +32,7 @@ The old single-page site (146KB HTML with embedded app/settings) is **not** the 
 | Feature | Status | Provider / API | Notes |
 |---------|--------|----------------|-------|
 | Email signup/login | **Live** | SQLite + bcrypt sessions | OAuth hidden until configured |
-| Chat (Libraix Fast) | **Live** | OpenAI `gpt-4o-mini` via Chat Completions | Requires `OPENAI_API_KEY` on Render |
+| Chat (Libraix Fast) | **Live** | OpenAI `gpt-4o` via Chat Completions | Requires `OPENAI_API_KEY` on Render |
 | Streaming responses | **Live** | SSE `/api/ai/stream` | Same key requirement |
 | Libraix Smart / Advanced | **Beta** | OpenAI `gpt-4o`, `o3-mini` | Pro plan only |
 | Smart Model Router | **Beta** | Internal router | Auto mode in `/app` |

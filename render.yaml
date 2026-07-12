@@ -15,14 +15,35 @@ services:
         value: https://libraix.ai
       - key: DATABASE_PATH
         value: /var/data/libraix.db
+      # ── OpenAI (required for live chat) ──
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_MODEL_FAST
         value: gpt-4o
       - key: OPENAI_MODEL_SMART
-        sync: false
+        value: gpt-4o
       - key: OPENAI_MODEL_ADVANCED
+        value: o3-mini
+      - key: OPENAI_MODEL_IMAGE
+        value: dall-e-3
+      - key: OPENAI_TEMPERATURE
+        value: "0.7"
+      - key: OPENAI_MAX_TOKENS
+        value: "4096"
+      # ── Email (password reset + verification) ──
+      - key: RESEND_API_KEY
         sync: false
+      - key: EMAIL_FROM
+        value: "Libraix <noreply@libraix.ai>"
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      # ── Stripe (Pro billing) ──
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
@@ -31,21 +52,17 @@ services:
         sync: false
       - key: STRIPE_ENTERPRISE_PRICE_ID
         sync: false
-      - key: RESEND_API_KEY
-        sync: false
-      - key: EMAIL_FROM
-        sync: false
+      # ── Company / legal ──
       - key: COMPANY_ADDRESS
         value: "23 Lincoln Road, Branston, Lincoln LN4 1PE, United Kingdom"
       - key: COMPANY_LEGAL_NAME
         value: "Libraix (trading name — legal entity to be confirmed)"
-      - key: SMTP_HOST
+      - key: COMPANY_COUNTRY
+        value: United Kingdom
+      # ── Owner seed (set on first deploy via Render Shell if needed) ──
+      - key: OWNER_EMAIL
         sync: false
-      - key: SMTP_PORT
-        sync: false
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASS
+      - key: OWNER_INITIAL_PASSWORD
         sync: false
     disk:
       name: libraix-data
