@@ -18,7 +18,7 @@ services:
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_MODEL_FAST
-        sync: false
+        value: gpt-4o
       - key: OPENAI_MODEL_SMART
         sync: false
       - key: OPENAI_MODEL_ADVANCED
