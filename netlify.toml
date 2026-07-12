@@ -1,7 +1,7 @@
 [build]
   base = "libraix/frontend"
   command = "npm install && npm run build"
-  publish = "libraix/frontend/dist"
+  publish = "dist"
 
 # API proxy to Render backend (update URL after Render deploy if different)
 [[redirects]]
