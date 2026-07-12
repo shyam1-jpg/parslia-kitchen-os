@@ -1,0 +1,42 @@
+name: Deploy Libraix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "libraix/**"
+      - "netlify.toml"
+      - "render.yaml"
+  workflow_dispatch:
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: libraix/frontend/package-lock.json
+      - run: cd libraix/frontend && npm ci && npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libraix-frontend-dist
+          path: libraix/frontend/dist
+
+  deploy-netlify:
+    needs: build-frontend
+    runs-on: ubuntu-latest
+    if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: libraix-frontend-dist
+          path: libraix/frontend/dist
+      - run: npm install -g netlify-cli
+      - run: netlify deploy --prod --dir=libraix/frontend/dist --message="Deploy from GitHub Actions"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

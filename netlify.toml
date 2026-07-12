@@ -3,6 +3,13 @@
   command = "npm install && npm run build"
   publish = "libraix/frontend/dist"
 
+# API proxy to Render backend (update URL after Render deploy if different)
+[[redirects]]
+  from = "/api/*"
+  to = "https://libraix-api.onrender.com/api/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

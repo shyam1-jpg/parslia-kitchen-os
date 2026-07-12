@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: libraix-api
+    runtime: node
+    plan: free
+    buildCommand: cd libraix/backend && npm install && npm run build
+    startCommand: cd libraix/backend && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://libraix.ai
+      - key: DATABASE_PATH
+        value: /var/data/libraix.db
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+    disk:
+      name: libraix-data
+      mountPath: /var/data
+      sizeGB: 1

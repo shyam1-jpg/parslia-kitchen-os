@@ -91,13 +91,13 @@ export function LoginPage() {
 
           <div className="oauth-row">
             <p style={{ fontSize: 12, color: "var(--dim)", textAlign: "center" }}>Or continue with</p>
-            <button type="button" className="oauth-btn" disabled title="Connect OAuth provider in production">
+            <button type="button" className="oauth-btn" onClick={() => { window.location.href = "/api/auth/oauth/google/start"; }}>
               Continue with Google
             </button>
-            <button type="button" className="oauth-btn" disabled title="Connect OAuth provider in production">
+            <button type="button" className="oauth-btn" onClick={() => { window.location.href = "/api/auth/oauth/apple/start"; }}>
               Continue with Apple
             </button>
-            <button type="button" className="oauth-btn" disabled title="Connect OAuth provider in production">
+            <button type="button" className="oauth-btn" onClick={() => { window.location.href = "/api/auth/oauth/microsoft/start"; }}>
               Continue with Microsoft
             </button>
           </div>
@@ -114,6 +114,23 @@ export function PricingPage() {
   useEffect(() => {
     catalogApi.get().then(setCatalog).catch(console.error);
   }, []);
+
+  const startCheckout = async (plan: "pro" | "enterprise") => {
+    try {
+      const res = await fetch("/api/billing/stripe/checkout", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+      const data = await res.json() as { url?: string; devMode?: boolean; message?: string };
+      if (data.url) window.location.href = data.url;
+      else if (data.devMode) alert(data.message ?? "Stripe not configured yet — sign up free and contact us for Pro.");
+      else window.location.href = "/login?mode=signup";
+    } catch {
+      window.location.href = "/login?mode=signup";
+    }
+  };
 
   const freePlan = catalog?.plans.free;
   const proPlan = catalog?.plans.pro;
@@ -149,7 +166,9 @@ export function PricingPage() {
               <li>✓ {catalog?.assistantCount ?? 5} AI Assistants</li>
               <li>✓ Prompt library</li>
             </ul>
-            <Link to="/login?mode=signup" className="btn btn-primary" style={{ width: "100%" }}>Start Pro — £9/mo</Link>
+            <button type="button" className="btn btn-primary" style={{ width: "100%" }} onClick={() => startCheckout("pro")}>
+              Start Pro — £9/mo
+            </button>
           </div>
 
           <div className="price-card">

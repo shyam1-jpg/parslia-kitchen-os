@@ -12,7 +12,7 @@ export interface FeatureFlag {
 export const FEATURE_FLAGS: FeatureFlag[] = [
   { id: "smart-router", name: "Smart Model Router", description: "Auto-select model by task", state: "enabled", minPlan: "free" },
   { id: "model-compare", name: "Model Comparison Lab", description: "Compare 2–4 models side by side", state: "beta", minPlan: "pro" },
-  { id: "deep-research", name: "Deep Research", description: "Multi-step web research workspace", state: "internal" },
+  { id: "deep-research", name: "Deep Research", description: "Multi-step web research workspace", state: "beta", minPlan: "pro" },
   { id: "memory", name: "Personal Memory", description: "User-controlled memory system", state: "beta", minPlan: "free" },
   { id: "projects", name: "Projects", description: "Knowledge workspaces with files", state: "beta", minPlan: "pro" },
   { id: "voice", name: "Voice Assistant", description: "Realtime speech conversation", state: "disabled" },

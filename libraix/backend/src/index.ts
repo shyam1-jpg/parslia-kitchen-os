@@ -13,6 +13,7 @@ import apiRoutes from "./routes/api.js";
 import conversationRoutes from "./routes/conversations.js";
 import memoryRoutes from "./routes/memory.js";
 import projectRoutes from "./routes/projects.js";
+import billingRoutes, { stripeWebhookHandler } from "./routes/billing.js";
 
 initDb();
 
@@ -34,7 +35,7 @@ app.use(
             scriptSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", frontendUrl],
+            connectSrc: ["'self'", frontendUrl, "https://libraix.ai"],
           },
         }
       : false,
@@ -43,12 +44,15 @@ app.use(
 
 app.use(
   cors({
-    origin: frontendUrl,
+    origin: [frontendUrl, "https://libraix.ai", "http://localhost:5173"],
     credentials: true,
   })
 );
 
-app.use(express.json({ limit: "1mb" }));
+// Stripe webhook needs raw body before JSON parser
+app.post("/api/billing/stripe/webhook", express.raw({ type: "application/json" }), stripeWebhookHandler);
+
+app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 
 app.use(
@@ -76,6 +80,7 @@ app.use("/api", aiLimiter, apiRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/memory", memoryRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/billing", billingRoutes);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);

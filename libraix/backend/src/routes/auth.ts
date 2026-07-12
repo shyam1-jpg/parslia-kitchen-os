@@ -90,4 +90,20 @@ router.post("/oauth/:provider", (req, res) => {
   res.json({ user, usage: getUsage(user.id, user.plan) });
 });
 
+router.get("/oauth/:provider/start", (req, res) => {
+  const provider = req.params.provider;
+  const frontend = process.env.FRONTEND_URL ?? "http://localhost:5173";
+
+  if (provider === "google" && process.env.GOOGLE_CLIENT_ID) {
+    const redirect = `${frontend}/login?oauth=google`;
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&scope=email%20profile&access_type=online`;
+    return res.redirect(url);
+  }
+
+  return res.status(501).json({
+    error: "OAUTH_NOT_CONFIGURED",
+    message: `Set ${provider.toUpperCase()}_CLIENT_ID on the server to enable ${provider} sign-in.`,
+  });
+});
+
 export default router;

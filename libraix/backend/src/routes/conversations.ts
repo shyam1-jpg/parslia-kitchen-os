@@ -15,6 +15,11 @@ import { getUsage } from "../services/usage.js";
 
 const router = Router();
 
+function paramId(req: import("express").Request): string {
+  const id = req.params.id;
+  return Array.isArray(id) ? id[0] : id;
+}
+
 router.get("/", requireAuth, (req, res) => {
   res.json({ conversations: listConversations(req.session.userId!) });
 });
@@ -27,7 +32,7 @@ router.post("/", requireAuth, (req, res) => {
 });
 
 router.get("/:id", requireAuth, (req, res) => {
-  const conv = getConversation(req.session.userId!, req.params.id);
+  const conv = getConversation(req.session.userId!, paramId(req));
   if (!conv) return res.status(404).json({ error: "NOT_FOUND" });
   res.json({ conversation: conv, messages: getMessages(conv.id) });
 });
@@ -35,13 +40,13 @@ router.get("/:id", requireAuth, (req, res) => {
 router.patch("/:id", requireAuth, (req, res) => {
   const { title } = req.body as { title?: string };
   if (!title) return res.status(400).json({ error: "TITLE_REQUIRED" });
-  const ok = updateConversationTitle(req.session.userId!, req.params.id, title);
+  const ok = updateConversationTitle(req.session.userId!, paramId(req), title);
   if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
   res.json({ ok: true });
 });
 
 router.delete("/:id", requireAuth, (req, res) => {
-  const ok = deleteConversation(req.session.userId!, req.params.id);
+  const ok = deleteConversation(req.session.userId!, paramId(req));
   if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
   res.json({ ok: true });
 });
@@ -51,7 +56,7 @@ router.post("/:id/messages", requireAuth, (req, res) => {
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
 
-  const conv = getConversation(req.session.userId!, req.params.id);
+  const conv = getConversation(req.session.userId!, paramId(req));
   if (!conv) return res.status(404).json({ error: "NOT_FOUND" });
 
   const msg = addMessage(conv.id, parsed.data.role, parsed.data.content);
