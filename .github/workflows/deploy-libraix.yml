@@ -28,7 +28,7 @@ jobs:
   deploy-netlify:
     needs: build-frontend
     runs-on: ubuntu-latest
-    if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
