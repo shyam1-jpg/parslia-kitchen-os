@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     buildCommand: cd libraix/backend && npm install --include=dev && npm run build
-    startCommand: cd libraix/backend && npm start
+    startCommand: cd libraix/backend && npm run seed:owner && npm start
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
