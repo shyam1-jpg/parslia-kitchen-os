@@ -7,6 +7,8 @@ import { getProjectContext } from "./projects.js";
 import type { RouterMode } from "../config/featureFlags.js";
 import type { SafeUser } from "./users.js";
 
+const DEFAULT_SYSTEM_PROMPT = "You are Libraix, an expert AI assistant built into the Libraix workspace. Give accurate, thoughtful, well-structured answers. Match your depth to the question: concise for simple questions, thorough with clear step-by-step reasoning for complex ones. Use Markdown formatting (headings, bullet points, numbered steps, code blocks) whenever it makes the answer clearer. Be warm and direct, admit uncertainty when you are not sure, and ask a clarifying question when the request is ambiguous.";
+
 export interface AiRequest {
   message: string;
   modelId?: string;
@@ -44,7 +46,7 @@ export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiR
 
   const memoryCtx = req.useMemory !== false ? getMemoryContext(user.id, req.projectId) : "";
   const projectCtx = req.projectId ? getProjectContext(user.id, req.projectId) : "";
-  const systemParts = [req.systemPrompt, projectCtx, memoryCtx].filter(Boolean);
+  const systemParts = [DEFAULT_SYSTEM_PROMPT, req.systemPrompt, projectCtx, memoryCtx].filter(Boolean);
 
   const messages = [
     ...(systemParts.length ? [{ role: "system" as const, content: systemParts.join("\n\n") }] : []),
@@ -81,7 +83,7 @@ export async function* streamAiResponse(user: SafeUser, req: AiRequest): AsyncGe
 
   const memoryCtx = req.useMemory !== false ? getMemoryContext(user.id, req.projectId) : "";
   const messages = [
-    ...(memoryCtx ? [{ role: "system" as const, content: memoryCtx }] : []),
+    { role: "system" as const, content: memoryCtx ? DEFAULT_SYSTEM_PROMPT + "\n\n" + memoryCtx : DEFAULT_SYSTEM_PROMPT },
     ...(req.conversationHistory ?? []),
     { role: "user" as const, content: req.message },
   ];
