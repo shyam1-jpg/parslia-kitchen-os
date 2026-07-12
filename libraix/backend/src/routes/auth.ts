@@ -6,6 +6,9 @@ import {
   findUserById,
   verifyPassword,
   findOrCreateOAuthUser,
+  createPasswordResetToken,
+  resetPasswordWithToken,
+  deleteUserAccount,
   toSafeUser,
 } from "../services/users.js";
 import { getUsage } from "../services/usage.js";
@@ -77,6 +80,42 @@ router.get("/me", requireAuth, (req, res) => {
   if (!row) return res.status(401).json({ error: "UNAUTHENTICATED" });
   const user = toSafeUser(row);
   res.json({ user, usage: getUsage(user.id, user.plan) });
+});
+
+router.post("/forgot-password", (req, res) => {
+  const parsed = z.object({ email: z.string().email() }).safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  const token = createPasswordResetToken(parsed.data.email);
+  const frontend = process.env.FRONTEND_URL ?? "http://localhost:5173";
+  const payload: Record<string, string> = {
+    message: "If an account exists for that email, password reset instructions have been sent.",
+  };
+  if (process.env.NODE_ENV !== "production" && token) {
+    payload.resetUrl = `${frontend}/reset-password?token=${token}`;
+  }
+  res.json(payload);
+});
+
+router.post("/reset-password", async (req, res) => {
+  const parsed = z
+    .object({ token: z.string().min(1), password: z.string().min(8) })
+    .safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  const ok = resetPasswordWithToken(parsed.data.token, parsed.data.password);
+  if (!ok) return res.status(400).json({ error: "INVALID_OR_EXPIRED_TOKEN" });
+  res.json({ ok: true });
+});
+
+router.delete("/account", requireAuth, (req, res) => {
+  const userId = req.session.userId!;
+  const ok = deleteUserAccount(userId);
+  if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
+  req.session.destroy(() => {
+    res.clearCookie("connect.sid");
+    res.json({ ok: true });
+  });
 });
 
 /** OAuth stub — wire to real provider in production */

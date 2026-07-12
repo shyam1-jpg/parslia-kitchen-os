@@ -1,3 +1,5 @@
+import { withLaunchStatus, TOOL_LAUNCH_STATUS, MODEL_LAUNCH_STATUS, countLive } from "./launchStatus.js";
+
 export type PlanTier = "free" | "pro" | "enterprise";
 
 export interface ModelDefinition {
@@ -125,13 +127,27 @@ export function getModelsForPlan(plan: PlanTier): ModelDefinition[] {
 }
 
 export function getPublicCatalog() {
+  const models = withLaunchStatus(
+    PRODUCT_CATALOG.models.filter((m) => m.enabled).map(({ providerModelId: _, ...rest }) => rest),
+    MODEL_LAUNCH_STATUS
+  );
+  const tools = withLaunchStatus(
+    PRODUCT_CATALOG.tools.filter((t) => t.enabled),
+    TOOL_LAUNCH_STATUS
+  );
+  const assistants = PRODUCT_CATALOG.assistants
+    .filter((a) => a.enabled)
+    .map((a) => ({ ...a, launchStatus: "beta" as const }));
+
   return {
-    modelCount: PRODUCT_CATALOG.models.filter((m) => m.enabled).length,
-    toolCount: PRODUCT_CATALOG.tools.filter((t) => t.enabled).length,
-    assistantCount: PRODUCT_CATALOG.assistants.filter((a) => a.enabled).length,
-    models: PRODUCT_CATALOG.models.filter((m) => m.enabled).map(({ providerModelId: _, ...rest }) => rest),
-    tools: PRODUCT_CATALOG.tools.filter((t) => t.enabled),
-    assistants: PRODUCT_CATALOG.assistants.filter((a) => a.enabled),
+    modelCount: countLive(models),
+    toolCount: countLive(tools),
+    assistantCount: assistants.filter((a) => a.launchStatus === "beta").length,
+    models,
+    tools,
+    assistants,
     plans: PRODUCT_CATALOG.plans,
+    launchNote:
+      "Counts reflect features available at launch. Items marked coming soon are on the roadmap and not yet enabled in the app.",
   };
 }

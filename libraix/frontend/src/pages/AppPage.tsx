@@ -341,16 +341,18 @@ export function AppPage() {
 
         <div className="composer-wrap">
           {usage && (
-            <div className="usage-bar">
-              {usage.remainingMessages} of {usage.messagesLimit} messages remaining today
-              {routerHint && routerMode === "auto" && <span> · {routerHint}</span>}
+            <div className={`usage-bar ${usage.limitReached ? "usage-limit" : ""}`}>
+              {usage.limitReached
+                ? `Daily limit reached (${usage.messagesUsed}/${usage.messagesLimit} messages used on ${usage.plan} plan).`
+                : `${usage.remainingMessages} of ${usage.messagesLimit} messages remaining today`}
+              {routerHint && routerMode === "auto" && !usage.limitReached && <span> · {routerHint}</span>}
             </div>
           )}
           {error && <div className="error-banner" style={{ maxWidth: 780, margin: "0 auto 8px" }}>{error}</div>}
           <div className="composer">
             <div className="composer-actions">
-              <button className="icon-btn" title="Attach file"><IconAttach /></button>
-              <button className="icon-btn" title="Web search"><IconSearch /></button>
+              <button className="icon-btn" title="File upload — coming soon" disabled><IconAttach /></button>
+              <button className="icon-btn" title="Web search — coming soon" disabled><IconSearch /></button>
             </div>
             <textarea
               rows={1}

@@ -105,4 +105,37 @@ export function findOrCreateOAuthUser(
   return toSafeUser(findUserById(id)!);
 }
 
+export function createPasswordResetToken(email: string): string | null {
+  const user = findUserByEmail(email);
+  if (!user) return null;
+  const token = uuid();
+  const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  db.prepare("DELETE FROM password_reset_tokens WHERE user_id = ?").run(user.id);
+  db.prepare("INSERT INTO password_reset_tokens (token, user_id, expires_at) VALUES (?, ?, ?)").run(
+    token,
+    user.id,
+    expires
+  );
+  return token;
+}
+
+export function resetPasswordWithToken(token: string, newPassword: string): boolean {
+  const row = db
+    .prepare("SELECT user_id, expires_at FROM password_reset_tokens WHERE token = ?")
+    .get(token) as { user_id: string; expires_at: string } | undefined;
+  if (!row || new Date(row.expires_at) < new Date()) return false;
+  const passwordHash = bcrypt.hashSync(newPassword, 12);
+  db.prepare("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?").run(
+    passwordHash,
+    row.user_id
+  );
+  db.prepare("DELETE FROM password_reset_tokens WHERE token = ?").run(token);
+  return true;
+}
+
+export function deleteUserAccount(userId: string): boolean {
+  const result = db.prepare("DELETE FROM users WHERE id = ?").run(userId);
+  return result.changes > 0;
+}
+
 export { toSafeUser };

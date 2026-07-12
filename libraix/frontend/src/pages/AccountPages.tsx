@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { PublicNav, Footer } from "../components/Layout";
 import { useAuth } from "../lib/auth";
+import { authApi } from "../lib/api";
 import { advancedApi, type Memory } from "../lib/advanced";
 import { friendlyError } from "../lib/errors";
 
@@ -170,16 +171,39 @@ export function SettingsPage() {
         </div>
 
         <div className="settings-group">
+          <h2>Data & account</h2>
+          <div className="settings-row">
+            <span>Export active chat</span>
+            <button className="btn btn-ghost btn-sm" disabled title="Open a conversation in the workspace first">
+              From workspace
+            </button>
+          </div>
+          <div className="settings-row">
+            <span>Delete account & all data</span>
+            <button
+              className="btn btn-ghost btn-sm"
+              style={{ color: "var(--danger)" }}
+              onClick={async () => {
+                if (!confirm("Delete your Libraix account and all conversations permanently?")) return;
+                await authApi.deleteAccount();
+                window.location.href = "/";
+              }}
+            >
+              Delete account
+            </button>
+          </div>
+        </div>
+
+        <div className="settings-group">
           <h2>Security</h2>
+          <p style={{ fontSize: 13, color: "var(--dim)", marginBottom: 12 }}>
+            Libraix routes all AI requests through secure server-side providers. You never enter or store OpenAI or other provider API keys in the browser.
+          </p>
           <div className="settings-row">
             <span>Two-factor authentication</span>
             <button className="btn btn-ghost btn-sm" disabled>Coming soon</button>
           </div>
         </div>
-
-        <p style={{ fontSize: 13, color: "var(--dim)", marginTop: 24 }}>
-          OpenAI API keys are managed server-side only. Users never enter provider keys.
-        </p>
 
         <Link to="/app" className="btn btn-primary" style={{ marginTop: 24 }}>Back to workspace</Link>
       </section>
@@ -194,15 +218,56 @@ export function PrivacyPage() {
       <PublicNav />
       <article className="legal-page">
         <h1>Privacy Policy</h1>
-        <p>Last updated: July 2026</p>
+        <p>Last updated: July 2026 · Controller: Libraix (hello@libraix.ai)</p>
+
         <h2>What we collect</h2>
-        <p>We collect account information (email, display name), conversation data you create in the workspace, and usage metrics required to enforce plan limits.</p>
-        <h2>How we use data</h2>
-        <p>Your data is used to provide the Libraix service, enforce subscription limits, and improve reliability. We do not sell your personal data.</p>
-        <h2>Data deletion</h2>
-        <p>Contact hello@libraix.ai to request account and data deletion.</p>
+        <ul>
+          <li><strong>Account data:</strong> email, display name, password hash, plan tier.</li>
+          <li><strong>Workspace data:</strong> conversations, messages, memory entries you save, usage counters.</li>
+          <li><strong>Technical data:</strong> session cookies, IP-derived logs for security and rate limiting.</li>
+        </ul>
+
+        <h2>Why we process data</h2>
+        <ul>
+          <li>Provide the Libraix AI workspace and enforce plan limits.</li>
+          <li>Authenticate users and maintain sessions.</li>
+          <li>Improve reliability and prevent abuse.</li>
+        </ul>
+
+        <h2>Who receives data</h2>
+        <p>
+          When you send a chat message, content is transmitted to AI providers (currently OpenAI) to generate a response.
+          Hosting providers (Netlify, Render) process infrastructure logs. We do not sell personal data.
+        </p>
+
+        <h2>Retention</h2>
+        <p>
+          Account and conversation data is retained while your account is active. You may delete memories in Settings
+          or request full account deletion. Backups may persist for up to 30 days after deletion.
+        </p>
+
+        <h2>Cookies</h2>
+        <p>
+          Libraix uses essential session cookies (`connect.sid`) to keep you signed in. No advertising cookies are used.
+        </p>
+
+        <h2>Your rights (UK/EU GDPR)</h2>
+        <p>
+          You may request access, correction, export, or deletion of your data by emailing hello@libraix.ai.
+          You may lodge a complaint with your local supervisory authority.
+        </p>
+
         <h2>AI limitations</h2>
-        <p>AI responses may be inaccurate. Do not rely on Libraix for legal, medical or financial decisions without independent verification.</p>
+        <p>
+          AI responses may be inaccurate. Do not rely on Libraix for legal, medical, or financial decisions without independent verification.
+          Provider terms may apply to generated content.
+        </p>
+
+        <h2>Training</h2>
+        <p>
+          Libraix does not use your workspace content to train Libraix models. Third-party AI providers apply their own
+          API data policies — review OpenAI&apos;s business/API terms for current retention and training settings.
+        </p>
       </article>
       <Footer />
     </div>

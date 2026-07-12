@@ -119,6 +119,36 @@ button, input, textarea, select {
   letter-spacing: -0.04em;
 }
 
+.badge-soon { background: rgba(100, 116, 139, 0.15); color: var(--muted); }
+.badge-live { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+.badge-beta { background: rgba(99, 102, 241, 0.15); color: var(--c1); }
+.feature-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.hero-note { margin-top: 24px; font-size: 13px; color: var(--dim); max-width: 560px; margin-left: auto; margin-right: auto; text-align: center; }
+.trust-section { max-width: 720px; margin: 0 auto; }
+.trust-list { list-style: none; display: grid; gap: 12px; margin: 24px 0; color: var(--muted); font-size: 15px; }
+.trust-disclaimer { font-size: 13px; color: var(--dim); margin-top: 16px; }
+.usage-bar.usage-limit { color: #fca5a5; }
+.cookie-banner {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px 20px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.cookie-banner p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.cookie-banner a { color: var(--c1); text-decoration: underline; }
+
 .logo-icon {
   width: 34px;
   height: 34px;

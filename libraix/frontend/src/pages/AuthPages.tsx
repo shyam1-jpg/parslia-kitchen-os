@@ -69,7 +69,7 @@ export function LoginPage() {
           <h1>{mode === "signup" ? "Create your account" : "Welcome back"}</h1>
           <p>
             {mode === "signup"
-              ? "Free account — chat, web search, and PDF tools included."
+              ? "Free account — 20 chat messages per day on Libraix Fast."
               : "Sign in to your Libraix workspace."}
           </p>
 
@@ -90,6 +90,11 @@ export function LoginPage() {
               <label htmlFor="password">Password</label>
               <input id="password" type="password" className="input" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
+            {mode === "login" && (
+              <p style={{ fontSize: 13, marginTop: -8 }}>
+                <Link to="/forgot-password" style={{ color: "var(--c1)" }}>Forgot password?</Link>
+              </p>
+            )}
             <button type="submit" className="btn btn-primary" disabled={loading}>
               {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Log in"}
             </button>
@@ -193,10 +198,9 @@ export function PricingPage() {
             <h3>Free</h3>
             <div className="price-amount">£0<span>/mo</span></div>
             <ul className="price-features">
-              <li>✓ {freePlan?.dailyMessages ?? 20} messages per day</li>
-              <li>✓ Libraix Fast model</li>
-              <li>✓ Chat, Web Search, PDF Chat</li>
-              <li>✓ YouTube & Link Summariser</li>
+              <li>✓ {freePlan?.dailyMessages ?? 20} messages per day (fair use)</li>
+              <li>✓ Libraix Fast model (live)</li>
+              <li>✓ Secure server-side AI — no API key required</li>
             </ul>
             <Link to="/login?mode=signup" className="btn btn-ghost" style={{ width: "100%" }}>Get started free</Link>
           </div>
@@ -205,11 +209,8 @@ export function PricingPage() {
             <h3>Pro</h3>
             <div className="price-amount">£9<span>/mo</span></div>
             <ul className="price-features">
-              <li>✓ All {catalog?.modelCount ?? 4} models unlocked</li>
-              <li>✓ {proPlan?.dailyMessages ?? 500} messages per day</li>
-              <li>✓ HD image generation</li>
-              <li>✓ {catalog?.assistantCount ?? 5} AI Assistants</li>
-              <li>✓ Prompt library</li>
+              <li>✓ All live & beta models</li>
+              <li>✓ {proPlan?.dailyMessages ?? 500} messages per day (fair use)</li>
             </ul>
             <button type="button" className="btn btn-primary" style={{ width: "100%" }} disabled={checkoutLoading} onClick={() => startCheckout("pro")}>
               {checkoutLoading ? "Please wait…" : user ? "Start Pro — £9/mo" : "Sign up for Pro"}
@@ -230,6 +231,111 @@ export function PricingPage() {
           </div>
         </div>
       </section>
+      <Footer />
+    </div>
+  );
+}
+
+export function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [resetUrl, setResetUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await authApi.forgotPassword(email);
+      setMessage(res.message);
+      if (res.resetUrl) setResetUrl(res.resetUrl);
+    } catch {
+      setMessage("Could not process request. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="page-container">
+      <PublicNav />
+      <div className="auth-page">
+        <div className="auth-card">
+          <h1>Reset password</h1>
+          <p>Enter your email. If an account exists, we will send reset instructions.</p>
+          {message && <div className="info-banner" style={{ marginBottom: 16 }}>{message}</div>}
+          {resetUrl && (
+            <p style={{ fontSize: 12, color: "var(--dim)", marginBottom: 16 }}>
+              Dev reset link: <a href={resetUrl}>{resetUrl}</a>
+            </p>
+          )}
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <div>
+              <label htmlFor="email">Email</label>
+              <input id="email" type="email" className="input" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? "Please wait…" : "Send reset link"}
+            </button>
+          </form>
+          <p style={{ marginTop: 20, fontSize: 13, textAlign: "center" }}>
+            <Link to="/login">Back to login</Link>
+          </p>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
+export function ResetPasswordPage() {
+  const [params] = useSearchParams();
+  const token = params.get("token") ?? "";
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) {
+      setError("Invalid reset link.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      await authApi.resetPassword(token, password);
+      setMessage("Password updated. You can log in now.");
+    } catch (err) {
+      setError(friendlyError(err instanceof Error ? err.message : "FAILED", "Reset failed"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="page-container">
+      <PublicNav />
+      <div className="auth-page">
+        <div className="auth-card">
+          <h1>Choose a new password</h1>
+          {message ? (
+            <p>{message} <Link to="/login">Log in</Link></p>
+          ) : (
+            <form className="auth-form" onSubmit={handleSubmit}>
+              {error && <div className="error-banner">{error}</div>}
+              <div>
+                <label htmlFor="password">New password</label>
+                <input id="password" type="password" className="input" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+              </div>
+              <button type="submit" className="btn btn-primary" disabled={loading || !token}>
+                {loading ? "Please wait…" : "Update password"}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
       <Footer />
     </div>
   );

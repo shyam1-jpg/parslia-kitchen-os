@@ -28,13 +28,16 @@ export interface ModelInfo {
   description: string;
 }
 
+export type LaunchStatus = "live" | "beta" | "coming_soon" | "disabled";
+
 export interface Catalog {
   modelCount: number;
   toolCount: number;
   assistantCount: number;
-  models: ModelInfo[];
-  tools: { id: string; name: string; description: string; tier: string }[];
-  assistants: { id: string; name: string; description: string; tier: string }[];
+  launchNote?: string;
+  models: (ModelInfo & { launchStatus: LaunchStatus })[];
+  tools: { id: string; name: string; description: string; tier: string; launchStatus: LaunchStatus }[];
+  assistants: { id: string; name: string; description: string; tier: string; launchStatus?: LaunchStatus }[];
   plans: Record<string, { dailyMessages: number; premiumModelMessages: number; images: number }>;
 }
 
@@ -87,6 +90,17 @@ export const authApi = {
       body: JSON.stringify({ email, password, displayName }),
     }),
   logout: () => api<{ ok: boolean }>("/api/auth/logout", { method: "POST" }),
+  forgotPassword: (email: string) =>
+    api<{ message: string; resetUrl?: string }>("/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+  resetPassword: (token: string, password: string) =>
+    api<{ ok: boolean }>("/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
+    }),
+  deleteAccount: () => api<{ ok: boolean }>("/api/auth/account", { method: "DELETE" }),
 };
 
 export const catalogApi = {
@@ -121,4 +135,8 @@ export const chatApi = {
     }),
   deleteConversation: (id: string) =>
     api<{ ok: boolean }>(`/api/conversations/${id}`, { method: "DELETE" }),
+  exportConversation: (id: string) =>
+    api<{ conversation: Conversation; messages: ChatMessage[]; exportedAt: string }>(
+      `/api/conversations/${id}/export`
+    ),
 };

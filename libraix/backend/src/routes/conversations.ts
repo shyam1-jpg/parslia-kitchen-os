@@ -51,6 +51,14 @@ router.delete("/:id", requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
+router.get("/:id/export", requireAuth, (req, res) => {
+  const conv = getConversation(req.session.userId!, paramId(req));
+  if (!conv) return res.status(404).json({ error: "NOT_FOUND" });
+  const messages = getMessages(conv.id);
+  res.setHeader("Content-Disposition", `attachment; filename="libraix-chat-${conv.id.slice(0, 8)}.json"`);
+  res.json({ conversation: conv, messages, exportedAt: new Date().toISOString() });
+});
+
 router.post("/:id/messages", requireAuth, (req, res) => {
   const schema = z.object({ role: z.enum(["user", "assistant"]), content: z.string() });
   const parsed = schema.safeParse(req.body);

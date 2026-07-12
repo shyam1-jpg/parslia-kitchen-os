@@ -5,7 +5,8 @@ import { AuthProvider } from "./lib/auth";
 import { ProtectedRoute, PublicOnlyRoute } from "./components/ProtectedRoute";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { LandingPage } from "./pages/LandingPage";
-import { LoginPage, PricingPage } from "./pages/AuthPages";
+import { LoginPage, PricingPage, ForgotPasswordPage, ResetPasswordPage } from "./pages/AuthPages";
+import { CookieBanner } from "./components/CookieBanner";
 import { AppPage } from "./pages/AppPage";
 import { AccountPage, SettingsPage, PrivacyPage, TermsPage } from "./pages/AccountPages";
 import "./styles/global.css";
@@ -15,11 +16,14 @@ createRoot(document.getElementById("root")!).render(
     <AuthProvider>
       <BrowserRouter>
         <ScrollToTop />
+        <CookieBanner />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<LoginPage />} />

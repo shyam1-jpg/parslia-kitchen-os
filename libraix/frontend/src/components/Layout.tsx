@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
+import { LibraixLogoMark } from "./LibraixLogo";
 
 export function Logo({ to = "/" }: { to?: string }) {
   return (
     <Link to={to} className="logo">
-      <div className="logo-icon">⚖</div>
+      <LibraixLogoMark size={28} />
       <span>Libraix</span>
     </Link>
   );
