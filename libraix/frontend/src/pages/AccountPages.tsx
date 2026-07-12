@@ -1,11 +1,26 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { PublicNav, Footer } from "../components/Layout";
 import { useAuth } from "../lib/auth";
 import { advancedApi, type Memory } from "../lib/advanced";
+import { friendlyError } from "../lib/errors";
 
 export function AccountPage() {
   const { user, usage, logout } = useAuth();
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    if (params.get("upgraded") === "1") {
+      setNotice("Thanks — your Pro upgrade is processing. Refresh in a moment if your plan has not updated.");
+    }
+  }, [params]);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  };
 
   return (
     <div className="page-container">
@@ -13,6 +28,8 @@ export function AccountPage() {
       <section className="section">
         <div className="section-label">Account</div>
         <h1 className="section-title">Your account</h1>
+
+        {notice && <div className="info-banner" style={{ maxWidth: 640, marginBottom: 24 }}>{notice}</div>}
 
         <div className="account-grid">
           <div className="account-card">
@@ -36,7 +53,7 @@ export function AccountPage() {
         <div style={{ marginTop: 40, display: "flex", gap: 12 }}>
           <Link to="/app" className="btn btn-primary">Back to workspace</Link>
           <Link to="/pricing" className="btn btn-ghost">Upgrade plan</Link>
-          <button className="btn btn-ghost" onClick={() => logout()}>Sign out</button>
+          <button className="btn btn-ghost" onClick={handleLogout}>Sign out</button>
         </div>
       </section>
       <Footer />
@@ -50,26 +67,44 @@ export function SettingsPage() {
   const [memoryEnabled, setMemoryEnabled] = useState(true);
   const [privacyMode, setPrivacyMode] = useState("standard");
   const [newMemory, setNewMemory] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    advancedApi.memoryPreferences().then((p) => {
-      setMemoryEnabled(p.memoryEnabled);
-      setPrivacyMode(p.privacyMode);
-    }).catch(() => {});
-    advancedApi.memories().then((d) => setMemories(d.memories)).catch(() => {});
+    Promise.all([
+      advancedApi.memoryPreferences(),
+      advancedApi.memories(),
+    ])
+      .then(([prefs, mems]) => {
+        setMemoryEnabled(prefs.memoryEnabled);
+        setPrivacyMode(prefs.privacyMode);
+        setMemories(mems.memories);
+      })
+      .catch((e) => setError(friendlyError(e instanceof Error ? e.message : "Failed to load settings")))
+      .finally(() => setLoading(false));
   }, []);
 
   const savePrefs = async (updates: { memoryEnabled?: boolean; privacyMode?: string }) => {
-    const p = await advancedApi.updateMemoryPreferences(updates);
-    setMemoryEnabled(p.memoryEnabled);
-    setPrivacyMode(p.privacyMode);
+    try {
+      const p = await advancedApi.updateMemoryPreferences(updates);
+      setMemoryEnabled(p.memoryEnabled);
+      setPrivacyMode(p.privacyMode);
+      setError("");
+    } catch (e) {
+      setError(friendlyError(e instanceof Error ? e.message : "Could not save preferences"));
+    }
   };
 
   const addMemory = async () => {
     if (!newMemory.trim()) return;
-    const m = await advancedApi.createMemory("preference", newMemory.trim());
-    setMemories((prev) => [m, ...prev]);
-    setNewMemory("");
+    try {
+      const m = await advancedApi.createMemory("preference", newMemory.trim());
+      setMemories((prev) => [m, ...prev]);
+      setNewMemory("");
+      setError("");
+    } catch (e) {
+      setError(friendlyError(e instanceof Error ? e.message : "Could not add memory"));
+    }
   };
 
   return (
@@ -78,6 +113,9 @@ export function SettingsPage() {
       <section className="section" style={{ maxWidth: 640 }}>
         <div className="section-label">Settings</div>
         <h1 className="section-title">Preferences</h1>
+
+        {error && <div className="error-banner" style={{ marginBottom: 16 }}>{error}</div>}
+        {loading && <p style={{ color: "var(--muted)", marginBottom: 16 }}>Loading settings…</p>}
 
         <div className="settings-group">
           <h2>Profile</h2>

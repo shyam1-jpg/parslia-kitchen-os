@@ -75,6 +75,16 @@ button, input, textarea, select {
 
 .input:focus { border-color: var(--c1); }
 
+.info-banner {
+  padding: 12px 16px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .error-banner {
   padding: 12px 16px;
   background: rgba(239, 68, 68, 0.1);

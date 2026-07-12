@@ -54,6 +54,17 @@ router.post("/login", async (req, res) => {
   res.json({ user, usage: getUsage(user.id, user.plan) });
 });
 
+router.get("/config", (_req, res) => {
+  res.json({
+    oauth: {
+      google: Boolean(process.env.GOOGLE_CLIENT_ID),
+      apple: Boolean(process.env.APPLE_CLIENT_ID),
+      microsoft: Boolean(process.env.MICROSOFT_CLIENT_ID),
+    },
+    stripe: Boolean(process.env.STRIPE_SECRET_KEY),
+  });
+});
+
 router.post("/logout", (req, res) => {
   req.session.destroy(() => {
     res.clearCookie("connect.sid");
@@ -100,10 +111,9 @@ router.get("/oauth/:provider/start", (req, res) => {
     return res.redirect(url);
   }
 
-  return res.status(501).json({
-    error: "OAUTH_NOT_CONFIGURED",
-    message: `Set ${provider.toUpperCase()}_CLIENT_ID on the server to enable ${provider} sign-in.`,
-  });
+  return res.redirect(
+    `${frontend}/login?oauth_error=${encodeURIComponent(provider)}`
+  );
 });
 
 export default router;

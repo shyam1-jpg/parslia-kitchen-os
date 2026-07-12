@@ -18,6 +18,7 @@ import {
   type Conversation,
   type ModelInfo,
 } from "../lib/api";
+import { friendlyError } from "../lib/errors";
 
 function groupConversations(conversations: Conversation[]) {
   const now = new Date();
@@ -196,7 +197,7 @@ export function AppPage() {
       loadConversations();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to send";
-      setError(msg === "USAGE_LIMIT_REACHED" ? "Daily limit reached." : msg);
+      setError(friendlyError(msg, msg));
       setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
     } finally {
       setLoading(false);

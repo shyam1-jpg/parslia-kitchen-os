@@ -71,6 +71,10 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const authApi = {
+  config: () =>
+    api<{ oauth: { google: boolean; apple: boolean; microsoft: boolean }; stripe: boolean }>(
+      "/api/auth/config"
+    ),
   me: () => api<{ user: User; usage: Usage }>("/api/auth/me"),
   login: (email: string, password: string) =>
     api<{ user: User; usage: Usage }>("/api/auth/login", {

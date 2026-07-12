@@ -97,8 +97,7 @@ export const advancedApi = {
       modelId?: string;
       routerMode?: string;
       history?: { role: "user" | "assistant"; content: string }[];
-    },
-    onError?: (err: string) => void
+    }
   ) {
     const res = await fetch("/api/ai/stream", {
       method: "POST",
@@ -125,7 +124,7 @@ export const advancedApi = {
         if (payload === "[DONE]") return;
         try {
           const parsed = JSON.parse(payload) as { delta?: string; error?: string };
-          if (parsed.error) onError?.(parsed.error);
+          if (parsed.error) throw new Error(parsed.error);
           else if (parsed.delta) yield parsed.delta;
         } catch { /* skip */ }
       }

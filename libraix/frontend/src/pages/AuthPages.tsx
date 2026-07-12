@@ -2,12 +2,20 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { PublicNav, Footer } from "../components/Layout";
 import { useAuth } from "../lib/auth";
-import { catalogApi, type Catalog } from "../lib/api";
+import { authApi, catalogApi, type Catalog } from "../lib/api";
+import { friendlyError } from "../lib/errors";
+
+type AuthConfig = {
+  oauth: { google: boolean; apple: boolean; microsoft: boolean };
+  stripe: boolean;
+};
 
 export function LoginPage() {
   const [params] = useSearchParams();
   const isSignup = params.get("mode") === "signup";
+  const oauthError = params.get("oauth_error");
   const [mode, setMode] = useState<"login" | "signup">(isSignup ? "signup" : "login");
+  const [authConfig, setAuthConfig] = useState<AuthConfig | null>(null);
   const { login, signup } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -19,6 +27,20 @@ export function LoginPage() {
   useEffect(() => {
     setMode(isSignup ? "signup" : "login");
   }, [isSignup]);
+
+  useEffect(() => {
+    authApi.config().then(setAuthConfig).catch(() => setAuthConfig({ oauth: { google: false, apple: false, microsoft: false }, stripe: false }));
+  }, []);
+
+  useEffect(() => {
+    if (oauthError) {
+      setError(`${oauthError.charAt(0).toUpperCase()}${oauthError.slice(1)} sign-in is not available yet. Use email and password below.`);
+    }
+  }, [oauthError]);
+
+  const oauthEnabled = authConfig
+    ? Object.values(authConfig.oauth).some(Boolean)
+    : false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,12 +55,7 @@ export function LoginPage() {
       window.location.href = "/app";
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
-      const labels: Record<string, string> = {
-        INVALID_CREDENTIALS: "Incorrect email or password.",
-        EMAIL_EXISTS: "An account with this email already exists.",
-        INVALID_INPUT: "Please check your input and try again.",
-      };
-      setError(labels[msg] ?? msg);
+      setError(friendlyError(msg, msg));
     } finally {
       setLoading(false);
     }
@@ -52,7 +69,7 @@ export function LoginPage() {
           <h1>{mode === "signup" ? "Create your account" : "Welcome back"}</h1>
           <p>
             {mode === "signup"
-              ? "One account for email, Google, Apple and Microsoft sign-in."
+              ? "Free account — chat, web search, and PDF tools included."
               : "Sign in to your Libraix workspace."}
           </p>
 
@@ -89,18 +106,26 @@ export function LoginPage() {
             </button>
           </p>
 
-          <div className="oauth-row">
-            <p style={{ fontSize: 12, color: "var(--dim)", textAlign: "center" }}>Or continue with</p>
-            <button type="button" className="oauth-btn" onClick={() => { window.location.href = "/api/auth/oauth/google/start"; }}>
-              Continue with Google
-            </button>
-            <button type="button" className="oauth-btn" onClick={() => { window.location.href = "/api/auth/oauth/apple/start"; }}>
-              Continue with Apple
-            </button>
-            <button type="button" className="oauth-btn" onClick={() => { window.location.href = "/api/auth/oauth/microsoft/start"; }}>
-              Continue with Microsoft
-            </button>
-          </div>
+          {oauthEnabled && (
+            <div className="oauth-row">
+              <p style={{ fontSize: 12, color: "var(--dim)", textAlign: "center" }}>Or continue with</p>
+              {authConfig?.oauth.google && (
+                <button type="button" className="oauth-btn" onClick={() => { window.location.href = "/api/auth/oauth/google/start"; }}>
+                  Continue with Google
+                </button>
+              )}
+              {authConfig?.oauth.apple && (
+                <button type="button" className="oauth-btn" onClick={() => { window.location.href = "/api/auth/oauth/apple/start"; }}>
+                  Continue with Apple
+                </button>
+              )}
+              {authConfig?.oauth.microsoft && (
+                <button type="button" className="oauth-btn" onClick={() => { window.location.href = "/api/auth/oauth/microsoft/start"; }}>
+                  Continue with Microsoft
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <Footer />
@@ -110,12 +135,22 @@ export function LoginPage() {
 
 export function PricingPage() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
+  const [checkoutMsg, setCheckoutMsg] = useState("");
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     catalogApi.get().then(setCatalog).catch(console.error);
   }, []);
 
   const startCheckout = async (plan: "pro" | "enterprise") => {
+    if (!user) {
+      window.location.href = "/login?mode=signup";
+      return;
+    }
+
+    setCheckoutMsg("");
+    setCheckoutLoading(true);
     try {
       const res = await fetch("/api/billing/stripe/checkout", {
         method: "POST",
@@ -123,12 +158,18 @@ export function PricingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }),
       });
-      const data = await res.json() as { url?: string; devMode?: boolean; message?: string };
-      if (data.url) window.location.href = data.url;
-      else if (data.devMode) alert(data.message ?? "Stripe not configured yet — sign up free and contact us for Pro.");
-      else window.location.href = "/login?mode=signup";
+      const data = await res.json() as { url?: string | null; devMode?: boolean; message?: string; error?: string };
+      if (data.url) {
+        window.location.href = data.url;
+      } else if (data.devMode) {
+        setCheckoutMsg("Online checkout is not live yet. Email hello@libraix.ai to upgrade to Pro, or keep using the free plan.");
+      } else if (!res.ok) {
+        setCheckoutMsg(friendlyError(data.error ?? "CHECKOUT_FAILED", "Could not start checkout."));
+      }
     } catch {
-      window.location.href = "/login?mode=signup";
+      setCheckoutMsg("Could not reach the billing service. Try again or email hello@libraix.ai.");
+    } finally {
+      setCheckoutLoading(false);
     }
   };
 
@@ -142,6 +183,10 @@ export function PricingPage() {
         <div className="section-label">Pricing</div>
         <h1 className="section-title">Simple, honest pricing</h1>
         <p className="section-sub">Start free. Upgrade when you need more. Cancel anytime.</p>
+
+        {checkoutMsg && (
+          <div className="info-banner" style={{ maxWidth: 720, margin: "0 auto 24px" }}>{checkoutMsg}</div>
+        )}
 
         <div className="pricing-grid">
           <div className="price-card">
@@ -166,8 +211,8 @@ export function PricingPage() {
               <li>✓ {catalog?.assistantCount ?? 5} AI Assistants</li>
               <li>✓ Prompt library</li>
             </ul>
-            <button type="button" className="btn btn-primary" style={{ width: "100%" }} onClick={() => startCheckout("pro")}>
-              Start Pro — £9/mo
+            <button type="button" className="btn btn-primary" style={{ width: "100%" }} disabled={checkoutLoading} onClick={() => startCheckout("pro")}>
+              {checkoutLoading ? "Please wait…" : user ? "Start Pro — £9/mo" : "Sign up for Pro"}
             </button>
           </div>
 
