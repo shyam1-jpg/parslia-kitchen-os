@@ -1,46 +1,44 @@
-# Deploy Libraix Live
+# Deploy Libraix — one-click links
 
-## 1. Backend (Render — free tier)
+## Claimed Netlify site (you did this)
 
-1. Go to [render.com](https://render.com) → **New** → **Blueprint**
-2. Connect repo `shyam1-jpg/parslia-kitchen-os` branch `main`
-3. Render reads `render.yaml` and creates `libraix-api`
-4. Add environment variables in Render dashboard:
-   - `OPENAI_API_KEY` — your OpenAI project key
-   - `STRIPE_SECRET_KEY` (optional)
-   - `STRIPE_PRO_PRICE_ID` (optional)
-5. Note the service URL (default: `https://libraix-api.onrender.com`)
+| | |
+|---|---|
+| **Site ID** | `551984bf-05ea-447b-a82b-86ad4374e6e3` |
+| **Preview** | https://rainbow-rolypoly-51c433.netlify.app |
+| **Still needed** | Point `libraix.ai` domain to this site + link GitHub repo |
 
-## 2. Update Netlify API proxy
+When you're back (3 min in Netlify):
+1. Open claimed site → **Domain management** → add `libraix.ai` (remove from old site if conflict)
+2. **Link repository** → `shyam1-jpg/parslia-kitchen-os` → branch `main`
+3. **Trigger deploy**
 
-Edit `netlify.toml` if your Render URL differs:
+## Backend (Render) — click once
 
-```toml
-[[redirects]]
-  from = "/api/*"
-  to = "https://YOUR-RENDER-URL.onrender.com/api/:splat"
-```
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/shyam1-jpg/parslia-kitchen-os)
 
-## 3. Frontend (Netlify — libraix.ai)
+After deploy, add **`OPENAI_API_KEY`** in the Render dashboard.
 
-1. Netlify dashboard → site for **libraix.ai**
-2. **Build settings:**
-   - Base directory: `libraix/frontend`
-   - Build command: `npm install && npm run build`
-   - Publish directory: `libraix/frontend/dist`
-3. Connect to GitHub repo `shyam1-jpg/parslia-kitchen-os`, branch `main`
-4. Custom domain: `libraix.ai`
-5. Deploy
+Service URL: `https://libraix-api.onrender.com`
 
-Or add GitHub secrets `NETLIFY_AUTH_TOKEN` + `NETLIFY_SITE_ID` for auto-deploy via Actions.
+## Frontend (Netlify) — connect repo once
 
-## 4. Verify
+1. [Netlify](https://app.netlify.com) → Add new site → Import from Git
+2. Repo: `shyam1-jpg/parslia-kitchen-os`, branch `main`
+3. Build settings (auto from `netlify.toml`):
+   - Base: `libraix/frontend`
+   - Publish: `libraix/frontend/dist`
+4. Domain: `libraix.ai`
 
-- https://libraix.ai — public landing only
-- https://libraix.ai/login — auth
-- https://libraix.ai/app — workspace (after login)
-- https://libraix.ai/api/health — should return `{"ok":true}` via Netlify proxy
+## GitHub Pages (preview — live automatically)
 
-## 5. Rotate keys
+https://shyam1-jpg.github.io/parslia-kitchen-os/
 
-Rotate any OpenAI key previously exposed in the old single-page libraix.ai frontend.
+(API requires Render backend; set `netlify.toml` proxy or use Render URL in frontend)
+
+## Verify live
+
+- `/` — public landing only
+- `/login` — auth
+- `/app` — workspace
+- `/api/health` — `{"ok":true}` (Netlify proxy → Render)
