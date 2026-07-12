@@ -1,0 +1,9 @@
+[build]
+  base = "libraix/frontend"
+  command = "npm install && npm run build"
+  publish = "libraix/frontend/dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

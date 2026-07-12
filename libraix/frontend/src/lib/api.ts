@@ -1,0 +1,118 @@
+export interface User {
+  id: string;
+  email: string;
+  displayName: string | null;
+  plan: "free" | "pro" | "enterprise";
+  emailVerified: boolean;
+}
+
+export interface Usage {
+  plan: string;
+  messagesUsed: number;
+  messagesLimit: number;
+  premiumUsed: number;
+  premiumLimit: number;
+  imagesUsed: number;
+  imagesLimit: number;
+  remainingMessages: number;
+  limitReached: boolean;
+}
+
+export interface ModelInfo {
+  id: string;
+  displayName: string;
+  provider: string;
+  tier: string;
+  capabilities: Record<string, boolean>;
+  enabled: boolean;
+  description: string;
+}
+
+export interface Catalog {
+  modelCount: number;
+  toolCount: number;
+  assistantCount: number;
+  models: ModelInfo[];
+  tools: { id: string; name: string; description: string; tier: string }[];
+  assistants: { id: string; name: string; description: string; tier: string }[];
+  plans: Record<string, { dailyMessages: number; premiumModelMessages: number; images: number }>;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  modelId: string;
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  createdAt: string;
+}
+
+async function api<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(path, {
+    ...options,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options?.headers ?? {}),
+    },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+export const authApi = {
+  me: () => api<{ user: User; usage: Usage }>("/api/auth/me"),
+  login: (email: string, password: string) =>
+    api<{ user: User; usage: Usage }>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+  signup: (email: string, password: string, displayName?: string) =>
+    api<{ user: User; usage: Usage }>("/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({ email, password, displayName }),
+    }),
+  logout: () => api<{ ok: boolean }>("/api/auth/logout", { method: "POST" }),
+};
+
+export const catalogApi = {
+  get: () => api<Catalog>("/api/catalog"),
+};
+
+export const chatApi = {
+  models: () => api<{ models: ModelInfo[] }>("/api/models"),
+  respond: (body: {
+    message: string;
+    modelId: string;
+    history?: { role: "user" | "assistant"; content: string }[];
+    systemPrompt?: string;
+  }) => api<{ content: string; modelId: string; tokensUsed?: number }>("/api/ai/respond", {
+    method: "POST",
+    body: JSON.stringify(body),
+  }),
+  conversations: () => api<{ conversations: Conversation[] }>("/api/conversations"),
+  createConversation: (modelId: string, title?: string) =>
+    api<Conversation>("/api/conversations", {
+      method: "POST",
+      body: JSON.stringify({ modelId, title }),
+    }),
+  getConversation: (id: string) =>
+    api<{ conversation: Conversation; messages: ChatMessage[] }>(`/api/conversations/${id}`),
+  addMessage: (conversationId: string, role: "user" | "assistant", content: string) =>
+    api<ChatMessage>(`/api/conversations/${conversationId}/messages`, {
+      method: "POST",
+      body: JSON.stringify({ role, content }),
+    }),
+  deleteConversation: (id: string) =>
+    api<{ ok: boolean }>(`/api/conversations/${id}`, { method: "DELETE" }),
+};

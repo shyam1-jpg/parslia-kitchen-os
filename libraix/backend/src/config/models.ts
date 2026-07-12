@@ -1,0 +1,137 @@
+export type PlanTier = "free" | "pro" | "enterprise";
+
+export interface ModelDefinition {
+  id: string;
+  displayName: string;
+  provider: "openai" | "anthropic" | "google" | "deepseek" | "meta" | "xai" | "perplexity";
+  providerModelId: string;
+  tier: PlanTier;
+  capabilities: {
+    chat: boolean;
+    streaming: boolean;
+    image?: boolean;
+    webSearch?: boolean;
+    fileSearch?: boolean;
+  };
+  enabled: boolean;
+  description: string;
+}
+
+export interface ToolDefinition {
+  id: string;
+  name: string;
+  description: string;
+  tier: PlanTier;
+  enabled: boolean;
+}
+
+export interface AssistantDefinition {
+  id: string;
+  name: string;
+  description: string;
+  systemPrompt: string;
+  tier: PlanTier;
+  enabled: boolean;
+}
+
+export interface ProductCatalog {
+  models: ModelDefinition[];
+  tools: ToolDefinition[];
+  assistants: AssistantDefinition[];
+  plans: {
+    free: { dailyMessages: number; premiumModelMessages: number; images: number };
+    pro: { dailyMessages: number; premiumModelMessages: number; images: number };
+    enterprise: { dailyMessages: number; premiumModelMessages: number; images: number };
+  };
+}
+
+/** Single source of truth for models, tools, assistants and plan limits. */
+export const PRODUCT_CATALOG: ProductCatalog = {
+  models: [
+    {
+      id: "libraix-fast",
+      displayName: "Libraix Fast",
+      provider: "openai",
+      providerModelId: "gpt-5.6-luna",
+      tier: "free",
+      capabilities: { chat: true, streaming: true },
+      enabled: true,
+      description: "Cost-efficient responses for everyday tasks.",
+    },
+    {
+      id: "libraix-smart",
+      displayName: "Libraix Smart",
+      provider: "openai",
+      providerModelId: "gpt-5.6-terra",
+      tier: "pro",
+      capabilities: { chat: true, streaming: true, webSearch: true },
+      enabled: true,
+      description: "Balanced quality and speed for professional work.",
+    },
+    {
+      id: "libraix-advanced",
+      displayName: "Libraix Advanced",
+      provider: "openai",
+      providerModelId: "gpt-5.6-sol",
+      tier: "pro",
+      capabilities: { chat: true, streaming: true, webSearch: true, fileSearch: true },
+      enabled: true,
+      description: "Highest-quality reasoning for complex tasks.",
+    },
+    {
+      id: "libraix-image",
+      displayName: "Libraix Image",
+      provider: "openai",
+      providerModelId: "gpt-image-2",
+      tier: "pro",
+      capabilities: { chat: false, streaming: false, image: true },
+      enabled: true,
+      description: "Current OpenAI image generation model.",
+    },
+  ],
+  tools: [
+    { id: "chat", name: "Multi-Model Chat", description: "Switch models in one conversation.", tier: "free", enabled: true },
+    { id: "web-search", name: "Live Web Search", description: "Real-time search with source links.", tier: "free", enabled: true },
+    { id: "pdf-chat", name: "PDF Chat", description: "Upload and question documents.", tier: "free", enabled: true },
+    { id: "youtube", name: "YouTube Summariser", description: "Summarise videos from a URL.", tier: "free", enabled: true },
+    { id: "link-analyser", name: "Webpage Analyser", description: "Analyse any public URL.", tier: "free", enabled: true },
+    { id: "image-gen", name: "AI Image Generator", description: "Text-to-image generation.", tier: "pro", enabled: true },
+    { id: "voice", name: "Voice Chat", description: "Hands-free voice conversations.", tier: "pro", enabled: false },
+    { id: "prompt-library", name: "Prompt Library", description: "Save and reuse prompts.", tier: "pro", enabled: true },
+    { id: "assistants", name: "AI Assistants", description: "Specialist pre-tuned agents.", tier: "pro", enabled: true },
+  ],
+  assistants: [
+    { id: "writing", name: "Writing Coach", description: "Emails, essays and reports.", systemPrompt: "You are an expert writing coach.", tier: "pro", enabled: true },
+    { id: "coding", name: "Coding Expert", description: "Write and debug code.", systemPrompt: "You are an expert software engineer.", tier: "pro", enabled: true },
+    { id: "business", name: "Business Advisor", description: "Strategy and market analysis.", systemPrompt: "You are a business strategy advisor.", tier: "pro", enabled: true },
+    { id: "creative", name: "Creative Partner", description: "Brainstorming and storytelling.", systemPrompt: "You are a creative partner.", tier: "pro", enabled: true },
+    { id: "data", name: "Data Analyst", description: "SQL, Python and statistics.", systemPrompt: "You are a data analyst.", tier: "pro", enabled: true },
+  ],
+  plans: {
+    free: { dailyMessages: 20, premiumModelMessages: 0, images: 0 },
+    pro: { dailyMessages: 500, premiumModelMessages: 200, images: 50 },
+    enterprise: { dailyMessages: 5000, premiumModelMessages: 2000, images: 500 },
+  },
+};
+
+export function getModelById(id: string): ModelDefinition | undefined {
+  return PRODUCT_CATALOG.models.find((m) => m.id === id && m.enabled);
+}
+
+export function getModelsForPlan(plan: PlanTier): ModelDefinition[] {
+  const tierOrder: PlanTier[] = ["free", "pro", "enterprise"];
+  const planIndex = tierOrder.indexOf(plan);
+  return PRODUCT_CATALOG.models.filter((m) => m.enabled && tierOrder.indexOf(m.tier) <= planIndex);
+}
+
+export function getPublicCatalog() {
+  return {
+    modelCount: PRODUCT_CATALOG.models.filter((m) => m.enabled).length,
+    toolCount: PRODUCT_CATALOG.tools.filter((t) => t.enabled).length,
+    assistantCount: PRODUCT_CATALOG.assistants.filter((a) => a.enabled).length,
+    models: PRODUCT_CATALOG.models.filter((m) => m.enabled).map(({ providerModelId: _, ...rest }) => rest),
+    tools: PRODUCT_CATALOG.tools.filter((t) => t.enabled),
+    assistants: PRODUCT_CATALOG.assistants.filter((a) => a.enabled),
+    plans: PRODUCT_CATALOG.plans,
+  };
+}
