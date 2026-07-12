@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { LibraixLogoMark } from "./LibraixLogo";
 import { CookieSettingsLink } from "./CookieBanner";
+import { COMPANY } from "../lib/company";
 
 export function Logo({ to = "/" }: { to?: string }) {
   return (
@@ -59,7 +60,9 @@ export function Footer() {
         <Link to="/support">Support</Link>
         <CookieSettingsLink />
       </div>
-      <p className="footer-identity">Libraix · United Kingdom · hello@libraix.ai · privacy@libraix.ai</p>
+      <p className="footer-identity">
+        {COMPANY.tradingName} · {COMPANY.fullAddress} · {COMPANY.supportEmail} · {COMPANY.privacyEmail}
+      </p>
       <p className="footer-disclaimer">
         Libraix is an independent platform and is not affiliated with or endorsed by OpenAI, Anthropic, Google, Meta, xAI or other model providers.
       </p>

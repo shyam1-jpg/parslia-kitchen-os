@@ -35,6 +35,10 @@ services:
         sync: false
       - key: EMAIL_FROM
         sync: false
+      - key: COMPANY_ADDRESS
+        value: "23 Lincoln Road, Branston, Lincoln LN4 1PE, United Kingdom"
+      - key: COMPANY_LEGAL_NAME
+        value: "Libraix (trading name — legal entity to be confirmed)"
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT

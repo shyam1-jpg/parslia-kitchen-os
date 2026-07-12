@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { PublicNav, Footer } from "../components/Layout";
+import { COMPANY } from "../lib/company";
 
 function LegalShell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -30,7 +31,11 @@ export function AboutPage() {
         <li>Honest feature labelling — roadmap items are marked Coming Soon, not advertised as live.</li>
         <li>Privacy by design — see our <Link to="/privacy">Privacy Policy</Link>.</li>
       </ul>
-      <p>Contact: <a href="mailto:hello@libraix.ai">hello@libraix.ai</a></p>
+      <h2>Contact</h2>
+      <p><a href={`mailto:${COMPANY.supportEmail}`}>{COMPANY.supportEmail}</a></p>
+      <p><a href={`mailto:${COMPANY.privacyEmail}`}>{COMPANY.privacyEmail}</a> (privacy)</p>
+      <h2>Registered address</h2>
+      <p>{COMPANY.fullAddress}</p>
     </LegalShell>
   );
 }
@@ -46,7 +51,9 @@ export function ContactPage() {
       <h2>Privacy &amp; data requests</h2>
       <p>Submit via <Link to="/support">Privacy request</Link> or email <a href="mailto:privacy@libraix.ai">privacy@libraix.ai</a>.</p>
       <h2>Company</h2>
-      <p>Libraix · United Kingdom · hello@libraix.ai</p>
+      <p>{COMPANY.legalName}</p>
+      <p>{COMPANY.fullAddress}</p>
+      <p><a href={`mailto:${COMPANY.supportEmail}`}>{COMPANY.supportEmail}</a></p>
     </LegalShell>
   );
 }

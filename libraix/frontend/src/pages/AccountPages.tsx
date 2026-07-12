@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { PublicNav, Footer } from "../components/Layout";
+import { COMPANY } from "../lib/company";
 import { useAuth } from "../lib/auth";
 import { authApi, billingApi } from "../lib/api";
 import { advancedApi, type Memory } from "../lib/advanced";
@@ -271,7 +272,14 @@ export function PrivacyPage() {
       <PublicNav />
       <article className="legal-page">
         <h1>Privacy Policy</h1>
-        <p>Last updated: July 2026 · Controller: Libraix (hello@libraix.ai)</p>
+        <p>Last updated: July 2026</p>
+
+        <h2>Data controller</h2>
+        <p>
+          <strong>{COMPANY.tradingName}</strong> ({COMPANY.legalName})<br />
+          {COMPANY.fullAddress}<br />
+          Privacy contact: <a href={`mailto:${COMPANY.privacyEmail}`}>{COMPANY.privacyEmail}</a>
+        </p>
 
         <h2>What we collect</h2>
         <ul>
@@ -308,8 +316,8 @@ export function PrivacyPage() {
 
         <h2>Your rights (UK/EU GDPR)</h2>
         <p>
-          You may request access, correction, export, or deletion of your data by emailing hello@libraix.ai.
-          You may lodge a complaint with your local supervisory authority.
+          You may request access, correction, export, or deletion of your data by emailing {COMPANY.privacyEmail}.
+          You may lodge a complaint with the UK Information Commissioner&apos;s Office (ICO) at ico.org.uk.
         </p>
 
         <h2>AI limitations</h2>
