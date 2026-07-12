@@ -2,7 +2,7 @@ services:
   - type: web
     name: libraix-api
     runtime: node
-    plan: free
+    plan: starter
     buildCommand: cd libraix/backend && npm install --include=dev && npm run build
     startCommand: cd libraix/backend && npm run seed:owner && npm start
     healthCheckPath: /health
@@ -14,7 +14,7 @@ services:
       - key: FRONTEND_URL
         value: https://libraix.ai
       - key: DATABASE_PATH
-        value: ./libraix.db
+        value: /var/data/libraix.db
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_MODEL_FAST
@@ -43,3 +43,7 @@ services:
         sync: false
       - key: SMTP_PASS
         sync: false
+    disk:
+      name: libraix-data
+      mountPath: /var/data
+      sizeGB: 1
