@@ -13,6 +13,8 @@ import {
 } from "../services/users.js";
 import { getUsage } from "../services/usage.js";
 import { requireAuth } from "../middleware/auth.js";
+import { sendPasswordResetEmail, isEmailConfigured } from "../services/email.js";
+import { isStripeCheckoutConfigured } from "../services/stripe.js";
 
 const router = Router();
 
@@ -64,7 +66,8 @@ router.get("/config", (_req, res) => {
       apple: Boolean(process.env.APPLE_CLIENT_ID),
       microsoft: Boolean(process.env.MICROSOFT_CLIENT_ID),
     },
-    stripe: Boolean(process.env.STRIPE_SECRET_KEY),
+    stripe: isStripeCheckoutConfigured(),
+    email: isEmailConfigured(),
   });
 });
 
@@ -82,7 +85,7 @@ router.get("/me", requireAuth, (req, res) => {
   res.json({ user, usage: getUsage(user.id, user.plan) });
 });
 
-router.post("/forgot-password", (req, res) => {
+router.post("/forgot-password", async (req, res) => {
   const parsed = z.object({ email: z.string().email() }).safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
 
@@ -91,9 +94,18 @@ router.post("/forgot-password", (req, res) => {
   const payload: Record<string, string> = {
     message: "If an account exists for that email, password reset instructions have been sent.",
   };
-  if (process.env.NODE_ENV !== "production" && token) {
-    payload.resetUrl = `${frontend}/reset-password?token=${token}`;
+
+  if (token) {
+    const resetUrl = `${frontend}/reset-password?token=${token}`;
+    const sent = await sendPasswordResetEmail(parsed.data.email, resetUrl);
+    if (!sent) {
+      console.warn("Password reset email not sent — configure RESEND_API_KEY or SMTP_* on server");
+      if (process.env.NODE_ENV !== "production") {
+        payload.resetUrl = resetUrl;
+      }
+    }
   }
+
   res.json(payload);
 });
 

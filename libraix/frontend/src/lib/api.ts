@@ -75,7 +75,7 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const authApi = {
   config: () =>
-    api<{ oauth: { google: boolean; apple: boolean; microsoft: boolean }; stripe: boolean }>(
+    api<{ oauth: { google: boolean; apple: boolean; microsoft: boolean }; stripe: boolean; email: boolean }>(
       "/api/auth/config"
     ),
   me: () => api<{ user: User; usage: Usage }>("/api/auth/me"),
@@ -105,6 +105,24 @@ export const authApi = {
 
 export const catalogApi = {
   get: () => api<Catalog>("/api/catalog"),
+};
+
+export interface BillingStatus {
+  plan: string;
+  stripeConfigured: boolean;
+  hasStripeCustomer: boolean;
+  canManageBilling: boolean;
+}
+
+export const billingApi = {
+  status: () => api<BillingStatus>("/api/billing/status"),
+  checkout: (plan: "pro" | "enterprise") =>
+    api<{ url?: string | null; devMode?: boolean; message?: string }>("/api/billing/stripe/checkout", {
+      method: "POST",
+      body: JSON.stringify({ plan }),
+    }),
+  portal: () =>
+    api<{ url: string }>("/api/billing/stripe/portal", { method: "POST", body: "{}" }),
 };
 
 export const chatApi = {

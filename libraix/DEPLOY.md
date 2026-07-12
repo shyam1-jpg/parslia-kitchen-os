@@ -27,6 +27,54 @@ After deploy, add **`OPENAI_API_KEY`** in the Render dashboard (Environment → 
 
 Service URL: `https://libraix-api.onrender.com`
 
+## Email (password reset)
+
+Choose **one** provider on Render:
+
+### Option A — Resend (recommended)
+
+1. Sign up at [resend.com](https://resend.com)
+2. Verify domain `libraix.ai` (DNS records)
+3. Create API key
+4. On Render, set:
+
+| Variable | Example |
+|---|---|
+| `RESEND_API_KEY` | `re_...` |
+| `EMAIL_FROM` | `Libraix <noreply@libraix.ai>` |
+
+### Option B — SMTP (SendGrid, Gmail, etc.)
+
+| Variable | Example |
+|---|---|
+| `SMTP_HOST` | `smtp.sendgrid.net` |
+| `SMTP_PORT` | `587` |
+| `SMTP_USER` | `apikey` |
+| `SMTP_PASS` | your SMTP password |
+| `EMAIL_FROM` | `Libraix <noreply@libraix.ai>` |
+
+Test: `/forgot-password` → check inbox for reset link.
+
+## Stripe (Pro subscriptions)
+
+1. Create account at [stripe.com](https://stripe.com)
+2. **Products** → create **Pro** subscription → £9/month → copy **Price ID** (`price_...`)
+3. **Developers → Webhooks** → add endpoint:
+   - URL: `https://libraix-api.onrender.com/api/billing/stripe/webhook`
+   - Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+   - Copy **Signing secret** (`whsec_...`)
+4. On Render, set:
+
+| Variable | Value |
+|---|---|
+| `STRIPE_SECRET_KEY` | `sk_live_...` or `sk_test_...` |
+| `STRIPE_PRO_PRICE_ID` | `price_...` |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...` |
+
+5. **Customer portal** (for Manage subscription): Stripe Dashboard → Settings → Billing → Customer portal → Enable
+
+Test: Log in → Pricing → **Start Pro** → complete test checkout → Account shows Pro plan.
+
 ## Frontend (Netlify) — connect repo once
 
 1. [Netlify](https://app.netlify.com) → Add new site → Import from Git

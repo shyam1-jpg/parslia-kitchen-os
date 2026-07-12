@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireAuth } from "../middleware/auth.js";
 import { isFeatureEnabled } from "../config/featureFlags.js";
 import { findUserById, toSafeUser } from "../services/users.js";
-import { createCheckoutSession, handleWebhookEvent } from "../services/stripe.js";
+import { createCheckoutSession, createBillingPortalSession, getBillingStatus, handleWebhookEvent } from "../services/stripe.js";
 import { runDeepResearch } from "../services/research.js";
 import { registerProjectFile, getProject } from "../services/projects.js";
 
@@ -31,6 +31,22 @@ router.post("/stripe/checkout", requireAuth, async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e instanceof Error ? e.message : "CHECKOUT_FAILED" });
   }
+});
+
+router.post("/stripe/portal", requireAuth, async (req, res) => {
+  try {
+    const result = await createBillingPortalSession(req.session.userId!);
+    res.json(result);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "PORTAL_FAILED";
+    res.status(400).json({ error: msg });
+  }
+});
+
+router.get("/status", requireAuth, (req, res) => {
+  const status = getBillingStatus(req.session.userId!);
+  if (!status) return res.status(401).json({ error: "UNAUTHENTICATED" });
+  res.json(status);
 });
 
 router.post("/research", requireAuth, async (req, res) => {

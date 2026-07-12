@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { PublicNav, Footer } from "../components/Layout";
 import { useAuth } from "../lib/auth";
-import { authApi, catalogApi, type Catalog } from "../lib/api";
+import { authApi, catalogApi, billingApi, type Catalog } from "../lib/api";
 import { friendlyError } from "../lib/errors";
 
 type AuthConfig = {
@@ -157,22 +157,14 @@ export function PricingPage() {
     setCheckoutMsg("");
     setCheckoutLoading(true);
     try {
-      const res = await fetch("/api/billing/stripe/checkout", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
-      });
-      const data = await res.json() as { url?: string | null; devMode?: boolean; message?: string; error?: string };
+      const data = await billingApi.checkout(plan);
       if (data.url) {
         window.location.href = data.url;
       } else if (data.devMode) {
-        setCheckoutMsg("Online checkout is not live yet. Email hello@libraix.ai to upgrade to Pro, or keep using the free plan.");
-      } else if (!res.ok) {
-        setCheckoutMsg(friendlyError(data.error ?? "CHECKOUT_FAILED", "Could not start checkout."));
+        setCheckoutMsg(data.message ?? "Online checkout is not live yet. Email hello@libraix.ai to upgrade to Pro.");
       }
-    } catch {
-      setCheckoutMsg("Could not reach the billing service. Try again or email hello@libraix.ai.");
+    } catch (err) {
+      setCheckoutMsg(friendlyError(err instanceof Error ? err.message : "CHECKOUT_FAILED", "Could not start checkout."));
     } finally {
       setCheckoutLoading(false);
     }

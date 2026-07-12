@@ -43,7 +43,9 @@ The old single-page site (146KB HTML with embedded app/settings) is **not** the 
 | Voice | **Disabled** | — | Feature flag off |
 | Assistants | **Beta** | System prompts | Pro; no dedicated UI yet |
 | Google/Apple/Microsoft OAuth | **Not configured** | — | Buttons hidden via `/api/auth/config` |
-| Stripe Pro checkout | **Not configured** | Stripe | Inline message when unavailable |
+| Password reset | **Live** | Resend or SMTP | Requires `RESEND_API_KEY` or `SMTP_*` on Render |
+| Stripe Pro checkout | **Live** | Stripe Checkout | Requires `STRIPE_SECRET_KEY` + `STRIPE_PRO_PRICE_ID` + webhook |
+| Manage subscription | **Live** | Stripe Customer Portal | After first checkout; enable portal in Stripe Dashboard |
 | Password reset | **Beta** | Email stub | Token stored; email send not wired |
 | Email verification | **Planned** | — | Flag on user record |
 | Account deletion | **Live** | API + Settings UI | Deletes user data |

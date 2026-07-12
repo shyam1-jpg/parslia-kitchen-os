@@ -118,4 +118,17 @@ export function initDb() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+
+  migrateUsersStripeColumns();
+}
+
+function migrateUsersStripeColumns() {
+  const cols = db.prepare("PRAGMA table_info(users)").all() as { name: string }[];
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has("stripe_customer_id")) {
+    db.exec("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT");
+  }
+  if (!names.has("stripe_subscription_id")) {
+    db.exec("ALTER TABLE users ADD COLUMN stripe_subscription_id TEXT");
+  }
 }

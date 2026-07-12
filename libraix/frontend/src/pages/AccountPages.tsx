@@ -2,25 +2,60 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { PublicNav, Footer } from "../components/Layout";
 import { useAuth } from "../lib/auth";
-import { authApi } from "../lib/api";
+import { authApi, billingApi } from "../lib/api";
 import { advancedApi, type Memory } from "../lib/advanced";
 import { friendlyError } from "../lib/errors";
 
 export function AccountPage() {
-  const { user, usage, logout } = useAuth();
+  const { user, usage, logout, refresh } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [notice, setNotice] = useState("");
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [canManageBilling, setCanManageBilling] = useState(false);
 
   useEffect(() => {
     if (params.get("upgraded") === "1") {
       setNotice("Thanks — your Pro upgrade is processing. Refresh in a moment if your plan has not updated.");
+      refresh().catch(() => {});
     }
-  }, [params]);
+    if (params.get("cancelled") === "1") {
+      setNotice("Checkout cancelled. You can upgrade anytime from this page.");
+    }
+  }, [params, refresh]);
+
+  useEffect(() => {
+    billingApi.status().then((s) => setCanManageBilling(s.canManageBilling)).catch(() => {});
+  }, [user?.plan]);
 
   const handleLogout = async () => {
     await logout();
     navigate("/");
+  };
+
+  const startCheckout = async () => {
+    setBillingLoading(true);
+    try {
+      const result = await billingApi.checkout("pro");
+      if (result.url) window.location.href = result.url;
+      else setNotice(result.message ?? "Checkout is not configured yet. Email hello@libraix.ai.");
+    } catch (e) {
+      setNotice(friendlyError(e instanceof Error ? e.message : "CHECKOUT_FAILED", "Checkout failed"));
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
+  const openPortal = async () => {
+    setBillingLoading(true);
+    try {
+      const result = await billingApi.portal();
+      if (result.url) window.location.href = result.url;
+    } catch (e) {
+      setNotice(friendlyError(e instanceof Error ? e.message : "PORTAL_FAILED", "Could not open billing portal"));
+    } finally {
+      setBillingLoading(false);
+    }
   };
 
   return (
@@ -51,9 +86,19 @@ export function AccountPage() {
           </div>
         </div>
 
-        <div style={{ marginTop: 40, display: "flex", gap: 12 }}>
+        <div style={{ marginTop: 40, display: "flex", gap: 12, flexWrap: "wrap" }}>
           <Link to="/app" className="btn btn-primary">Back to workspace</Link>
-          <Link to="/pricing" className="btn btn-ghost">Upgrade plan</Link>
+          {user?.plan === "free" ? (
+            <button className="btn btn-ghost" disabled={billingLoading} onClick={startCheckout}>
+              {billingLoading ? "Please wait…" : "Upgrade to Pro"}
+            </button>
+          ) : canManageBilling ? (
+            <button className="btn btn-ghost" disabled={billingLoading} onClick={openPortal}>
+              {billingLoading ? "Please wait…" : "Manage subscription"}
+            </button>
+          ) : (
+            <Link to="/pricing" className="btn btn-ghost">View plans</Link>
+          )}
           <button className="btn btn-ghost" onClick={handleLogout}>Sign out</button>
         </div>
       </section>

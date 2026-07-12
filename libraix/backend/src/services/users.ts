@@ -10,6 +10,8 @@ export interface UserRow {
   display_name: string | null;
   plan: PlanTier;
   email_verified: number;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
 }
 
 export interface SafeUser {
@@ -131,6 +133,29 @@ export function resetPasswordWithToken(token: string, newPassword: string): bool
   );
   db.prepare("DELETE FROM password_reset_tokens WHERE token = ?").run(token);
   return true;
+}
+
+export function setStripeCustomer(userId: string, customerId: string, subscriptionId?: string) {
+  if (subscriptionId) {
+    db.prepare(
+      "UPDATE users SET stripe_customer_id = ?, stripe_subscription_id = ?, updated_at = datetime('now') WHERE id = ?"
+    ).run(customerId, subscriptionId, userId);
+  } else {
+    db.prepare(
+      "UPDATE users SET stripe_customer_id = ?, updated_at = datetime('now') WHERE id = ?"
+    ).run(customerId, userId);
+  }
+}
+
+export function getStripeCustomerId(userId: string): string | null {
+  const row = db.prepare("SELECT stripe_customer_id FROM users WHERE id = ?").get(userId) as
+    | { stripe_customer_id: string | null }
+    | undefined;
+  return row?.stripe_customer_id ?? null;
+}
+
+export function updateUserPlan(userId: string, plan: PlanTier) {
+  db.prepare("UPDATE users SET plan = ?, updated_at = datetime('now') WHERE id = ?").run(plan, userId);
 }
 
 export function deleteUserAccount(userId: string): boolean {
