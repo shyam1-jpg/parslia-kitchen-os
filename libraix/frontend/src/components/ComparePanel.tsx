@@ -89,7 +89,7 @@ export function ComparePanel({ models, onClose }: ComparePanelProps) {
               {r.error ? (
                 <p className="compare-error">{r.error}</p>
               ) : (
-                <p className="compare-content">{r.content}</p>
+                <div className="compare-content"><MarkdownMessage content={r.content} /></div>
               )}
             </div>
           ))}
