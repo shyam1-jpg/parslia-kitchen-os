@@ -1,25 +1,38 @@
 import { getModelById } from "../config/models.js";
+import { completeViaGateway, streamViaGateway } from "../providers/gateway.js";
 import { canSendMessage, recordMessageUsage } from "./usage.js";
-import type { PlanTier } from "../config/models.js";
+import { routeModel } from "./router.js";
+import { getMemoryContext } from "./memory.js";
+import { getProjectContext } from "./projects.js";
+import type { RouterMode } from "../config/featureFlags.js";
 import type { SafeUser } from "./users.js";
-
-const OPENAI_API_URL = "https://api.openai.com/v1/responses";
 
 export interface AiRequest {
   message: string;
-  modelId: string;
+  modelId?: string;
+  routerMode?: RouterMode;
   conversationHistory?: { role: "user" | "assistant"; content: string }[];
   systemPrompt?: string;
+  projectId?: string;
+  useMemory?: boolean;
 }
 
 export interface AiResponse {
   content: string;
   modelId: string;
   tokensUsed?: number;
+  router?: ReturnType<typeof routeModel>;
 }
 
 export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiResponse> {
-  const model = getModelById(req.modelId);
+  const router = routeModel({
+    message: req.message,
+    mode: req.routerMode ?? "auto",
+    userPlan: user.plan,
+    manualModelId: req.modelId,
+  });
+
+  const model = getModelById(router.modelId);
   if (!model) throw new Error("MODEL_NOT_FOUND");
   if (!model.enabled) throw new Error("MODEL_DISABLED");
   if (!model.capabilities.chat) throw new Error("MODEL_NOT_CHAT");
@@ -29,57 +42,56 @@ export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiR
     throw new Error("USAGE_LIMIT_REACHED");
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    // Dev fallback when no key configured
-    recordMessageUsage(user.id, isPremium, 100, 0);
-    return {
-      content: `[Dev mode — set OPENAI_API_KEY on the server]\n\nYou asked: "${req.message.slice(0, 200)}"\n\nModel: ${model.displayName}`,
-      modelId: model.id,
-      tokensUsed: 100,
-    };
-  }
+  const memoryCtx = req.useMemory !== false ? getMemoryContext(user.id, req.projectId) : "";
+  const projectCtx = req.projectId ? getProjectContext(user.id, req.projectId) : "";
+  const systemParts = [req.systemPrompt, projectCtx, memoryCtx].filter(Boolean);
 
-  const input = [
-    ...(req.systemPrompt ? [{ role: "system" as const, content: req.systemPrompt }] : []),
+  const messages = [
+    ...(systemParts.length ? [{ role: "system" as const, content: systemParts.join("\n\n") }] : []),
     ...(req.conversationHistory ?? []),
     { role: "user" as const, content: req.message },
   ];
 
-  const res = await fetch(OPENAI_API_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: model.providerModelId,
-      input,
-      stream: false,
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`PROVIDER_ERROR:${res.status}:${err.slice(0, 200)}`);
-  }
-
-  const data = (await res.json()) as {
-    output_text?: string;
-    usage?: { total_tokens?: number };
-  };
-
-  const tokens = data.usage?.total_tokens ?? 0;
-  recordMessageUsage(user.id, isPremium, tokens, 0);
+  const response = await completeViaGateway(model, { messages });
+  recordMessageUsage(user.id, isPremium, response.tokensUsed, response.estimatedCostCents);
 
   return {
-    content: data.output_text ?? "No response received.",
+    content: response.content,
     modelId: model.id,
-    tokensUsed: tokens,
+    tokensUsed: response.tokensUsed,
+    router,
   };
 }
 
 export async function* streamAiResponse(user: SafeUser, req: AiRequest): AsyncGenerator<string> {
-  const result = await respondWithAi(user, req);
-  yield result.content;
+  const router = routeModel({
+    message: req.message,
+    mode: req.routerMode ?? "auto",
+    userPlan: user.plan,
+    manualModelId: req.modelId,
+  });
+
+  const model = getModelById(router.modelId);
+  if (!model) throw new Error("MODEL_NOT_FOUND");
+
+  const isPremium = model.tier !== "free";
+  if (!canSendMessage(user.id, user.plan, isPremium)) {
+    throw new Error("USAGE_LIMIT_REACHED");
+  }
+
+  const memoryCtx = req.useMemory !== false ? getMemoryContext(user.id, req.projectId) : "";
+  const messages = [
+    ...(memoryCtx ? [{ role: "system" as const, content: memoryCtx }] : []),
+    ...(req.conversationHistory ?? []),
+    { role: "user" as const, content: req.message },
+  ];
+
+  let totalLen = 0;
+  for await (const chunk of streamViaGateway(model, { messages, stream: true })) {
+    totalLen += chunk.length;
+    yield chunk;
+  }
+  recordMessageUsage(user.id, isPremium, Math.ceil(totalLen / 4), 0);
 }
+
+export { routeModel };

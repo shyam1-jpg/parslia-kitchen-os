@@ -93,10 +93,12 @@ export const chatApi = {
   models: () => api<{ models: ModelInfo[] }>("/api/models"),
   respond: (body: {
     message: string;
-    modelId: string;
+    modelId?: string;
+    routerMode?: string;
     history?: { role: "user" | "assistant"; content: string }[];
     systemPrompt?: string;
-  }) => api<{ content: string; modelId: string; tokensUsed?: number }>("/api/ai/respond", {
+    projectId?: string;
+  }) => api<{ content: string; modelId: string; tokensUsed?: number; router?: Record<string, unknown> }>("/api/ai/respond", {
     method: "POST",
     body: JSON.stringify(body),
   }),

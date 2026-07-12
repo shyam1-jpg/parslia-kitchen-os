@@ -70,15 +70,29 @@ Open http://localhost:5173
 - **Backend**: Railway, Render, or Fly.io
 - **DNS**: `libraix.ai` → frontend, `api.libraix.ai` → backend
 
-## Still to implement (phase 2)
+## Advanced features (implemented)
+
+See `docs/SPECIFICATION.md` for the full roadmap (items 11–43).
+
+| Feature | API / UI |
+|---------|----------|
+| Smart Model Router | `POST /api/router/preview` · Auto/Fast/Balanced modes in `/app` |
+| Model Comparison Lab | `POST /api/ai/compare` · Compare panel in `/app` (Pro) |
+| Personal Memory | `/api/memory` · Settings page with view/edit/delete |
+| Projects | `/api/projects` · Sidebar (Pro) |
+| Multi-provider gateway | `backend/src/providers/` · OpenAI live, others stubbed |
+| SSE streaming | `POST /api/ai/stream` |
+| Feature flags | `backend/src/config/featureFlags.ts` |
+
+## Still to implement (phase 2+)
 
 - Real Google/Apple/Microsoft OAuth
 - Stripe subscription webhooks
-- Streaming responses (SSE)
-- Multi-provider adapters (Anthropic, Google, DeepSeek)
+- Deep Research workspace
+- Anthropic, Google, DeepSeek live adapters
 - File upload & PDF chat backend
-- Email verification & password reset
-- 2FA
+- Voice, image studio, custom agents
+- Email verification, password reset, 2FA
 
 ## Security note
 

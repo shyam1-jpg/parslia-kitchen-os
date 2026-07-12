@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PublicNav, Footer } from "../components/Layout";
 import { useAuth } from "../lib/auth";
+import { advancedApi, type Memory } from "../lib/advanced";
 
 export function AccountPage() {
   const { user, usage, logout } = useAuth();
@@ -44,6 +46,31 @@ export function AccountPage() {
 
 export function SettingsPage() {
   const { user } = useAuth();
+  const [memories, setMemories] = useState<Memory[]>([]);
+  const [memoryEnabled, setMemoryEnabled] = useState(true);
+  const [privacyMode, setPrivacyMode] = useState("standard");
+  const [newMemory, setNewMemory] = useState("");
+
+  useEffect(() => {
+    advancedApi.memoryPreferences().then((p) => {
+      setMemoryEnabled(p.memoryEnabled);
+      setPrivacyMode(p.privacyMode);
+    }).catch(() => {});
+    advancedApi.memories().then((d) => setMemories(d.memories)).catch(() => {});
+  }, []);
+
+  const savePrefs = async (updates: { memoryEnabled?: boolean; privacyMode?: string }) => {
+    const p = await advancedApi.updateMemoryPreferences(updates);
+    setMemoryEnabled(p.memoryEnabled);
+    setPrivacyMode(p.privacyMode);
+  };
+
+  const addMemory = async () => {
+    if (!newMemory.trim()) return;
+    const m = await advancedApi.createMemory("preference", newMemory.trim());
+    setMemories((prev) => [m, ...prev]);
+    setNewMemory("");
+  };
 
   return (
     <div className="page-container">
@@ -65,25 +92,49 @@ export function SettingsPage() {
         </div>
 
         <div className="settings-group">
-          <h2>Appearance</h2>
+          <h2>Privacy mode</h2>
           <div className="settings-row">
-            <span>Theme</span>
-            <select className="model-select">
-              <option>Dark</option>
-              <option>Light</option>
-              <option>System</option>
+            <span>Mode</span>
+            <select className="model-select" value={privacyMode} onChange={(e) => savePrefs({ privacyMode: e.target.value })}>
+              <option value="standard">Standard — history retained per policy</option>
+              <option value="temporary">Temporary — limited retention</option>
+              <option value="business">Business — org-controlled</option>
             </select>
           </div>
+        </div>
+
+        <div className="settings-group">
+          <h2>Memory</h2>
+          <div className="settings-row">
+            <span>Enable memory</span>
+            <button className="btn btn-ghost btn-sm" onClick={() => savePrefs({ memoryEnabled: !memoryEnabled })}>
+              {memoryEnabled ? "On" : "Off"}
+            </button>
+          </div>
+          <p style={{ fontSize: 13, color: "var(--dim)", marginBottom: 12 }}>
+            You can see, edit and delete everything Libraix remembers.
+          </p>
+          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+            <input className="input" placeholder="Add a memory…" value={newMemory} onChange={(e) => setNewMemory(e.target.value)} />
+            <button className="btn btn-primary btn-sm" onClick={addMemory}>Add</button>
+          </div>
+          {memories.map((m) => (
+            <div key={m.id} className="settings-row">
+              <span style={{ color: "var(--muted)", fontSize: 13 }}>{m.content}</span>
+              <button className="btn btn-ghost btn-sm" onClick={() => advancedApi.deleteMemory(m.id).then(() => setMemories((p) => p.filter((x) => x.id !== m.id)))}>Delete</button>
+            </div>
+          ))}
+          {memories.length > 0 && (
+            <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={() => advancedApi.deleteAllMemories().then(() => setMemories([]))}>
+              Delete all memories
+            </button>
+          )}
         </div>
 
         <div className="settings-group">
           <h2>Security</h2>
           <div className="settings-row">
             <span>Two-factor authentication</span>
-            <button className="btn btn-ghost btn-sm" disabled>Coming soon</button>
-          </div>
-          <div className="settings-row">
-            <span>Change password</span>
             <button className="btn btn-ghost btn-sm" disabled>Coming soon</button>
           </div>
         </div>

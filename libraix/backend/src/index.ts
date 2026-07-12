@@ -11,6 +11,8 @@ import { initDb } from "./db/schema.js";
 import authRoutes from "./routes/auth.js";
 import apiRoutes from "./routes/api.js";
 import conversationRoutes from "./routes/conversations.js";
+import memoryRoutes from "./routes/memory.js";
+import projectRoutes from "./routes/projects.js";
 
 initDb();
 
@@ -70,8 +72,10 @@ const aiLimiter = rateLimit({ windowMs: 60 * 1000, max: 20 });
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
 app.use("/api/auth", authLimiter, authRoutes);
-app.use("/api", apiRoutes);
+app.use("/api", aiLimiter, apiRoutes);
 app.use("/api/conversations", conversationRoutes);
+app.use("/api/memory", memoryRoutes);
+app.use("/api/projects", projectRoutes);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);

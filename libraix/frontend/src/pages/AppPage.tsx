@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Logo,
@@ -9,7 +9,9 @@ import {
   IconMenu,
   IconCopy,
 } from "../components/Layout";
+import { ComparePanel } from "../components/ComparePanel";
 import { useAuth } from "../lib/auth";
+import { advancedApi, type Project, type RouterMode } from "../lib/advanced";
 import {
   chatApi,
   type ChatMessage,
@@ -47,14 +49,22 @@ export function AppPage() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [models, setModels] = useState<ModelInfo[]>([]);
+  const [routerModes, setRouterModes] = useState<RouterMode[]>([]);
   const [modelId, setModelId] = useState("libraix-fast");
+  const [routerMode, setRouterMode] = useState("auto");
+  const [searchQuery, setSearchQuery] = useState("");
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState("");
+  const [showCompare, setShowCompare] = useState(false);
+  const [routerHint, setRouterHint] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef(false);
 
   const loadConversations = useCallback(async () => {
     const data = await chatApi.conversations();
@@ -66,12 +76,35 @@ export function AppPage() {
       setModels(d.models);
       if (d.models.length) setModelId(d.models[0].id);
     });
+    advancedApi.routerModes().then((d) => setRouterModes(d.modes)).catch(() => {});
     loadConversations().catch(console.error);
+    advancedApi.projects().then((d) => setProjects(d.projects)).catch(() => {});
   }, [loadConversations]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, streaming]);
+
+  useEffect(() => {
+    if (!input.trim() || routerMode !== "auto") {
+      setRouterHint("");
+      return;
+    }
+    const t = setTimeout(() => {
+      advancedApi.routerPreview(input.slice(0, 200), routerMode, modelId)
+        .then((r) => setRouterHint(`${r.displayName} · ${r.reason}`))
+        .catch(() => setRouterHint(""));
+    }, 500);
+    return () => clearTimeout(t);
+  }, [input, routerMode, modelId]);
+
+  const filteredConversations = useMemo(() => {
+    if (!searchQuery.trim()) return conversations;
+    const q = searchQuery.toLowerCase();
+    return conversations.filter((c) => c.title.toLowerCase().includes(q));
+  }, [conversations, searchQuery]);
+
+  const grouped = groupConversations(filteredConversations);
 
   const selectConversation = async (id: string) => {
     setActiveId(id);
@@ -91,7 +124,7 @@ export function AppPage() {
 
   const sendMessage = async (text?: string) => {
     const content = (text ?? input).trim();
-    if (!content || loading) return;
+    if (!content || loading || streaming) return;
     if (usage?.limitReached) {
       setError("Daily message limit reached. Upgrade to Pro for more.");
       return;
@@ -100,6 +133,7 @@ export function AppPage() {
     setError("");
     setInput("");
     setLoading(true);
+    abortRef.current = false;
 
     let convId = activeId;
     if (!convId) {
@@ -120,15 +154,40 @@ export function AppPage() {
     try {
       await chatApi.addMessage(convId, "user", content);
       const history = messages.map((m) => ({ role: m.role, content: m.content }));
-      const result = await chatApi.respond({ message: content, modelId, history });
-      const assistantMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: result.content,
-        createdAt: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-      await chatApi.addMessage(convId, "assistant", result.content);
+
+      const assistantId = crypto.randomUUID();
+      setStreaming(true);
+      setLoading(false);
+
+      let fullContent = "";
+      setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "", createdAt: new Date().toISOString() }]);
+
+      try {
+        for await (const chunk of advancedApi.streamRespond({
+          message: content,
+          modelId: routerMode === "auto" ? undefined : modelId,
+          routerMode,
+          history,
+        })) {
+          if (abortRef.current) break;
+          fullContent += chunk;
+          setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent } : m)));
+        }
+      } catch {
+        const result = await chatApi.respond({
+          message: content,
+          modelId: routerMode === "auto" ? undefined : modelId,
+          routerMode,
+          history,
+        });
+        fullContent = result.content;
+        if (result.modelId) setModelId(result.modelId);
+        setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent } : m)));
+      }
+
+      if (fullContent) {
+        await chatApi.addMessage(convId, "assistant", fullContent);
+      }
       await refresh();
       loadConversations();
     } catch (err) {
@@ -137,7 +196,13 @@ export function AppPage() {
       setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
     } finally {
       setLoading(false);
+      setStreaming(false);
     }
+  };
+
+  const stopGeneration = () => {
+    abortRef.current = true;
+    setStreaming(false);
   };
 
   const copyMessage = (content: string) => {
@@ -145,7 +210,6 @@ export function AppPage() {
   };
 
   const initials = user?.displayName?.[0] ?? user?.email[0]?.toUpperCase() ?? "?";
-  const grouped = groupConversations(conversations);
 
   return (
     <div className="app-shell">
@@ -153,15 +217,31 @@ export function AppPage() {
       <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="sidebar-header">
           <Logo to="/app" />
-          <button className="icon-btn" onClick={newChat} title="New chat">
-            <IconPlus />
-          </button>
+          <button className="icon-btn" onClick={newChat} title="New chat"><IconPlus /></button>
         </div>
 
         <div className="sidebar-body">
           <button className="btn btn-primary btn-sm" style={{ width: "100%", marginBottom: 12 }} onClick={newChat}>
             <IconPlus /> New Chat
           </button>
+
+          <input
+            className="input sidebar-search"
+            placeholder="Search conversations…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
+          {projects.length > 0 && (
+            <div>
+              <div className="sidebar-section-label">Projects</div>
+              {projects.map((p) => (
+                <button key={p.id} className="conv-item" title={p.description ?? undefined}>
+                  <span>{p.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           {grouped.map((group) => (
             <div key={group.label}>
@@ -198,24 +278,36 @@ export function AppPage() {
 
       <main className="main-panel">
         <header className="top-bar">
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button className="icon-btn mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
-              <IconMenu />
-            </button>
-            <select className="model-select" value={modelId} onChange={(e) => setModelId(e.target.value)}>
-              {models.map((m) => (
-                <option key={m.id} value={m.id}>{m.displayName}</option>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <button className="icon-btn mobile-menu-btn" onClick={() => setSidebarOpen(true)}><IconMenu /></button>
+            <select className="model-select" value={routerMode} onChange={(e) => setRouterMode(e.target.value)}>
+              {routerModes.map((m) => (
+                <option key={m.id} value={m.id}>{m.label}</option>
               ))}
             </select>
+            {routerMode !== "auto" && (
+              <select className="model-select" value={modelId} onChange={(e) => setModelId(e.target.value)}>
+                {models.filter((m) => m.capabilities.chat).map((m) => (
+                  <option key={m.id} value={m.id}>{m.displayName}</option>
+                ))}
+              </select>
+            )}
           </div>
-          <Link to="/pricing" className="btn btn-ghost btn-sm">Upgrade</Link>
+          <div style={{ display: "flex", gap: 8 }}>
+            {user?.plan !== "free" && (
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowCompare((v) => !v)}>Compare</button>
+            )}
+            <Link to="/pricing" className="btn btn-ghost btn-sm">Upgrade</Link>
+          </div>
         </header>
 
+        {showCompare && <ComparePanel models={models} onClose={() => setShowCompare(false)} />}
+
         <div className="chat-area">
-          {messages.length === 0 && !loading ? (
+          {messages.length === 0 && !loading && !streaming ? (
             <div className="welcome-state">
               <h2>What can I help you with?</h2>
-              <p>Chat with Libraix models, generate images, analyse documents and more.</p>
+              <p>Chat with Libraix models. Use Auto mode to let the Smart Router pick the best model.</p>
               <div className="suggestion-row">
                 {["Write an email", "Explain a concept", "Business ideas", "Write code"].map((s) => (
                   <button key={s} className="suggestion-chip" onClick={() => sendMessage(s)}>{s}</button>
@@ -225,12 +317,10 @@ export function AppPage() {
           ) : (
             messages.map((m) => (
               <div key={m.id} className={`message ${m.role}`}>
-                <div className="bubble">{m.content}</div>
-                {m.role === "assistant" && (
+                <div className="bubble">{m.content || (streaming && m.role === "assistant" ? "▍" : "")}</div>
+                {m.role === "assistant" && m.content && (
                   <div className="msg-actions">
-                    <button className="msg-action" onClick={() => copyMessage(m.content)}>
-                      <IconCopy /> Copy
-                    </button>
+                    <button className="msg-action" onClick={() => copyMessage(m.content)}><IconCopy /> Copy</button>
                   </div>
                 )}
               </div>
@@ -248,6 +338,7 @@ export function AppPage() {
           {usage && (
             <div className="usage-bar">
               {usage.remainingMessages} of {usage.messagesLimit} messages remaining today
+              {routerHint && routerMode === "auto" && <span> · {routerHint}</span>}
             </div>
           )}
           {error && <div className="error-banner" style={{ maxWidth: 780, margin: "0 auto 8px" }}>{error}</div>}
@@ -268,9 +359,13 @@ export function AppPage() {
                 }
               }}
             />
-            <button className="send-btn" disabled={!input.trim() || loading} onClick={() => sendMessage()}>
-              <IconSend />
-            </button>
+            {streaming ? (
+              <button className="send-btn" onClick={stopGeneration} title="Stop">■</button>
+            ) : (
+              <button className="send-btn" disabled={!input.trim() || loading} onClick={() => sendMessage()}>
+                <IconSend />
+              </button>
+            )}
           </div>
         </div>
       </main>
