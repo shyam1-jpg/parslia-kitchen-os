@@ -7,6 +7,7 @@ import { compareModels } from "../services/compare.js";
 import { getPublicCatalog, getModelsForPlan } from "../config/models.js";
 import { getPublicFeatures, ROUTER_MODES, isFeatureEnabled } from "../config/featureFlags.js";
 import { getAllProviderHealth } from "../providers/gateway.js";
+import { ProviderError } from "../providers/types.js";
 import type { RouterMode } from "../config/featureFlags.js";
 
 const router = Router();
@@ -150,13 +151,17 @@ router.post("/ai/compare", requireAuth, async (req, res) => {
 function handleAiError(e: unknown, res: import("express").Response) {
   const msg = e instanceof Error ? e.message : "UNKNOWN";
   if (msg === "USAGE_LIMIT_REACHED") return res.status(429).json({ error: "USAGE_LIMIT_REACHED" });
-  if (msg === "MODEL_NOT_FOUND" || msg === "MODEL_DISABLED" || msg === "COMPARE_MODEL_COUNT") {
+  if (msg === "MODEL_NOT_FOUND" || msg === "MODEL_DISABLED" || msg === "MODEL_NOT_CHAT" || msg === "COMPARE_MODEL_COUNT") {
     return res.status(400).json({ error: msg });
   }
-  if (msg.startsWith("PROVIDER_ERROR") || msg.includes("PROVIDER_UNAVAILABLE")) {
-    return res.status(502).json({ error: "PROVIDER_ERROR" });
+  if (e instanceof ProviderError) {
+    return res.status(502).json({
+      error: e.code === "PROVIDER_UNAVAILABLE" ? "PROVIDER_UNAVAILABLE" : "PROVIDER_ERROR",
+      detail: msg.slice(0, 200),
+    });
   }
-  throw e;
+  console.error("Unhandled AI error:", e);
+  return res.status(500).json({ error: "INTERNAL_ERROR" });
 }
 
 export default router;

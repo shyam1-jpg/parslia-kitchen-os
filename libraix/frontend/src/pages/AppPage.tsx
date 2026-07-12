@@ -174,6 +174,10 @@ export function AppPage() {
           setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent } : m)));
         }
       } catch {
+        /* stream unavailable — fall back below */
+      }
+
+      if (!fullContent.trim()) {
         const result = await chatApi.respond({
           message: content,
           modelId: routerMode === "auto" ? undefined : modelId,

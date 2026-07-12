@@ -17,6 +17,12 @@ services:
         value: ./libraix.db
       - key: OPENAI_API_KEY
         sync: false
+      - key: OPENAI_MODEL_FAST
+        sync: false
+      - key: OPENAI_MODEL_SMART
+        sync: false
+      - key: OPENAI_MODEL_ADVANCED
+        sync: false
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET

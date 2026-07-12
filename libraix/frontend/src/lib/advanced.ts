@@ -107,8 +107,8 @@ export const advancedApi = {
       body: JSON.stringify(body),
     });
     if (!res.ok || !res.body) {
-      onError?.(`HTTP ${res.status}`);
-      return;
+      const body = await res.json().catch(() => ({}));
+      throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
     }
     const reader = res.body.getReader();
     const decoder = new TextDecoder();

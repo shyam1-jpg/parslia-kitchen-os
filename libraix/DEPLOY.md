@@ -17,7 +17,13 @@ When you're back (3 min in Netlify):
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/shyam1-jpg/parslia-kitchen-os)
 
-After deploy, add **`OPENAI_API_KEY`** in the Render dashboard.
+After deploy, add **`OPENAI_API_KEY`** in the Render dashboard (Environment → libraix-api → Add variable). Without it, chat works in **dev placeholder mode** only (echoes your message). With a valid key, chat uses real OpenAI models:
+
+| Libraix model | Default OpenAI model | Override env var |
+|---|---|---|
+| Libraix Fast | `gpt-4o-mini` | `OPENAI_MODEL_FAST` |
+| Libraix Smart | `gpt-4o` | `OPENAI_MODEL_SMART` |
+| Libraix Advanced | `o3-mini` | `OPENAI_MODEL_ADVANCED` |
 
 Service URL: `https://libraix-api.onrender.com`
 
