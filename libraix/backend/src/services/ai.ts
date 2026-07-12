@@ -1,13 +1,22 @@
 import { getModelById } from "../config/models.js";
 import { completeViaGateway, streamViaGateway } from "../providers/gateway.js";
-import { canSendMessage, recordMessageUsage } from "./usage.js";
+import { canSendMessage, getUsage, recordMessageUsage } from "./usage.js";
 import { routeModel } from "./router.js";
 import { getMemoryContext } from "./memory.js";
 import { getProjectContext } from "./projects.js";
 import type { RouterMode } from "../config/featureFlags.js";
 import type { SafeUser } from "./users.js";
 
-const DEFAULT_SYSTEM_PROMPT = "You are Libraix, an expert AI assistant built into the Libraix workspace. Give accurate, thoughtful, well-structured answers. Match your depth to the question: concise for simple questions, thorough with clear step-by-step reasoning for complex ones. Use Markdown formatting (headings, bullet points, numbered steps, code blocks) whenever it makes the answer clearer. Be warm and direct, admit uncertainty when you are not sure, and ask a clarifying question when the request is ambiguous.";
+const DEFAULT_SYSTEM_PROMPT = `You are Libraix, a capable AI assistant in the Libraix workspace. Your answers should feel polished and professional — like ChatGPT or Claude.
+
+Guidelines:
+- Write in clear, natural language. Be helpful, thoughtful, and direct.
+- Match depth to the question: brief for simple asks; thorough with structure for complex ones.
+- Always use Markdown when it helps: headings (##), bullet lists, numbered steps, **bold** for key terms, and fenced code blocks with language tags for code.
+- For explanations, break ideas into logical sections. For how-to tasks, use numbered steps.
+- For code, provide complete, working examples with brief comments where useful.
+- Be honest about uncertainty. Ask one clarifying question when the request is ambiguous.
+- Do not mention that you are an AI unless asked. Focus on delivering value.`;
 
 export interface AiRequest {
   message: string;
@@ -29,30 +38,52 @@ export interface AiResponse {
   router?: ReturnType<typeof routeModel>;
 }
 
-export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiResponse> {
+function buildSystemMessages(req: AiRequest, userId: string) {
+  const memoryCtx = req.useMemory !== false ? getMemoryContext(userId, req.projectId) : "";
+  const projectCtx = req.projectId ? getProjectContext(userId, req.projectId) : "";
+  const systemParts = [DEFAULT_SYSTEM_PROMPT, req.systemPrompt, projectCtx, memoryCtx].filter(Boolean);
+  return systemParts.length ? [{ role: "system" as const, content: systemParts.join("\n\n") }] : [];
+}
+
+function resolveModel(user: SafeUser, req: AiRequest) {
+  const usage = getUsage(user.id, user.plan);
+  const premiumRemaining = Math.max(0, usage.premiumLimit - usage.premiumUsed);
+
   const router = routeModel({
     message: req.message,
     mode: req.routerMode ?? "auto",
     userPlan: user.plan,
     manualModelId: req.modelId,
+    premiumRemaining,
   });
 
-  const model = getModelById(router.modelId);
+  let model = getModelById(router.modelId);
   if (!model) throw new Error("MODEL_NOT_FOUND");
   if (!model.enabled) throw new Error("MODEL_DISABLED");
   if (!model.capabilities.chat) throw new Error("MODEL_NOT_CHAT");
 
-  const isPremium = model.tier !== "free";
+  let isPremium = model.tier !== "free";
   if (!canSendMessage(user.id, user.plan, isPremium)) {
-    throw new Error("USAGE_LIMIT_REACHED");
+    if (isPremium) {
+      const fallback = getModelById("libraix-fast");
+      if (!fallback || !canSendMessage(user.id, user.plan, false)) {
+        throw new Error("USAGE_LIMIT_REACHED");
+      }
+      model = fallback;
+      isPremium = false;
+    } else {
+      throw new Error("USAGE_LIMIT_REACHED");
+    }
   }
 
-  const memoryCtx = req.useMemory !== false ? getMemoryContext(user.id, req.projectId) : "";
-  const projectCtx = req.projectId ? getProjectContext(user.id, req.projectId) : "";
-  const systemParts = [DEFAULT_SYSTEM_PROMPT, req.systemPrompt, projectCtx, memoryCtx].filter(Boolean);
+  return { model, router, isPremium };
+}
+
+export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiResponse> {
+  const { model, router, isPremium } = resolveModel(user, req);
 
   const messages = [
-    ...(systemParts.length ? [{ role: "system" as const, content: systemParts.join("\n\n") }] : []),
+    ...buildSystemMessages(req, user.id),
     ...(req.conversationHistory ?? []),
     { role: "user" as const, content: req.message },
   ];
@@ -72,24 +103,10 @@ export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiR
 }
 
 export async function* streamAiResponse(user: SafeUser, req: AiRequest): AsyncGenerator<string> {
-  const router = routeModel({
-    message: req.message,
-    mode: req.routerMode ?? "auto",
-    userPlan: user.plan,
-    manualModelId: req.modelId,
-  });
+  const { model, isPremium } = resolveModel(user, req);
 
-  const model = getModelById(router.modelId);
-  if (!model) throw new Error("MODEL_NOT_FOUND");
-
-  const isPremium = model.tier !== "free";
-  if (!canSendMessage(user.id, user.plan, isPremium)) {
-    throw new Error("USAGE_LIMIT_REACHED");
-  }
-
-  const memoryCtx = req.useMemory !== false ? getMemoryContext(user.id, req.projectId) : "";
   const messages = [
-    { role: "system" as const, content: memoryCtx ? DEFAULT_SYSTEM_PROMPT + "\n\n" + memoryCtx : DEFAULT_SYSTEM_PROMPT },
+    ...buildSystemMessages(req, user.id),
     ...(req.conversationHistory ?? []),
     { role: "user" as const, content: req.message },
   ];

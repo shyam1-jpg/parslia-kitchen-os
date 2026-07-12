@@ -3,6 +3,26 @@ import { ProviderError } from "./types.js";
 
 const CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
 
+function buildOpenAiBody(request: ProviderRequest, stream: boolean) {
+  const modelId = request.model.providerModelId;
+  const isReasoning = /^o\d/i.test(modelId);
+
+  const body: Record<string, unknown> = {
+    model: modelId,
+    messages: request.messages,
+    stream,
+  };
+
+  if (isReasoning) {
+    body.max_completion_tokens = Number(process.env.OPENAI_MAX_TOKENS ?? 4096);
+  } else {
+    body.max_tokens = Number(process.env.OPENAI_MAX_TOKENS ?? 4096);
+    body.temperature = Number(process.env.OPENAI_TEMPERATURE ?? 0.7);
+  }
+
+  return body;
+}
+
 export class OpenAiProvider implements AiProviderAdapter {
   readonly name = "openai";
 
@@ -36,11 +56,7 @@ export class OpenAiProvider implements AiProviderAdapter {
     const res = await fetch(CHAT_COMPLETIONS_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${this.apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: request.model.providerModelId,
-        messages: request.messages,
-        stream: false,
-      }),
+      body: JSON.stringify(buildOpenAiBody(request, false)),
       signal: AbortSignal.timeout(120_000),
     });
 
@@ -75,11 +91,7 @@ export class OpenAiProvider implements AiProviderAdapter {
     const res = await fetch(CHAT_COMPLETIONS_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${this.apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: request.model.providerModelId,
-        messages: request.messages,
-        stream: true,
-      }),
+      body: JSON.stringify(buildOpenAiBody(request, true)),
       signal: AbortSignal.timeout(120_000),
     });
 

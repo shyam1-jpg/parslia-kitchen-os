@@ -9,6 +9,8 @@ export interface RouterInput {
   needsCode?: boolean;
   needsResearch?: boolean;
   privacyMode?: boolean;
+  /** Remaining premium-model messages today (Smart/Advanced). */
+  premiumRemaining?: number;
 }
 
 export interface RouterResult {
@@ -54,8 +56,17 @@ function detectNeeds(message: string) {
   };
 }
 
+function getAvailableModels(input: RouterInput): ModelDefinition[] {
+  const base = getModelsForPlan(input.userPlan).filter((m) => m.capabilities.chat);
+  if ((input.premiumRemaining ?? 0) <= 0) return base;
+
+  const premium = getModelsForPlan("pro")
+    .filter((m) => m.capabilities.chat && m.tier !== "free" && !base.some((b) => b.id === m.id));
+  return [...base, ...premium];
+}
+
 export function routeModel(input: RouterInput): RouterResult {
-  const available = getModelsForPlan(input.userPlan).filter((m) => m.capabilities.chat);
+  const available = getAvailableModels(input);
 
   if (input.manualModelId && input.mode !== "auto") {
     const manual = getModelById(input.manualModelId);

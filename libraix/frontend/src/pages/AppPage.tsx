@@ -10,6 +10,7 @@ import {
   IconCopy,
 } from "../components/Layout";
 import { ComparePanel } from "../components/ComparePanel";
+import { MarkdownMessage } from "../components/MarkdownMessage";
 import { useAuth } from "../lib/auth";
 import { advancedApi, type Project, type RouterMode } from "../lib/advanced";
 import {
@@ -332,7 +333,16 @@ export function AppPage() {
           ) : (
             messages.map((m) => (
               <div key={m.id} className={`message ${m.role}`}>
-                <div className="bubble">{m.content || (streaming && m.role === "assistant" ? "▍" : "")}</div>
+                <div className="bubble">
+                  {m.role === "assistant" ? (
+                    <MarkdownMessage
+                      content={m.content}
+                      streaming={streaming && m === messages[messages.length - 1] && m.role === "assistant"}
+                    />
+                  ) : (
+                    m.content
+                  )}
+                </div>
                 {m.role === "assistant" && m.content && (
                   <div className="msg-actions">
                     {m.modelLabel && <span className="model-disclosure">{m.modelLabel}</span>}

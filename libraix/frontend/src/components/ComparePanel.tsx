@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { advancedApi, pickCompareModels, type CompareResult } from "../lib/advanced";
 import type { ModelInfo } from "../lib/api";
+import { MarkdownMessage } from "./MarkdownMessage";
 
 interface ComparePanelProps {
   models: ModelInfo[];
