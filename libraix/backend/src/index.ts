@@ -74,6 +74,7 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
 const aiLimiter = rateLimit({ windowMs: 60 * 1000, max: 20 });
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api", aiLimiter, apiRoutes);
