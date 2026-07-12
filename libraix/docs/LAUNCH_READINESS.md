@@ -97,3 +97,27 @@ curl -b cookies.txt -X POST https://libraix.ai/api/ai/respond \
 
 **Not ready for paid public launch** until `OPENAI_API_KEY` is set and smoke-tested.  
 **Ready for limited free beta** after key is set and owner accepts beta feature scope.
+
+---
+
+## External audit response (July 2026)
+
+An independent scan reported critical issues. Below is the **current production status** after the React rebuild (homepage HTML is ~800 bytes, not the old 146KB monolithic page).
+
+| Audit finding | Current status |
+|---------------|----------------|
+| Landing page embeds full app in HTML | **Fixed** — `/` serves React shell only; `/app` is a separate protected route |
+| OpenAI API key box in Settings | **Fixed** — no key input in frontend; server-side only |
+| Contradictory login/usage states on homepage | **Fixed** — was old site; auth state comes from `/api/auth/me` on protected routes only |
+| Outdated model names (Claude 3.7, etc.) | **Fixed** — customer-facing: Libraix Fast / Smart / Advanced / Image |
+| SOC 2 / unverified compliance badges | **Fixed** — removed; honest disclaimer on landing page |
+| Missing legal pages | **Fixed** — `/privacy`, `/terms`, `/about`, `/contact`, `/refund-policy`, `/cookie-policy`, `/support`; `/blog` placeholder |
+| `/app` and `/admin` not noindex | **Fixed** — meta robots + Netlify `X-Robots-Tag` headers |
+| Forgot password | **Built** — `/forgot-password` (needs email env vars) |
+| Owner dashboard | **Built** — `/admin/login`, `/admin` |
+| Server-side plan enforcement | **Built** — usage limits enforced in backend before AI calls |
+| Email verification | **Partial** — flag on user; send not wired |
+| PDF / web / voice / image tools | **Coming Soon** — not advertised as live |
+| Stripe payments | **Built** — do not enable until legal pages reviewed and Stripe under owner account |
+
+**Note:** If a scanner still reports old content, it may be using a cached crawl of the pre-rebuild site. Verify with: `curl -s https://libraix.ai/ | wc -c` (should be ~800 bytes, not 100KB+).
