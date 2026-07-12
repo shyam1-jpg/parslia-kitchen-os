@@ -5,11 +5,12 @@ import { requireAuth } from "../middleware/auth.js";
 import { findUserById, toSafeUser } from "../services/users.js";
 import { respondWithAi, streamAiResponse, routeModel } from "../services/ai.js";
 import { compareModels } from "../services/compare.js";
-import { getPublicCatalog, getModelsForPlan } from "../config/models.js";
+import { getPublicCatalog, getModelsForPlan, getModelById } from "../config/models.js";
 import { getPublicFeatures, ROUTER_MODES, isFeatureEnabled } from "../config/featureFlags.js";
 import { getAllProviderHealth } from "../providers/gateway.js";
 import { ProviderError } from "../providers/types.js";
 import { getPublicRuntimeConfig } from "../services/siteConfig.js";
+import { getCompanyInfo } from "../config/company.js";
 import { db } from "../db/schema.js";
 import type { RouterMode } from "../config/featureFlags.js";
 
@@ -17,6 +18,10 @@ const router = Router();
 
 router.get("/site", (_req, res) => {
   res.json(getPublicRuntimeConfig());
+});
+
+router.get("/company", (_req, res) => {
+  res.json(getCompanyInfo());
 });
 
 router.post("/support", async (req, res) => {
@@ -146,14 +151,36 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
   res.setHeader("Connection", "keep-alive");
 
   try {
-    for await (const chunk of streamAiResponse(user, {
+    const reqBody = {
       message: parsed.data.message,
       modelId: parsed.data.modelId,
       routerMode: parsed.data.routerMode as RouterMode | undefined,
       conversationHistory: parsed.data.history,
       projectId: parsed.data.projectId,
-    })) {
+    };
+
+    const router = routeModel({
+      message: parsed.data.message,
+      mode: (parsed.data.routerMode as RouterMode) ?? "auto",
+      userPlan: user.plan,
+      manualModelId: parsed.data.modelId,
+    });
+    const model = getModelById(router.modelId);
+
+    for await (const chunk of streamAiResponse(user, reqBody)) {
       res.write(`data: ${JSON.stringify({ delta: chunk })}\n\n`);
+    }
+    if (model) {
+      res.write(
+        `data: ${JSON.stringify({
+          meta: {
+            modelId: model.id,
+            displayName: model.displayName,
+            provider: model.provider,
+            providerModelId: model.providerModelId,
+          },
+        })}\n\n`
+      );
     }
     res.write("data: [DONE]\n\n");
     res.end();

@@ -21,6 +21,7 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -47,6 +48,11 @@ export function LoginPage() {
     setError("");
     setLoading(true);
     try {
+      if (mode === "signup" && !acceptTerms) {
+        setError("Please accept the Terms of Service and Privacy Policy.");
+        setLoading(false);
+        return;
+      }
       if (mode === "signup") {
         await signup(email, password, displayName || undefined);
       } else {
@@ -89,7 +95,14 @@ export function LoginPage() {
             <div>
               <label htmlFor="password">Password</label>
               <input id="password" type="password" className="input" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+              {mode === "signup" && <p style={{ fontSize: 12, color: "var(--dim)", marginTop: 4 }}>Minimum 8 characters</p>}
             </div>
+            {mode === "signup" && (
+              <label style={{ display: "flex", gap: 8, fontSize: 13, alignItems: "flex-start" }}>
+                <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} style={{ marginTop: 3 }} />
+                <span>I agree to the <Link to="/terms">Terms of Service</Link> and acknowledge the <Link to="/privacy">Privacy Policy</Link>.</span>
+              </label>
+            )}
             {mode === "login" && (
               <p style={{ fontSize: 13, marginTop: -8 }}>
                 <Link to="/forgot-password" style={{ color: "var(--c1)" }}>Forgot password?</Link>

@@ -86,3 +86,17 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
 
   return sendEmail({ to, subject, html, text });
 }
+
+export async function sendVerificationEmail(to: string, verifyUrl: string): Promise<boolean> {
+  const subject = "Verify your Libraix email";
+  const text = `Verify your Libraix account\n\nOpen this link (expires in 48 hours):\n${verifyUrl}\n\nIf you did not create an account, ignore this email.`;
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+      <h2 style="color:#6366f1">Libraix</h2>
+      <p>Please verify your email address to secure your account.</p>
+      <p><a href="${verifyUrl}" style="display:inline-block;padding:12px 20px;background:#6366f1;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Verify email</a></p>
+      <p style="color:#64748b;font-size:13px">This link expires in 48 hours.</p>
+    </div>
+  `;
+  return sendEmail({ to, subject, html, text });
+}

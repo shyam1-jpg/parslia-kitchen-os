@@ -16,7 +16,7 @@ import { BillingPage } from "./pages/BillingPage";
 import { AdminLoginPage } from "./pages/admin/AdminLoginPage";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { SupportPage } from "./pages/SupportPage";
-import { AboutPage, BlogPage, ContactPage, CookiePolicyPage, RefundPolicyPage } from "./pages/LegalPages";
+import { AboutPage, BlogPage, ContactPage, CookiePolicyPage, RefundPolicyPage, AcceptableUsePage, SubscriptionsPage, SubprocessorsPage, SecurityPage, AiLimitationsPage, AccessibilityPage, VerifyEmailPage } from "./pages/LegalPages";
 import { NoIndex } from "./components/NoIndex";
 import "./styles/global.css";
 
@@ -39,11 +39,18 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/refund-policy" element={<RefundPolicyPage />} />
             <Route path="/cookie-policy" element={<CookiePolicyPage />} />
             <Route path="/support" element={<SupportPage />} />
+            <Route path="/acceptable-use" element={<AcceptableUsePage />} />
+            <Route path="/subscriptions" element={<SubscriptionsPage />} />
+            <Route path="/subprocessors" element={<SubprocessorsPage />} />
+            <Route path="/security" element={<SecurityPage />} />
+            <Route path="/ai-limitations" element={<AiLimitationsPage />} />
+            <Route path="/accessibility" element={<AccessibilityPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             <Route element={<PublicOnlyRoute />}>
-              <Route path="/login" element={<LoginPage />} />
+              <Route path="/login" element={<><NoIndex /><LoginPage /></>} />
               <Route path="/signup" element={<Navigate to="/login?mode=signup" replace />} />
             </Route>
 

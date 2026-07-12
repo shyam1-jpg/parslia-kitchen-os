@@ -161,6 +161,7 @@ export function AppPage() {
       setLoading(false);
 
       let fullContent = "";
+      let modelLabel = "";
       setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "", createdAt: new Date().toISOString() }]);
 
       try {
@@ -171,8 +172,12 @@ export function AppPage() {
           history,
         })) {
           if (abortRef.current) break;
+          if (typeof chunk === "object" && chunk.meta) {
+            modelLabel = `Generated using ${chunk.meta.displayName} (${chunk.meta.provider}) through Libraix`;
+            continue;
+          }
           fullContent += chunk;
-          setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent } : m)));
+          setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, modelLabel: modelLabel || m.modelLabel } : m)));
         }
       } catch {
         /* stream unavailable — fall back below */
@@ -186,8 +191,13 @@ export function AppPage() {
           history,
         });
         fullContent = result.content;
+        modelLabel = result.displayName
+          ? `Generated using ${result.displayName} (${result.provider ?? "provider"}) through Libraix`
+          : "";
         if (result.modelId) setModelId(result.modelId);
-        setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent } : m)));
+        setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, modelLabel } : m)));
+      } else if (modelLabel) {
+        setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, modelLabel } : m)));
       }
 
       if (fullContent) {
@@ -325,6 +335,7 @@ export function AppPage() {
                 <div className="bubble">{m.content || (streaming && m.role === "assistant" ? "▍" : "")}</div>
                 {m.role === "assistant" && m.content && (
                   <div className="msg-actions">
+                    {m.modelLabel && <span className="model-disclosure">{m.modelLabel}</span>}
                     <button className="msg-action" onClick={() => copyMessage(m.content)}><IconCopy /> Copy</button>
                   </div>
                 )}

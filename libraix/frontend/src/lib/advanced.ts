@@ -98,7 +98,7 @@ export const advancedApi = {
       routerMode?: string;
       history?: { role: "user" | "assistant"; content: string }[];
     }
-  ) {
+  ): AsyncGenerator<string | { meta: { modelId: string; displayName: string; provider: string; providerModelId: string } }> {
     const res = await fetch("/api/ai/stream", {
       method: "POST",
       credentials: "include",
@@ -123,8 +123,9 @@ export const advancedApi = {
         const payload = line.slice(6).trim();
         if (payload === "[DONE]") return;
         try {
-          const parsed = JSON.parse(payload) as { delta?: string; error?: string };
+          const parsed = JSON.parse(payload) as { delta?: string; error?: string; meta?: { modelId: string; displayName: string; provider: string; providerModelId: string } };
           if (parsed.error) throw new Error(parsed.error);
+          else if (parsed.meta) yield { meta: parsed.meta };
           else if (parsed.delta) yield parsed.delta;
         } catch { /* skip */ }
       }

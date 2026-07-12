@@ -40,8 +40,9 @@ export function LandingPage() {
         </p>
         <div className="hero-actions">
           <Link to="/login?mode=signup" className="btn btn-primary">Start for free</Link>
-          <a href="#features" className="btn btn-ghost">See what&apos;s available</a>
+          <a href="#models" className="btn btn-ghost">View models</a>
         </div>
+        <p className="hero-subnote">No credit card required · Cancel online · Prompts may be sent to AI providers per our <Link to="/privacy">Privacy Policy</Link></p>
         <div className="stats-row">
           <div className="stat"><div className="stat-num">{modelCount}</div><div className="stat-label">Models available now</div></div>
           <div className="stat"><div className="stat-num">{toolCount}</div><div className="stat-label">Tools available now</div></div>

@@ -55,6 +55,7 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   createdAt: string;
+  modelLabel?: string;
 }
 
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
@@ -100,6 +101,10 @@ export const authApi = {
       method: "POST",
       body: JSON.stringify({ token, password }),
     }),
+  verifyEmail: (token: string) =>
+    api<{ ok: boolean }>("/api/auth/verify-email", { method: "POST", body: JSON.stringify({ token }) }),
+  resendVerification: () =>
+    api<{ ok: boolean }>("/api/auth/resend-verification", { method: "POST", body: "{}" }),
   deleteAccount: () => api<{ ok: boolean }>("/api/auth/account", { method: "DELETE" }),
 };
 
@@ -134,7 +139,7 @@ export const chatApi = {
     history?: { role: "user" | "assistant"; content: string }[];
     systemPrompt?: string;
     projectId?: string;
-  }) => api<{ content: string; modelId: string; tokensUsed?: number; router?: Record<string, unknown> }>("/api/ai/respond", {
+  }) => api<{ content: string; modelId: string; displayName?: string; provider?: string; providerModelId?: string; tokensUsed?: number; router?: Record<string, unknown> }>("/api/ai/respond", {
     method: "POST",
     body: JSON.stringify(body),
   }),

@@ -22,6 +22,9 @@ export interface AiRequest {
 export interface AiResponse {
   content: string;
   modelId: string;
+  displayName: string;
+  provider: string;
+  providerModelId: string;
   tokensUsed?: number;
   router?: ReturnType<typeof routeModel>;
 }
@@ -60,6 +63,9 @@ export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiR
   return {
     content: response.content,
     modelId: model.id,
+    displayName: model.displayName,
+    provider: model.provider,
+    providerModelId: model.providerModelId,
     tokensUsed: response.tokensUsed,
     router,
   };

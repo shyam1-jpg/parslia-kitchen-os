@@ -9,11 +9,13 @@ import {
   createPasswordResetToken,
   resetPasswordWithToken,
   deleteUserAccount,
+  createEmailVerificationToken,
+  verifyEmailWithToken,
   toSafeUser,
 } from "../services/users.js";
 import { getUsage } from "../services/usage.js";
 import { requireAuth } from "../middleware/auth.js";
-import { sendPasswordResetEmail, isEmailConfigured } from "../services/email.js";
+import { sendPasswordResetEmail, sendVerificationEmail, isEmailConfigured } from "../services/email.js";
 import { isStripeCheckoutConfigured } from "../services/stripe.js";
 
 const router = Router();
@@ -36,6 +38,13 @@ router.post("/signup", async (req, res) => {
   try {
     const user = await createUser(parsed.data.email, parsed.data.password, parsed.data.displayName);
     req.session.userId = user.id;
+
+    if (isEmailConfigured()) {
+      const frontend = process.env.FRONTEND_URL ?? "http://localhost:5173";
+      const token = createEmailVerificationToken(user.id);
+      await sendVerificationEmail(parsed.data.email, `${frontend}/verify-email?token=${token}`);
+    }
+
     res.status(201).json({ user, usage: getUsage(user.id, user.plan) });
   } catch (e) {
     if (e instanceof Error && e.message === "EMAIL_EXISTS") {
@@ -168,6 +177,24 @@ router.get("/oauth/:provider/start", (req, res) => {
   return res.redirect(
     `${frontend}/login?oauth_error=${encodeURIComponent(provider)}`
   );
+});
+
+router.post("/verify-email", (req, res) => {
+  const token = (req.body as { token?: string }).token;
+  if (!token) return res.status(400).json({ error: "TOKEN_REQUIRED" });
+  const ok = verifyEmailWithToken(token);
+  if (!ok) return res.status(400).json({ error: "INVALID_OR_EXPIRED_TOKEN" });
+  res.json({ ok: true });
+});
+
+router.post("/resend-verification", requireAuth, async (req, res) => {
+  const row = findUserById(req.session.userId!)!;
+  if (row.email_verified === 1) return res.json({ ok: true, alreadyVerified: true });
+  if (!isEmailConfigured()) return res.status(503).json({ error: "EMAIL_NOT_CONFIGURED" });
+  const frontend = process.env.FRONTEND_URL ?? "http://localhost:5173";
+  const token = createEmailVerificationToken(row.id);
+  await sendVerificationEmail(row.email, `${frontend}/verify-email?token=${token}`);
+  res.json({ ok: true });
 });
 
 export default router;

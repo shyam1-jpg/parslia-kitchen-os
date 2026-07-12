@@ -161,6 +161,14 @@ export function SettingsPage() {
         <h1 className="section-title">Preferences</h1>
 
         {error && <div className="error-banner" style={{ marginBottom: 16 }}>{error}</div>}
+        {!user?.emailVerified && (
+          <div className="info-banner" style={{ marginBottom: 16 }}>
+            Your email is not verified.{" "}
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => authApi.resendVerification().then(() => setError("Verification email sent.")).catch(() => setError("Could not send verification email."))}>
+              Resend verification email
+            </button>
+          </div>
+        )}
         {loading && <p style={{ color: "var(--muted)", marginBottom: 16 }}>Loading settings…</p>}
 
         <div className="settings-group">
@@ -281,8 +289,10 @@ export function PrivacyPage() {
 
         <h2>Who receives data</h2>
         <p>
-          When you send a chat message, content is transmitted to AI providers (currently OpenAI) to generate a response.
-          Hosting providers (Netlify, Render) process infrastructure logs. We do not sell personal data.
+          Depending on the model or mode you select, your prompt and relevant conversation context may be transmitted to the applicable AI provider to generate a response. We do not sell personal data.
+        </p>
+        <p>
+          Current subprocessors include OpenAI (chat), Stripe (payments), Netlify and Render (hosting). See our <Link to="/subprocessors">Subprocessor List</Link>.
         </p>
 
         <h2>Retention</h2>

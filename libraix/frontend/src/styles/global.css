@@ -160,6 +160,12 @@ button, input, textarea, select {
 }
 .cookie-banner p { font-size: 13px; color: var(--muted); line-height: 1.5; }
 .cookie-banner a { color: var(--c1); text-decoration: underline; }
+.cookie-banner-inner { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.cookie-banner-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.footer-identity, .footer-disclaimer { font-size: 12px; color: var(--dim); margin-top: 8px; max-width: 720px; }
+.footer-link-btn { background: none; border: none; color: var(--c1); cursor: pointer; font-size: inherit; padding: 0; text-decoration: underline; }
+.hero-subnote { margin-top: 16px; font-size: 13px; color: var(--dim); }
+.model-disclosure { font-size: 11px; color: var(--dim); margin-right: 12px; }
 
 .admin-shell { min-height: 100vh; background: var(--bg); }
 .admin-topbar { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border); }

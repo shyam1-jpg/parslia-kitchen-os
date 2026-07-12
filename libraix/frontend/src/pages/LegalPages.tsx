@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { PublicNav, Footer } from "../components/Layout";
 
 function LegalShell({ title, children }: { title: string; children: React.ReactNode }) {
@@ -96,6 +97,117 @@ export function BlogPage() {
     <LegalShell title="Blog">
       <p>The Libraix blog is coming soon. For product updates, contact <a href="mailto:hello@libraix.ai">hello@libraix.ai</a>.</p>
       <Link to="/" className="btn btn-ghost btn-sm">← Back to home</Link>
+    </LegalShell>
+  );
+}
+
+export function AcceptableUsePage() {
+  return (
+    <LegalShell title="Acceptable Use Policy">
+      <p>Last updated: July 2026</p>
+      <p>You may not use Libraix for illegal activity, malware, harassment, spam, credential theft, or attempts to bypass usage limits or security controls.</p>
+      <p>Do not upload confidential third-party data without permission. Do not use Libraix to generate content that violates applicable law.</p>
+      <p>We may suspend accounts that abuse the service. Report abuse via <Link to="/support">Support</Link>.</p>
+    </LegalShell>
+  );
+}
+
+export function SubscriptionsPage() {
+  return (
+    <LegalShell title="Subscription & Cancellation Policy">
+      <p>Last updated: July 2026</p>
+      <h2>Plans</h2>
+      <p>Free, Pro and Enterprise plans include fair-use message limits shown at checkout and in your account. Subscriptions renew automatically until cancelled.</p>
+      <h2>Cancellation</h2>
+      <p>Cancel online from <Link to="/app/billing">Billing</Link> or the Stripe customer portal. Access continues until the end of the paid period.</p>
+      <h2>Price changes</h2>
+      <p>We will give reasonable notice before price changes take effect on renewal.</p>
+    </LegalShell>
+  );
+}
+
+export function SubprocessorsPage() {
+  return (
+    <LegalShell title="Subprocessor List">
+      <p>Last updated: July 2026</p>
+      <p>Depending on features used, Libraix may share data with:</p>
+      <table className="admin-table">
+        <thead><tr><th>Provider</th><th>Purpose</th><th>Data</th></tr></thead>
+        <tbody>
+          <tr><td>OpenAI</td><td>AI chat (when selected)</td><td>Prompts and conversation context</td></tr>
+          <tr><td>Stripe</td><td>Payments</td><td>Billing identity and payment metadata</td></tr>
+          <tr><td>Netlify</td><td>Website hosting</td><td>Technical logs</td></tr>
+          <tr><td>Render</td><td>Backend hosting</td><td>Technical logs, account data</td></tr>
+          <tr><td>Resend / SMTP</td><td>Transactional email</td><td>Email address</td></tr>
+        </tbody>
+      </table>
+      <p>Review each provider&apos;s API/data policy for retention and training settings.</p>
+    </LegalShell>
+  );
+}
+
+export function SecurityPage() {
+  return (
+    <LegalShell title="Security">
+      <p>Last updated: July 2026</p>
+      <ul>
+        <li>HTTPS encryption in transit for all web traffic.</li>
+        <li>Passwords hashed with bcrypt; sessions use httpOnly cookies.</li>
+        <li>AI provider keys stored server-side only — never in the browser.</li>
+        <li>Rate limiting on authentication and AI endpoints.</li>
+        <li>Admin actions audit-logged.</li>
+      </ul>
+      <p>Report security issues: <a href="mailto:security@libraix.ai">security@libraix.ai</a></p>
+      <p>We do not claim &quot;100% secure&quot; or military-grade encryption. No system is risk-free.</p>
+    </LegalShell>
+  );
+}
+
+export function AiLimitationsPage() {
+  return (
+    <LegalShell title="AI Safety & Limitations">
+      <p>Last updated: July 2026</p>
+      <ul>
+        <li>AI responses may be incorrect, incomplete or outdated.</li>
+        <li>Not a substitute for professional medical, legal or financial advice.</li>
+        <li>Generated code may contain vulnerabilities — review before use.</li>
+        <li>Citations and web results may be wrong — verify independently.</li>
+        <li>Images may be synthetic — do not use to deceive others.</li>
+      </ul>
+      <p>Depending on the model selected, your prompt may be sent to a third-party AI provider to generate a response.</p>
+    </LegalShell>
+  );
+}
+
+export function AccessibilityPage() {
+  return (
+    <LegalShell title="Accessibility Statement">
+      <p>Last updated: July 2026</p>
+      <p>Libraix aims to meet WCAG 2.2 AA over time. We are improving keyboard navigation, contrast and screen-reader labels.</p>
+      <p>Report accessibility barriers: <a href="mailto:hello@libraix.ai">hello@libraix.ai</a></p>
+    </LegalShell>
+  );
+}
+
+export function VerifyEmailPage() {
+  const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get("token");
+    if (!token) { setStatus("error"); return; }
+    fetch("/api/auth/verify-email", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    })
+      .then((r) => (r.ok ? setStatus("ok") : setStatus("error")))
+      .catch(() => setStatus("error"));
+  }, []);
+  return (
+    <LegalShell title="Verify email">
+      {status === "loading" && <p>Verifying your email…</p>}
+      {status === "ok" && <p>Email verified. You can <Link to="/app">open your workspace</Link>.</p>}
+      {status === "error" && <p>Invalid or expired link. Log in and request a new verification email from Settings.</p>}
     </LegalShell>
   );
 }

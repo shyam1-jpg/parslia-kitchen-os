@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { LibraixLogoMark } from "./LibraixLogo";
+import { CookieSettingsLink } from "./CookieBanner";
 
 export function Logo({ to = "/" }: { to?: string }) {
   return (
@@ -44,14 +45,24 @@ export function Footer() {
     <footer className="footer">
       <div className="footer-links">
         <Link to="/about">About</Link>
-        <Link to="/blog">Blog</Link>
         <Link to="/privacy">Privacy</Link>
         <Link to="/terms">Terms</Link>
-        <Link to="/refund-policy">Refunds</Link>
         <Link to="/cookie-policy">Cookies</Link>
+        <Link to="/acceptable-use">Acceptable Use</Link>
+        <Link to="/subscriptions">Subscriptions</Link>
+        <Link to="/refund-policy">Refunds</Link>
+        <Link to="/security">Security</Link>
+        <Link to="/subprocessors">Subprocessors</Link>
+        <Link to="/ai-limitations">AI Limitations</Link>
+        <Link to="/accessibility">Accessibility</Link>
         <Link to="/contact">Contact</Link>
         <Link to="/support">Support</Link>
+        <CookieSettingsLink />
       </div>
+      <p className="footer-identity">Libraix · United Kingdom · hello@libraix.ai · privacy@libraix.ai</p>
+      <p className="footer-disclaimer">
+        Libraix is an independent platform and is not affiliated with or endorsed by OpenAI, Anthropic, Google, Meta, xAI or other model providers.
+      </p>
       <p>© {new Date().getFullYear()} Libraix. All rights reserved.</p>
     </footer>
   );
