@@ -120,6 +120,74 @@ export function initDb() {
   `);
 
   migrateUsersStripeColumns();
+  migrateUsersAdminColumns();
+  seedDefaultSiteConfig();
+}
+
+function migrateUsersAdminColumns() {
+  const cols = db.prepare("PRAGMA table_info(users)").all() as { name: string }[];
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has("role")) db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'");
+  if (!names.has("suspended")) db.exec("ALTER TABLE users ADD COLUMN suspended INTEGER NOT NULL DEFAULT 0");
+  if (!names.has("totp_secret")) db.exec("ALTER TABLE users ADD COLUMN totp_secret TEXT");
+  if (!names.has("totp_enabled")) db.exec("ALTER TABLE users ADD COLUMN totp_enabled INTEGER NOT NULL DEFAULT 0");
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS site_config (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_by TEXT,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS admin_audit_logs (
+      id TEXT PRIMARY KEY,
+      admin_user_id TEXT NOT NULL,
+      action TEXT NOT NULL,
+      target TEXT NOT NULL,
+      details TEXT,
+      ip_address TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS system_errors (
+      id TEXT PRIMARY KEY,
+      source TEXT NOT NULL,
+      message TEXT NOT NULL,
+      details TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS support_requests (
+      id TEXT PRIMARY KEY,
+      user_id TEXT,
+      email TEXT,
+      subject TEXT NOT NULL,
+      body TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'open',
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS privacy_requests (
+      id TEXT PRIMARY KEY,
+      user_id TEXT,
+      email TEXT NOT NULL,
+      request_type TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+}
+
+function seedDefaultSiteConfig() {
+  const row = db.prepare("SELECT key FROM site_config LIMIT 1").get();
+  if (row) return;
+  const defaults = {
+    pricing: { proMonthlyGbp: 9, enterpriseMonthlyGbp: 29 },
+    maintenance: { enabled: false, message: "" },
+    announcement: { active: false, message: "" },
+  };
+  for (const [key, value] of Object.entries(defaults)) {
+    db.prepare("INSERT INTO site_config (key, value) VALUES (?, ?)").run(key, JSON.stringify(value));
+  }
 }
 
 function migrateUsersStripeColumns() {

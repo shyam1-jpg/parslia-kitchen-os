@@ -3,6 +3,8 @@ import { v4 as uuid } from "uuid";
 import { db } from "../db/schema.js";
 import type { PlanTier } from "../config/models.js";
 
+export type UserRole = "user" | "admin" | "super_admin" | "support";
+
 export interface UserRow {
   id: string;
   email: string;
@@ -12,6 +14,10 @@ export interface UserRow {
   email_verified: number;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
+  role: UserRole;
+  suspended: number;
+  totp_secret: string | null;
+  totp_enabled: number;
 }
 
 export interface SafeUser {
@@ -20,6 +26,16 @@ export interface SafeUser {
   displayName: string | null;
   plan: PlanTier;
   emailVerified: boolean;
+  role?: UserRole;
+  suspended?: boolean;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  displayName: string | null;
+  role: UserRole;
+  totpEnabled: boolean;
 }
 
 function toSafeUser(row: UserRow): SafeUser {
@@ -29,6 +45,18 @@ function toSafeUser(row: UserRow): SafeUser {
     displayName: row.display_name,
     plan: row.plan,
     emailVerified: row.email_verified === 1,
+    role: row.role ?? "user",
+    suspended: row.suspended === 1,
+  };
+}
+
+export function toAdminUser(row: UserRow): AdminUser {
+  return {
+    id: row.id,
+    email: row.email,
+    displayName: row.display_name,
+    role: row.role ?? "user",
+    totpEnabled: row.totp_enabled === 1,
   };
 }
 
@@ -159,8 +187,64 @@ export function updateUserPlan(userId: string, plan: PlanTier) {
 }
 
 export function deleteUserAccount(userId: string): boolean {
+  const row = findUserById(userId);
+  if (row?.role === "super_admin") throw new Error("CANNOT_DELETE_SUPER_ADMIN");
   const result = db.prepare("DELETE FROM users WHERE id = ?").run(userId);
   return result.changes > 0;
+}
+
+export function listUsers(limit = 100, offset = 0) {
+  return db
+    .prepare("SELECT * FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?")
+    .all(limit, offset) as UserRow[];
+}
+
+export function setUserSuspended(userId: string, suspended: boolean) {
+  db.prepare("UPDATE users SET suspended = ?, updated_at = datetime('now') WHERE id = ?").run(
+    suspended ? 1 : 0,
+    userId
+  );
+}
+
+export function setUserRole(userId: string, role: UserRole) {
+  if (role === "super_admin" && process.env.ALLOW_SUPER_ADMIN_PROMOTION !== "true") {
+    throw new Error("SUPER_ADMIN_PROMOTION_BLOCKED");
+  }
+  db.prepare("UPDATE users SET role = ?, updated_at = datetime('now') WHERE id = ?").run(role, userId);
+}
+
+export function setTotpSecret(userId: string, secret: string | null, enabled: boolean) {
+  db.prepare(
+    "UPDATE users SET totp_secret = ?, totp_enabled = ?, updated_at = datetime('now') WHERE id = ?"
+  ).run(secret, enabled ? 1 : 0, userId);
+}
+
+export async function createOwnerAccount(
+  email: string,
+  password: string,
+  displayName = "Owner"
+): Promise<AdminUser> {
+  const existing = findUserByEmail(email);
+  if (existing) {
+    const passwordHash = await bcrypt.hash(password, 12);
+    db.prepare(
+      "UPDATE users SET role = 'super_admin', password_hash = ?, display_name = ?, updated_at = datetime('now') WHERE id = ?"
+    ).run(passwordHash, displayName, existing.id);
+    return toAdminUser(findUserById(existing.id)!);
+  }
+  const id = uuid();
+  const passwordHash = await bcrypt.hash(password, 12);
+  db.prepare(
+    "INSERT INTO users (id, email, password_hash, display_name, role, email_verified, plan) VALUES (?, ?, ?, ?, 'super_admin', 1, 'enterprise')"
+  ).run(id, email.toLowerCase(), passwordHash, displayName);
+  db.prepare(
+    "INSERT INTO auth_identities (id, user_id, provider, provider_user_id) VALUES (?, ?, ?, ?)"
+  ).run(uuid(), id, "email", email.toLowerCase());
+  return toAdminUser(findUserById(id)!);
+}
+
+export function isAdminRole(role?: UserRole | string): boolean {
+  return role === "super_admin" || role === "admin" || role === "support";
 }
 
 export { toSafeUser };

@@ -53,6 +53,9 @@ router.post("/login", async (req, res) => {
   if (!row || !(await verifyPassword(row, parsed.data.password))) {
     return res.status(401).json({ error: "INVALID_CREDENTIALS" });
   }
+  if (row.suspended) {
+    return res.status(403).json({ error: "ACCOUNT_SUSPENDED" });
+  }
 
   const user = toSafeUser(row);
   req.session.userId = user.id;

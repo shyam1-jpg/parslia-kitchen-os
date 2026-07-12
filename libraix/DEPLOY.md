@@ -75,6 +75,19 @@ Test: `/forgot-password` → check inbox for reset link.
 
 Test: Log in → Pricing → **Start Pro** → complete test checkout → Account shows Pro plan.
 
+## Super Admin (owner) account
+
+**Not created via public signup.** After first deploy, open Render Shell:
+
+```bash
+cd libraix/backend
+OWNER_EMAIL=shyam_1@hotmail.co.uk OWNER_INITIAL_PASSWORD='YourSecurePassword123!' npm run seed:owner
+```
+
+Then log in at **https://libraix.ai/admin/login**
+
+Full handover checklist: `libraix/docs/HANDOVER.md`
+
 ## Frontend (Netlify) — connect repo once
 
 1. [Netlify](https://app.netlify.com) → Add new site → Import from Git

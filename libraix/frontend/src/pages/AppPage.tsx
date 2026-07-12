@@ -265,7 +265,7 @@ export function AppPage() {
         </div>
 
         <div className="sidebar-footer">
-          <div className="user-menu" onClick={() => navigate("/account")}>
+          <div className="user-menu" onClick={() => navigate("/app/billing")}>
             <div className="avatar">{initials}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -275,7 +275,7 @@ export function AppPage() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-            <Link to="/settings" className="btn btn-ghost btn-sm" style={{ flex: 1 }}>Settings</Link>
+            <Link to="/app/settings" className="btn btn-ghost btn-sm" style={{ flex: 1 }}>Settings</Link>
             <button className="btn btn-ghost btn-sm" onClick={() => logout().then(() => navigate("/"))}>Sign out</button>
           </div>
         </div>

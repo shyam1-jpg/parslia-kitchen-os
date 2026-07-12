@@ -14,6 +14,8 @@ import conversationRoutes from "./routes/conversations.js";
 import memoryRoutes from "./routes/memory.js";
 import projectRoutes from "./routes/projects.js";
 import billingRoutes, { stripeWebhookHandler } from "./routes/billing.js";
+import adminRoutes from "./routes/admin.js";
+import { getMaintenance } from "./services/siteConfig.js";
 
 initDb();
 
@@ -73,10 +75,24 @@ app.use(
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
 const aiLimiter = rateLimit({ windowMs: 60 * 1000, max: 20 });
 
+const adminLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
+
+function maintenanceGate(req: express.Request, res: express.Response, next: express.NextFunction) {
+  if (req.path.startsWith("/api/admin") || req.path.includes("/health")) return next();
+  const m = getMaintenance();
+  if (m.enabled && !req.session.adminId) {
+    return res.status(503).json({ error: "MAINTENANCE", message: m.message });
+  }
+  next();
+}
+
 app.get("/health", (_req, res) => res.json({ ok: true }));
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
+app.use(maintenanceGate);
+
 app.use("/api/auth", authLimiter, authRoutes);
+app.use("/api/admin", adminLimiter, adminRoutes);
 app.use("/api", aiLimiter, apiRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/memory", memoryRoutes);

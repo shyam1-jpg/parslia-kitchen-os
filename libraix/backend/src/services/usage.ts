@@ -1,5 +1,6 @@
 import { db } from "../db/schema.js";
-import { PRODUCT_CATALOG, type PlanTier } from "../config/models.js";
+import type { PlanTier } from "../config/models.js";
+import { getPlanLimits } from "./siteConfig.js";
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
@@ -18,7 +19,7 @@ export interface UsageSummary {
 }
 
 function getLimits(plan: PlanTier) {
-  return PRODUCT_CATALOG.plans[plan];
+  return getPlanLimits(plan);
 }
 
 export function getUsage(userId: string, plan: PlanTier): UsageSummary {
