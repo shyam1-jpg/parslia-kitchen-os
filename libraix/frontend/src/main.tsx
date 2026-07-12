@@ -9,11 +9,13 @@ import { ScrollToTop } from "./components/ScrollToTop";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage, PricingPage, ForgotPasswordPage, ResetPasswordPage } from "./pages/AuthPages";
 import { CookieBanner } from "./components/CookieBanner";
+import { AnnouncementBanner } from "./components/AnnouncementBanner";
 import { AppPage } from "./pages/AppPage";
 import { SettingsPage, PrivacyPage, TermsPage } from "./pages/AccountPages";
 import { BillingPage } from "./pages/BillingPage";
 import { AdminLoginPage } from "./pages/admin/AdminLoginPage";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
+import { SupportPage } from "./pages/SupportPage";
 import "./styles/global.css";
 
 createRoot(document.getElementById("root")!).render(
@@ -22,12 +24,14 @@ createRoot(document.getElementById("root")!).render(
       <AdminAuthProvider>
         <BrowserRouter>
           <ScrollToTop />
+          <AnnouncementBanner />
           <CookieBanner />
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
+            <Route path="/support" element={<SupportPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
 

@@ -10,7 +10,10 @@ Environment tested: production `https://libraix.ai` + Render backend
 | `/` | Public marketing | None | **Live** — React SPA, no app/settings in HTML source |
 | `/login`, `/signup` | Authentication | Public only | **Live** |
 | `/app` | AI workspace | Required (`ProtectedRoute`) | **Live** — unauthenticated users redirect to `/login` |
-| `/account`, `/settings` | Account management | Required | **Live** |
+| `/app/settings`, `/app/billing` | Account management | Required | **Live** |
+| `/admin/login` | Owner login | Public (admin only) | **Live** — Super Admin via seed script |
+| `/admin` | Owner dashboard | Admin session required | **Live** |
+| `/support` | Support & privacy requests | Public | **Live** |
 | `/privacy`, `/terms` | Legal | None | **Live** |
 
 The old single-page site (146KB HTML with embedded app/settings) is **not** the current deployment. Current HTML shell is ~674 bytes with code-split JS bundles.

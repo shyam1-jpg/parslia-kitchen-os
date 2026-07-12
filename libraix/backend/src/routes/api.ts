@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import { v4 as uuid } from "uuid";
 import { requireAuth } from "../middleware/auth.js";
 import { findUserById, toSafeUser } from "../services/users.js";
 import { respondWithAi, streamAiResponse, routeModel } from "../services/ai.js";
@@ -8,9 +9,49 @@ import { getPublicCatalog, getModelsForPlan } from "../config/models.js";
 import { getPublicFeatures, ROUTER_MODES, isFeatureEnabled } from "../config/featureFlags.js";
 import { getAllProviderHealth } from "../providers/gateway.js";
 import { ProviderError } from "../providers/types.js";
+import { getPublicRuntimeConfig } from "../services/siteConfig.js";
+import { db } from "../db/schema.js";
 import type { RouterMode } from "../config/featureFlags.js";
 
 const router = Router();
+
+router.get("/site", (_req, res) => {
+  res.json(getPublicRuntimeConfig());
+});
+
+router.post("/support", async (req, res) => {
+  const parsed = z
+    .object({
+      email: z.string().email(),
+      subject: z.string().min(1).max(200),
+      body: z.string().min(1).max(8000),
+    })
+    .safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  const userId = req.session.userId ?? null;
+  db.prepare(
+    "INSERT INTO support_requests (id, user_id, email, subject, body, status) VALUES (?, ?, ?, ?, ?, 'open')"
+  ).run(uuid(), userId, parsed.data.email, parsed.data.subject, parsed.data.body);
+  res.json({ ok: true });
+});
+
+router.post("/privacy-request", async (req, res) => {
+  const parsed = z
+    .object({
+      email: z.string().email(),
+      requestType: z.enum(["export", "deletion", "correction", "other"]),
+      details: z.string().max(4000).optional(),
+    })
+    .safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  const userId = req.session.userId ?? null;
+  db.prepare(
+    "INSERT INTO privacy_requests (id, user_id, email, request_type, status) VALUES (?, ?, ?, ?, 'pending')"
+  ).run(uuid(), userId, parsed.data.email, parsed.data.requestType);
+  res.json({ ok: true });
+});
 
 router.get("/catalog", (_req, res) => {
   res.json(getPublicCatalog());

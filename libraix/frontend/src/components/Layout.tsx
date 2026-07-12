@@ -45,6 +45,7 @@ export function Footer() {
       <div className="footer-links">
         <Link to="/privacy">Privacy</Link>
         <Link to="/terms">Terms</Link>
+        <Link to="/support">Support</Link>
         <a href="mailto:hello@libraix.ai">Contact</a>
       </div>
       <p>© {new Date().getFullYear()} Libraix. All rights reserved.</p>

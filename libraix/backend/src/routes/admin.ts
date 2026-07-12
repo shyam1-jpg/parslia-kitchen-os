@@ -180,8 +180,8 @@ router.post("/2fa/enable", requireAdmin, async (req, res) => {
   if (!code) return res.status(400).json({ error: "CODE_REQUIRED" });
   const row = findUserById(req.session.adminId!)!;
   if (!row.totp_secret) return res.status(400).json({ error: "SETUP_REQUIRED" });
-  const result = await verify({ token: code, secret: row.totp_secret });
-  if (!result.valid) {
+  const valid = await verify({ token: code, secret: row.totp_secret });
+  if (!valid) {
     return res.status(400).json({ error: "INVALID_2FA_CODE" });
   }
   setTotpSecret(row.id, row.totp_secret, true);

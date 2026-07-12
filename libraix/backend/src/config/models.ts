@@ -1,4 +1,5 @@
 import { withLaunchStatus, TOOL_LAUNCH_STATUS, MODEL_LAUNCH_STATUS, countLive } from "./launchStatus.js";
+import { getModelOverrides, getAllPlanLimits } from "../services/siteConfig.js";
 
 export type PlanTier = "free" | "pro" | "enterprise";
 
@@ -116,14 +117,30 @@ export const PRODUCT_CATALOG: ProductCatalog = {
   },
 };
 
+function applyModelOverrides(model: ModelDefinition): ModelDefinition {
+  const overrides = getModelOverrides();
+  const o = overrides[model.id];
+  if (!o) return model;
+  return {
+    ...model,
+    enabled: o.enabled ?? model.enabled,
+    tier: o.tier ?? model.tier,
+  };
+}
+
 export function getModelById(id: string): ModelDefinition | undefined {
-  return PRODUCT_CATALOG.models.find((m) => m.id === id && m.enabled);
+  const model = PRODUCT_CATALOG.models.find((m) => m.id === id);
+  if (!model) return undefined;
+  const merged = applyModelOverrides(model);
+  return merged.enabled ? merged : undefined;
 }
 
 export function getModelsForPlan(plan: PlanTier): ModelDefinition[] {
   const tierOrder: PlanTier[] = ["free", "pro", "enterprise"];
   const planIndex = tierOrder.indexOf(plan);
-  return PRODUCT_CATALOG.models.filter((m) => m.enabled && tierOrder.indexOf(m.tier) <= planIndex);
+  return PRODUCT_CATALOG.models
+    .map(applyModelOverrides)
+    .filter((m) => m.enabled && tierOrder.indexOf(m.tier) <= planIndex);
 }
 
 export function getPublicCatalog() {
@@ -146,7 +163,7 @@ export function getPublicCatalog() {
     models,
     tools,
     assistants,
-    plans: PRODUCT_CATALOG.plans,
+    plans: getAllPlanLimits(),
     launchNote:
       "Counts reflect features available at launch. Items marked coming soon are on the roadmap and not yet enabled in the app.",
   };
