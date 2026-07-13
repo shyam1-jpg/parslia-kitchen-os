@@ -162,7 +162,7 @@ export const PRODUCT_CATALOG: ProductCatalog = {
     { id: "data", name: "Data Analyst", description: "SQL, Python and statistics.", systemPrompt: "You are a data analyst.", tier: "pro", enabled: true },
   ],
   plans: {
-    free: { dailyMessages: 30, premiumModelMessages: 10, images: 0 },
+    free: { dailyMessages: 30, premiumModelMessages: 10, images: 5 },
     pro: { dailyMessages: 500, premiumModelMessages: 200, images: 50 },
     enterprise: { dailyMessages: 5000, premiumModelMessages: 2000, images: 500 },
   },

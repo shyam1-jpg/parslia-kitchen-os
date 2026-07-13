@@ -68,3 +68,18 @@ export function canSendMessage(userId: string, plan: PlanTier, isPremium: boolea
   if (isPremium && usage.premiumUsed >= usage.premiumLimit) return false;
   return true;
 }
+
+export function canGenerateImage(userId: string, plan: PlanTier): boolean {
+  const usage = getUsage(userId, plan);
+  return usage.imagesLimit > 0 && usage.imagesUsed < usage.imagesLimit;
+}
+
+export function recordImageUsage(userId: string) {
+  const date = today();
+  db.prepare(`
+    INSERT INTO usage_daily (user_id, date, images_used)
+    VALUES (?, ?, 1)
+    ON CONFLICT(user_id, date) DO UPDATE SET
+      images_used = images_used + 1
+  `).run(userId, date);
+}

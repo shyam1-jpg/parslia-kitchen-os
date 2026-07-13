@@ -702,3 +702,13 @@ button, input, textarea, select {
 
 .msg-actions { display: flex; gap: 6px; margin-top: 8px; }
 .msg-action { padding: 4px 10px; font-size: 11px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; }
+
+/* Image Studio */
+.image-studio { max-width: 780px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.image-studio-intro { color: var(--muted); line-height: 1.6; font-size: 14px; }
+.image-prompt { min-height: 80px; resize: vertical; }
+.image-options { display: flex; gap: 16px; flex-wrap: wrap; }
+.image-options label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--dim); }
+.image-result { margin-top: 8px; }
+.image-result img { width: 100%; max-width: 1024px; border-radius: 12px; border: 1px solid var(--border); }
+.image-result-actions { display: flex; gap: 8px; margin-top: 12px; }

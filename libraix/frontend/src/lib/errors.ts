@@ -7,6 +7,7 @@ const ERROR_LABELS: Record<string, string> = {
   RATE_LIMIT: "OpenAI rate limit reached. Please wait a moment and try again.",
   PROVIDER_ERROR: "AI service error. Try again in a moment.",
   PROVIDER_UNAVAILABLE: "AI service is temporarily unavailable. Please try again shortly.",
+  IMAGE_LIMIT_REACHED: "Daily image limit reached. Upgrade to Pro for more images.",
   FEATURE_DISABLED: "This feature requires a Pro plan.",
   INTERNAL_ERROR: "Something went wrong. Please try again.",
   HTTP_502: "Connection timed out. Try a shorter message or wait a few seconds and retry.",

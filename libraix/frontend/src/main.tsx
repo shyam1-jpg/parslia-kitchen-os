@@ -11,6 +11,7 @@ import { LoginPage, PricingPage, ForgotPasswordPage, ResetPasswordPage } from ".
 import { CookieBanner } from "./components/CookieBanner";
 import { AnnouncementBanner } from "./components/AnnouncementBanner";
 import { AppPage } from "./pages/AppPage";
+import { ImagePage } from "./pages/ImagePage";
 import { SettingsPage, PrivacyPage, TermsPage } from "./pages/AccountPages";
 import { BillingPage } from "./pages/BillingPage";
 import { AdminLoginPage } from "./pages/admin/AdminLoginPage";
@@ -56,6 +57,7 @@ createRoot(document.getElementById("root")!).render(
 
             <Route element={<ProtectedRoute />}>
               <Route path="/app" element={<><NoIndex /><AppPage /></>} />
+              <Route path="/app/images" element={<><NoIndex /><ImagePage /></>} />
               <Route path="/app/settings" element={<><NoIndex /><SettingsPage /></>} />
               <Route path="/app/billing" element={<><NoIndex /><BillingPage /></>} />
               <Route path="/account" element={<Navigate to="/app/billing" replace />} />

@@ -18,7 +18,7 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
   { id: "memory", name: "Personal Memory", description: "User-controlled memory system", state: "beta", minPlan: "free" },
   { id: "projects", name: "Projects", description: "Knowledge workspaces with files", state: "beta", minPlan: "pro" },
   { id: "voice", name: "Voice Assistant", description: "Realtime speech conversation", state: "disabled" },
-  { id: "image-studio", name: "Image Studio", description: "Creative image workspace", state: "internal" },
+  { id: "image-studio", name: "Image Studio", description: "Creative image workspace", state: "beta", minPlan: "free" },
   { id: "code-sandbox", name: "Code Sandbox", description: "Isolated code execution", state: "disabled" },
   { id: "custom-agents", name: "Custom Agent Builder", description: "No-code agent creation", state: "internal" },
   { id: "multi-agent", name: "Multi-Agent Orchestration", description: "Agent delegation workflows", state: "disabled" },

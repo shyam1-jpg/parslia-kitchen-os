@@ -242,6 +242,10 @@ export function AppPage() {
             <IconPlus /> New Chat
           </button>
 
+          <Link to="/app/images" className="conv-item" style={{ marginBottom: 12, display: "block", textAlign: "center", textDecoration: "none" }}>
+            🎨 Image Studio
+          </Link>
+
           <input
             className="input sidebar-search"
             placeholder="Search conversations…"

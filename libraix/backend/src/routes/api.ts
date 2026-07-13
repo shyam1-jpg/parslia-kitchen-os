@@ -13,6 +13,7 @@ import { ProviderError } from "../providers/types.js";
 import { getPublicRuntimeConfig } from "../services/siteConfig.js";
 import { getCompanyInfo } from "../config/company.js";
 import { db } from "../db/schema.js";
+import { generateImage, getImageUsage } from "../services/images.js";
 import type { RouterMode } from "../config/featureFlags.js";
 
 const router = Router();
@@ -250,5 +251,39 @@ function handleAiError(e: unknown, res: import("express").Response) {
   console.error("Unhandled AI error:", e);
   return res.status(500).json({ error: "INTERNAL_ERROR" });
 }
+
+router.post("/images/generate", requireAuth, async (req, res) => {
+  const row = findUserById(req.session.userId!);
+  if (!row) return res.status(401).json({ error: "UNAUTHENTICATED" });
+  const user = toSafeUser(row);
+
+  if (!isFeatureEnabled("image-studio", user.plan)) {
+    return res.status(403).json({ error: "FEATURE_DISABLED" });
+  }
+
+  const schema = z.object({
+    prompt: z.string().min(1).max(4000),
+    size: z.enum(["1024x1024", "1792x1024", "1024x1792"]).optional(),
+    quality: z.enum(["standard", "hd"]).optional(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  try {
+    const result = await generateImage(user, parsed.data);
+    res.json(result);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "UNKNOWN";
+    if (msg === "IMAGE_LIMIT_REACHED") return res.status(429).json({ error: "IMAGE_LIMIT_REACHED" });
+    if (msg === "IMAGE_MODEL_UNAVAILABLE") return res.status(503).json({ error: "IMAGE_MODEL_UNAVAILABLE" });
+    handleAiError(e, res);
+  }
+});
+
+router.get("/images/usage", requireAuth, (req, res) => {
+  const row = findUserById(req.session.userId!);
+  if (!row) return res.status(401).json({ error: "UNAUTHENTICATED" });
+  res.json(getImageUsage(toSafeUser(row)));
+});
 
 export default router;

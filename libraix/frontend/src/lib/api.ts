@@ -163,3 +163,15 @@ export const chatApi = {
       `/api/conversations/${id}/export`
     ),
 };
+
+export const imageApi = {
+  usage: () =>
+    api<{ imagesUsed: number; imagesLimit: number; remainingImages: number; canGenerate: boolean }>(
+      "/api/images/usage"
+    ),
+  generate: (body: { prompt: string; size?: string; quality?: string }) =>
+    api<{ url: string; revisedPrompt?: string; modelId: string; displayName: string; provider: string }>(
+      "/api/images/generate",
+      { method: "POST", body: JSON.stringify(body) }
+    ),
+};
