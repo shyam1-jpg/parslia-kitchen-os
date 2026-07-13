@@ -1,17 +1,27 @@
 import type { AiProviderAdapter, ProviderHealth, ProviderRequest, ProviderResponse } from "./types.js";
 import { ProviderError } from "./types.js";
 import { OpenAiProvider } from "./openai.js";
-import { anthropicProvider, googleProvider, deepseekProvider } from "./stubs.js";
+import { AnthropicProvider } from "./anthropic.js";
+import { GoogleProvider } from "./google.js";
+import { createOpenAiCompatibleProvider } from "./openaiCompatible.js";
+import { metaProvider, xaiProvider, perplexityProvider } from "./stubs.js";
 import type { ModelDefinition } from "../config/models.js";
+
+const deepseekProvider = createOpenAiCompatibleProvider({
+  name: "deepseek",
+  apiKeyEnv: "DEEPSEEK_API_KEY",
+  baseUrl: process.env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com",
+  costPer1kTokensCents: 0.14,
+});
 
 const adapters: Record<string, AiProviderAdapter> = {
   openai: new OpenAiProvider(),
-  anthropic: anthropicProvider,
-  google: googleProvider,
   deepseek: deepseekProvider,
-  meta: deepseekProvider,
-  xai: deepseekProvider,
-  perplexity: deepseekProvider,
+  anthropic: new AnthropicProvider(),
+  google: new GoogleProvider(),
+  meta: metaProvider,
+  xai: xaiProvider,
+  perplexity: perplexityProvider,
 };
 
 export function getProviderAdapter(provider: string): AiProviderAdapter {
@@ -25,7 +35,7 @@ export async function completeViaGateway(model: ModelDefinition, request: Omit<P
   const health = await adapter.healthCheck();
   if (!health.available) {
     throw new ProviderError(
-      `${model.provider} is currently unavailable`,
+      health.error ?? `${model.provider} is currently unavailable`,
       model.provider,
       "PROVIDER_UNAVAILABLE",
       true
@@ -38,8 +48,12 @@ export async function* streamViaGateway(model: ModelDefinition, request: Omit<Pr
   const adapter = getProviderAdapter(model.provider);
   const health = await adapter.healthCheck();
   if (!health.available) {
-    yield `[${model.provider} unavailable — configure API key on server]`;
-    return;
+    throw new ProviderError(
+      health.error ?? `${model.provider} is currently unavailable`,
+      model.provider,
+      "PROVIDER_UNAVAILABLE",
+      true
+    );
   }
   if (adapter.stream) {
     yield* adapter.stream({ ...request, model });

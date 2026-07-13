@@ -65,7 +65,7 @@ function resolveModel(user: SafeUser, req: AiRequest) {
   let isPremium = model.tier !== "free";
   if (!canSendMessage(user.id, user.plan, isPremium)) {
     if (isPremium) {
-      const fallback = getModelById("libraix-fast");
+      const fallback = getModelById("libraix-fast") ?? getModelById("libraix-deepseek");
       if (!fallback || !canSendMessage(user.id, user.plan, false)) {
         throw new Error("USAGE_LIMIT_REACHED");
       }
@@ -76,7 +76,8 @@ function resolveModel(user: SafeUser, req: AiRequest) {
     }
   }
 
-  return { model, router, isPremium, fallback: getModelById("libraix-fast") };
+  const fallback = getModelById("libraix-fast") ?? getModelById("libraix-deepseek");
+  return { model, router, isPremium, fallback };
 }
 
 export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiResponse> {

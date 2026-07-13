@@ -4,17 +4,16 @@ function stubProvider(name: string): AiProviderAdapter {
   return {
     name,
     async healthCheck(): Promise<ProviderHealth> {
-      const key = process.env[`${name.toUpperCase()}_API_KEY`];
       return {
         provider: name,
-        available: Boolean(key),
+        available: false,
         lastChecked: new Date().toISOString(),
-        error: key ? undefined : "API key not configured",
+        error: "Not yet supported",
       };
     },
     async complete(request: ProviderRequest): Promise<ProviderResponse> {
       return {
-        content: `[${name} provider not yet connected in production]\n\nRequested model: ${request.model.displayName}`,
+        content: `[${name} is not yet available on Libraix]\n\nRequested model: ${request.model.displayName}`,
         tokensUsed: 0,
         estimatedCostCents: 0,
         providerLatencyMs: 0,
@@ -23,6 +22,6 @@ function stubProvider(name: string): AiProviderAdapter {
   };
 }
 
-export const anthropicProvider = stubProvider("anthropic");
-export const googleProvider = stubProvider("google");
-export const deepseekProvider = stubProvider("deepseek");
+export const metaProvider = stubProvider("meta");
+export const xaiProvider = stubProvider("xai");
+export const perplexityProvider = stubProvider("perplexity");

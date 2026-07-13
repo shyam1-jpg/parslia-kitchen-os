@@ -1,5 +1,6 @@
 import { withLaunchStatus, TOOL_LAUNCH_STATUS, MODEL_LAUNCH_STATUS, countLive } from "./launchStatus.js";
 import { getModelOverrides, getAllPlanLimits } from "../services/siteConfig.js";
+import { isProviderConfigured } from "../providers/config.js";
 
 export type PlanTier = "free" | "pro" | "enterprise";
 
@@ -91,6 +92,56 @@ export const PRODUCT_CATALOG: ProductCatalog = {
       enabled: true,
       description: "Current OpenAI image generation model.",
     },
+    {
+      id: "libraix-deepseek",
+      displayName: "Libraix DeepSeek",
+      provider: "deepseek",
+      providerModelId: process.env.DEEPSEEK_MODEL_CHAT ?? "deepseek-chat",
+      tier: "free",
+      capabilities: { chat: true, streaming: true },
+      enabled: true,
+      description: "DeepSeek V3 — fast, excellent for coding and everyday chat.",
+    },
+    {
+      id: "libraix-deepseek-r1",
+      displayName: "Libraix DeepSeek R1",
+      provider: "deepseek",
+      providerModelId: process.env.DEEPSEEK_MODEL_REASONER ?? "deepseek-reasoner",
+      tier: "pro",
+      capabilities: { chat: true, streaming: true },
+      enabled: true,
+      description: "DeepSeek R1 reasoning — maths, logic, and complex analysis.",
+    },
+    {
+      id: "libraix-gemini",
+      displayName: "Libraix Gemini",
+      provider: "google",
+      providerModelId: process.env.GOOGLE_MODEL ?? "gemini-2.0-flash",
+      tier: "free",
+      capabilities: { chat: true, streaming: true },
+      enabled: true,
+      description: "Google Gemini 2.0 Flash — fast multimodal AI.",
+    },
+    {
+      id: "libraix-claude",
+      displayName: "Libraix Claude",
+      provider: "anthropic",
+      providerModelId: process.env.ANTHROPIC_MODEL ?? "claude-3-5-haiku-20241022",
+      tier: "pro",
+      capabilities: { chat: true, streaming: true },
+      enabled: true,
+      description: "Anthropic Claude Haiku — fast, thoughtful responses.",
+    },
+    {
+      id: "libraix-claude-sonnet",
+      displayName: "Libraix Claude Sonnet",
+      provider: "anthropic",
+      providerModelId: process.env.ANTHROPIC_MODEL_SMART ?? "claude-3-5-sonnet-20241022",
+      tier: "pro",
+      capabilities: { chat: true, streaming: true, webSearch: true },
+      enabled: true,
+      description: "Anthropic Claude Sonnet — premium writing and analysis.",
+    },
   ],
   tools: [
     { id: "chat", name: "Multi-Model Chat", description: "Switch models in one conversation.", tier: "free", enabled: true },
@@ -128,11 +179,16 @@ function applyModelOverrides(model: ModelDefinition): ModelDefinition {
   };
 }
 
+function isModelOperational(model: ModelDefinition): boolean {
+  if (!model.enabled) return false;
+  return isProviderConfigured(model.provider);
+}
+
 export function getModelById(id: string): ModelDefinition | undefined {
   const model = PRODUCT_CATALOG.models.find((m) => m.id === id);
   if (!model) return undefined;
   const merged = applyModelOverrides(model);
-  return merged.enabled ? merged : undefined;
+  return isModelOperational(merged) ? merged : undefined;
 }
 
 export function getModelsForPlan(plan: PlanTier): ModelDefinition[] {
@@ -140,12 +196,15 @@ export function getModelsForPlan(plan: PlanTier): ModelDefinition[] {
   const planIndex = tierOrder.indexOf(plan);
   return PRODUCT_CATALOG.models
     .map(applyModelOverrides)
-    .filter((m) => m.enabled && tierOrder.indexOf(m.tier) <= planIndex);
+    .filter((m) => isModelOperational(m) && tierOrder.indexOf(m.tier) <= planIndex);
 }
 
 export function getPublicCatalog() {
   const models = withLaunchStatus(
-    PRODUCT_CATALOG.models.filter((m) => m.enabled).map(({ providerModelId: _, ...rest }) => rest),
+    PRODUCT_CATALOG.models
+      .map(applyModelOverrides)
+      .filter(isModelOperational)
+      .map(({ providerModelId: _, ...rest }) => rest),
     MODEL_LAUNCH_STATUS
   );
   const tools = withLaunchStatus(

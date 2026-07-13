@@ -27,6 +27,16 @@ Open service **libraix-api** → **Environment**. Confirm or add:
 | `FRONTEND_URL` | `https://libraix.ai` | Yes |
 | `COMPANY_ADDRESS` | 23 Lincoln Road, Branston, Lincoln LN4 1PE, United Kingdom | Yes |
 
+### Optional — extra AI models (appear in chat when API key is set)
+
+| Provider | Get API key | Render env var | Models in app |
+|----------|-------------|----------------|---------------|
+| **DeepSeek** | https://platform.deepseek.com | `DEEPSEEK_API_KEY` | Libraix DeepSeek, DeepSeek R1 |
+| **Google Gemini** | https://aistudio.google.com/apikey | `GOOGLE_API_KEY` | Libraix Gemini |
+| **Anthropic Claude** | https://console.anthropic.com | `ANTHROPIC_API_KEY` | Libraix Claude, Claude Sonnet |
+
+Models only show in the dropdown when their API key is configured on Render.
+
 Click **Save Changes** → **Manual Deploy** if env vars were updated.
 
 ### Owner admin account (one-time)

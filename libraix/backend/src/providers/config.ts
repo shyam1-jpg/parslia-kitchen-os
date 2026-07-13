@@ -1,0 +1,17 @@
+const PROVIDER_KEY_ENV: Record<string, string> = {
+  openai: "OPENAI_API_KEY",
+  deepseek: "DEEPSEEK_API_KEY",
+  anthropic: "ANTHROPIC_API_KEY",
+  google: "GOOGLE_API_KEY",
+};
+
+/** True when the provider has an API key configured (OpenAI always shown — dev fallback). */
+export function isProviderConfigured(provider: string): boolean {
+  if (provider === "openai") return true;
+  const envKey = PROVIDER_KEY_ENV[provider];
+  return envKey ? Boolean(process.env[envKey]?.trim()) : false;
+}
+
+export function listConfiguredProviders(): string[] {
+  return Object.keys(PROVIDER_KEY_ENV).filter(isProviderConfigured);
+}

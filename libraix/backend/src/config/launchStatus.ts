@@ -18,6 +18,11 @@ export const MODEL_LAUNCH_STATUS: Record<string, LaunchStatus> = {
   "libraix-smart": "beta",
   "libraix-advanced": "beta",
   "libraix-image": "coming_soon",
+  "libraix-deepseek": "live",
+  "libraix-deepseek-r1": "beta",
+  "libraix-gemini": "live",
+  "libraix-claude": "beta",
+  "libraix-claude-sonnet": "beta",
 };
 
 export function withLaunchStatus<T extends { id: string }>(
