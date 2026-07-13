@@ -12,6 +12,7 @@ import { CookieBanner } from "./components/CookieBanner";
 import { AnnouncementBanner } from "./components/AnnouncementBanner";
 import { AppPage } from "./pages/AppPage";
 import { ImagePage } from "./pages/ImagePage";
+import { SearchWorkspace, LibraryWorkspace, CodeWorkspace } from "./pages/WorkspacePages";
 import { SettingsPage, PrivacyPage, TermsPage } from "./pages/AccountPages";
 import { BillingPage } from "./pages/BillingPage";
 import { AdminLoginPage } from "./pages/admin/AdminLoginPage";
@@ -71,6 +72,9 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/admin" element={<><NoIndex /><AdminDashboardPage /></>} />
             </Route>
 
+          <Route path="/app/search" element={<SearchWorkspace />} />
+                    <Route path="/app/library" element={<LibraryWorkspace />} />
+                              <Route path="/app/code" element={<CodeWorkspace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
