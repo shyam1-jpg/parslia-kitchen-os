@@ -1,5 +1,40 @@
 # Deploy Libraix — one-click links
 
+## Netlify plan upgraded — connect deploy (do this now)
+
+Your live site is still on an **old frontend bundle** until deploy is wired up. Pick **one** method:
+
+### Method 1 — Link GitHub in Netlify (recommended)
+
+1. Open your site: https://app.netlify.com/sites/rainbow-rolypoly-51c433/configuration/deploys
+2. **Build & deploy** → **Link repository** → `shyam1-jpg/parslia-kitchen-os`
+3. Branch: `main` · Build settings read from `netlify.toml` automatically
+4. Click **Deploy site** (or **Trigger deploy** → Deploy project)
+
+After this, every push to `main` rebuilds https://libraix.ai automatically.
+
+### Method 2 — GitHub Actions deploy (CLI)
+
+1. Create token: https://app.netlify.com/user/applications#personal-access-tokens  
+   (Full access or deploy scope)
+2. Add GitHub secrets: https://github.com/shyam1-jpg/parslia-kitchen-os/settings/secrets/actions
+
+| Secret | Value |
+|--------|--------|
+| `NETLIFY_AUTH_TOKEN` | Your Netlify personal access token |
+| `NETLIFY_SITE_ID` | `551984bf-05ea-447b-a82b-86ad4374e6e3` |
+
+3. Re-run workflow: https://github.com/shyam1-jpg/parslia-kitchen-os/actions/workflows/deploy-libraix.yml → **Run workflow**
+
+### Verify frontend updated
+
+```bash
+curl -sS https://libraix.ai/ | grep -o 'index-[A-Za-z0-9_-]*\.js'
+# Should NOT be index-Hg_kpDlO.js (old) — expect index-CDt3hu25.js or newer
+```
+
+---
+
 ## Claimed Netlify site (you did this)
 
 | | |

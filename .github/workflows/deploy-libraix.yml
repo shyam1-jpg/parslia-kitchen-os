@@ -39,10 +39,11 @@ jobs:
       - name: Deploy to Netlify
         run: |
           if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
-            echo "Skipping Netlify deploy — add NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID to GitHub repo secrets"
+            echo "::warning::Skipping Netlify deploy — link GitHub in Netlify UI OR add NETLIFY_AUTH_TOKEN + NETLIFY_SITE_ID to repo secrets (see libraix/DEPLOY.md)"
             exit 0
           fi
           netlify deploy --prod --dir=libraix/frontend/dist --message="Deploy from GitHub Actions (${{ github.sha }})"
+          echo "::notice::Netlify production deploy complete for commit ${{ github.sha }}"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
