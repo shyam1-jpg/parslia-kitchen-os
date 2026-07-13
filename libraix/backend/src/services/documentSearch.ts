@@ -11,9 +11,10 @@ export interface DocumentChunk {
 
 export interface DocumentSource {
   index: number;
-  fileId: string;
+  fileId?: string;
   filename: string;
   excerpt: string;
+  url?: string;
 }
 
 const CHUNK_SIZE = 1500;

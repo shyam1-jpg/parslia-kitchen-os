@@ -10,6 +10,7 @@ export function BillingPage() {
   const [searchParams] = useSearchParams();
   const [billingLoading, setBillingLoading] = useState(false);
   const [canManage, setCanManage] = useState(false);
+  const [billingStatus, setBillingStatus] = useState<"active" | "past_due">("active");
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
@@ -23,7 +24,10 @@ export function BillingPage() {
   }, [searchParams, refresh]);
 
   useEffect(() => {
-    billingApi.status().then((s) => setCanManage(s.canManageBilling)).catch(() => {});
+    billingApi.status().then((s) => {
+      setCanManage(s.canManageBilling);
+      setBillingStatus(s.billingStatus ?? "active");
+    }).catch(() => {});
   }, [user?.plan]);
 
   const startCheckout = async () => {
@@ -60,6 +64,17 @@ export function BillingPage() {
 
         {notice && <div className="info-banner" style={{ marginBottom: 16 }}>{notice}</div>}
 
+        {(billingStatus === "past_due" || user?.billingStatus === "past_due") && (
+          <div className="error-banner" style={{ marginBottom: 16 }}>
+            Your last payment failed. Update your card in the billing portal to keep Pro access.
+            {canManage && (
+              <button type="button" className="btn btn-ghost btn-sm" style={{ marginLeft: 12 }} disabled={billingLoading} onClick={openPortal}>
+                Fix payment
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="account-grid">
           <div className="account-card">
             <h3>Current plan</h3>
@@ -69,6 +84,18 @@ export function BillingPage() {
             <h3>Usage today</h3>
             <div className="value">{usage?.messagesUsed ?? 0} / {usage?.messagesLimit ?? 0} messages</div>
           </div>
+          {(usage?.premiumLimit ?? 0) > 0 && (
+            <div className="account-card">
+              <h3>Premium models</h3>
+              <div className="value">{usage?.premiumUsed ?? 0} / {usage?.premiumLimit ?? 0} today</div>
+            </div>
+          )}
+          {(usage?.imagesLimit ?? 0) > 0 && (
+            <div className="account-card">
+              <h3>Images</h3>
+              <div className="value">{usage?.imagesUsed ?? 0} / {usage?.imagesLimit ?? 0} today</div>
+            </div>
+          )}
         </div>
 
         <div style={{ marginTop: 32, display: "flex", gap: 12, flexWrap: "wrap" }}>

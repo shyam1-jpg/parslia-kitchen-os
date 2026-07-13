@@ -10,7 +10,7 @@ import {
   updateProject,
   deleteProject,
   listProjectFiles,
-  uploadProjectFileContent,
+  enqueueProjectFileIndex,
   registerProjectFile,
 } from "../services/projects.js";
 
@@ -76,12 +76,18 @@ router.post("/:id/files", (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
 
   if (parsed.data.contentBase64) {
-    uploadProjectFileContent(project.id, parsed.data.filename, parsed.data.mimeType, parsed.data.contentBase64)
-      .then((result) => res.status(201).json(result))
-      .catch((e) => {
-        const msg = e instanceof Error ? e.message : "UPLOAD_FAILED";
-        res.status(400).json({ error: msg });
-      });
+    try {
+      const result = enqueueProjectFileIndex(
+        project.id,
+        parsed.data.filename,
+        parsed.data.mimeType,
+        parsed.data.contentBase64
+      );
+      res.status(202).json(result);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "UPLOAD_FAILED";
+      res.status(400).json({ error: msg });
+    }
     return;
   }
 

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { advancedApi, type Project } from "../lib/advanced";
 import { friendlyError } from "../lib/errors";
 
@@ -13,19 +13,49 @@ interface ProjectPanelProps {
 
 export function ProjectPanel({ projects, activeProjectId, onSelect, onProjectsChange, onError, onClearError }: ProjectPanelProps) {
   const [expanded, setExpanded] = useState(Boolean(activeProjectId));
-  const [files, setFiles] = useState<Array<{ id: string; filename: string; chunkCount?: number }>>([]);
+  const [files, setFiles] = useState<Array<{ id: string; filename: string; chunkCount?: number; indexStatus?: string; indexError?: string | null }>>([]);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const active = projects.find((p) => p.id === activeProjectId);
 
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const loadFiles = async (projectId: string) => {
     try {
       const data = await advancedApi.getProject(projectId);
-      setFiles(data.files.map((f) => ({ id: f.id, filename: f.filename, chunkCount: f.chunkCount })));
+      setFiles(
+        data.files.map((f) => ({
+          id: f.id,
+          filename: f.filename,
+          chunkCount: f.chunkCount,
+          indexStatus: f.indexStatus,
+          indexError: f.indexError,
+        }))
+      );
+      return data.files;
     } catch {
       setFiles([]);
+      return [];
     }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
+
+  const startPolling = (projectId: string) => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = setInterval(async () => {
+      const list = await loadFiles(projectId);
+      const pending = list.some((f) => f.indexStatus === "pending" || f.indexStatus === "indexing");
+      if (!pending && pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    }, 2000);
   };
 
   const handleSelect = async (projectId: string | null) => {
@@ -74,7 +104,9 @@ export function ProjectPanel({ projects, activeProjectId, onSelect, onProjectsCh
       const result = await advancedApi.uploadProjectFile(activeProjectId, file);
       onClearError?.();
       await loadFiles(activeProjectId);
-      if (result.chunkCount === 0) {
+      if (result.status === "indexing") {
+        startPolling(activeProjectId);
+      } else if ((result.chunkCount ?? 0) === 0) {
         onError("File saved but no text could be indexed. Try PDF, DOCX, TXT, or CSV.");
       }
     } catch (e) {
@@ -135,7 +167,13 @@ export function ProjectPanel({ projects, activeProjectId, onSelect, onProjectsCh
                   {files.map((f) => (
                     <li key={f.id}>
                       📄 {f.filename}
-                      {f.chunkCount ? <span className="project-chunks">{f.chunkCount} chunks</span> : null}
+                      {f.indexStatus === "pending" || f.indexStatus === "indexing" ? (
+                        <span className="project-chunks">indexing…</span>
+                      ) : f.indexStatus === "failed" ? (
+                        <span className="project-chunks" title={f.indexError ?? undefined}>failed</span>
+                      ) : f.chunkCount ? (
+                        <span className="project-chunks">{f.chunkCount} chunks</span>
+                      ) : null}
                     </li>
                   ))}
                 </ul>

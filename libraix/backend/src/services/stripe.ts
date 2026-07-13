@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { db } from "../db/schema.js";
-import { findUserById, getStripeCustomerId, setStripeCustomer, updateUserPlan } from "./users.js";
+import { findUserById, getStripeCustomerId, setStripeCustomer, updateUserPlan, setUserBillingStatus, findUserByStripeCustomerId } from "./users.js";
 import type { PlanTier } from "../config/models.js";
 
 const stripeKey = process.env.STRIPE_SECRET_KEY;
@@ -82,9 +82,15 @@ export function handleWebhookEvent(payload: Buffer, signature: string) {
 
   const event = stripe.webhooks.constructEvent(payload, signature, secret);
 
+  function resolveUserId(customerId?: string | null, metadata?: Stripe.Metadata | null): string | undefined {
+    if (metadata?.userId) return metadata.userId;
+    if (customerId) return findUserByStripeCustomerId(customerId)?.id;
+    return undefined;
+  }
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    const userId = session.metadata?.userId ?? session.client_reference_id;
+    const userId = session.metadata?.userId ?? session.client_reference_id ?? undefined;
     const plan = planFromMetadata(session.metadata);
     const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
     const subscriptionId =
@@ -93,26 +99,52 @@ export function handleWebhookEvent(payload: Buffer, signature: string) {
     if (userId && customerId) {
       setStripeCustomer(userId, customerId, subscriptionId ?? undefined);
       if (plan !== "free") updateUserPlan(userId, plan);
+      setUserBillingStatus(userId, "active");
     }
+  }
+
+  if (event.type === "invoice.payment_failed") {
+    const invoice = event.data.object as Stripe.Invoice;
+    const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+    const userId = resolveUserId(customerId, invoice.metadata);
+    if (userId) setUserBillingStatus(userId, "past_due");
+  }
+
+  if (event.type === "invoice.paid") {
+    const invoice = event.data.object as Stripe.Invoice;
+    const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+    const userId = resolveUserId(customerId, invoice.metadata);
+    if (userId) setUserBillingStatus(userId, "active");
   }
 
   if (event.type === "customer.subscription.updated") {
     const sub = event.data.object as Stripe.Subscription;
-    const userId = sub.metadata?.userId;
+    const userId = sub.metadata?.userId ?? resolveUserId(
+      typeof sub.customer === "string" ? sub.customer : sub.customer?.id,
+      sub.metadata
+    );
     if (userId) {
       if (sub.status === "active" || sub.status === "trialing") {
         updateUserPlan(userId, planFromMetadata(sub.metadata));
-      } else if (sub.status === "canceled" || sub.status === "unpaid") {
+        setUserBillingStatus(userId, "active");
+      } else if (sub.status === "past_due" || sub.status === "unpaid") {
+        setUserBillingStatus(userId, "past_due");
+      } else if (sub.status === "canceled") {
         updateUserPlan(userId, "free");
+        setUserBillingStatus(userId, "active");
       }
     }
   }
 
   if (event.type === "customer.subscription.deleted") {
     const sub = event.data.object as Stripe.Subscription;
-    const userId = sub.metadata?.userId;
+    const userId = sub.metadata?.userId ?? resolveUserId(
+      typeof sub.customer === "string" ? sub.customer : sub.customer?.id,
+      sub.metadata
+    );
     if (userId) {
       updateUserPlan(userId, "free");
+      setUserBillingStatus(userId, "active");
       db.prepare("UPDATE users SET stripe_subscription_id = NULL, updated_at = datetime('now') WHERE id = ?").run(
         userId
       );
@@ -127,6 +159,7 @@ export function getBillingStatus(userId: string) {
   if (!row) return null;
   return {
     plan: row.plan,
+    billingStatus: (row.billing_status as import("./users.js").BillingStatus) ?? "active",
     stripeConfigured: isStripeCheckoutConfigured(),
     hasStripeCustomer: Boolean(row.stripe_customer_id),
     canManageBilling: Boolean(getStripe() && row.stripe_customer_id),

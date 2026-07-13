@@ -1,7 +1,8 @@
 import { v4 as uuid } from "uuid";
 import { db } from "../db/schema.js";
 import { parseDocument } from "./documents.js";
-import { indexFileChunks, buildDocumentContext, type DocumentSource } from "./documentSearch.js";
+import { enqueueFileIndex } from "./fileIndexQueue.js";
+import { buildDocumentContext, indexFileChunks, type DocumentSource } from "./documentSearch.js";
 
 export interface Project {
   id: string;
@@ -19,6 +20,8 @@ export interface ProjectFile {
   mimeType: string | null;
   sizeBytes: number;
   chunkCount?: number;
+  indexStatus?: string;
+  indexError?: string | null;
   createdAt: string;
 }
 
@@ -83,18 +86,40 @@ export function listProjectFiles(projectId: string): ProjectFile[] {
     mimeType: (r.mime_type as string) ?? null,
     sizeBytes: r.size_bytes as number,
     chunkCount: Number(r.chunk_count ?? 0),
+    indexStatus: (r.index_status as string) ?? "ready",
+    indexError: (r.index_error as string) ?? null,
     createdAt: r.created_at as string,
   }));
 }
 
-export function registerProjectFile(projectId: string, filename: string, mimeType: string, sizeBytes: number): ProjectFile {
+export function registerProjectFile(
+  projectId: string,
+  filename: string,
+  mimeType: string,
+  sizeBytes: number,
+  indexStatus = "ready"
+): ProjectFile {
   const id = uuid();
-  db.prepare("INSERT INTO project_files (id, project_id, filename, mime_type, size_bytes) VALUES (?, ?, ?, ?, ?)")
-    .run(id, projectId, filename, mimeType, sizeBytes);
+  db.prepare(
+    "INSERT INTO project_files (id, project_id, filename, mime_type, size_bytes, index_status) VALUES (?, ?, ?, ?, ?, ?)"
+  ).run(id, projectId, filename, mimeType, sizeBytes, indexStatus);
   db.prepare("UPDATE projects SET updated_at = datetime('now') WHERE id = ?").run(projectId);
   return listProjectFiles(projectId).find((f) => f.id === id)!;
 }
 
+export function enqueueProjectFileIndex(
+  projectId: string,
+  filename: string,
+  mimeType: string,
+  contentBase64: string
+): { file: ProjectFile; jobId: string; status: "indexing" } {
+  const buffer = Buffer.from(contentBase64, "base64");
+  const file = registerProjectFile(projectId, filename, mimeType, buffer.length, "pending");
+  const jobId = enqueueFileIndex(file.id, projectId, filename, mimeType, contentBase64);
+  return { file: listProjectFiles(projectId).find((f) => f.id === file.id)!, jobId, status: "indexing" };
+}
+
+/** @deprecated synchronous path — prefer enqueueProjectFileIndex */
 export async function uploadProjectFileContent(
   projectId: string,
   filename: string,

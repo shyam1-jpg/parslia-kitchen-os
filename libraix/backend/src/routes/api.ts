@@ -15,6 +15,7 @@ import { getCompanyInfo } from "../config/company.js";
 import { db } from "../db/schema.js";
 import { generateImage, getImageUsage } from "../services/images.js";
 import { listConfiguredProviders } from "../providers/config.js";
+import { getCached, setCached } from "../services/cache.js";
 
 const router = Router();
 
@@ -61,7 +62,11 @@ router.post("/privacy-request", async (req, res) => {
 });
 
 router.get("/catalog", (_req, res) => {
-  res.json(getPublicCatalog());
+  const cached = getCached<ReturnType<typeof getPublicCatalog>>("catalog:public");
+  if (cached) return res.json(cached);
+  const catalog = getPublicCatalog();
+  setCached("catalog:public", catalog, 60_000);
+  res.json(catalog);
 });
 
 router.get("/features", requireAuth, (req, res) => {

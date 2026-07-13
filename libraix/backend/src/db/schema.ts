@@ -130,6 +130,7 @@ export function initDb() {
   migrateUsersAdminColumns();
   migrateConversationsV2();
   migrateDocumentIntelligence();
+  migrateUsersBillingColumns();
   seedDefaultSiteConfig();
 }
 
@@ -150,6 +151,12 @@ function migrateDocumentIntelligence() {
   if (!fileNames.has("extracted_text")) {
     db.exec("ALTER TABLE project_files ADD COLUMN extracted_text TEXT");
   }
+  if (!fileNames.has("index_status")) {
+    db.exec("ALTER TABLE project_files ADD COLUMN index_status TEXT NOT NULL DEFAULT 'ready'");
+  }
+  if (!fileNames.has("index_error")) {
+    db.exec("ALTER TABLE project_files ADD COLUMN index_error TEXT");
+  }
   db.exec(`
     CREATE TABLE IF NOT EXISTS document_chunks (
       id TEXT PRIMARY KEY,
@@ -160,7 +167,30 @@ function migrateDocumentIntelligence() {
     );
     CREATE INDEX IF NOT EXISTS idx_document_chunks_project ON document_chunks(project_id);
     CREATE INDEX IF NOT EXISTS idx_document_chunks_file ON document_chunks(file_id);
+
+    CREATE TABLE IF NOT EXISTS file_index_jobs (
+      id TEXT PRIMARY KEY,
+      file_id TEXT NOT NULL REFERENCES project_files(id) ON DELETE CASCADE,
+      project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+      filename TEXT NOT NULL,
+      mime_type TEXT,
+      content_base64 TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      error TEXT,
+      chunk_count INTEGER,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_file_index_jobs_status ON file_index_jobs(status);
   `);
+}
+
+function migrateUsersBillingColumns() {
+  const cols = db.prepare("PRAGMA table_info(users)").all() as { name: string }[];
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has("billing_status")) {
+    db.exec("ALTER TABLE users ADD COLUMN billing_status TEXT NOT NULL DEFAULT 'active'");
+  }
 }
 
 function migrateUsersAdminColumns() {

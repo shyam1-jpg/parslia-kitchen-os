@@ -627,6 +627,11 @@ export function AppPage() {
           </div>
         )}
         {verifyNotice && <div className="info-banner" style={{ margin: "0 24px" }}>{verifyNotice}</div>}
+        {user?.billingStatus === "past_due" && (
+          <div className="error-banner" style={{ margin: "0 24px" }}>
+            Payment failed — <Link to="/app/billing">update billing</Link> to keep Pro features.
+          </div>
+        )}
 
         <div className="chat-area">
           {messages.length === 0 && !loading && !streaming ? (
@@ -712,6 +717,9 @@ export function AppPage() {
                   {usage.limitReached
                     ? `Daily limit reached (${usage.messagesUsed}/${usage.messagesLimit} messages used on ${usage.plan} plan).`
                     : `${usage.remainingMessages} of ${usage.messagesLimit} messages remaining today`}
+                  {usage.premiumLimit > 0 && !usage.limitReached && (
+                    <span> · Premium: {usage.premiumUsed}/{usage.premiumLimit}</span>
+                  )}
                   {routerHint && routerMode === "auto" && !usage.limitReached && <span> · {routerHint}</span>}
                 </div>
               )}

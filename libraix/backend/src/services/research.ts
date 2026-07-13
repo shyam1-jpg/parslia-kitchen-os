@@ -103,7 +103,22 @@ export async function runDeepResearch(user: SafeUser, req: ResearchRequest): Pro
 
 /** Inject web search context for chat when router mode is deep-research. */
 export async function buildWebSearchContext(query: string): Promise<string | null> {
+  const bundle = await buildWebSearchBundle(query);
+  return bundle.context;
+}
+
+export async function buildWebSearchBundle(
+  query: string
+): Promise<{ context: string | null; sources: { index: number; filename: string; excerpt: string; url: string }[] }> {
   const results = await searchWeb(query);
-  if (!results.length) return null;
-  return formatSearchContext(results);
+  if (!results.length) return { context: null, sources: [] };
+  return {
+    context: formatSearchContext(results),
+    sources: results.map((r, i) => ({
+      index: i + 1,
+      filename: r.title,
+      excerpt: r.snippet.slice(0, 280),
+      url: r.url,
+    })),
+  };
 }

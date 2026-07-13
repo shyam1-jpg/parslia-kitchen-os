@@ -5,6 +5,8 @@ import type { PlanTier } from "../config/models.js";
 
 export type UserRole = "user" | "admin" | "super_admin" | "support";
 
+export type BillingStatus = "active" | "past_due";
+
 export interface UserRow {
   id: string;
   email: string;
@@ -14,6 +16,7 @@ export interface UserRow {
   email_verified: number;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
+  billing_status: BillingStatus;
   role: UserRole;
   suspended: number;
   totp_secret: string | null;
@@ -26,6 +29,7 @@ export interface SafeUser {
   displayName: string | null;
   plan: PlanTier;
   emailVerified: boolean;
+  billingStatus?: BillingStatus;
   role?: UserRole;
   suspended?: boolean;
 }
@@ -45,6 +49,7 @@ function toSafeUser(row: UserRow): SafeUser {
     displayName: row.display_name,
     plan: row.plan,
     emailVerified: row.email_verified === 1,
+    billingStatus: (row.billing_status as BillingStatus) ?? "active",
     role: row.role ?? "user",
     suspended: row.suspended === 1,
   };
@@ -206,6 +211,14 @@ export function getStripeCustomerId(userId: string): string | null {
 
 export function updateUserPlan(userId: string, plan: PlanTier) {
   db.prepare("UPDATE users SET plan = ?, updated_at = datetime('now') WHERE id = ?").run(plan, userId);
+}
+
+export function setUserBillingStatus(userId: string, status: BillingStatus) {
+  db.prepare("UPDATE users SET billing_status = ?, updated_at = datetime('now') WHERE id = ?").run(status, userId);
+}
+
+export function findUserByStripeCustomerId(customerId: string): UserRow | undefined {
+  return db.prepare("SELECT * FROM users WHERE stripe_customer_id = ?").get(customerId) as UserRow | undefined;
 }
 
 export function deleteUserAccount(userId: string): boolean {

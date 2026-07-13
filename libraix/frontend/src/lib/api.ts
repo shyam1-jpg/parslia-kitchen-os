@@ -6,6 +6,7 @@ export interface User {
   displayName: string | null;
   plan: "free" | "pro" | "enterprise";
   emailVerified: boolean;
+  billingStatus?: "active" | "past_due";
 }
 
 export interface Usage {
@@ -136,6 +137,7 @@ export const catalogApi = {
 
 export interface BillingStatus {
   plan: string;
+  billingStatus: "active" | "past_due";
   stripeConfigured: boolean;
   hasStripeCustomer: boolean;
   canManageBilling: boolean;

@@ -17,8 +17,10 @@ import billingRoutes, { stripeWebhookHandler } from "./routes/billing.js";
 import toolsRoutes from "./routes/tools.js";
 import adminRoutes from "./routes/admin.js";
 import { getMaintenance } from "./services/siteConfig.js";
+import { resumeFileIndexQueue } from "./services/fileIndexQueue.js";
 
 initDb();
+resumeFileIndexQueue();
 
 const app = express();
 const port = Number(process.env.PORT ?? 3001);
@@ -78,6 +80,7 @@ app.use(
 
 // Document upload routes need a larger JSON body limit
 app.use("/api/tools", express.json({ limit: "12mb" }), aiLimiter, toolsRoutes);
+app.use("/api/projects", express.json({ limit: "12mb" }), projectRoutes);
 
 app.use(express.json({ limit: "2mb" }));
 
@@ -100,7 +103,6 @@ app.use("/api/admin", adminLimiter, adminRoutes);
 app.use("/api", aiLimiter, apiRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/memory", memoryRoutes);
-app.use("/api/projects", projectRoutes);
 app.use("/api/billing", billingRoutes);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

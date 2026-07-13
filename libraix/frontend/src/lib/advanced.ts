@@ -77,7 +77,7 @@ export const advancedApi = {
   updateProject: (id: string, body: { name?: string; description?: string; instructions?: string }) =>
     api<{ ok: boolean }>(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
   getProject: (id: string) =>
-    api<{ project: Project; files: Array<{ id: string; filename: string; mimeType: string | null; sizeBytes: number; chunkCount?: number }> }>(`/api/projects/${id}`),
+    api<{ project: Project; files: Array<{ id: string; filename: string; mimeType: string | null; sizeBytes: number; chunkCount?: number; indexStatus?: string; indexError?: string | null }> }>(`/api/projects/${id}`),
   uploadProjectFile: async (projectId: string, file: File) => {
     const contentBase64 = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
@@ -88,7 +88,7 @@ export const advancedApi = {
       reader.onerror = () => reject(new Error("READ_FAILED"));
       reader.readAsDataURL(file);
     });
-    return api<{ file: { id: string; filename: string }; chunkCount: number; charCount: number }>(
+    return api<{ file: { id: string; filename: string; indexStatus?: string }; status: "indexing" | "ready"; jobId?: string; chunkCount?: number }>(
       `/api/projects/${projectId}/files`,
       {
         method: "POST",
