@@ -8,9 +8,10 @@ interface ProjectPanelProps {
   onSelect: (projectId: string | null) => void;
   onProjectsChange: () => void;
   onError: (msg: string) => void;
+  onClearError?: () => void;
 }
 
-export function ProjectPanel({ projects, activeProjectId, onSelect, onProjectsChange, onError }: ProjectPanelProps) {
+export function ProjectPanel({ projects, activeProjectId, onSelect, onProjectsChange, onError, onClearError }: ProjectPanelProps) {
   const [expanded, setExpanded] = useState(Boolean(activeProjectId));
   const [files, setFiles] = useState<Array<{ id: string; filename: string; chunkCount?: number }>>([]);
   const [uploading, setUploading] = useState(false);
