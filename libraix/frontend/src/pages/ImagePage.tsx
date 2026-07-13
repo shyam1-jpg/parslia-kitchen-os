@@ -86,28 +86,40 @@ export function ImagePage() {
             </div>
           )}
 
-          <div className="image-prompt-row">
+          <div className={`composer composer-chatgpt image-composer ${speech.listening ? "composer-listening" : ""}`}>
             <textarea
-              className="input image-prompt"
-              rows={3}
-              placeholder={speech.listening ? "Listening…" : "Describe the image you want to create…"}
+              className="composer-field image-prompt"
+              rows={2}
+              placeholder={speech.listening ? "Listening… speak or type here" : "Describe the image you want to create…"}
               value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-            />
-            <button
-              className={`icon-btn ${speech.listening ? "listening" : ""}`}
-              title={speech.supported ? (speech.listening ? "Stop listening" : "Speak your prompt") : "Voice input requires Chrome or Edge"}
-              disabled={!speech.supported || loading}
-              onClick={() => {
-                speech.clearError();
-                speech.toggle(prompt);
+              onChange={(e) => {
+                setPrompt(e.target.value);
+                speech.syncBase(e.target.value);
               }}
-            >
-              <IconMic />
-            </button>
+            />
+            <div className="composer-end">
+              <button
+                type="button"
+                className={`composer-mic-btn ${speech.listening ? "listening" : ""}`}
+                title={speech.supported ? (speech.listening ? "Stop listening" : "Speak your prompt") : "Voice input — use Chrome or Edge"}
+                disabled={loading}
+                onClick={() => {
+                  speech.clearError();
+                  speech.toggle(prompt);
+                }}
+                aria-pressed={speech.listening}
+              >
+                <IconMic />
+              </button>
+            </div>
           </div>
           {speech.error && <div className="error-banner">{speech.error}</div>}
-          {speech.listening && <div className="voice-listening-bar">Listening… speak your image description</div>}
+          {speech.listening && (
+            <div className="voice-listening-bar">
+              <span className="voice-pulse" aria-hidden />
+              Listening — speak or type your image description
+            </div>
+          )}
 
           <div className="image-options">
             <label>

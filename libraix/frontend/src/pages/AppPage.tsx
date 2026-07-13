@@ -3,17 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Logo,
   IconPlus,
-  IconSend,
-  IconAttach,
-  IconSearch,
-  IconMic,
   IconMenu,
   IconCopy,
 } from "../components/Layout";
+import { ChatComposer } from "../components/ChatComposer";
 import { ComparePanel } from "../components/ComparePanel";
 import { MarkdownMessage } from "../components/MarkdownMessage";
 import { useAuth } from "../lib/auth";
-import { useSpeechInput } from "../lib/useSpeechInput";
 import { useSpeechOutput } from "../lib/useSpeechOutput";
 import { toolsApi, detectUrls, isYoutubeUrl } from "../lib/tools";
 import { advancedApi, type Project, type RouterMode } from "../lib/advanced";
@@ -78,9 +74,7 @@ export function AppPage() {
   const [urlTools, setUrlTools] = useState<string[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const speech = useSpeechInput(setInput);
   const speechOut = useSpeechOutput();
 
   const loadConversations = useCallback(async () => {
@@ -197,7 +191,6 @@ export function AppPage() {
 
     setError("");
     setInput("");
-    speech.stop();
     setLoading(true);
     abortRef.current = false;
 
@@ -444,7 +437,7 @@ export function AppPage() {
           {messages.length === 0 && !loading && !streaming ? (
             <div className="welcome-state">
               <h2>What can I help you with?</h2>
-              <p>Chat with Libraix models. Use Auto mode to let the Smart Router pick the best model.</p>
+              <p>Chat with Libraix models. Tap the <strong>mic</strong> in the message bar to speak — you can type and talk together, like ChatGPT.</p>
               <div className="suggestion-row">
                 {["Write an email", "Explain a concept", "Business ideas", "Write code"].map((s) => (
                   <button key={s} className="suggestion-chip" onClick={() => sendMessage(s)}>{s}</button>
@@ -486,89 +479,40 @@ export function AppPage() {
           <div ref={chatEndRef} />
         </div>
 
-        <div className="composer-wrap">
-          {usage && (
-            <div className={`usage-bar ${usage.limitReached ? "usage-limit" : ""}`}>
-              {usage.limitReached
-                ? `Daily limit reached (${usage.messagesUsed}/${usage.messagesLimit} messages used on ${usage.plan} plan).`
-                : `${usage.remainingMessages} of ${usage.messagesLimit} messages remaining today`}
-              {routerHint && routerMode === "auto" && !usage.limitReached && <span> · {routerHint}</span>}
-            </div>
-          )}
-          {error && <div className="error-banner" style={{ maxWidth: 780, margin: "0 auto 8px" }}>{error}</div>}
-          {attachLoading && <div className="info-banner" style={{ maxWidth: 780, margin: "0 auto 8px" }}>Reading document…</div>}
-          {urlTools.length > 0 && (
-            <div className="url-tool-row" style={{ maxWidth: 780, margin: "0 auto 8px", display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {urlTools.map((url) => (
-                <button key={url} type="button" className="suggestion-chip" disabled={loading || streaming} onClick={() => runUrlTool(url)}>
-                  {isYoutubeUrl(url) ? "▶ Summarise video" : "🔗 Analyse link"}
-                </button>
-              ))}
-            </div>
-          )}
-          {speech.error && (
-            <div className="error-banner" style={{ maxWidth: 780, margin: "0 auto 8px" }}>{speech.error}</div>
-          )}
-          {speech.listening && (
-            <div className="voice-listening-bar">Listening… speak now, click mic again to stop</div>
-          )}
-          <div className="composer">
-            <div className="composer-actions">
-              <button
-                className={`icon-btn ${speech.listening ? "listening" : ""}`}
-                title={speech.supported ? (speech.listening ? "Stop listening" : "Speak your message") : "Voice input requires Chrome or Edge"}
-                disabled={!speech.supported || loading || streaming}
-                onClick={() => {
-                  speech.clearError();
-                  speech.toggle(input);
-                }}
-              >
-                <IconMic />
-              </button>
-              <button className="icon-btn" title="Attach PDF or text file" onClick={() => fileInputRef.current?.click()} disabled={loading || streaming || attachLoading}>
-                <IconAttach />
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.txt,.md,.csv,.json,application/pdf,text/plain,text/markdown"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handleFileAttach(f);
-                  e.target.value = "";
-                }}
-              />
-              <button
-                className="icon-btn"
-                title="Deep research mode (live web search)"
-                disabled={loading || streaming}
-                onClick={() => setRouterMode("deep-research")}
-              >
-                <IconSearch />
-              </button>
-            </div>
-            <textarea
-              rows={1}
-              placeholder={speech.listening ? "Listening…" : "Message Libraix…"}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  sendMessage();
-                }
-              }}
-            />
-            {streaming ? (
-              <button className="send-btn" onClick={stopGeneration} title="Stop">■</button>
-            ) : (
-              <button className="send-btn" disabled={!input.trim() || loading} onClick={() => sendMessage()}>
-                <IconSend />
-              </button>
-            )}
-          </div>
-        </div>
+        <ChatComposer
+          value={input}
+          onChange={setInput}
+          onSend={() => sendMessage()}
+          onStop={stopGeneration}
+          loading={loading}
+          streaming={streaming}
+          attachLoading={attachLoading}
+          onFileSelect={handleFileAttach}
+          onDeepResearch={() => setRouterMode("deep-research")}
+          extraAbove={
+            <>
+              {usage && (
+                <div className={`usage-bar ${usage.limitReached ? "usage-limit" : ""}`}>
+                  {usage.limitReached
+                    ? `Daily limit reached (${usage.messagesUsed}/${usage.messagesLimit} messages used on ${usage.plan} plan).`
+                    : `${usage.remainingMessages} of ${usage.messagesLimit} messages remaining today`}
+                  {routerHint && routerMode === "auto" && !usage.limitReached && <span> · {routerHint}</span>}
+                </div>
+              )}
+              {error && <div className="error-banner composer-banner">{error}</div>}
+              {attachLoading && <div className="info-banner composer-banner">Reading document…</div>}
+              {urlTools.length > 0 && (
+                <div className="url-tool-row composer-banner">
+                  {urlTools.map((url) => (
+                    <button key={url} type="button" className="suggestion-chip" disabled={loading || streaming} onClick={() => runUrlTool(url)}>
+                      {isYoutubeUrl(url) ? "▶ Summarise video" : "🔗 Analyse link"}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          }
+        />
       </main>
     </div>
   );

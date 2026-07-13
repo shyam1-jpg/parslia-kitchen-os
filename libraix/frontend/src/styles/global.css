@@ -577,6 +577,11 @@ button, input, textarea, select {
 
 .composer-wrap { padding: 16px 24px 24px; border-top: 1px solid var(--border); }
 
+.composer-banner {
+  max-width: 780px;
+  margin: 0 auto 8px;
+}
+
 .composer {
   max-width: 780px;
   margin: 0 auto;
@@ -589,7 +594,105 @@ button, input, textarea, select {
   gap: 12px;
 }
 
-.composer textarea {
+/* ChatGPT-style input bar: tools left, field center, mic + send right */
+.composer.composer-chatgpt {
+  align-items: center;
+  padding: 8px 12px 8px 8px;
+  border-radius: 28px;
+  box-shadow: 0 0 0 1px var(--border), 0 4px 24px rgba(0, 0, 0, 0.12);
+  gap: 4px;
+}
+
+.composer.composer-listening {
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.35), 0 0 20px rgba(239, 68, 68, 0.08);
+}
+
+.composer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.composer-tool-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.composer-tool-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.composer-tool-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.composer-field {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  resize: none;
+  min-height: 24px;
+  max-height: 200px;
+  line-height: 1.5;
+  font-size: 15px;
+  padding: 8px 4px;
+  color: var(--text);
+}
+
+.composer-end {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.composer-mic-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.composer-mic-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.composer-mic-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.composer-mic-btn.listening {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+
+.composer textarea,
+.composer-field {
   flex: 1;
   background: none;
   border: none;
@@ -620,13 +723,14 @@ button, input, textarea, select {
   width: 36px;
   height: 36px;
   border: none;
-  border-radius: 8px;
+  border-radius: 50%;
   background: linear-gradient(135deg, var(--c1), var(--c2));
   color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -736,12 +840,29 @@ button, input, textarea, select {
 }
 
 .voice-listening-bar {
-  max-width: 780px;
-  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   font-size: 12px;
   color: #ef4444;
   text-align: center;
   font-weight: 500;
+}
+
+.voice-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+
+.url-tool-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 
@@ -749,8 +870,8 @@ button, input, textarea, select {
 .image-studio { max-width: 780px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 .image-studio-intro { color: var(--muted); line-height: 1.6; font-size: 14px; }
 .image-prompt { min-height: 80px; resize: vertical; flex: 1; }
-.image-prompt-row { display: flex; gap: 8px; align-items: flex-start; }
-.image-prompt-row .icon-btn { flex-shrink: 0; margin-top: 4px; }
+.image-composer { margin-bottom: 8px; align-items: center; }
+.image-composer .image-prompt { min-height: 48px; }
 .image-options { display: flex; gap: 16px; flex-wrap: wrap; }
 .image-options label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--dim); }
 .image-result { margin-top: 8px; }
