@@ -219,12 +219,43 @@ export function getModelsForPlan(plan: PlanTier): ModelDefinition[] {
     .filter((m) => isModelOperational(m) && tierOrder.indexOf(m.tier) <= planIndex);
 }
 
+const PROVIDER_KEY_LABEL: Record<string, string> = {
+  openai: "OPENAI_API_KEY",
+  deepseek: "DEEPSEEK_API_KEY",
+  google: "GOOGLE_API_KEY",
+  anthropic: "ANTHROPIC_API_KEY",
+  xai: "XAI_API_KEY",
+};
+
+/** All models for a plan (including those needing API keys), for UI display. */
+export function listDisplayModelsForPlan(plan: PlanTier) {
+  const tierOrder: PlanTier[] = ["free", "pro", "enterprise"];
+  const planIndex = tierOrder.indexOf(plan);
+  return PRODUCT_CATALOG.models
+    .map(applyModelOverrides)
+    .filter((m) => m.enabled && tierOrder.indexOf(m.tier) <= planIndex)
+    .map((m) => {
+      const available = isModelOperational(m);
+      const { providerModelId: _, ...rest } = m;
+      return {
+        ...rest,
+        available,
+        unavailableReason: available
+          ? undefined
+          : `Add ${PROVIDER_KEY_LABEL[m.provider] ?? m.provider + " API key"} on Render`,
+      };
+    });
+}
+
 export function getPublicCatalog() {
   const models = withLaunchStatus(
     PRODUCT_CATALOG.models
       .map(applyModelOverrides)
-      .filter(isModelOperational)
-      .map(({ providerModelId: _, ...rest }) => rest),
+      .filter((m) => m.enabled)
+      .map((m) => {
+        const { providerModelId: _, ...rest } = m;
+        return { ...rest, available: isModelOperational(m) };
+      }),
     MODEL_LAUNCH_STATUS
   );
   const tools = withLaunchStatus(

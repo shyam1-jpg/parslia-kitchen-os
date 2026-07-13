@@ -6,15 +6,15 @@ import { getUsage } from "../services/usage.js";
 import { findUserById, toSafeUser } from "../services/users.js";
 import { respondWithAi, streamAiResponse, routeModel } from "../services/ai.js";
 import { compareModels } from "../services/compare.js";
-import { getPublicCatalog, getModelsForPlan, getModelById } from "../config/models.js";
-import { getPublicFeatures, ROUTER_MODES, isFeatureEnabled } from "../config/featureFlags.js";
+import { getPublicCatalog, listDisplayModelsForPlan, getModelsForPlan, getModelById } from "../config/models.js";
+import { getPublicFeatures, ROUTER_MODES, isFeatureEnabled, type RouterMode } from "../config/featureFlags.js";
 import { getAllProviderHealth } from "../providers/gateway.js";
 import { ProviderError } from "../providers/types.js";
 import { getPublicRuntimeConfig } from "../services/siteConfig.js";
 import { getCompanyInfo } from "../config/company.js";
 import { db } from "../db/schema.js";
 import { generateImage, getImageUsage } from "../services/images.js";
-import type { RouterMode } from "../config/featureFlags.js";
+import { listConfiguredProviders } from "../providers/config.js";
 
 const router = Router();
 
@@ -94,8 +94,14 @@ router.get("/models", requireAuth, (req, res) => {
   const row = findUserById(req.session.userId!);
   if (!row) return res.status(401).json({ error: "UNAUTHENTICATED" });
   const user = toSafeUser(row);
-  const models = getModelsForPlan(user.plan).map(({ providerModelId: _, ...rest }) => rest);
-  res.json({ models });
+  res.json({ models: listDisplayModelsForPlan(user.plan) });
+});
+
+router.get("/providers/status", requireAuth, (_req, res) => {
+  res.json({
+    configured: listConfiguredProviders(),
+    note: "Add missing API keys on Render → libraix-api → Environment, then redeploy.",
+  });
 });
 
 const respondSchema = z.object({
@@ -163,7 +169,9 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
       modelId: parsed.data.modelId,
       routerMode: parsed.data.routerMode as RouterMode | undefined,
       conversationHistory: parsed.data.history,
+      systemPrompt: parsed.data.systemPrompt,
       projectId: parsed.data.projectId,
+      useMemory: parsed.data.useMemory,
     };
 
     let model = getModelById(

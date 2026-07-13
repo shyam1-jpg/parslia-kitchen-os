@@ -1,15 +1,26 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { PublicNav, Footer } from "../components/Layout";
 import { useAuth } from "../lib/auth";
 import { billingApi } from "../lib/api";
 import { friendlyError } from "../lib/errors";
 
 export function BillingPage() {
-  const { user, usage } = useAuth();
+  const { user, usage, refresh } = useAuth();
+  const [searchParams] = useSearchParams();
   const [billingLoading, setBillingLoading] = useState(false);
   const [canManage, setCanManage] = useState(false);
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("upgraded") === "1") {
+      setNotice("Welcome to Pro! Your plan will update shortly after payment confirms.");
+      refresh().catch(() => {});
+    }
+    if (searchParams.get("cancelled") === "1") {
+      setNotice("Checkout was cancelled. You can upgrade anytime.");
+    }
+  }, [searchParams, refresh]);
 
   useEffect(() => {
     billingApi.status().then((s) => setCanManage(s.canManageBilling)).catch(() => {});

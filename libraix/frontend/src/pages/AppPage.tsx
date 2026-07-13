@@ -17,6 +17,8 @@ import { useSpeechInput } from "../lib/useSpeechInput";
 import { advancedApi, type Project, type RouterMode } from "../lib/advanced";
 import {
   chatApi,
+  catalogApi,
+  authApi,
   type ChatMessage,
   type Conversation,
   type ModelInfo,
@@ -67,8 +69,12 @@ export function AppPage() {
   const [error, setError] = useState("");
   const [showCompare, setShowCompare] = useState(false);
   const [routerHint, setRouterHint] = useState("");
+  const [assistants, setAssistants] = useState<{ id: string; name: string; systemPrompt: string }[]>([]);
+  const [assistantId, setAssistantId] = useState("");
+  const [verifyNotice, setVerifyNotice] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const speech = useSpeechInput(setInput);
 
@@ -80,12 +86,30 @@ export function AppPage() {
   useEffect(() => {
     chatApi.models().then((d) => {
       setModels(d.models);
-      if (d.models.length) setModelId(d.models[0].id);
+      const first = d.models.find((m) => m.available !== false && m.capabilities.chat) ?? d.models.find((m) => m.capabilities.chat);
+      if (first) setModelId(first.id);
     });
+    catalogApi.get().then((c) => setAssistants(c.assistants.map((a) => ({ id: a.id, name: a.name, systemPrompt: a.systemPrompt })))).catch(() => {});
     advancedApi.routerModes().then((d) => setRouterModes(d.modes)).catch(() => {});
     loadConversations().catch(console.error);
     advancedApi.projects().then((d) => setProjects(d.projects)).catch(() => {});
   }, [loadConversations]);
+
+  const activeAssistant = assistants.find((a) => a.id === assistantId);
+  const systemPrompt = activeAssistant?.systemPrompt;
+
+  const handleFileAttach = async (file: File) => {
+    if (!file.name.match(/\.(txt|md|csv)$/i)) {
+      setError("Only .txt, .md and .csv files are supported for now.");
+      return;
+    }
+    if (file.size > 100_000) {
+      setError("File too large (max 100KB).");
+      return;
+    }
+    const text = await file.text();
+    setInput((prev) => (prev ? `${prev}\n\n--- ${file.name} ---\n${text}` : `--- ${file.name} ---\n${text}`));
+  };
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -136,6 +160,14 @@ export function AppPage() {
       return;
     }
 
+    if (routerMode !== "auto") {
+      const selected = models.find((m) => m.id === modelId);
+      if (selected?.available === false) {
+        setError(selected.unavailableReason ?? "This model is not available yet.");
+        return;
+      }
+    }
+
     setError("");
     setInput("");
     speech.stop();
@@ -176,6 +208,7 @@ export function AppPage() {
           modelId: routerMode === "auto" ? undefined : modelId,
           routerMode,
           history,
+          systemPrompt,
         })) {
           if (abortRef.current) break;
           if (typeof chunk === "object" && chunk.meta) {
@@ -196,6 +229,7 @@ export function AppPage() {
           modelId: routerMode === "auto" ? undefined : modelId,
           routerMode,
           history,
+          systemPrompt,
         });
         fullContent = result.content;
         modelLabel = result.displayName
@@ -311,10 +345,24 @@ export function AppPage() {
                 <option key={m.id} value={m.id}>{m.label}</option>
               ))}
             </select>
-            {routerMode !== "auto" && (
-              <select className="model-select" value={modelId} onChange={(e) => setModelId(e.target.value)}>
-                {models.filter((m) => m.capabilities.chat).map((m) => (
-                  <option key={m.id} value={m.id}>{m.displayName}</option>
+            <select
+              className="model-select"
+              value={modelId}
+              onChange={(e) => setModelId(e.target.value)}
+              disabled={routerMode === "auto"}
+              title={routerMode === "auto" ? "Switch to Manual to pick a model" : "Choose AI model"}
+            >
+              {models.filter((m) => m.capabilities.chat).map((m) => (
+                <option key={m.id} value={m.id} disabled={m.available === false}>
+                  {m.displayName}{m.available === false ? " (needs API key)" : ""}
+                </option>
+              ))}
+            </select>
+            {assistants.length > 0 && (
+              <select className="model-select" value={assistantId} onChange={(e) => setAssistantId(e.target.value)} title="AI assistant persona">
+                <option value="">No assistant</option>
+                {assistants.map((a) => (
+                  <option key={a.id} value={a.id}>{a.name}</option>
                 ))}
               </select>
             )}
@@ -327,7 +375,30 @@ export function AppPage() {
           </div>
         </header>
 
-        {showCompare && <ComparePanel models={models} onClose={() => setShowCompare(false)} />}
+        {showCompare && <ComparePanel models={models.filter((m) => m.available !== false)} onClose={() => setShowCompare(false)} />}
+
+        {!user?.emailVerified && (
+          <div className="verify-banner">
+            <span>Please verify your email to secure your account.</span>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                authApi.resendVerification().then((r) => {
+                  if (r.verifyUrl) {
+                    setVerifyNotice(`Verification link: ${r.verifyUrl}`);
+                    window.open(r.verifyUrl, "_blank");
+                  } else {
+                    setVerifyNotice("Verification email sent — check your inbox.");
+                  }
+                }).catch(() => setVerifyNotice("Could not send verification — try Settings."));
+              }}
+            >
+              Verify email
+            </button>
+          </div>
+        )}
+        {verifyNotice && <div className="info-banner" style={{ margin: "0 24px" }}>{verifyNotice}</div>}
 
         <div className="chat-area">
           {messages.length === 0 && !loading && !streaming ? (
@@ -399,8 +470,28 @@ export function AppPage() {
               >
                 <IconMic />
               </button>
-              <button className="icon-btn" title="File upload — coming soon" disabled><IconAttach /></button>
-              <button className="icon-btn" title="Web search — coming soon" disabled><IconSearch /></button>
+              <button className="icon-btn" title="Attach text file (.txt, .md, .csv)" onClick={() => fileInputRef.current?.click()} disabled={loading || streaming}>
+                <IconAttach />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".txt,.md,.csv,text/plain,text/markdown"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleFileAttach(f);
+                  e.target.value = "";
+                }}
+              />
+              <button
+                className="icon-btn"
+                title="Deep research mode"
+                disabled={loading || streaming}
+                onClick={() => setRouterMode("deep-research")}
+              >
+                <IconSearch />
+              </button>
             </div>
             <textarea
               rows={1}

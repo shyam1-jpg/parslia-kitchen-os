@@ -38,7 +38,7 @@ export async function createCheckoutSession(userId: string, email: string, plan:
     customer_email: existingCustomerId ? undefined : email,
     client_reference_id: userId,
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${process.env.FRONTEND_URL}/account?upgraded=1`,
+    success_url: `${process.env.FRONTEND_URL}/app/billing?upgraded=1`,
     cancel_url: `${process.env.FRONTEND_URL}/pricing?cancelled=1`,
     metadata: { userId, plan },
     subscription_data: { metadata: { userId, plan } },

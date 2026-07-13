@@ -17,6 +17,7 @@ import { getUsage } from "../services/usage.js";
 import { requireAuth } from "../middleware/auth.js";
 import { sendPasswordResetEmail, sendVerificationEmail, isEmailConfigured } from "../services/email.js";
 import { isStripeCheckoutConfigured } from "../services/stripe.js";
+import { listConfiguredProviders } from "../providers/config.js";
 
 const router = Router();
 
@@ -39,13 +40,20 @@ router.post("/signup", async (req, res) => {
     const user = await createUser(parsed.data.email, parsed.data.password, parsed.data.displayName);
     req.session.userId = user.id;
 
+    const frontend = process.env.FRONTEND_URL ?? "http://localhost:5173";
+    const token = createEmailVerificationToken(user.id);
+    const verifyUrl = `${frontend}/verify-email?token=${token}`;
+    const payload: Record<string, unknown> = { user, usage: getUsage(user.id, user.plan) };
+
     if (isEmailConfigured()) {
-      const frontend = process.env.FRONTEND_URL ?? "http://localhost:5173";
-      const token = createEmailVerificationToken(user.id);
-      await sendVerificationEmail(parsed.data.email, `${frontend}/verify-email?token=${token}`);
+      const sent = await sendVerificationEmail(parsed.data.email, verifyUrl);
+      if (!sent) payload.verifyUrl = verifyUrl;
+    } else {
+      payload.verifyUrl = verifyUrl;
+      payload.emailNote = "Email not configured on server — use this link to verify your account.";
     }
 
-    res.status(201).json({ user, usage: getUsage(user.id, user.plan) });
+    res.status(201).json(payload);
   } catch (e) {
     if (e instanceof Error && e.message === "EMAIL_EXISTS") {
       return res.status(409).json({ error: "EMAIL_EXISTS" });
@@ -80,6 +88,7 @@ router.get("/config", (_req, res) => {
     },
     stripe: isStripeCheckoutConfigured(),
     email: isEmailConfigured(),
+    providers: listConfiguredProviders(),
   });
 });
 
@@ -142,8 +151,11 @@ router.delete("/account", requireAuth, (req, res) => {
   });
 });
 
-/** OAuth stub — wire to real provider in production */
+/** OAuth stub — disabled in production until real OAuth callback is wired */
 router.post("/oauth/:provider", (req, res) => {
+  if (process.env.NODE_ENV === "production" && !process.env.OAUTH_STUB_ENABLED) {
+    return res.status(501).json({ error: "OAUTH_NOT_CONFIGURED" });
+  }
   const provider = req.params.provider;
   if (!["google", "apple", "microsoft"].includes(provider)) {
     return res.status(400).json({ error: "UNSUPPORTED_PROVIDER" });
@@ -190,11 +202,17 @@ router.post("/verify-email", (req, res) => {
 router.post("/resend-verification", requireAuth, async (req, res) => {
   const row = findUserById(req.session.userId!)!;
   if (row.email_verified === 1) return res.json({ ok: true, alreadyVerified: true });
-  if (!isEmailConfigured()) return res.status(503).json({ error: "EMAIL_NOT_CONFIGURED" });
   const frontend = process.env.FRONTEND_URL ?? "http://localhost:5173";
   const token = createEmailVerificationToken(row.id);
-  await sendVerificationEmail(row.email, `${frontend}/verify-email?token=${token}`);
-  res.json({ ok: true });
+  const verifyUrl = `${frontend}/verify-email?token=${token}`;
+
+  if (isEmailConfigured()) {
+    const sent = await sendVerificationEmail(row.email, verifyUrl);
+    if (!sent) return res.json({ ok: true, verifyUrl, emailNote: "Email send failed — use this link to verify." });
+    return res.json({ ok: true });
+  }
+
+  res.json({ ok: true, verifyUrl, emailNote: "Email not configured on server — use this link to verify." });
 });
 
 export default router;

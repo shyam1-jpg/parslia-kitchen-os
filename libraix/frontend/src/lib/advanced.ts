@@ -97,6 +97,7 @@ export const advancedApi = {
       modelId?: string;
       routerMode?: string;
       history?: { role: "user" | "assistant"; content: string }[];
+      systemPrompt?: string;
     }
   ): AsyncGenerator<string | { meta: { modelId: string; displayName: string; provider: string; providerModelId: string } }> {
     const res = await fetch("/api/ai/stream", {

@@ -28,6 +28,8 @@ export interface ModelInfo {
   capabilities: Record<string, boolean>;
   enabled: boolean;
   description: string;
+  available?: boolean;
+  unavailableReason?: string;
 }
 
 export type LaunchStatus = "live" | "beta" | "coming_soon" | "disabled";
@@ -39,7 +41,7 @@ export interface Catalog {
   launchNote?: string;
   models: (ModelInfo & { launchStatus: LaunchStatus })[];
   tools: { id: string; name: string; description: string; tier: string; launchStatus: LaunchStatus }[];
-  assistants: { id: string; name: string; description: string; tier: string; launchStatus?: LaunchStatus }[];
+  assistants: { id: string; name: string; description: string; systemPrompt: string; tier: string; launchStatus?: LaunchStatus }[];
   plans: Record<string, { dailyMessages: number; premiumModelMessages: number; images: number }>;
 }
 
@@ -76,9 +78,12 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const authApi = {
   config: () =>
-    api<{ oauth: { google: boolean; apple: boolean; microsoft: boolean }; stripe: boolean; email: boolean }>(
-      "/api/auth/config"
-    ),
+    api<{
+      oauth: { google: boolean; apple: boolean; microsoft: boolean };
+      stripe: boolean;
+      email: boolean;
+      providers: string[];
+    }>("/api/auth/config"),
   me: () => api<{ user: User; usage: Usage }>("/api/auth/me"),
   login: (email: string, password: string) =>
     api<{ user: User; usage: Usage }>("/api/auth/login", {
@@ -104,7 +109,10 @@ export const authApi = {
   verifyEmail: (token: string) =>
     api<{ ok: boolean }>("/api/auth/verify-email", { method: "POST", body: JSON.stringify({ token }) }),
   resendVerification: () =>
-    api<{ ok: boolean }>("/api/auth/resend-verification", { method: "POST", body: "{}" }),
+    api<{ ok: boolean; verifyUrl?: string; emailNote?: string; alreadyVerified?: boolean }>(
+      "/api/auth/resend-verification",
+      { method: "POST", body: "{}" }
+    ),
   deleteAccount: () => api<{ ok: boolean }>("/api/auth/account", { method: "DELETE" }),
 };
 
