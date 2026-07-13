@@ -1,8 +1,9 @@
-/** Detect when the user wants an image generated in chat (not just text about images). */
+/** Detect image-generation intent in chat (mirrors backend; kept in sync manually). */
 export function detectImageRequest(message: string): string | null {
   const text = message.trim();
   if (text.length < 3) return null;
 
+  // Slash commands: /image sunset over ocean
   if (text.startsWith("/image ")) {
     const p = text.slice(7).trim();
     return p.length >= 2 ? p : null;
@@ -12,16 +13,15 @@ export function detectImageRequest(message: string): string | null {
     return p.length >= 2 ? p : null;
   }
 
+  // image: a red sports car
   const colon = text.match(/^image\s*:\s*(.+)$/i);
   if (colon?.[1]) {
     const p = colon[1].trim();
     if (p.length >= 2) return p;
   }
 
-  if (/^(what|how|why|when|where|who|explain|describe|tell me about|difference between)\b/i.test(text)) {
-    return null;
-  }
-  if (/\b(google images?|stock photo|copyright|license)\b/i.test(text) && !/\b(generate|create|draw|make)\b/i.test(text)) {
+  // Skip pure questions (not generation)
+  if (/^(what|how|why|when|where|who|explain|describe|tell me about)\b/i.test(text)) {
     return null;
   }
 

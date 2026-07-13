@@ -11,6 +11,8 @@ interface ChatComposerProps {
   loading?: boolean;
   streaming?: boolean;
   attachLoading?: boolean;
+  imageMode?: boolean;
+  onToggleImageMode?: () => void;
   onFileSelect?: (file: File) => void;
   onDeepResearch?: () => void;
   extraAbove?: ReactNode;
@@ -25,6 +27,8 @@ export function ChatComposer({
   loading = false,
   streaming = false,
   attachLoading = false,
+  imageMode = false,
+  onToggleImageMode,
   onFileSelect,
   onDeepResearch,
   extraAbove,
@@ -51,8 +55,20 @@ export function ChatComposer({
           Listening — speak now. You can also type. Tap mic to stop.
         </div>
       )}
-      <div className={`composer composer-chatgpt ${speech.listening ? "composer-listening" : ""}`}>
+      <div className={`composer composer-chatgpt ${speech.listening ? "composer-listening" : ""} ${imageMode ? "composer-image-mode" : ""}`}>
         <div className="composer-toolbar">
+          {onToggleImageMode && (
+            <button
+              type="button"
+              className={`composer-tool-btn composer-image-btn ${imageMode ? "active" : ""}`}
+              title={imageMode ? "Image mode on — describe your image" : "Create an image with DALL·E 3"}
+              disabled={loading || streaming}
+              onClick={onToggleImageMode}
+              aria-pressed={imageMode}
+            >
+              🎨
+            </button>
+          )}
           {onFileSelect && (
             <button
               type="button"

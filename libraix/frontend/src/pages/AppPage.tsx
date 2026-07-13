@@ -12,11 +12,13 @@ import { MarkdownMessage } from "../components/MarkdownMessage";
 import { useAuth } from "../lib/auth";
 import { useSpeechOutput } from "../lib/useSpeechOutput";
 import { toolsApi, detectUrls, isYoutubeUrl } from "../lib/tools";
+import { detectImageRequest } from "../lib/imageIntent";
 import { advancedApi, type Project, type RouterMode } from "../lib/advanced";
 import {
   chatApi,
   catalogApi,
   authApi,
+  imageApi,
   type ChatMessage,
   type Conversation,
   type ModelInfo,
@@ -72,6 +74,7 @@ export function AppPage() {
   const [verifyNotice, setVerifyNotice] = useState("");
   const [attachLoading, setAttachLoading] = useState(false);
   const [urlTools, setUrlTools] = useState<string[]>([]);
+  const [imageMode, setImageMode] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
 
@@ -213,6 +216,39 @@ export function AppPage() {
     try {
       await chatApi.addMessage(convId, "user", content);
       const history = messages.map((m) => ({ role: m.role, content: m.content }));
+
+      const imagePrompt = imageMode ? content : detectImageRequest(content);
+      if (imagePrompt) {
+        const assistantId = crypto.randomUUID();
+        setMessages((prev) => [
+          ...prev,
+          { id: assistantId, role: "assistant", content: "Creating your image with DALL·E 3…", createdAt: new Date().toISOString() },
+        ]);
+        setStreaming(true);
+        setLoading(false);
+
+        try {
+          const result = await imageApi.generate({ prompt: imagePrompt });
+          const fullContent = `![Generated image](${result.url})\n\nHere's your image.\n\n*${result.revisedPrompt ?? imagePrompt}*`;
+          const modelLabel = `Generated using ${result.displayName} (DALL·E 3) through Libraix`;
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId ? { ...m, content: fullContent, modelLabel, imageUrl: result.url } : m
+            )
+          );
+          await chatApi.addMessage(convId, "assistant", fullContent);
+          setImageMode(false);
+          await refresh();
+          loadConversations();
+        } catch (imgErr) {
+          const msg = imgErr instanceof Error ? imgErr.message : "IMAGE_FAILED";
+          setMessages((prev) => prev.filter((m) => m.role !== "assistant" || m.content !== "Creating your image with DALL·E 3…"));
+          setError(friendlyError(msg, "Image generation failed. Check OPENAI_API_KEY on server or use Image Studio."));
+        } finally {
+          setStreaming(false);
+        }
+        return;
+      }
 
       const assistantId = crypto.randomUUID();
       setStreaming(true);
@@ -440,7 +476,7 @@ export function AppPage() {
           {messages.length === 0 && !loading && !streaming ? (
             <div className="welcome-state">
               <h2>What can I help you with?</h2>
-              <p>Chat with Libraix models — or say <strong>“create an image of…”</strong> to generate with DALL·E 3. Tap the <strong>mic</strong> to speak and type together.</p>
+              <p>Chat with Libraix — type <strong>/image a sunset</strong> or tap <strong>🎨</strong> to create images with DALL·E 3. Use the <strong>mic</strong> to speak and type.</p>
               <div className="suggestion-row">
                 {["Create an image of a sunset", "Write an email", "Explain a concept", "Write code"].map((s) => (
                   <button key={s} className="suggestion-chip" onClick={() => sendMessage(s)}>{s}</button>
@@ -490,8 +526,11 @@ export function AppPage() {
           loading={loading}
           streaming={streaming}
           attachLoading={attachLoading}
+          imageMode={imageMode}
+          onToggleImageMode={() => setImageMode((v) => !v)}
           onFileSelect={handleFileAttach}
           onDeepResearch={() => setRouterMode("deep-research")}
+          placeholder={imageMode ? "Describe the image to create…" : "Message Libraix… (or /image your prompt)"}
           extraAbove={
             <>
               {usage && (
