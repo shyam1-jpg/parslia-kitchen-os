@@ -34,6 +34,7 @@ Open service **libraix-api** → **Environment**. Confirm or add:
 | **DeepSeek** | https://platform.deepseek.com | `DEEPSEEK_API_KEY` | Libraix DeepSeek, DeepSeek R1 |
 | **Google Gemini** | https://aistudio.google.com/apikey | `GOOGLE_API_KEY` | Libraix Gemini |
 | **Anthropic Claude** | https://console.anthropic.com | `ANTHROPIC_API_KEY` | Libraix Claude, Claude Sonnet |
+| **xAI Grok** | https://console.x.ai | `XAI_API_KEY` | Libraix Grok, Grok Pro |
 
 Models only show in the dropdown when their API key is configured on Render.
 

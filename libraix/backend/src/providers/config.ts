@@ -3,6 +3,7 @@ const PROVIDER_KEY_ENV: Record<string, string> = {
   deepseek: "DEEPSEEK_API_KEY",
   anthropic: "ANTHROPIC_API_KEY",
   google: "GOOGLE_API_KEY",
+  xai: "XAI_API_KEY",
 };
 
 /** True when the provider has an API key configured (OpenAI always shown — dev fallback). */

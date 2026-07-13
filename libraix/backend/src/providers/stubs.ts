@@ -23,5 +23,4 @@ function stubProvider(name: string): AiProviderAdapter {
 }
 
 export const metaProvider = stubProvider("meta");
-export const xaiProvider = stubProvider("xai");
 export const perplexityProvider = stubProvider("perplexity");

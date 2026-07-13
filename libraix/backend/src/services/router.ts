@@ -29,18 +29,21 @@ function scoreModel(model: ModelDefinition, mode: RouterMode, input: RouterInput
   if (mode === "fast" || mode === "lowest-cost") {
     if (model.id === "libraix-fast") score += 100;
     if (model.id === "libraix-deepseek") score += 95;
+    if (model.id === "libraix-grok") score += 92;
     if (model.id === "libraix-gemini") score += 90;
     if (model.tier === "free") score += 50;
   }
   if (mode === "balanced" || mode === "auto") {
     if (model.id === "libraix-smart") score += 100;
     if (model.id === "libraix-deepseek") score += 85;
+    if (model.id === "libraix-grok") score += 82;
     if (model.id === "libraix-claude-sonnet") score += 80;
     if (model.id === "libraix-fast") score += 60;
   }
   if (mode === "advanced" || mode === "deep-research") {
     if (model.id === "libraix-advanced") score += 100;
     if (model.id === "libraix-deepseek-r1") score += 95;
+    if (model.id === "libraix-grok-pro") score += 92;
     if (model.id === "libraix-claude-sonnet") score += 90;
   }
   if (mode === "coding" && model.capabilities.chat) {
@@ -49,9 +52,17 @@ function scoreModel(model: ModelDefinition, mode: RouterMode, input: RouterInput
     if (model.id === "libraix-advanced") score += 80;
     if (model.id === "libraix-smart") score += 60;
   }
-  if (mode === "creative" && model.id === "libraix-smart") score += 80;
+  if (mode === "creative") {
+    if (model.id === "libraix-grok") score += 90;
+    if (model.id === "libraix-grok-pro") score += 85;
+    if (model.id === "libraix-smart") score += 80;
+  }
   if (input.needsCode && model.id === "libraix-advanced") score += 40;
-  if (input.needsResearch && model.capabilities.webSearch) score += 50;
+  if (input.needsResearch) {
+    if (model.id === "libraix-grok-pro") score += 55;
+    if (model.id === "libraix-grok") score += 50;
+    if (model.capabilities.webSearch) score += 30;
+  }
   if (mode === "private" && model.tier === "free") score += 30;
   return score;
 }
@@ -123,9 +134,9 @@ function buildResult(model: ModelDefinition, mode: RouterMode, reason: string, w
     displayName: model.displayName,
     mode,
     reason,
-    estimatedSpeed: model.id === "libraix-fast" || model.id === "libraix-deepseek" || model.id === "libraix-gemini"
+    estimatedSpeed: model.id === "libraix-fast" || model.id === "libraix-deepseek" || model.id === "libraix-gemini" || model.id === "libraix-grok"
       ? "fast"
-      : model.id === "libraix-advanced" || model.id === "libraix-deepseek-r1"
+      : model.id === "libraix-advanced" || model.id === "libraix-deepseek-r1" || model.id === "libraix-grok-pro"
         ? "slow"
         : "medium",
     estimatedCredits: model.tier === "free" ? 1 : model.id === "libraix-advanced" ? 5 : 3,

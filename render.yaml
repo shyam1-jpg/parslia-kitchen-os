@@ -49,6 +49,13 @@ services:
         value: claude-3-5-haiku-20241022
       - key: ANTHROPIC_MODEL_SMART
         value: claude-3-5-sonnet-20241022
+      # ── xAI Grok (https://console.x.ai) ──
+      - key: XAI_API_KEY
+        sync: false
+      - key: XAI_MODEL_FAST
+        value: grok-4-1-fast-non-reasoning
+      - key: XAI_MODEL_SMART
+        value: grok-4-5
       # ── Email (password reset + verification) ──
       - key: RESEND_API_KEY
         sync: false

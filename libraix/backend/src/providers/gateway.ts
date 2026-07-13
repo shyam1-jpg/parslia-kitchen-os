@@ -4,7 +4,7 @@ import { OpenAiProvider } from "./openai.js";
 import { AnthropicProvider } from "./anthropic.js";
 import { GoogleProvider } from "./google.js";
 import { createOpenAiCompatibleProvider } from "./openaiCompatible.js";
-import { metaProvider, xaiProvider, perplexityProvider } from "./stubs.js";
+import { metaProvider, perplexityProvider } from "./stubs.js";
 import type { ModelDefinition } from "../config/models.js";
 
 const deepseekProvider = createOpenAiCompatibleProvider({
@@ -14,13 +14,20 @@ const deepseekProvider = createOpenAiCompatibleProvider({
   costPer1kTokensCents: 0.14,
 });
 
+const xaiProvider = createOpenAiCompatibleProvider({
+  name: "xai",
+  apiKeyEnv: "XAI_API_KEY",
+  baseUrl: process.env.XAI_BASE_URL ?? "https://api.x.ai",
+  costPer1kTokensCents: 0.5,
+});
+
 const adapters: Record<string, AiProviderAdapter> = {
   openai: new OpenAiProvider(),
   deepseek: deepseekProvider,
+  xai: xaiProvider,
   anthropic: new AnthropicProvider(),
   google: new GoogleProvider(),
   meta: metaProvider,
-  xai: xaiProvider,
   perplexity: perplexityProvider,
 };
 

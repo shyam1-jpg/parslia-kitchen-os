@@ -13,7 +13,7 @@ export function parseOpenAiCompatibleError(raw: string): string {
 
 function buildBody(request: ProviderRequest, stream: boolean) {
   const modelId = request.model.providerModelId;
-  const isReasoning = /reasoner|r1|o\d/i.test(modelId);
+  const isReasoning = /reasoner|r1|o\d|grok-4-5|grok-4\.5|grok-4\.20.*reasoning/i.test(modelId);
 
   const body: Record<string, unknown> = {
     model: modelId,
