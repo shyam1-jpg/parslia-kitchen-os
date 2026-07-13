@@ -18,6 +18,13 @@ import { requireAuth } from "../middleware/auth.js";
 import { sendPasswordResetEmail, sendVerificationEmail, isEmailConfigured } from "../services/email.js";
 import { isStripeCheckoutConfigured } from "../services/stripe.js";
 import { listConfiguredProviders } from "../providers/config.js";
+import {
+  createOAuthState,
+  completeOAuthLogin,
+  getOAuthStartUrl,
+  getOAuthPublicConfig,
+  type OAuthProvider,
+} from "../services/oauth.js";
 
 const router = Router();
 
@@ -81,11 +88,7 @@ router.post("/login", async (req, res) => {
 
 router.get("/config", (_req, res) => {
   res.json({
-    oauth: {
-      google: Boolean(process.env.GOOGLE_CLIENT_ID),
-      apple: Boolean(process.env.APPLE_CLIENT_ID),
-      microsoft: Boolean(process.env.MICROSOFT_CLIENT_ID),
-    },
+    oauth: getOAuthPublicConfig(),
     stripe: isStripeCheckoutConfigured(),
     email: isEmailConfigured(),
     providers: listConfiguredProviders(),
@@ -151,7 +154,63 @@ router.delete("/account", requireAuth, (req, res) => {
   });
 });
 
-/** OAuth stub — disabled in production until real OAuth callback is wired */
+/** OAuth — Google & Microsoft fully wired when client secrets are set on Render */
+function isOAuthProvider(provider: string): provider is OAuthProvider {
+  return ["google", "apple", "microsoft"].includes(provider);
+}
+
+router.get("/oauth/:provider/start", (req, res) => {
+  const provider = req.params.provider;
+  const frontend = process.env.FRONTEND_URL ?? "http://localhost:5173";
+
+  if (!isOAuthProvider(provider)) {
+    return res.redirect(`${frontend}/login?oauth_error=unsupported`);
+  }
+
+  const state = createOAuthState();
+  req.session.oauthState = state;
+
+  const url = getOAuthStartUrl(provider, state);
+  if (!url) {
+    return res.redirect(`${frontend}/login?oauth_error=${encodeURIComponent(provider)}`);
+  }
+
+  res.redirect(url);
+});
+
+async function handleOAuthCallback(req: import("express").Request, res: import("express").Response, provider: OAuthProvider) {
+  const frontend = process.env.FRONTEND_URL ?? "http://localhost:5173";
+  const code = (req.query.code ?? req.body?.code) as string | undefined;
+  const state = (req.query.state ?? req.body?.state) as string | undefined;
+
+  if (!code || !state || state !== req.session.oauthState) {
+    return res.redirect(`${frontend}/login?oauth_error=${provider}`);
+  }
+
+  try {
+    const user = await completeOAuthLogin(provider, code);
+    req.session.userId = user.id;
+    delete req.session.oauthState;
+    res.redirect(`${frontend}/app`);
+  } catch (e) {
+    console.error(`OAuth ${provider} callback failed:`, e);
+    res.redirect(`${frontend}/login?oauth_error=${provider}`);
+  }
+}
+
+router.get("/oauth/:provider/callback", async (req, res) => {
+  const provider = req.params.provider;
+  if (!isOAuthProvider(provider) || provider === "apple") {
+    return res.status(400).json({ error: "UNSUPPORTED_PROVIDER" });
+  }
+  await handleOAuthCallback(req, res, provider);
+});
+
+router.post("/oauth/apple/callback", async (req, res) => {
+  await handleOAuthCallback(req, res, "apple");
+});
+
+/** Dev-only OAuth stub for local testing without provider keys */
 router.post("/oauth/:provider", (req, res) => {
   if (process.env.NODE_ENV === "production" && !process.env.OAUTH_STUB_ENABLED) {
     return res.status(501).json({ error: "OAUTH_NOT_CONFIGURED" });
@@ -174,21 +233,6 @@ router.post("/oauth/:provider", (req, res) => {
   const user = findOrCreateOAuthUser(provider, providerUserId, email, displayName);
   req.session.userId = user.id;
   res.json({ user, usage: getUsage(user.id, user.plan) });
-});
-
-router.get("/oauth/:provider/start", (req, res) => {
-  const provider = req.params.provider;
-  const frontend = process.env.FRONTEND_URL ?? "http://localhost:5173";
-
-  if (provider === "google" && process.env.GOOGLE_CLIENT_ID) {
-    const redirect = `${frontend}/login?oauth=google`;
-    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&scope=email%20profile&access_type=online`;
-    return res.redirect(url);
-  }
-
-  return res.redirect(
-    `${frontend}/login?oauth_error=${encodeURIComponent(provider)}`
-  );
 });
 
 router.post("/verify-email", (req, res) => {

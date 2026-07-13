@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { PublicNav, Footer } from "../components/Layout";
 import { useAuth } from "../lib/auth";
@@ -9,6 +9,135 @@ type AuthConfig = {
   oauth: { google: boolean; apple: boolean; microsoft: boolean };
   stripe: boolean;
 };
+
+type OAuthProviderId = "google" | "apple" | "microsoft";
+
+const OAUTH_PROVIDERS: {
+  id: OAuthProviderId;
+  label: string;
+  Icon: () => ReactElement;
+}[] = [
+  {
+    id: "google",
+    label: "Continue with Google",
+    Icon: GoogleIcon,
+  },
+  {
+    id: "apple",
+    label: "Continue with Apple",
+    Icon: AppleIcon,
+  },
+  {
+    id: "microsoft",
+    label: "Continue with Microsoft",
+    Icon: MicrosoftIcon,
+  },
+];
+
+function GoogleIcon() {
+  return (
+    <svg className="oauth-icon" viewBox="0 0 24 24" aria-hidden>
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+    </svg>
+  );
+}
+
+function AppleIcon() {
+  return (
+    <svg className="oauth-icon" viewBox="0 0 24 24" aria-hidden>
+      <path fill="currentColor" d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+    </svg>
+  );
+}
+
+function MicrosoftIcon() {
+  return (
+    <svg className="oauth-icon" viewBox="0 0 24 24" aria-hidden>
+      <path fill="#F25022" d="M1 1h10v10H1z" />
+      <path fill="#7FBA00" d="M13 1h10v10H13z" />
+      <path fill="#00A4EF" d="M1 13h10v10H1z" />
+      <path fill="#FFB900" d="M13 13h10v10H13z" />
+    </svg>
+  );
+}
+
+function OAuthHowItWorks() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="oauth-how">
+      <button type="button" className="oauth-how-toggle" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        How does sign-in with Google, Apple, or Microsoft work?
+      </button>
+      {open && (
+        <div className="oauth-how-body">
+          <p>
+            Libraix never sees your Google, Apple, or Microsoft password. When you tap a provider button, your browser
+            opens that company&apos;s official sign-in page.
+          </p>
+          <ol>
+            <li>You choose Google, Apple, or Microsoft on this page.</li>
+            <li>You sign in on their website (they may ask for 2FA or Face ID).</li>
+            <li>They send Libraix only your name and email — enough to create or open your account.</li>
+            <li>You are redirected back to Libraix, already signed in.</li>
+          </ol>
+          <p className="oauth-how-note">
+            Emails like &ldquo;Sign-in request from Libraix&rdquo; or security alerts come from the provider you chose,
+            not from Libraix directly. That is normal OAuth behaviour — the same pattern ChatGPT and other apps use.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OAuthButtons({
+  authConfig,
+  onUnavailable,
+}: {
+  authConfig: AuthConfig | null;
+  onUnavailable: (msg: string) => void;
+}) {
+  const startOAuth = (provider: OAuthProviderId) => {
+    const enabled = authConfig?.oauth[provider];
+    if (provider === "apple") {
+      onUnavailable("Sign in with Apple is coming soon. Use Google, Microsoft, or email below.");
+      return;
+    }
+    if (!enabled) {
+      const name = provider.charAt(0).toUpperCase() + provider.slice(1);
+      onUnavailable(`${name} sign-in is not enabled on this server yet. Use email and password below, or ask the admin to add OAuth keys.`);
+      return;
+    }
+    window.location.href = `/api/auth/oauth/${provider}/start`;
+  };
+
+  return (
+    <div className="oauth-stack">
+      {OAUTH_PROVIDERS.map(({ id, label, Icon }) => {
+        const live = id !== "apple" && Boolean(authConfig?.oauth[id]);
+        const disabled = id === "apple" || !live;
+        return (
+          <button
+            key={id}
+            type="button"
+            className={`oauth-btn oauth-btn-${id}${disabled ? " oauth-btn-disabled" : ""}`}
+            disabled={false}
+            onClick={() => startOAuth(id)}
+            aria-label={label}
+          >
+            <Icon />
+            <span>{label}</span>
+            {id === "apple" && <span className="oauth-badge">Soon</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export function LoginPage() {
   const [params] = useSearchParams();
@@ -35,13 +164,10 @@ export function LoginPage() {
 
   useEffect(() => {
     if (oauthError) {
-      setError(`${oauthError.charAt(0).toUpperCase()}${oauthError.slice(1)} sign-in is not available yet. Use email and password below.`);
+      const name = oauthError.charAt(0).toUpperCase() + oauthError.slice(1);
+      setError(`${name} sign-in could not be completed. Try again or use email and password below.`);
     }
   }, [oauthError]);
-
-  const oauthEnabled = authConfig
-    ? Object.values(authConfig.oauth).some(Boolean)
-    : false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +197,7 @@ export function LoginPage() {
     <div className="page-container">
       <PublicNav />
       <div className="auth-page">
-        <div className="auth-card">
+        <div className="auth-card auth-card-chatgpt">
           <h1>{mode === "signup" ? "Create your account" : "Welcome back"}</h1>
           <p>
             {mode === "signup"
@@ -79,7 +205,13 @@ export function LoginPage() {
               : "Sign in to your Libraix workspace."}
           </p>
 
-          {error && <div className="error-banner" style={{ marginBottom: 16 }}>{error}</div>}
+          {error && <div className="error-banner auth-error">{error}</div>}
+
+          <OAuthButtons authConfig={authConfig} onUnavailable={setError} />
+
+          <div className="auth-divider" role="separator">
+            <span>OR</span>
+          </div>
 
           <form className="auth-form" onSubmit={handleSubmit}>
             {mode === "signup" && (
@@ -89,61 +221,50 @@ export function LoginPage() {
               </div>
             )}
             <div>
-              <label htmlFor="email">Email</label>
-              <input id="email" type="email" className="input" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <label htmlFor="email">Email address</label>
+              <input id="email" type="email" className="input" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
             </div>
             <div>
               <label htmlFor="password">Password</label>
-              <input id="password" type="password" className="input" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
-              {mode === "signup" && <p style={{ fontSize: 12, color: "var(--dim)", marginTop: 4 }}>Minimum 8 characters</p>}
+              <input
+                id="password"
+                type="password"
+                className="input"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              />
+              {mode === "signup" && <p className="auth-hint">Minimum 8 characters</p>}
             </div>
             {mode === "signup" && (
-              <label style={{ display: "flex", gap: 8, fontSize: 13, alignItems: "flex-start" }}>
-                <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} style={{ marginTop: 3 }} />
-                <span>I agree to the <Link to="/terms">Terms of Service</Link> and acknowledge the <Link to="/privacy">Privacy Policy</Link>.</span>
+              <label className="auth-terms">
+                <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />
+                <span>
+                  I agree to the <Link to="/terms">Terms of Service</Link> and acknowledge the{" "}
+                  <Link to="/privacy">Privacy Policy</Link>.
+                </span>
               </label>
             )}
             {mode === "login" && (
-              <p style={{ fontSize: 13, marginTop: -8 }}>
-                <Link to="/forgot-password" style={{ color: "var(--c1)" }}>Forgot password?</Link>
+              <p className="auth-forgot">
+                <Link to="/forgot-password">Forgot password?</Link>
               </p>
             )}
-            <button type="submit" className="btn btn-primary" disabled={loading}>
+            <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
               {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Log in"}
             </button>
           </form>
 
-          <p style={{ marginTop: 20, fontSize: 13, color: "var(--muted)", textAlign: "center" }}>
+          <p className="auth-switch">
             {mode === "signup" ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button
-              type="button"
-              style={{ background: "none", border: "none", color: "var(--c1)", cursor: "pointer", fontWeight: 600 }}
-              onClick={() => setMode(mode === "signup" ? "login" : "signup")}
-            >
+            <button type="button" className="auth-switch-btn" onClick={() => setMode(mode === "signup" ? "login" : "signup")}>
               {mode === "signup" ? "Log in" : "Sign up"}
             </button>
           </p>
 
-          {oauthEnabled && (
-            <div className="oauth-row">
-              <p style={{ fontSize: 12, color: "var(--dim)", textAlign: "center" }}>Or continue with</p>
-              {authConfig?.oauth.google && (
-                <button type="button" className="oauth-btn" onClick={() => { window.location.href = "/api/auth/oauth/google/start"; }}>
-                  Continue with Google
-                </button>
-              )}
-              {authConfig?.oauth.apple && (
-                <button type="button" className="oauth-btn" onClick={() => { window.location.href = "/api/auth/oauth/apple/start"; }}>
-                  Continue with Apple
-                </button>
-              )}
-              {authConfig?.oauth.microsoft && (
-                <button type="button" className="oauth-btn" onClick={() => { window.location.href = "/api/auth/oauth/microsoft/start"; }}>
-                  Continue with Microsoft
-                </button>
-              )}
-            </div>
-          )}
+          <OAuthHowItWorks />
         </div>
       </div>
       <Footer />

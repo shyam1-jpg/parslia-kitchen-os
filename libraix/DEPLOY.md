@@ -82,6 +82,60 @@ Test: `/forgot-password` → check inbox for reset link.
 
 Test: Log in → Pricing → **Start Pro** → complete test checkout → Account shows Pro plan.
 
+## OAuth (Google, Microsoft, Apple)
+
+Libraix uses standard **OAuth 2.0** — the same pattern as ChatGPT, Notion, and most SaaS apps. Users tap a provider button, sign in on Google/Microsoft/Apple's site, and return to Libraix already logged in. Libraix never receives their provider password.
+
+### How it works (for your users)
+
+1. User clicks **Continue with Google** (or Microsoft).
+2. Browser opens that provider's official login page.
+3. User signs in there (2FA, Face ID, etc. handled by the provider).
+4. Provider sends Libraix only **name + email** to create or match an account.
+5. User lands on `/app`, signed in.
+
+Security emails ("Sign-in request for Libraix") come **from Google/Microsoft/Apple**, not from Libraix — that is expected.
+
+### Google Cloud Console
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → **Create OAuth client ID** (Web application).
+2. **Authorized redirect URI:** `https://libraix.ai/api/auth/oauth/google/callback`
+3. Copy **Client ID** and **Client secret** to Render:
+
+| Variable | Value |
+|---|---|
+| `GOOGLE_CLIENT_ID` | `....apps.googleusercontent.com` |
+| `GOOGLE_CLIENT_SECRET` | `GOCSPX-...` |
+
+### Microsoft Entra (Azure AD)
+
+1. [Azure Portal](https://portal.azure.com/) → Microsoft Entra ID → App registrations → **New registration**.
+2. Redirect URI (Web): `https://libraix.ai/api/auth/oauth/microsoft/callback`
+3. Certificates & secrets → **New client secret**.
+4. API permissions → add `openid`, `email`, `profile`, `User.Read` (Microsoft Graph).
+
+| Variable | Value |
+|---|---|
+| `MICROSOFT_CLIENT_ID` | Application (client) ID |
+| `MICROSOFT_CLIENT_SECRET` | Client secret value |
+| `MICROSOFT_TENANT_ID` | `common` (any Microsoft account) or your tenant ID |
+
+### Apple Sign In (coming soon)
+
+Apple requires a Services ID, Team ID, Key ID, and a `.p8` private key. The login page shows **Continue with Apple** but it is marked **Soon** until full Apple token exchange is enabled. Set these when ready:
+
+| Variable | Purpose |
+|---|---|
+| `APPLE_CLIENT_ID` | Services ID (e.g. `ai.libraix.web`) |
+| `APPLE_TEAM_ID` | Apple Developer Team ID |
+| `APPLE_KEY_ID` | Sign in with Apple key ID |
+| `APPLE_PRIVATE_KEY` | Contents of the `.p8` key |
+
+### Verify OAuth
+
+- `GET /api/auth/config` → `oauth: { google: true, microsoft: true, apple: false }` when keys are set.
+- `/login` → social buttons redirect to provider; successful flow lands on `/app`.
+
 ## Super Admin (owner) account
 
 **Not created via public signup.** After first deploy, open Render Shell:
