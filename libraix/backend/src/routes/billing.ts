@@ -5,6 +5,7 @@ import { isFeatureEnabled } from "../config/featureFlags.js";
 import { findUserById, toSafeUser } from "../services/users.js";
 import { createCheckoutSession, createBillingPortalSession, getBillingStatus, handleWebhookEvent } from "../services/stripe.js";
 import { runDeepResearch } from "../services/research.js";
+import { parseDocument } from "../services/documents.js";
 import { registerProjectFile, getProject } from "../services/projects.js";
 
 const router = Router();
@@ -75,7 +76,7 @@ router.post("/research", requireAuth, async (req, res) => {
   }
 });
 
-router.post("/upload", requireAuth, (req, res) => {
+router.post("/upload", requireAuth, async (req, res) => {
   const schema = z.object({
     projectId: z.string(),
     filename: z.string().max(255),
@@ -101,7 +102,19 @@ router.post("/upload", requireAuth, (req, res) => {
     parsed.data.sizeBytes
   );
 
-  res.status(201).json({ file, message: "File registered. Full storage pipeline connects in Phase 2." });
+  let extracted: Awaited<ReturnType<typeof parseDocument>> | null = null;
+  if (parsed.data.contentBase64 && parsed.data.mimeType !== "image/png" && parsed.data.mimeType !== "image/jpeg") {
+    try {
+      extracted = await parseDocument(parsed.data.filename, parsed.data.mimeType, parsed.data.contentBase64);
+    } catch {
+      /* metadata-only registration still succeeds */
+    }
+  }
+
+  res.status(201).json({
+    file,
+    extracted: extracted ? { text: extracted.text, pageCount: extracted.pageCount, truncated: extracted.truncated } : null,
+  });
 });
 
 export default router;

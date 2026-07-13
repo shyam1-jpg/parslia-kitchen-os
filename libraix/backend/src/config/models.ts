@@ -170,7 +170,7 @@ export const PRODUCT_CATALOG: ProductCatalog = {
     { id: "youtube", name: "YouTube Summariser", description: "Summarise videos from a URL.", tier: "free", enabled: true },
     { id: "link-analyser", name: "Webpage Analyser", description: "Analyse any public URL.", tier: "free", enabled: true },
     { id: "image-gen", name: "AI Image Generator", description: "Text-to-image generation.", tier: "pro", enabled: true },
-    { id: "voice", name: "Voice Chat", description: "Hands-free voice conversations.", tier: "pro", enabled: false },
+    { id: "voice", name: "Voice Chat", description: "Speech input and read-aloud replies.", tier: "free", enabled: true },
     { id: "prompt-library", name: "Prompt Library", description: "Save and reuse prompts.", tier: "pro", enabled: true },
     { id: "assistants", name: "AI Assistants", description: "Specialist pre-tuned agents.", tier: "pro", enabled: true },
   ],

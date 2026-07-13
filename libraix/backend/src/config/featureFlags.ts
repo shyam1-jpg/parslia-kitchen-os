@@ -17,7 +17,7 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
   { id: "deep-research", name: "Deep Research", description: "Multi-step web research workspace", state: "beta", minPlan: "pro" },
   { id: "memory", name: "Personal Memory", description: "User-controlled memory system", state: "beta", minPlan: "free" },
   { id: "projects", name: "Projects", description: "Knowledge workspaces with files", state: "beta", minPlan: "pro" },
-  { id: "voice", name: "Voice Assistant", description: "Realtime speech conversation", state: "disabled" },
+  { id: "voice", name: "Voice Assistant", description: "Read-aloud and speech input", state: "beta", minPlan: "free" },
   { id: "image-studio", name: "Image Studio", description: "Creative image workspace", state: "beta", minPlan: "free" },
   { id: "code-sandbox", name: "Code Sandbox", description: "Isolated code execution", state: "disabled" },
   { id: "custom-agents", name: "Custom Agent Builder", description: "No-code agent creation", state: "internal" },

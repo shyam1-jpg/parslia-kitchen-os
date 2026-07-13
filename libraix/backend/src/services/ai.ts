@@ -4,6 +4,7 @@ import { canSendMessage, getUsage, recordMessageUsage } from "./usage.js";
 import { routeModel } from "./router.js";
 import { getMemoryContext } from "./memory.js";
 import { getProjectContext } from "./projects.js";
+import { buildWebSearchContext } from "./research.js";
 import type { RouterMode } from "../config/featureFlags.js";
 import type { SafeUser } from "./users.js";
 
@@ -38,10 +39,10 @@ export interface AiResponse {
   router?: ReturnType<typeof routeModel>;
 }
 
-function buildSystemMessages(req: AiRequest, userId: string) {
+function buildSystemMessages(req: AiRequest, userId: string, webContext?: string | null) {
   const memoryCtx = req.useMemory !== false ? getMemoryContext(userId, req.projectId) : "";
   const projectCtx = req.projectId ? getProjectContext(userId, req.projectId) : "";
-  const systemParts = [DEFAULT_SYSTEM_PROMPT, req.systemPrompt, projectCtx, memoryCtx].filter(Boolean);
+  const systemParts = [DEFAULT_SYSTEM_PROMPT, req.systemPrompt, projectCtx, memoryCtx, webContext].filter(Boolean);
   return systemParts.length ? [{ role: "system" as const, content: systemParts.join("\n\n") }] : [];
 }
 
@@ -83,8 +84,11 @@ function resolveModel(user: SafeUser, req: AiRequest) {
 export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiResponse> {
   const { model, router, isPremium, fallback } = resolveModel(user, req);
 
+  const webContext =
+    req.routerMode === "deep-research" ? await buildWebSearchContext(req.message) : null;
+
   const messages = [
-    ...buildSystemMessages(req, user.id),
+    ...buildSystemMessages(req, user.id, webContext),
     ...(req.conversationHistory ?? []),
     { role: "user" as const, content: req.message },
   ];
@@ -107,8 +111,11 @@ export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiR
 export async function* streamAiResponse(user: SafeUser, req: AiRequest): AsyncGenerator<string | { model: ReturnType<typeof getModelById> }> {
   const { model, fallback } = resolveModel(user, req);
 
+  const webContext =
+    req.routerMode === "deep-research" ? await buildWebSearchContext(req.message) : null;
+
   const messages = [
-    ...buildSystemMessages(req, user.id),
+    ...buildSystemMessages(req, user.id, webContext),
     ...(req.conversationHistory ?? []),
     { role: "user" as const, content: req.message },
   ];

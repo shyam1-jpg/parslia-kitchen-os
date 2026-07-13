@@ -14,6 +14,7 @@ import conversationRoutes from "./routes/conversations.js";
 import memoryRoutes from "./routes/memory.js";
 import projectRoutes from "./routes/projects.js";
 import billingRoutes, { stripeWebhookHandler } from "./routes/billing.js";
+import toolsRoutes from "./routes/tools.js";
 import adminRoutes from "./routes/admin.js";
 import { getMaintenance } from "./services/siteConfig.js";
 
@@ -25,6 +26,10 @@ const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:5173";
 const isProd = process.env.NODE_ENV === "production";
 
 const SQLiteStore = connectSqlite3(session);
+
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
+const aiLimiter = rateLimit({ windowMs: 60 * 1000, max: 20 });
+const adminLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
 
 app.set("trust proxy", 1);
 
@@ -54,6 +59,9 @@ app.use(
 // Stripe webhook needs raw body before JSON parser
 app.post("/api/billing/stripe/webhook", express.raw({ type: "application/json" }), stripeWebhookHandler);
 
+// Document upload routes need a larger JSON body limit (before global parser)
+app.use("/api/tools", express.json({ limit: "12mb" }), aiLimiter, toolsRoutes);
+
 app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 
@@ -71,11 +79,6 @@ app.use(
     },
   })
 );
-
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
-const aiLimiter = rateLimit({ windowMs: 60 * 1000, max: 20 });
-
-const adminLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
 
 function maintenanceGate(req: express.Request, res: express.Response, next: express.NextFunction) {
   if (req.path.startsWith("/api/admin") || req.path.includes("/health")) return next();

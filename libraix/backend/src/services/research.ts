@@ -1,6 +1,8 @@
 import { completeViaGateway } from "../providers/gateway.js";
 import { getModelById } from "../config/models.js";
 import { canSendMessage, recordMessageUsage } from "./usage.js";
+import { searchWeb, formatSearchContext, isWebSearchConfigured } from "./webSearch.js";
+import { fetchPageContent } from "./fetchPage.js";
 import type { SafeUser } from "./users.js";
 
 export interface ResearchRequest {
@@ -18,50 +20,90 @@ export interface ResearchResult {
 }
 
 export async function runDeepResearch(user: SafeUser, req: ResearchRequest): Promise<ResearchResult> {
-  const model = getModelById("libraix-advanced") ?? getModelById("libraix-smart");
+  const model = getModelById("libraix-advanced") ?? getModelById("libraix-smart") ?? getModelById("libraix-fast");
   if (!model) throw new Error("MODEL_NOT_AVAILABLE");
 
   if (!canSendMessage(user.id, user.plan, model.tier !== "free")) {
     throw new Error("USAGE_LIMIT_REACHED");
   }
 
+  const searchResults = await searchWeb(req.query);
+  let pageContext = "";
+  if (req.depth !== "quick" && searchResults.length) {
+    const top = searchResults.slice(0, req.depth === "deep" ? 3 : 2);
+    const chunks: string[] = [];
+    for (const hit of top) {
+      try {
+        const page = await fetchPageContent(hit.url);
+        chunks.push(`### ${page.title}\n${page.url}\n${page.text.slice(0, 6000)}`);
+      } catch {
+        chunks.push(`### ${hit.title}\n${hit.url}\n${hit.snippet}`);
+      }
+    }
+    pageContext = chunks.join("\n\n");
+  }
+
   const depthInstructions = {
     quick: "Provide a brief research summary in 3-5 key points.",
-    standard: "Provide a structured research report with summary, key findings, and suggested sources.",
-    deep: "Provide a comprehensive research report with executive summary, detailed findings, conflicting viewpoints, and bibliography.",
+    standard: "Provide a structured research report with summary, key findings, and cited sources.",
+    deep: "Provide a comprehensive research report with executive summary, detailed findings, and bibliography.",
   };
+
+  const searchBlock = formatSearchContext(searchResults);
+  const userContent = [
+    `Research query: ${req.query}`,
+    searchBlock,
+    pageContext ? `Fetched page excerpts:\n${pageContext}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
   const response = await completeViaGateway(model, {
     messages: [
       {
         role: "system",
-        content: `You are a research assistant. ${depthInstructions[req.depth]} Clearly distinguish sourced facts from interpretation. Include a methodology note and confidence level. Format sources as JSON array at end: [{"title":"","url":"","snippet":""}]`,
+        content: `You are a research assistant. ${depthInstructions[req.depth]} Use the live search results and page excerpts when provided. Cite sources by title and URL. End with a JSON array of sources: [{"title":"","url":"","snippet":""}]`,
       },
-      { role: "user", content: req.query },
+      { role: "user", content: userContent },
     ],
   });
 
   recordMessageUsage(user.id, model.tier !== "free", response.tokensUsed, response.estimatedCostCents);
 
   const sourcesMatch = response.content.match(/\[[\s\S]*?\{[\s\S]*?\}[\s\S]*?\]/);
-  let sources: ResearchResult["sources"] = [];
+  let sources: ResearchResult["sources"] = searchResults.map((r) => ({
+    title: r.title,
+    url: r.url,
+    snippet: r.snippet,
+  }));
   if (sourcesMatch) {
     try {
-      sources = JSON.parse(sourcesMatch[0]);
+      const parsed = JSON.parse(sourcesMatch[0]) as ResearchResult["sources"];
+      if (parsed.length) sources = parsed;
     } catch {
-      sources = [{ title: "Research synthesis", url: "", snippet: "AI-generated summary — verify independently" }];
+      /* keep search results */
     }
   }
 
   const mainContent = sourcesMatch ? response.content.replace(sourcesMatch[0], "").trim() : response.content;
   const findings = mainContent.split("\n").filter((l) => l.trim().startsWith("-") || l.trim().match(/^\d+\./)).slice(0, 10);
 
+  const usedLiveSearch = searchResults.length > 0;
   return {
-    summary: mainContent.slice(0, 2000),
+    summary: mainContent.slice(0, 4000),
     keyFindings: findings.length ? findings : [mainContent.slice(0, 500)],
     sources,
-    methodology: `${req.depth} research using ${model.displayName}. Web search integration pending.`,
-    confidence: req.depth === "deep" ? "medium" : "low",
+    methodology: usedLiveSearch
+      ? `${req.depth} research using ${model.displayName} with live web search${isWebSearchConfigured() ? " (Serper)" : " (DuckDuckGo fallback)"}${pageContext ? " and page fetching" : ""}.`
+      : `${req.depth} research using ${model.displayName}. Live search returned no results — synthesis from model knowledge.`,
+    confidence: usedLiveSearch ? (req.depth === "deep" ? "medium" : "low") : "low",
     disclaimer: "Research results may contain inaccuracies. Verify critical facts independently before acting.",
   };
+}
+
+/** Inject web search context for chat when router mode is deep-research. */
+export async function buildWebSearchContext(query: string): Promise<string | null> {
+  const results = await searchWeb(query);
+  if (!results.length) return null;
+  return formatSearchContext(results);
 }

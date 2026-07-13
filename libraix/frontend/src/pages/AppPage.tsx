@@ -14,6 +14,8 @@ import { ComparePanel } from "../components/ComparePanel";
 import { MarkdownMessage } from "../components/MarkdownMessage";
 import { useAuth } from "../lib/auth";
 import { useSpeechInput } from "../lib/useSpeechInput";
+import { useSpeechOutput } from "../lib/useSpeechOutput";
+import { toolsApi, detectUrls, isYoutubeUrl } from "../lib/tools";
 import { advancedApi, type Project, type RouterMode } from "../lib/advanced";
 import {
   chatApi,
@@ -72,11 +74,14 @@ export function AppPage() {
   const [assistants, setAssistants] = useState<{ id: string; name: string; systemPrompt: string }[]>([]);
   const [assistantId, setAssistantId] = useState("");
   const [verifyNotice, setVerifyNotice] = useState("");
+  const [attachLoading, setAttachLoading] = useState(false);
+  const [urlTools, setUrlTools] = useState<string[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const speech = useSpeechInput(setInput);
+  const speechOut = useSpeechOutput();
 
   const loadConversations = useCallback(async () => {
     const data = await chatApi.conversations();
@@ -99,17 +104,39 @@ export function AppPage() {
   const systemPrompt = activeAssistant?.systemPrompt;
 
   const handleFileAttach = async (file: File) => {
-    if (!file.name.match(/\.(txt|md|csv)$/i)) {
-      setError("Only .txt, .md and .csv files are supported for now.");
+    setError("");
+    const isPdf = file.name.match(/\.pdf$/i) || file.type === "application/pdf";
+    const isText = file.name.match(/\.(txt|md|csv|json|log)$/i) || file.type.startsWith("text/");
+
+    if (!isPdf && !isText) {
+      setError("Supported files: PDF, .txt, .md, .csv, .json");
       return;
     }
-    if (file.size > 100_000) {
-      setError("File too large (max 100KB).");
+    if (file.size > 5_000_000) {
+      setError("File too large (max 5MB).");
       return;
     }
-    const text = await file.text();
-    setInput((prev) => (prev ? `${prev}\n\n--- ${file.name} ---\n${text}` : `--- ${file.name} ---\n${text}`));
+
+    setAttachLoading(true);
+    try {
+      if (isPdf || file.size > 200_000) {
+        const doc = await toolsApi.parseFile(file);
+        const header = `--- ${doc.filename}${doc.pageCount ? ` (${doc.pageCount} pages)` : ""}${doc.truncated ? " [truncated]" : ""} ---`;
+        setInput((prev) => (prev ? `${prev}\n\n${header}\n${doc.text}` : `${header}\n${doc.text}`));
+      } else {
+        const text = await file.text();
+        setInput((prev) => (prev ? `${prev}\n\n--- ${file.name} ---\n${text}` : `--- ${file.name} ---\n${text}`));
+      }
+    } catch (err) {
+      setError(friendlyError(err instanceof Error ? err.message : "ATTACH_FAILED", "Could not read file"));
+    } finally {
+      setAttachLoading(false);
+    }
   };
+
+  useEffect(() => {
+    setUrlTools(detectUrls(input));
+  }, [input]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -259,6 +286,19 @@ export function AppPage() {
   const stopGeneration = () => {
     abortRef.current = true;
     setStreaming(false);
+  };
+
+  const runUrlTool = async (url: string) => {
+    setError("");
+    try {
+      const result = isYoutubeUrl(url)
+        ? await toolsApi.youtube(url, input.trim() || undefined)
+        : await toolsApi.analyseLink(url, input.trim() || undefined);
+      const label = isYoutubeUrl(url) ? "YouTube summary" : "Link analysis";
+      await sendMessage(`**${label}:** ${url}\n\n${result.summary}`);
+    } catch (err) {
+      setError(friendlyError(err instanceof Error ? err.message : "TOOL_FAILED", "Tool failed"));
+    }
   };
 
   const copyMessage = (content: string) => {
@@ -427,6 +467,11 @@ export function AppPage() {
                 {m.role === "assistant" && m.content && (
                   <div className="msg-actions">
                     {m.modelLabel && <span className="model-disclosure">{m.modelLabel}</span>}
+                    {speechOut.supported && (
+                      <button className="msg-action" onClick={() => speechOut.toggle(m.content)} title="Read aloud">
+                        {speechOut.speaking ? "■ Stop" : "🔊 Listen"}
+                      </button>
+                    )}
                     <button className="msg-action" onClick={() => copyMessage(m.content)}><IconCopy /> Copy</button>
                   </div>
                 )}
@@ -451,6 +496,16 @@ export function AppPage() {
             </div>
           )}
           {error && <div className="error-banner" style={{ maxWidth: 780, margin: "0 auto 8px" }}>{error}</div>}
+          {attachLoading && <div className="info-banner" style={{ maxWidth: 780, margin: "0 auto 8px" }}>Reading document…</div>}
+          {urlTools.length > 0 && (
+            <div className="url-tool-row" style={{ maxWidth: 780, margin: "0 auto 8px", display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {urlTools.map((url) => (
+                <button key={url} type="button" className="suggestion-chip" disabled={loading || streaming} onClick={() => runUrlTool(url)}>
+                  {isYoutubeUrl(url) ? "▶ Summarise video" : "🔗 Analyse link"}
+                </button>
+              ))}
+            </div>
+          )}
           {speech.error && (
             <div className="error-banner" style={{ maxWidth: 780, margin: "0 auto 8px" }}>{speech.error}</div>
           )}
@@ -470,13 +525,13 @@ export function AppPage() {
               >
                 <IconMic />
               </button>
-              <button className="icon-btn" title="Attach text file (.txt, .md, .csv)" onClick={() => fileInputRef.current?.click()} disabled={loading || streaming}>
+              <button className="icon-btn" title="Attach PDF or text file" onClick={() => fileInputRef.current?.click()} disabled={loading || streaming || attachLoading}>
                 <IconAttach />
               </button>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".txt,.md,.csv,text/plain,text/markdown"
+                accept=".pdf,.txt,.md,.csv,.json,application/pdf,text/plain,text/markdown"
                 style={{ display: "none" }}
                 onChange={(e) => {
                   const f = e.target.files?.[0];
@@ -486,7 +541,7 @@ export function AppPage() {
               />
               <button
                 className="icon-btn"
-                title="Deep research mode"
+                title="Deep research mode (live web search)"
                 disabled={loading || streaming}
                 onClick={() => setRouterMode("deep-research")}
               >
