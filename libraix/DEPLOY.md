@@ -68,7 +68,7 @@ Test: `/forgot-password` → check inbox for reset link.
 2. **Products** → create **Pro** subscription → £9/month → copy **Price ID** (`price_...`)
 3. **Developers → Webhooks** → add endpoint:
    - URL: `https://libraix-api.onrender.com/api/billing/stripe/webhook`
-   - Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+   - Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`, `invoice.paid`
    - Copy **Signing secret** (`whsec_...`)
 4. On Render, set:
 
@@ -165,6 +165,29 @@ https://shyam1-jpg.github.io/parslia-kitchen-os/
 (API requires Render backend; set `netlify.toml` proxy or use Render URL in frontend)
 
 ## Verify live
+
+Run the smoke test (no login required):
+
+```bash
+bash libraix/scripts/smoke-test.sh
+# After Render deploy, verify commit:
+EXPECTED_COMMIT=$(git rev-parse HEAD) bash libraix/scripts/smoke-test.sh
+```
+
+`/health` returns `{ ok, commit, features: { orchestrator, asyncFileIndexing, ... } }` — use this to confirm Render picked up the latest `main` build.
+
+### GitHub Actions auto-deploy (optional secrets)
+
+| Secret | Where to get it |
+|--------|-----------------|
+| `NETLIFY_AUTH_TOKEN` | Netlify → User settings → Personal access tokens |
+| `NETLIFY_SITE_ID` | `551984bf-05ea-447b-a82b-86ad4374e6e3` (libraix.ai site) |
+| `RENDER_DEPLOY_HOOK_URL` | Render → libraix-api → Settings → Deploy Hook |
+
+Push to `main` runs **Deploy Libraix** workflow. Without secrets, deploy manually:
+
+1. **Render** → libraix-api → **Manual Deploy** (or connect GitHub auto-deploy)
+2. **Netlify** → libraix.ai site → **Trigger deploy** from `main`
 
 - `/` — public landing only
 - `/login` — auth

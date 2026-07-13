@@ -36,7 +36,41 @@ jobs:
           name: libraix-frontend-dist
           path: libraix/frontend/dist
       - run: npm install -g netlify-cli
-      - run: netlify deploy --prod --dir=libraix/frontend/dist --message="Deploy from GitHub Actions"
+      - name: Deploy to Netlify
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
+            echo "Skipping Netlify deploy — add NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID to GitHub repo secrets"
+            exit 0
+          fi
+          netlify deploy --prod --dir=libraix/frontend/dist --message="Deploy from GitHub Actions (${{ github.sha }})"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+  deploy-render:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Trigger Render deploy hook
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "Skipping Render hook — add RENDER_DEPLOY_HOOK_URL to GitHub repo secrets (Render → libraix-api → Deploy Hook)"
+            exit 0
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+
+  smoke-test:
+    needs: [build-frontend]
+    runs-on: ubuntu-latest
+    if: always() && needs.build-frontend.result == 'success'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for Render (if hook was used)
+        run: sleep 90
+      - name: Run smoke test
+        run: |
+          chmod +x libraix/scripts/smoke-test.sh
+          EXPECTED_COMMIT="${{ github.sha }}" \
+            bash libraix/scripts/smoke-test.sh || echo "::warning::Smoke test failed — Render may still be deploying or commit not yet live"

@@ -18,6 +18,7 @@ import toolsRoutes from "./routes/tools.js";
 import adminRoutes from "./routes/admin.js";
 import { getMaintenance } from "./services/siteConfig.js";
 import { resumeFileIndexQueue } from "./services/fileIndexQueue.js";
+import { getBuildInfo } from "./config/buildInfo.js";
 
 initDb();
 resumeFileIndexQueue();
@@ -93,8 +94,8 @@ function maintenanceGate(req: express.Request, res: express.Response, next: expr
   next();
 }
 
-app.get("/health", (_req, res) => res.json({ ok: true }));
-app.get("/api/health", (_req, res) => res.json({ ok: true }));
+app.get("/health", (_req, res) => res.json({ ok: true, ...getBuildInfo() }));
+app.get("/api/health", (_req, res) => res.json({ ok: true, ...getBuildInfo() }));
 
 app.use(maintenanceGate);
 
