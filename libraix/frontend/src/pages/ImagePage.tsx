@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Logo } from "../components/Layout";
+import { IconMic } from "../components/Layout";
 import { useAuth } from "../lib/auth";
 import { imageApi } from "../lib/api";
 import { friendlyError } from "../lib/errors";
+import { useSpeechInput } from "../lib/useSpeechInput";
 
 export function ImagePage() {
   const { user, logout } = useAuth();
@@ -15,6 +17,8 @@ export function ImagePage() {
   const [imageUrl, setImageUrl] = useState("");
   const [revisedPrompt, setRevisedPrompt] = useState("");
   const [usage, setUsage] = useState<{ imagesUsed: number; imagesLimit: number; remainingImages: number; canGenerate: boolean } | null>(null);
+
+  const speech = useSpeechInput(setPrompt);
 
   useEffect(() => {
     imageApi.usage().then(setUsage).catch(console.error);
@@ -82,13 +86,28 @@ export function ImagePage() {
             </div>
           )}
 
-          <textarea
-            className="input image-prompt"
-            rows={3}
-            placeholder="Describe the image you want to create… e.g. A sunset over Lincoln Cathedral in watercolour style"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-          />
+          <div className="image-prompt-row">
+            <textarea
+              className="input image-prompt"
+              rows={3}
+              placeholder={speech.listening ? "Listening…" : "Describe the image you want to create…"}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+            />
+            <button
+              className={`icon-btn ${speech.listening ? "listening" : ""}`}
+              title={speech.supported ? (speech.listening ? "Stop listening" : "Speak your prompt") : "Voice input requires Chrome or Edge"}
+              disabled={!speech.supported || loading}
+              onClick={() => {
+                speech.clearError();
+                speech.toggle(prompt);
+              }}
+            >
+              <IconMic />
+            </button>
+          </div>
+          {speech.error && <div className="error-banner">{speech.error}</div>}
+          {speech.listening && <div className="voice-listening-bar">Listening… speak your image description</div>}
 
           <div className="image-options">
             <label>

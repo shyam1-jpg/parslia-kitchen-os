@@ -6,12 +6,14 @@ import {
   IconSend,
   IconAttach,
   IconSearch,
+  IconMic,
   IconMenu,
   IconCopy,
 } from "../components/Layout";
 import { ComparePanel } from "../components/ComparePanel";
 import { MarkdownMessage } from "../components/MarkdownMessage";
 import { useAuth } from "../lib/auth";
+import { useSpeechInput } from "../lib/useSpeechInput";
 import { advancedApi, type Project, type RouterMode } from "../lib/advanced";
 import {
   chatApi,
@@ -67,6 +69,8 @@ export function AppPage() {
   const [routerHint, setRouterHint] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
+
+  const speech = useSpeechInput(setInput);
 
   const loadConversations = useCallback(async () => {
     const data = await chatApi.conversations();
@@ -134,6 +138,7 @@ export function AppPage() {
 
     setError("");
     setInput("");
+    speech.stop();
     setLoading(true);
     abortRef.current = false;
 
@@ -375,14 +380,31 @@ export function AppPage() {
             </div>
           )}
           {error && <div className="error-banner" style={{ maxWidth: 780, margin: "0 auto 8px" }}>{error}</div>}
+          {speech.error && (
+            <div className="error-banner" style={{ maxWidth: 780, margin: "0 auto 8px" }}>{speech.error}</div>
+          )}
+          {speech.listening && (
+            <div className="voice-listening-bar">Listening… speak now, click mic again to stop</div>
+          )}
           <div className="composer">
             <div className="composer-actions">
+              <button
+                className={`icon-btn ${speech.listening ? "listening" : ""}`}
+                title={speech.supported ? (speech.listening ? "Stop listening" : "Speak your message") : "Voice input requires Chrome or Edge"}
+                disabled={!speech.supported || loading || streaming}
+                onClick={() => {
+                  speech.clearError();
+                  speech.toggle(input);
+                }}
+              >
+                <IconMic />
+              </button>
               <button className="icon-btn" title="File upload — coming soon" disabled><IconAttach /></button>
               <button className="icon-btn" title="Web search — coming soon" disabled><IconSearch /></button>
             </div>
             <textarea
               rows={1}
-              placeholder="Message Libraix…"
+              placeholder={speech.listening ? "Listening…" : "Message Libraix…"}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {

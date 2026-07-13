@@ -701,12 +701,33 @@ button, input, textarea, select {
 .compare-judge p { margin-top: 8px; color: var(--muted); line-height: 1.5; }
 
 .msg-actions { display: flex; gap: 6px; margin-top: 8px; }
-.msg-action { padding: 4px 10px; font-size: 11px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; }
+.icon-btn.listening {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+}
+
+.voice-listening-bar {
+  max-width: 780px;
+  margin: 0 auto 8px;
+  font-size: 12px;
+  color: #ef4444;
+  text-align: center;
+  font-weight: 500;
+}
+
 
 /* Image Studio */
 .image-studio { max-width: 780px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 .image-studio-intro { color: var(--muted); line-height: 1.6; font-size: 14px; }
-.image-prompt { min-height: 80px; resize: vertical; }
+.image-prompt { min-height: 80px; resize: vertical; flex: 1; }
+.image-prompt-row { display: flex; gap: 8px; align-items: flex-start; }
+.image-prompt-row .icon-btn { flex-shrink: 0; margin-top: 4px; }
 .image-options { display: flex; gap: 16px; flex-wrap: wrap; }
 .image-options label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--dim); }
 .image-result { margin-top: 8px; }
