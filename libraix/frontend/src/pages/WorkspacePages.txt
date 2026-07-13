@@ -1,0 +1,59 @@
+import { Link, useLocation } from "react-router-dom";
+import { Logo } from "../components/Layout";
+
+const WORKSPACES = [
+  { path: "/app", label: "Chat" },
+  { path: "/app/search", label: "Search" },
+  { path: "/app/library", label: "Library" },
+  { path: "/app/images", label: "Images" },
+  { path: "/app/code", label: "Code" },
+  ];
+
+function WorkspaceShell({ title, tagline, bullets }: { title: string; tagline: string; bullets: string[] }) {
+    const location = useLocation();
+    return (
+          <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+                  <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "14px 20px", borderBottom: "1px solid rgba(128,128,128,0.25)", flexWrap: "wrap" }}>
+                            <Logo to="/app" />
+                            <nav style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                              {WORKSPACES.map((w) => (
+                        <Link key={w.path} to={w.path} className="btn btn-ghost btn-sm" style={location.pathname === w.path ? { fontWeight: 700 } : undefined}>
+                          {w.label}
+                        </Link>Link>
+                      ))}
+                            </nav>nav>
+                            <Link to="/app" className="btn btn-primary btn-sm">Back to Chat</Link>Link>
+                  </header>header>
+                <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+                        <div style={{ maxWidth: 560, textAlign: "center" }}>
+                                  <div style={{ fontSize: 12, letterSpacing: 1, textTransform: "uppercase", opacity: 0.7, marginBottom: 8 }}>Coming soon</div>div>
+                                  <h1 style={{ fontSize: 32, marginBottom: 12 }}>{title}</h1>h1>
+                                  <p style={{ opacity: 0.75, marginBottom: 20 }}>{tagline}</p>p>
+                                  <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px", display: "grid", gap: 8 }}>
+                                    {bullets.map((b) => (
+                          <li key={b} style={{ padding: "10px 14px", border: "1px solid rgba(128,128,128,0.25)", borderRadius: 10, textAlign: "left" }}>{b}</li>li>
+                        ))}
+                                  </ul>ul>
+                                  <Link to="/app" className="btn btn-primary">Use Chat while you wait</Link>Link>
+                        </div>div>
+                </main>main>
+          </div>div>
+        );
+}
+
+export function SearchWorkspace() {
+    return <WorkspaceShell title="Libraix Search" tagline="Cited web research. Ask a question, get an answer with sources you can open." bullets={["Fast search and deep research modes", "Inline citations with a full source list", "Save findings to a project or export them"]} />;
+}
+
+export function LibraryWorkspace() {
+    return <WorkspaceShell title="Libraix Library" tagline="One home for every file you upload or generate." bullets={["Upload PDFs and documents, then chat with them", "Search, preview and reuse files in any conversation", "Everything stays private to your account"]} />;
+}
+
+export function ImagesWorkspace() {
+    return <WorkspaceShell title="Libraix Images" tagline="Generate and edit images from a prompt." bullets={["Text-to-image generation", "Aspect ratio and resolution controls", "Image history saved to your Library"]} />;
+}
+
+export function CodeWorkspace() {
+    return <WorkspaceShell title="Libraix Code" tagline="A coding workspace with projects, files and AI edits." bullets={["Create projects or import from GitHub", "AI writes and reviews changes with clear diffs", "Run and test in an isolated sandbox"]} />;
+}
+</Link>
