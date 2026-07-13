@@ -9,6 +9,11 @@ import {
   addMessage,
   deleteConversation,
   updateConversationTitle,
+  updateConversationMeta,
+  updateMessage,
+  deleteMessagesAfter,
+  deleteMessagesFrom,
+  branchConversation,
 } from "../services/conversations.js";
 import { findUserById, toSafeUser } from "../services/users.js";
 import { getUsage } from "../services/usage.js";
@@ -21,13 +26,24 @@ function paramId(req: import("express").Request): string {
 }
 
 router.get("/", requireAuth, (req, res) => {
-  res.json({ conversations: listConversations(req.session.userId!) });
+  const archived = req.query.archived === "1" || req.query.archived === "true";
+  res.json({ conversations: listConversations(req.session.userId!, { archived }) });
 });
 
 router.post("/", requireAuth, (req, res) => {
-  const { modelId, title } = req.body as { modelId?: string; title?: string };
-  if (!modelId) return res.status(400).json({ error: "MODEL_ID_REQUIRED" });
-  const conv = createConversation(req.session.userId!, modelId, title);
+  const schema = z.object({
+    modelId: z.string(),
+    title: z.string().optional(),
+    projectId: z.string().nullable().optional(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+  const conv = createConversation(
+    req.session.userId!,
+    parsed.data.modelId,
+    parsed.data.title,
+    parsed.data.projectId
+  );
   res.status(201).json(conv);
 });
 
@@ -38,11 +54,28 @@ router.get("/:id", requireAuth, (req, res) => {
 });
 
 router.patch("/:id", requireAuth, (req, res) => {
-  const { title } = req.body as { title?: string };
-  if (!title) return res.status(400).json({ error: "TITLE_REQUIRED" });
-  const ok = updateConversationTitle(req.session.userId!, paramId(req), title);
-  if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
-  res.json({ ok: true });
+  const body = req.body as {
+    title?: string;
+    pinned?: boolean;
+    archived?: boolean;
+    projectId?: string | null;
+  };
+  const userId = req.session.userId!;
+  const id = paramId(req);
+
+  if (body.title) {
+    const ok = updateConversationTitle(userId, id, body.title);
+    if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
+  }
+  if (body.pinned !== undefined || body.archived !== undefined || body.projectId !== undefined) {
+    const ok = updateConversationMeta(userId, id, {
+      pinned: body.pinned,
+      archived: body.archived,
+      projectId: body.projectId,
+    });
+    if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
+  }
+  res.json({ ok: true, conversation: getConversation(userId, id) });
 });
 
 router.delete("/:id", requireAuth, (req, res) => {
@@ -69,6 +102,46 @@ router.post("/:id/messages", requireAuth, (req, res) => {
 
   const msg = addMessage(conv.id, parsed.data.role, parsed.data.content);
   res.status(201).json(msg);
+});
+
+router.patch("/:id/messages/:messageId", requireAuth, (req, res) => {
+  const schema = z.object({ content: z.string().min(1) });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  const conv = getConversation(req.session.userId!, paramId(req));
+  if (!conv) return res.status(404).json({ error: "NOT_FOUND" });
+
+  const ok = updateMessage(conv.id, req.params.messageId as string, parsed.data.content);
+  if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
+  deleteMessagesAfter(conv.id, req.params.messageId as string);
+  res.json({ ok: true, messages: getMessages(conv.id) });
+});
+
+router.post("/:id/regenerate", requireAuth, (req, res) => {
+  const conv = getConversation(req.session.userId!, paramId(req));
+  if (!conv) return res.status(404).json({ error: "NOT_FOUND" });
+  const messages = getMessages(conv.id);
+  const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+  if (!lastAssistant) return res.status(400).json({ error: "NO_ASSISTANT_MESSAGE" });
+  deleteMessagesFrom(conv.id, lastAssistant.id);
+  res.json({ ok: true, messages: getMessages(conv.id) });
+});
+
+router.post("/:id/branch", requireAuth, (req, res) => {
+  const schema = z.object({ messageId: z.string(), modelId: z.string().optional() });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+  const source = getConversation(req.session.userId!, paramId(req));
+  if (!source) return res.status(404).json({ error: "NOT_FOUND" });
+  const branched = branchConversation(
+    req.session.userId!,
+    source.id,
+    parsed.data.messageId,
+    parsed.data.modelId ?? source.modelId
+  );
+  if (!branched) return res.status(400).json({ error: "BRANCH_FAILED" });
+  res.status(201).json({ conversation: branched, messages: getMessages(branched.id) });
 });
 
 router.get("/account/summary", requireAuth, (req, res) => {

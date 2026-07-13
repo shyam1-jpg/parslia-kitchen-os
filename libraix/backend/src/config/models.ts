@@ -7,7 +7,7 @@ export type PlanTier = "free" | "pro" | "enterprise";
 export interface ModelDefinition {
   id: string;
   displayName: string;
-  provider: "openai" | "anthropic" | "google" | "deepseek" | "meta" | "xai" | "perplexity";
+  provider: "openai" | "anthropic" | "google" | "deepseek" | "meta" | "xai" | "perplexity" | "ollama";
   providerModelId: string;
   tier: PlanTier;
   capabilities: {
@@ -162,6 +162,16 @@ export const PRODUCT_CATALOG: ProductCatalog = {
       enabled: true,
       description: "xAI Grok flagship — advanced reasoning and agentic tasks.",
     },
+    {
+      id: "libraix-local",
+      displayName: "Libraix Local",
+      provider: "ollama",
+      providerModelId: process.env.OLLAMA_MODEL ?? "llama3.2",
+      tier: "free",
+      capabilities: { chat: true, streaming: true },
+      enabled: true,
+      description: "Run models locally via Ollama on your machine or server.",
+    },
   ],
   tools: [
     { id: "chat", name: "Multi-Model Chat", description: "Switch models in one conversation.", tier: "free", enabled: true },
@@ -225,6 +235,21 @@ const PROVIDER_KEY_LABEL: Record<string, string> = {
   google: "GOOGLE_API_KEY",
   anthropic: "ANTHROPIC_API_KEY",
   xai: "XAI_API_KEY",
+  ollama: "OLLAMA_BASE_URL",
+};
+
+const MODEL_HINTS: Record<string, { speed: string; cost: string }> = {
+  "libraix-fast": { speed: "Fast", cost: "Low" },
+  "libraix-smart": { speed: "Medium", cost: "Medium" },
+  "libraix-advanced": { speed: "Slower", cost: "High" },
+  "libraix-deepseek": { speed: "Fast", cost: "Very low" },
+  "libraix-deepseek-r1": { speed: "Slower", cost: "Low" },
+  "libraix-gemini": { speed: "Fast", cost: "Low" },
+  "libraix-claude": { speed: "Medium", cost: "Medium" },
+  "libraix-claude-sonnet": { speed: "Medium", cost: "High" },
+  "libraix-grok": { speed: "Fast", cost: "Low" },
+  "libraix-grok-pro": { speed: "Medium", cost: "High" },
+  "libraix-local": { speed: "Varies", cost: "Free (local)" },
 };
 
 /** All models for a plan (including those needing API keys), for UI display. */
@@ -240,6 +265,8 @@ export function listDisplayModelsForPlan(plan: PlanTier) {
       return {
         ...rest,
         available,
+        speedHint: MODEL_HINTS[m.id]?.speed,
+        costHint: MODEL_HINTS[m.id]?.cost,
         unavailableReason: available
           ? undefined
           : `Add ${PROVIDER_KEY_LABEL[m.provider] ?? m.provider + " API key"} on Render`,

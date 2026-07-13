@@ -128,7 +128,39 @@ export function initDb() {
 
   migrateUsersStripeColumns();
   migrateUsersAdminColumns();
+  migrateConversationsV2();
+  migrateDocumentIntelligence();
   seedDefaultSiteConfig();
+}
+
+function migrateConversationsV2() {
+  const cols = db.prepare("PRAGMA table_info(conversations)").all() as { name: string }[];
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has("archived")) {
+    db.exec("ALTER TABLE conversations ADD COLUMN archived INTEGER NOT NULL DEFAULT 0");
+  }
+  if (!names.has("project_id")) {
+    db.exec("ALTER TABLE conversations ADD COLUMN project_id TEXT REFERENCES projects(id) ON DELETE SET NULL");
+  }
+}
+
+function migrateDocumentIntelligence() {
+  const fileCols = db.prepare("PRAGMA table_info(project_files)").all() as { name: string }[];
+  const fileNames = new Set(fileCols.map((c) => c.name));
+  if (!fileNames.has("extracted_text")) {
+    db.exec("ALTER TABLE project_files ADD COLUMN extracted_text TEXT");
+  }
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS document_chunks (
+      id TEXT PRIMARY KEY,
+      file_id TEXT NOT NULL REFERENCES project_files(id) ON DELETE CASCADE,
+      project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+      chunk_index INTEGER NOT NULL,
+      content TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_document_chunks_project ON document_chunks(project_id);
+    CREATE INDEX IF NOT EXISTS idx_document_chunks_file ON document_chunks(file_id);
+  `);
 }
 
 function migrateUsersAdminColumns() {

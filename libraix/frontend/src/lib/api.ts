@@ -30,6 +30,36 @@ export interface ModelInfo {
   description: string;
   available?: boolean;
   unavailableReason?: string;
+  speedHint?: string;
+  costHint?: string;
+}
+
+export interface DocumentSource {
+  index: number;
+  filename: string;
+  excerpt: string;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  modelId: string;
+  pinned: boolean;
+  archived?: boolean;
+  projectId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  createdAt: string;
+  modelLabel?: string;
+  imageUrl?: string;
+  imageGenerating?: boolean;
+  sources?: DocumentSource[];
 }
 
 export type LaunchStatus = "live" | "beta" | "coming_soon" | "disabled";
@@ -45,24 +75,6 @@ export interface Catalog {
   plans: Record<string, { dailyMessages: number; premiumModelMessages: number; images: number }>;
 }
 
-export interface Conversation {
-  id: string;
-  title: string;
-  modelId: string;
-  pinned: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  createdAt: string;
-  modelLabel?: string;
-  imageUrl?: string;
-  imageGenerating?: boolean;
-}
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     ...options,
@@ -149,15 +161,16 @@ export const chatApi = {
     history?: { role: "user" | "assistant"; content: string }[];
     systemPrompt?: string;
     projectId?: string;
-  }) => api<{ content: string; modelId: string; displayName?: string; provider?: string; providerModelId?: string; tokensUsed?: number; router?: Record<string, unknown>; imageUrl?: string; type?: string }>("/api/ai/respond", {
+  }) => api<{ content: string; modelId: string; displayName?: string; provider?: string; providerModelId?: string; tokensUsed?: number; router?: Record<string, unknown>; imageUrl?: string; type?: string; sources?: DocumentSource[] }>("/api/ai/respond", {
     method: "POST",
     body: JSON.stringify(body),
   }),
-  conversations: () => api<{ conversations: Conversation[] }>("/api/conversations"),
-  createConversation: (modelId: string, title?: string) =>
+  conversations: (archived = false) =>
+    api<{ conversations: Conversation[] }>(`/api/conversations${archived ? "?archived=1" : ""}`),
+  createConversation: (modelId: string, title?: string, projectId?: string | null) =>
     api<Conversation>("/api/conversations", {
       method: "POST",
-      body: JSON.stringify({ modelId, title }),
+      body: JSON.stringify({ modelId, title, projectId }),
     }),
   getConversation: (id: string) =>
     api<{ conversation: Conversation; messages: ChatMessage[] }>(`/api/conversations/${id}`),
@@ -169,9 +182,36 @@ export const chatApi = {
   deleteConversation: (id: string) =>
     api<{ ok: boolean }>(`/api/conversations/${id}`, { method: "DELETE" }),
   renameConversation: (id: string, title: string) =>
-    api<{ ok: boolean }>(`/api/conversations/${id}`, {
+    api<{ ok: boolean; conversation?: Conversation }>(`/api/conversations/${id}`, {
       method: "PATCH",
       body: JSON.stringify({ title }),
+    }),
+  pinConversation: (id: string, pinned: boolean) =>
+    api<{ ok: boolean; conversation?: Conversation }>(`/api/conversations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ pinned }),
+    }),
+  archiveConversation: (id: string, archived: boolean) =>
+    api<{ ok: boolean; conversation?: Conversation }>(`/api/conversations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ archived }),
+    }),
+  setConversationProject: (id: string, projectId: string | null) =>
+    api<{ ok: boolean; conversation?: Conversation }>(`/api/conversations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ projectId }),
+    }),
+  editMessage: (conversationId: string, messageId: string, content: string) =>
+    api<{ ok: boolean; messages: ChatMessage[] }>(`/api/conversations/${conversationId}/messages/${messageId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ content }),
+    }),
+  regenerateConversation: (id: string) =>
+    api<{ ok: boolean; messages: ChatMessage[] }>(`/api/conversations/${id}/regenerate`, { method: "POST", body: "{}" }),
+  branchConversation: (id: string, messageId: string, modelId?: string) =>
+    api<{ conversation: Conversation; messages: ChatMessage[] }>(`/api/conversations/${id}/branch`, {
+      method: "POST",
+      body: JSON.stringify({ messageId, modelId }),
     }),
   exportConversation: (id: string) =>
     api<{ conversation: Conversation; messages: ChatMessage[]; exportedAt: string }>(

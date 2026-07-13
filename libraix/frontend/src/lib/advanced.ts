@@ -1,4 +1,4 @@
-import type { ModelInfo } from "./api";
+import type { ModelInfo, DocumentSource } from "./api";
 import { readApiError } from "./errors";
 
 export interface RouterMode {
@@ -72,8 +72,30 @@ export const advancedApi = {
       body: JSON.stringify({ message, mode, modelId }),
     }),
   projects: () => api<{ projects: Project[] }>("/api/projects"),
-  createProject: (name: string, description?: string) =>
-    api<Project>("/api/projects", { method: "POST", body: JSON.stringify({ name, description }) }),
+  createProject: (name: string, description?: string, instructions?: string) =>
+    api<Project>("/api/projects", { method: "POST", body: JSON.stringify({ name, description, instructions }) }),
+  updateProject: (id: string, body: { name?: string; description?: string; instructions?: string }) =>
+    api<{ ok: boolean }>(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  getProject: (id: string) =>
+    api<{ project: Project; files: Array<{ id: string; filename: string; mimeType: string | null; sizeBytes: number; chunkCount?: number }> }>(`/api/projects/${id}`),
+  uploadProjectFile: async (projectId: string, file: File) => {
+    const contentBase64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(",")[1] ?? "");
+      };
+      reader.onerror = () => reject(new Error("READ_FAILED"));
+      reader.readAsDataURL(file);
+    });
+    return api<{ file: { id: string; filename: string }; chunkCount: number; charCount: number }>(
+      `/api/projects/${projectId}/files`,
+      {
+        method: "POST",
+        body: JSON.stringify({ filename: file.name, mimeType: file.type || "application/octet-stream", contentBase64 }),
+      }
+    );
+  },
   memories: () => api<{ memories: Memory[] }>("/api/memory"),
   createMemory: (category: string, content: string) =>
     api<Memory>("/api/memory", { method: "POST", body: JSON.stringify({ category, content }) }),
@@ -98,8 +120,9 @@ export const advancedApi = {
       routerMode?: string;
       history?: { role: "user" | "assistant"; content: string }[];
       systemPrompt?: string;
+      projectId?: string;
     }
-  ): AsyncGenerator<string | { meta: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string } }> {
+  ): AsyncGenerator<string | { meta: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string; sources?: DocumentSource[] } }> {
     const res = await fetch("/api/ai/stream", {
       method: "POST",
       credentials: "include",
@@ -123,7 +146,7 @@ export const advancedApi = {
         const payload = line.slice(6).trim();
         if (payload === "[DONE]") return;
         try {
-          const parsed = JSON.parse(payload) as { delta?: string; error?: string; detail?: string; meta?: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string } };
+          const parsed = JSON.parse(payload) as { delta?: string; error?: string; detail?: string; meta?: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string; sources?: DocumentSource[] } };
           if (parsed.error) throw new Error(parsed.error);
           else if (parsed.meta) yield { meta: parsed.meta };
           else if (parsed.delta) yield parsed.delta;

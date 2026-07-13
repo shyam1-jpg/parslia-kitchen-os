@@ -8,6 +8,7 @@ import {
 } from "../components/Layout";
 import { ChatComposer } from "../components/ChatComposer";
 import { ComparePanel } from "../components/ComparePanel";
+import { ProjectPanel } from "../components/ProjectPanel";
 import { MarkdownMessage } from "../components/MarkdownMessage";
 import { useAuth } from "../lib/auth";
 import { useSpeechOutput } from "../lib/useSpeechOutput";
@@ -75,15 +76,17 @@ export function AppPage() {
   const [attachLoading, setAttachLoading] = useState(false);
   const [urlTools, setUrlTools] = useState<string[]>([]);
   const [imageMode, setImageMode] = useState(false);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
 
   const speechOut = useSpeechOutput();
 
   const loadConversations = useCallback(async () => {
-    const data = await chatApi.conversations();
+    const data = await chatApi.conversations(showArchived);
     setConversations(data.conversations);
-  }, []);
+  }, [showArchived]);
 
   useEffect(() => {
     chatApi.models().then((d) => {
@@ -93,9 +96,12 @@ export function AppPage() {
     });
     catalogApi.get().then((c) => setAssistants(c.assistants.map((a) => ({ id: a.id, name: a.name, systemPrompt: a.systemPrompt })))).catch(() => {});
     advancedApi.routerModes().then((d) => setRouterModes(d.modes)).catch(() => {});
-    loadConversations().catch(console.error);
     advancedApi.projects().then((d) => setProjects(d.projects)).catch(() => {});
-  }, [loadConversations]);
+  }, []);
+
+  useEffect(() => {
+    loadConversations().catch(console.error);
+  }, [loadConversations, showArchived]);
 
   const activeAssistant = assistants.find((a) => a.id === assistantId);
   const systemPrompt = activeAssistant?.systemPrompt;
@@ -103,10 +109,11 @@ export function AppPage() {
   const handleFileAttach = async (file: File) => {
     setError("");
     const isPdf = file.name.match(/\.pdf$/i) || file.type === "application/pdf";
+    const isDocx = file.name.match(/\.docx$/i) || file.type.includes("wordprocessingml");
     const isText = file.name.match(/\.(txt|md|csv|json|log)$/i) || file.type.startsWith("text/");
 
-    if (!isPdf && !isText) {
-      setError("Supported files: PDF, .txt, .md, .csv, .json");
+    if (!isPdf && !isDocx && !isText) {
+      setError("Supported files: PDF, DOCX, .txt, .md, .csv, .json");
       return;
     }
     if (file.size > 5_000_000) {
@@ -166,10 +173,11 @@ export function AppPage() {
     const data = await chatApi.getConversation(id);
     setMessages(data.messages);
     setModelId(data.conversation.modelId);
+    setActiveProjectId(data.conversation.projectId ?? null);
   };
 
   const newChat = async () => {
-    const conv = await chatApi.createConversation(modelId);
+    const conv = await chatApi.createConversation(modelId, undefined, activeProjectId);
     setConversations((prev) => [conv, ...prev]);
     setActiveId(conv.id);
     setMessages([]);
@@ -201,7 +209,80 @@ export function AppPage() {
     }
   };
 
-  const sendMessage = async (text?: string) => {
+  const pinChat = async (id: string, pinned: boolean) => {
+    await chatApi.pinConversation(id, pinned);
+    loadConversations();
+  };
+
+  const archiveChat = async (id: string) => {
+    await chatApi.archiveConversation(id, true);
+    if (activeId === id) {
+      setActiveId(null);
+      setMessages([]);
+    }
+    loadConversations();
+  };
+
+  const exportChat = async (id: string) => {
+    const data = await chatApi.exportConversation(id);
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `libraix-chat-${id.slice(0, 8)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const regenerateLast = async () => {
+    if (!activeId || streaming || loading) return;
+    const lastUser = [...messages].reverse().find((m) => m.role === "user");
+    if (!lastUser) return;
+    try {
+      await chatApi.regenerateConversation(activeId);
+      const data = await chatApi.getConversation(activeId);
+      setMessages(data.messages);
+      await sendMessage(lastUser.content, true);
+    } catch {
+      setError("Could not regenerate response.");
+    }
+  };
+
+  const editUserMessage = async (messageId: string, current: string) => {
+    if (!activeId) return;
+    const content = window.prompt("Edit your message", current);
+    if (!content?.trim() || content === current) return;
+    try {
+      const { messages: updated } = await chatApi.editMessage(activeId, messageId, content.trim());
+      setMessages(updated);
+      await sendMessage(content.trim(), true);
+    } catch {
+      setError("Could not edit message.");
+    }
+  };
+
+  const branchFromMessage = async (messageId: string) => {
+    if (!activeId) return;
+    try {
+      const { conversation, messages: branched } = await chatApi.branchConversation(activeId, messageId, modelId);
+      setConversations((prev) => [conversation, ...prev]);
+      setActiveId(conversation.id);
+      setMessages(branched);
+      setSidebarOpen(false);
+    } catch {
+      setError("Could not branch conversation.");
+    }
+  };
+
+  const handleProjectSelect = async (projectId: string | null) => {
+    setActiveProjectId(projectId);
+    if (activeId) {
+      await chatApi.setConversationProject(activeId, projectId);
+      loadConversations();
+    }
+  };
+
+  const sendMessage = async (text?: string, resendOnly = false) => {
     const content = (text ?? input).trim();
     if (!content || loading || streaming) return;
     if (usage?.limitReached) {
@@ -224,7 +305,7 @@ export function AppPage() {
 
     let convId = activeId;
     if (!convId) {
-      const conv = await chatApi.createConversation(modelId, content.slice(0, 40));
+      const conv = await chatApi.createConversation(modelId, content.slice(0, 40), activeProjectId);
       convId = conv.id;
       setActiveId(convId);
       setConversations((prev) => [conv, ...prev]);
@@ -236,7 +317,9 @@ export function AppPage() {
       content,
       createdAt: new Date().toISOString(),
     };
-    setMessages((prev) => [...prev, userMsg]);
+    if (!resendOnly) {
+      setMessages((prev) => [...prev, userMsg]);
+    }
 
     const imagePrompt = imageMode ? content : detectImageRequest(content);
 
@@ -287,8 +370,12 @@ export function AppPage() {
         return;
       }
 
-      await chatApi.addMessage(convId, "user", content);
-      const history = messages.map((m) => ({ role: m.role, content: m.content }));
+      if (!resendOnly) {
+        await chatApi.addMessage(convId, "user", content);
+      }
+      const history = (resendOnly ? messages : [...messages, userMsg])
+        .filter((m) => m.content && !m.imageGenerating)
+        .map((m) => ({ role: m.role, content: m.content }));
 
       const assistantId = crypto.randomUUID();
       setStreaming(true);
@@ -296,6 +383,7 @@ export function AppPage() {
 
       let fullContent = "";
       let modelLabel = "";
+      let messageSources: ChatMessage["sources"];
       setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "", createdAt: new Date().toISOString() }]);
 
       try {
@@ -305,17 +393,19 @@ export function AppPage() {
           routerMode,
           history,
           systemPrompt,
+          projectId: activeProjectId ?? undefined,
         })) {
           if (abortRef.current) break;
           if (typeof chunk === "object" && chunk.meta) {
             modelLabel = `Generated using ${chunk.meta.displayName} (${chunk.meta.provider}) through Libraix`;
+            if (chunk.meta.sources?.length) messageSources = chunk.meta.sources;
             if (chunk.meta.imageUrl) {
-              setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, imageUrl: chunk.meta!.imageUrl, modelLabel } : m)));
+              setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, imageUrl: chunk.meta!.imageUrl, modelLabel, sources: messageSources } : m)));
             }
             continue;
           }
           fullContent += chunk;
-          setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, modelLabel: modelLabel || m.modelLabel } : m)));
+          setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, modelLabel: modelLabel || m.modelLabel, sources: messageSources } : m)));
         }
       } catch (streamErr) {
         /* stream unavailable — fall back below */
@@ -329,13 +419,14 @@ export function AppPage() {
           routerMode,
           history,
           systemPrompt,
+          projectId: activeProjectId ?? undefined,
         });
         fullContent = result.content;
         modelLabel = result.displayName
           ? `Generated using ${result.displayName} (${result.provider ?? "provider"}) through Libraix`
           : "";
         if (result.modelId) setModelId(result.modelId);
-        setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, modelLabel, imageUrl: result.imageUrl } : m)));
+        setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, modelLabel, imageUrl: result.imageUrl, sources: result.sources } : m)));
       } else if (modelLabel) {
         setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, modelLabel } : m)));
       }
@@ -348,7 +439,7 @@ export function AppPage() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to send";
       setError(friendlyError(msg, msg));
-      setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
+      if (!resendOnly) setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
     } finally {
       setLoading(false);
       setStreaming(false);
@@ -404,16 +495,19 @@ export function AppPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
-          {projects.length > 0 && (
-            <div>
-              <div className="sidebar-section-label">Projects</div>
-              {projects.map((p) => (
-                <button key={p.id} className="conv-item" title={p.description ?? undefined}>
-                  <span>{p.name}</span>
-                </button>
-              ))}
-            </div>
-          )}
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            <button type="button" className={`btn btn-ghost btn-sm${!showArchived ? " active-tab" : ""}`} style={{ flex: 1 }} onClick={() => setShowArchived(false)}>Chats</button>
+            <button type="button" className={`btn btn-ghost btn-sm${showArchived ? " active-tab" : ""}`} style={{ flex: 1 }} onClick={() => setShowArchived(true)}>Archived</button>
+          </div>
+
+          <ProjectPanel
+            projects={projects}
+            activeProjectId={activeProjectId}
+            onSelect={handleProjectSelect}
+            onProjectsChange={() => advancedApi.projects().then((d) => setProjects(d.projects)).catch(() => {})}
+            onError={setError}
+            onClearError={() => setError("")}
+          />
 
           {grouped.map((group) => (
             <div key={group.label}>
@@ -424,10 +518,19 @@ export function AppPage() {
                     className={`conv-item ${activeId === c.id ? "active" : ""}`}
                     onClick={() => selectConversation(c.id)}
                   >
-                    <span>{c.title}</span>
+                    <span>{c.pinned ? "📌 " : ""}{c.title}</span>
                   </button>
                   <div className="conv-item-actions">
+                    {!showArchived && (
+                      <button type="button" className="icon-btn conv-action-btn" title={c.pinned ? "Unpin" : "Pin"} onClick={() => pinChat(c.id, !c.pinned)}>📌</button>
+                    )}
                     <button type="button" className="icon-btn conv-action-btn" title="Rename" onClick={() => renameChat(c.id, c.title)}>✎</button>
+                    {activeId === c.id && (
+                      <button type="button" className="icon-btn conv-action-btn" title="Export" onClick={() => exportChat(c.id)}>⤓</button>
+                    )}
+                    {!showArchived ? (
+                      <button type="button" className="icon-btn conv-action-btn" title="Archive" onClick={() => archiveChat(c.id)}>🗄</button>
+                    ) : null}
                     <button type="button" className="icon-btn conv-action-btn" title="Delete" onClick={() => deleteChat(c.id)}>×</button>
                   </div>
                 </div>
@@ -470,8 +573,8 @@ export function AppPage() {
               title={routerMode === "auto" ? "Switch to Manual to pick a model" : "Choose AI model"}
             >
               {models.filter((m) => m.capabilities.chat).map((m) => (
-                <option key={m.id} value={m.id} disabled={m.available === false}>
-                  {m.displayName}{m.available === false ? " (needs API key)" : ""}
+                <option key={m.id} value={m.id} disabled={m.available === false} title={[m.description, m.speedHint && `Speed: ${m.speedHint}`, m.costHint && `Cost: ${m.costHint}`].filter(Boolean).join(" · ")}>
+                  {m.displayName}{m.speedHint ? ` · ${m.speedHint}` : ""}{m.available === false ? " (needs API key)" : ""}
                 </option>
               ))}
             </select>
@@ -485,6 +588,9 @@ export function AppPage() {
             )}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
+            {messages.some((m) => m.role === "assistant") && (
+              <button type="button" className="btn btn-ghost btn-sm" onClick={regenerateLast} disabled={loading || streaming}>Regenerate</button>
+            )}
             {user?.plan !== "free" && (
               <button className="btn btn-ghost btn-sm" onClick={() => setShowCompare((v) => !v)}>Compare</button>
             )}
@@ -547,6 +653,12 @@ export function AppPage() {
                     m.content
                   )}
                 </div>
+                {m.role === "user" && (
+                  <div className="msg-actions">
+                    <button className="msg-action" onClick={() => editUserMessage(m.id, m.content)}>Edit</button>
+                    <button className="msg-action" onClick={() => branchFromMessage(m.id)}>Branch</button>
+                  </div>
+                )}
                 {m.role === "assistant" && m.content && (
                   <div className="msg-actions">
                     {m.modelLabel && <span className="model-disclosure">{m.modelLabel}</span>}
@@ -556,6 +668,17 @@ export function AppPage() {
                       </button>
                     )}
                     <button className="msg-action" onClick={() => copyMessage(m.content)}><IconCopy /> Copy</button>
+                  </div>
+                )}
+                {m.sources && m.sources.length > 0 && (
+                  <div className="citation-cards">
+                    <div className="citation-label">Sources from project files</div>
+                    {m.sources.map((s) => (
+                      <div key={s.index} className="citation-card">
+                        <strong>[{s.index}] {s.filename}</strong>
+                        <p>{s.excerpt}</p>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

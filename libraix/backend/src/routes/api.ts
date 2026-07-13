@@ -188,12 +188,17 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
     );
 
     let imageMeta: { imageUrl: string; type: string } | null = null;
+    let sourcesMeta: Array<{ index: number; filename: string; excerpt: string }> | undefined;
 
     for await (const chunk of streamAiResponse(user, reqBody)) {
       if (typeof chunk === "object" && chunk && "image" in chunk) {
         const img = chunk.image;
         model = getModelById(img.modelId) ?? model;
         imageMeta = { imageUrl: img.imageUrl!, type: "image" };
+        continue;
+      }
+      if (typeof chunk === "object" && chunk && "sources" in chunk) {
+        sourcesMeta = chunk.sources;
         continue;
       }
       if (typeof chunk === "object" && chunk && "model" in chunk) {
@@ -211,6 +216,7 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
             provider: imageMeta ? "openai" : model.provider,
             providerModelId: imageMeta ? "dall-e-3" : model.providerModelId,
             ...(imageMeta ?? {}),
+            ...(sourcesMeta ? { sources: sourcesMeta } : {}),
           },
         })}\n\n`
       );

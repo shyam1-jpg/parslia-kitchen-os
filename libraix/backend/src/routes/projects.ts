@@ -10,6 +10,7 @@ import {
   updateProject,
   deleteProject,
   listProjectFiles,
+  uploadProjectFileContent,
   registerProjectFile,
 } from "../services/projects.js";
 
@@ -65,11 +66,28 @@ router.post("/:id/files", (req, res) => {
   if (!checkAccess(req, res)) return;
   const project = getProject(req.session.userId!, req.params.id);
   if (!project) return res.status(404).json({ error: "NOT_FOUND" });
-  const schema = z.object({ filename: z.string(), mimeType: z.string(), sizeBytes: z.number().max(20_000_000) });
+  const schema = z.object({
+    filename: z.string(),
+    mimeType: z.string(),
+    sizeBytes: z.number().max(20_000_000).optional(),
+    contentBase64: z.string().optional(),
+  });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  if (parsed.data.contentBase64) {
+    uploadProjectFileContent(project.id, parsed.data.filename, parsed.data.mimeType, parsed.data.contentBase64)
+      .then((result) => res.status(201).json(result))
+      .catch((e) => {
+        const msg = e instanceof Error ? e.message : "UPLOAD_FAILED";
+        res.status(400).json({ error: msg });
+      });
+    return;
+  }
+
+  if (!parsed.data.sizeBytes) return res.status(400).json({ error: "INVALID_INPUT" });
   const file = registerProjectFile(project.id, parsed.data.filename, parsed.data.mimeType, parsed.data.sizeBytes);
-  res.status(201).json(file);
+  res.status(201).json({ file, chunkCount: 0 });
 });
 
 export default router;

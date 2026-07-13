@@ -38,6 +38,14 @@ async function extractPdf(buffer: Buffer): Promise<{ text: string; pageCount?: n
   }
 }
 
+const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+async function extractDocx(buffer: Buffer): Promise<string> {
+  const mammoth = await import("mammoth");
+  const result = await mammoth.extractRawText({ buffer });
+  return result.value ?? "";
+}
+
 export async function parseDocument(
   filename: string,
   mimeType: string,
@@ -53,6 +61,8 @@ export async function parseDocument(
     const extracted = await extractPdf(buffer);
     rawText = extracted.text;
     pageCount = extracted.pageCount;
+  } else if (mimeType === DOCX_MIME || filename.toLowerCase().endsWith(".docx")) {
+    rawText = await extractDocx(buffer);
   } else if (TEXT_MIMES.has(mimeType) || TEXT_EXTENSIONS.test(filename)) {
     rawText = buffer.toString("utf8");
   } else {

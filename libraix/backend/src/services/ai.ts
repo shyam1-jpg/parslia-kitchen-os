@@ -3,7 +3,7 @@ import { completeWithFallback, streamWithFallback } from "../providers/resilienc
 import { canSendMessage, getUsage, recordMessageUsage } from "./usage.js";
 import { routeModel } from "./router.js";
 import { getMemoryContext } from "./memory.js";
-import { getProjectContext } from "./projects.js";
+import { getProjectDocumentContext } from "./projects.js";
 import { buildWebSearchContext } from "./research.js";
 import { detectImageRequest } from "./imageIntent.js";
 import { generateImage } from "./images.js";
@@ -43,11 +43,17 @@ export interface AiResponse {
   router?: ReturnType<typeof routeModel>;
   imageUrl?: string;
   type?: "text" | "image";
+  sources?: Array<{ index: number; filename: string; excerpt: string }>;
 }
 
-function buildSystemMessages(req: AiRequest, userId: string, webContext?: string | null) {
+function buildSystemMessages(
+  req: AiRequest,
+  userId: string,
+  webContext?: string | null,
+  projectDocContext?: string | null
+) {
   const memoryCtx = req.useMemory !== false ? getMemoryContext(userId, req.projectId) : "";
-  const projectCtx = req.projectId ? getProjectContext(userId, req.projectId) : "";
+  const projectCtx = projectDocContext ?? "";
   const systemParts = [DEFAULT_SYSTEM_PROMPT, req.systemPrompt, projectCtx, memoryCtx, webContext].filter(Boolean);
   return systemParts.length ? [{ role: "system" as const, content: systemParts.join("\n\n") }] : [];
 }
@@ -113,8 +119,12 @@ export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiR
   const webContext =
     req.routerMode === "deep-research" ? await buildWebSearchContext(req.message) : null;
 
+  const docBundle = req.projectId
+    ? getProjectDocumentContext(user.id, req.projectId, req.message)
+    : { context: "", sources: [] as AiResponse["sources"] };
+
   const messages = [
-    ...buildSystemMessages(req, user.id, webContext),
+    ...buildSystemMessages(req, user.id, webContext, docBundle.context || null),
     ...(req.conversationHistory ?? []),
     { role: "user" as const, content: req.message },
   ];
@@ -131,10 +141,16 @@ export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiR
     providerModelId: usedModel.providerModelId,
     tokensUsed: response.tokensUsed,
     router,
+    sources: docBundle.sources?.length ? docBundle.sources : undefined,
   };
 }
 
-export async function* streamAiResponse(user: SafeUser, req: AiRequest): AsyncGenerator<string | { model: ReturnType<typeof getModelById> } | { image: AiResponse }> {
+export async function* streamAiResponse(
+  user: SafeUser,
+  req: AiRequest
+): AsyncGenerator<
+  string | { model: ReturnType<typeof getModelById> } | { image: AiResponse } | { sources: NonNullable<AiResponse["sources"]> }
+> {
   const imagePrompt = detectImageRequest(req.message);
   if (imagePrompt && isFeatureEnabled("image-studio", user.plan)) {
     yield "Rendering your image…\n\n";
@@ -157,8 +173,12 @@ export async function* streamAiResponse(user: SafeUser, req: AiRequest): AsyncGe
   const webContext =
     req.routerMode === "deep-research" ? await buildWebSearchContext(req.message) : null;
 
+  const docBundle = req.projectId
+    ? getProjectDocumentContext(user.id, req.projectId, req.message)
+    : { context: "", sources: [] as NonNullable<AiResponse["sources"]> };
+
   const messages = [
-    ...buildSystemMessages(req, user.id, webContext),
+    ...buildSystemMessages(req, user.id, webContext, docBundle.context || null),
     ...(req.conversationHistory ?? []),
     { role: "user" as const, content: req.message },
   ];
@@ -170,6 +190,7 @@ export async function* streamAiResponse(user: SafeUser, req: AiRequest): AsyncGe
     totalLen += item.chunk.length;
     yield item.chunk;
   }
+  if (docBundle.sources?.length) yield { sources: docBundle.sources };
   yield { model: usedModel };
   const usedPremium = usedModel.tier !== "free";
   recordMessageUsage(user.id, usedPremium, Math.ceil(totalLen / 4), 0);

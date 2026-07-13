@@ -1,5 +1,7 @@
 import { v4 as uuid } from "uuid";
 import { db } from "../db/schema.js";
+import { parseDocument } from "./documents.js";
+import { indexFileChunks, buildDocumentContext, type DocumentSource } from "./documentSearch.js";
 
 export interface Project {
   id: string;
@@ -16,6 +18,7 @@ export interface ProjectFile {
   filename: string;
   mimeType: string | null;
   sizeBytes: number;
+  chunkCount?: number;
   createdAt: string;
 }
 
@@ -68,12 +71,18 @@ export function deleteProject(userId: string, projectId: string): boolean {
 }
 
 export function listProjectFiles(projectId: string): ProjectFile[] {
-  const rows = db.prepare("SELECT * FROM project_files WHERE project_id = ? ORDER BY created_at DESC").all(projectId) as Array<Record<string, unknown>>;
+  const rows = db
+    .prepare(
+      `SELECT f.*, (SELECT COUNT(*) FROM document_chunks c WHERE c.file_id = f.id) as chunk_count
+       FROM project_files f WHERE f.project_id = ? ORDER BY f.created_at DESC`
+    )
+    .all(projectId) as Array<Record<string, unknown>>;
   return rows.map((r) => ({
     id: r.id as string,
     filename: r.filename as string,
     mimeType: (r.mime_type as string) ?? null,
     sizeBytes: r.size_bytes as number,
+    chunkCount: Number(r.chunk_count ?? 0),
     createdAt: r.created_at as string,
   }));
 }
@@ -86,12 +95,39 @@ export function registerProjectFile(projectId: string, filename: string, mimeTyp
   return listProjectFiles(projectId).find((f) => f.id === id)!;
 }
 
+export async function uploadProjectFileContent(
+  projectId: string,
+  filename: string,
+  mimeType: string,
+  contentBase64: string
+): Promise<{ file: ProjectFile; chunkCount: number; charCount: number }> {
+  const buffer = Buffer.from(contentBase64, "base64");
+  const parsed = await parseDocument(filename, mimeType, contentBase64);
+  const file = registerProjectFile(projectId, filename, mimeType, buffer.length);
+  db.prepare("UPDATE project_files SET extracted_text = ? WHERE id = ?").run(parsed.text, file.id);
+  const chunkCount = indexFileChunks(file.id, projectId, parsed.text);
+  return {
+    file: listProjectFiles(projectId).find((f) => f.id === file.id)!,
+    chunkCount,
+    charCount: parsed.charCount,
+  };
+}
+
 export function getProjectContext(userId: string, projectId: string): string {
   const project = getProject(userId, projectId);
   if (!project) return "";
   const files = listProjectFiles(projectId);
   let ctx = `Project: ${project.name}\n`;
   if (project.instructions) ctx += `Instructions: ${project.instructions}\n`;
-  if (files.length) ctx += `Files: ${files.map((f) => f.filename).join(", ")}\n`;
+  if (files.length) ctx += `Indexed files: ${files.map((f) => f.filename).join(", ")}\n`;
   return ctx;
+}
+
+export function getProjectDocumentContext(userId: string, projectId: string, query: string): { context: string; sources: DocumentSource[] } {
+  const project = getProject(userId, projectId);
+  if (!project) return { context: "", sources: [] };
+  const base = getProjectContext(userId, projectId);
+  const { context: docCtx, sources } = buildDocumentContext(projectId, query);
+  const context = [base, docCtx].filter(Boolean).join("\n\n");
+  return { context, sources };
 }

@@ -21,10 +21,18 @@ const xaiProvider = createOpenAiCompatibleProvider({
   costPer1kTokensCents: 0.5,
 });
 
+const ollamaProvider = createOpenAiCompatibleProvider({
+  name: "ollama",
+  apiKeyEnv: "OLLAMA_API_KEY",
+  baseUrl: process.env.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434",
+  costPer1kTokensCents: 0,
+});
+
 const adapters: Record<string, AiProviderAdapter> = {
   openai: new OpenAiProvider(),
   deepseek: deepseekProvider,
   xai: xaiProvider,
+  ollama: ollamaProvider,
   anthropic: new AnthropicProvider(),
   google: new GoogleProvider(),
   meta: metaProvider,
