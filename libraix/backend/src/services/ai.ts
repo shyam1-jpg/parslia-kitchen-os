@@ -5,6 +5,9 @@ import { routeModel } from "./router.js";
 import { getMemoryContext } from "./memory.js";
 import { getProjectContext } from "./projects.js";
 import { buildWebSearchContext } from "./research.js";
+import { detectImageRequest } from "./imageIntent.js";
+import { generateImage } from "./images.js";
+import { isFeatureEnabled } from "../config/featureFlags.js";
 import type { RouterMode } from "../config/featureFlags.js";
 import type { SafeUser } from "./users.js";
 
@@ -17,7 +20,8 @@ Guidelines:
 - For explanations, break ideas into logical sections. For how-to tasks, use numbered steps.
 - For code, provide complete, working examples with brief comments where useful.
 - Be honest about uncertainty. Ask one clarifying question when the request is ambiguous.
-- Do not mention that you are an AI unless asked. Focus on delivering value.`;
+- Do not mention that you are an AI unless asked. Focus on delivering value.
+- When users ask you to generate, draw, or create an image, the Libraix system handles image creation automatically — do not tell them to use Google Images or external sites.`;
 
 export interface AiRequest {
   message: string;
@@ -37,6 +41,8 @@ export interface AiResponse {
   providerModelId: string;
   tokensUsed?: number;
   router?: ReturnType<typeof routeModel>;
+  imageUrl?: string;
+  type?: "text" | "image";
 }
 
 function buildSystemMessages(req: AiRequest, userId: string, webContext?: string | null) {
@@ -81,7 +87,27 @@ function resolveModel(user: SafeUser, req: AiRequest) {
   return { model, router, isPremium, fallback };
 }
 
+async function tryGenerateChatImage(user: SafeUser, message: string): Promise<AiResponse | null> {
+  const prompt = detectImageRequest(message);
+  if (!prompt || !isFeatureEnabled("image-studio", user.plan)) return null;
+
+  const image = await generateImage(user, { prompt });
+  const caption = image.revisedPrompt ? `*${image.revisedPrompt}*` : `*${prompt}*`;
+  return {
+    content: `![Generated image](${image.url})\n\nHere's your image.\n\n${caption}`,
+    modelId: image.modelId,
+    displayName: image.displayName,
+    provider: image.provider,
+    providerModelId: "dall-e-3",
+    imageUrl: image.url,
+    type: "image",
+  };
+}
+
 export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiResponse> {
+  const imageResult = await tryGenerateChatImage(user, req.message);
+  if (imageResult) return imageResult;
+
   const { model, router, isPremium, fallback } = resolveModel(user, req);
 
   const webContext =
@@ -108,7 +134,24 @@ export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiR
   };
 }
 
-export async function* streamAiResponse(user: SafeUser, req: AiRequest): AsyncGenerator<string | { model: ReturnType<typeof getModelById> }> {
+export async function* streamAiResponse(user: SafeUser, req: AiRequest): AsyncGenerator<string | { model: ReturnType<typeof getModelById> } | { image: AiResponse }> {
+  const imagePrompt = detectImageRequest(req.message);
+  if (imagePrompt && isFeatureEnabled("image-studio", user.plan)) {
+    yield "Creating your image with DALL·E 3…\n\n";
+    try {
+      const imageResult = await tryGenerateChatImage(user, req.message);
+      if (imageResult) {
+        yield imageResult.content;
+        yield { image: imageResult };
+        return;
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Image generation failed";
+      yield `Could not generate image: ${msg}\n\nTry **Image Studio** from the sidebar, or check that OPENAI_API_KEY is set on the server.`;
+      return;
+    }
+  }
+
   const { model, fallback } = resolveModel(user, req);
 
   const webContext =

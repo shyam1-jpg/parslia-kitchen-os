@@ -187,7 +187,15 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
       }).modelId
     );
 
+    let imageMeta: { imageUrl: string; type: string } | null = null;
+
     for await (const chunk of streamAiResponse(user, reqBody)) {
+      if (typeof chunk === "object" && chunk && "image" in chunk) {
+        const img = chunk.image;
+        model = getModelById(img.modelId) ?? model;
+        imageMeta = { imageUrl: img.imageUrl!, type: "image" };
+        continue;
+      }
       if (typeof chunk === "object" && chunk && "model" in chunk) {
         model = chunk.model ?? model;
         continue;
@@ -199,9 +207,10 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
         `data: ${JSON.stringify({
           meta: {
             modelId: model.id,
-            displayName: model.displayName,
-            provider: model.provider,
-            providerModelId: model.providerModelId,
+            displayName: imageMeta ? "Libraix Image (DALL·E 3)" : model.displayName,
+            provider: imageMeta ? "openai" : model.provider,
+            providerModelId: imageMeta ? "dall-e-3" : model.providerModelId,
+            ...(imageMeta ?? {}),
           },
         })}\n\n`
       );
@@ -245,7 +254,8 @@ router.post("/ai/compare", requireAuth, async (req, res) => {
 
 function handleAiError(e: unknown, res: import("express").Response) {
   const msg = e instanceof Error ? e.message : "UNKNOWN";
-  if (msg === "USAGE_LIMIT_REACHED") return res.status(429).json({ error: "USAGE_LIMIT_REACHED" });
+  if (msg === "USAGE_LIMIT_REACHED" || msg === "IMAGE_LIMIT_REACHED") return res.status(429).json({ error: msg });
+  if (msg === "IMAGE_MODEL_UNAVAILABLE") return res.status(503).json({ error: msg });
   if (msg === "MODEL_NOT_FOUND" || msg === "MODEL_DISABLED" || msg === "MODEL_NOT_CHAT" || msg === "COMPARE_MODEL_COUNT") {
     return res.status(400).json({ error: msg });
   }

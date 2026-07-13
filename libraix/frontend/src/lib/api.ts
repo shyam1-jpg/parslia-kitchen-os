@@ -60,6 +60,7 @@ export interface ChatMessage {
   content: string;
   createdAt: string;
   modelLabel?: string;
+  imageUrl?: string;
 }
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -147,7 +148,7 @@ export const chatApi = {
     history?: { role: "user" | "assistant"; content: string }[];
     systemPrompt?: string;
     projectId?: string;
-  }) => api<{ content: string; modelId: string; displayName?: string; provider?: string; providerModelId?: string; tokensUsed?: number; router?: Record<string, unknown> }>("/api/ai/respond", {
+  }) => api<{ content: string; modelId: string; displayName?: string; provider?: string; providerModelId?: string; tokensUsed?: number; router?: Record<string, unknown>; imageUrl?: string; type?: string }>("/api/ai/respond", {
     method: "POST",
     body: JSON.stringify(body),
   }),

@@ -567,6 +567,14 @@ button, input, textarea, select {
   text-align: left;
 }
 .markdown-body th { background: rgba(255, 255, 255, 0.04); font-weight: 600; }
+.markdown-body img {
+  max-width: 100%;
+  max-height: 512px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  margin: 8px 0;
+  display: block;
+}
 .stream-cursor {
   display: inline-block;
   animation: blink 1s step-end infinite;

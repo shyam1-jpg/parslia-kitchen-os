@@ -233,6 +233,9 @@ export function AppPage() {
           if (abortRef.current) break;
           if (typeof chunk === "object" && chunk.meta) {
             modelLabel = `Generated using ${chunk.meta.displayName} (${chunk.meta.provider}) through Libraix`;
+            if (chunk.meta.imageUrl) {
+              setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, imageUrl: chunk.meta!.imageUrl, modelLabel } : m)));
+            }
             continue;
           }
           fullContent += chunk;
@@ -256,7 +259,7 @@ export function AppPage() {
           ? `Generated using ${result.displayName} (${result.provider ?? "provider"}) through Libraix`
           : "";
         if (result.modelId) setModelId(result.modelId);
-        setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, modelLabel } : m)));
+        setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, modelLabel, imageUrl: result.imageUrl } : m)));
       } else if (modelLabel) {
         setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, modelLabel } : m)));
       }
@@ -437,9 +440,9 @@ export function AppPage() {
           {messages.length === 0 && !loading && !streaming ? (
             <div className="welcome-state">
               <h2>What can I help you with?</h2>
-              <p>Chat with Libraix models. Tap the <strong>mic</strong> in the message bar to speak — you can type and talk together, like ChatGPT.</p>
+              <p>Chat with Libraix models — or say <strong>“create an image of…”</strong> to generate with DALL·E 3. Tap the <strong>mic</strong> to speak and type together.</p>
               <div className="suggestion-row">
-                {["Write an email", "Explain a concept", "Business ideas", "Write code"].map((s) => (
+                {["Create an image of a sunset", "Write an email", "Explain a concept", "Write code"].map((s) => (
                   <button key={s} className="suggestion-chip" onClick={() => sendMessage(s)}>{s}</button>
                 ))}
               </div>
