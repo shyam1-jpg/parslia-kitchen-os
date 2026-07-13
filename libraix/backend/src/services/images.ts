@@ -5,10 +5,13 @@ import type { SafeUser } from "./users.js";
 
 const IMAGES_URL = "https://api.openai.com/v1/images/generations";
 
+export type ImageSpeed = "fast" | "quality";
+
 export interface ImageGenerateRequest {
   prompt: string;
   size?: "1024x1024" | "1792x1024" | "1024x1792";
   quality?: "standard" | "hd";
+  speed?: ImageSpeed;
 }
 
 export interface ImageGenerateResponse {
@@ -18,12 +21,17 @@ export interface ImageGenerateResponse {
   displayName: string;
   provider: string;
   imageModel?: string;
+  speed?: ImageSpeed;
 }
 
-function imageModelsToTry(): string[] {
-  const preferred = process.env.OPENAI_MODEL_IMAGE?.trim() || "dall-e-3";
-  const chain = [preferred, "dall-e-3", "dall-e-2"];
-  return [...new Set(chain)];
+function imageModelsToTry(speed: ImageSpeed): string[] {
+  const fastModel = process.env.OPENAI_MODEL_IMAGE_FAST?.trim() || "dall-e-2";
+  const qualityModel = process.env.OPENAI_MODEL_IMAGE?.trim() || "dall-e-3";
+
+  if (speed === "fast") {
+    return [...new Set([fastModel, "dall-e-2", qualityModel, "dall-e-3"])];
+  }
+  return [...new Set([qualityModel, "dall-e-3", fastModel, "dall-e-2"])];
 }
 
 function buildImageBody(modelName: string, req: ImageGenerateRequest): Record<string, unknown> {
@@ -35,9 +43,8 @@ function buildImageBody(modelName: string, req: ImageGenerateRequest): Record<st
 
   if (modelName === "dall-e-3") {
     body.size = req.size ?? "1024x1024";
-    body.quality = req.quality ?? "standard";
+    body.quality = req.quality ?? (req.speed === "fast" ? "standard" : req.quality ?? "standard");
   } else {
-    // dall-e-2 only supports square sizes up to 1024
     body.size = "1024x1024";
   }
 
@@ -62,14 +69,17 @@ export async function generateImage(user: SafeUser, req: ImageGenerateRequest): 
     );
   }
 
+  const speed: ImageSpeed =
+    req.speed ?? (process.env.OPENAI_IMAGE_SPEED === "quality" ? "quality" : "fast");
+  const timeoutMs = speed === "fast" ? 45_000 : 90_000;
   let lastError = "Image generation failed";
 
-  for (const modelName of imageModelsToTry()) {
+  for (const modelName of imageModelsToTry(speed)) {
     const res = await fetch(IMAGES_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify(buildImageBody(modelName, req)),
-      signal: AbortSignal.timeout(120_000),
+      body: JSON.stringify(buildImageBody(modelName, { ...req, speed })),
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     if (res.ok) {
@@ -91,6 +101,7 @@ export async function generateImage(user: SafeUser, req: ImageGenerateRequest): 
         displayName: catalogModel.displayName,
         provider: catalogModel.provider,
         imageModel: modelName,
+        speed,
       };
     }
 

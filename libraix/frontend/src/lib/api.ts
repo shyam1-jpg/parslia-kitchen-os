@@ -61,6 +61,7 @@ export interface ChatMessage {
   createdAt: string;
   modelLabel?: string;
   imageUrl?: string;
+  imageGenerating?: boolean;
 }
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -178,8 +179,8 @@ export const imageApi = {
     api<{ imagesUsed: number; imagesLimit: number; remainingImages: number; canGenerate: boolean }>(
       "/api/images/usage"
     ),
-  generate: (body: { prompt: string; size?: string; quality?: string }) =>
-    api<{ url: string; revisedPrompt?: string; modelId: string; displayName: string; provider: string }>(
+  generate: (body: { prompt: string; size?: string; quality?: string; speed?: "fast" | "quality" }) =>
+    api<{ url: string; revisedPrompt?: string; modelId: string; displayName: string; provider: string; imageModel?: string; speed?: string }>(
       "/api/images/generate",
       { method: "POST", body: JSON.stringify(body) }
     ),

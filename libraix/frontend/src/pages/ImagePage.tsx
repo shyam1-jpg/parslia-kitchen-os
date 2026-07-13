@@ -5,6 +5,7 @@ import { IconMic } from "../components/Layout";
 import { useAuth } from "../lib/auth";
 import { imageApi } from "../lib/api";
 import { friendlyError } from "../lib/errors";
+import { ImageGenerating } from "../components/ImageGenerating";
 import { useSpeechInput } from "../lib/useSpeechInput";
 
 export function ImagePage() {
@@ -12,6 +13,7 @@ export function ImagePage() {
   const [prompt, setPrompt] = useState("");
   const [size, setSize] = useState<"1024x1024" | "1792x1024" | "1024x1792">("1024x1024");
   const [quality, setQuality] = useState<"standard" | "hd">("standard");
+  const [speed, setSpeed] = useState<"fast" | "quality">("fast");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -30,7 +32,12 @@ export function ImagePage() {
     setLoading(true);
     setImageUrl("");
     try {
-      const result = await imageApi.generate({ prompt: prompt.trim(), size, quality });
+      const result = await imageApi.generate({
+        prompt: prompt.trim(),
+        size,
+        quality,
+        speed: quality === "hd" ? "quality" : speed,
+      });
       setImageUrl(result.url);
       setRevisedPrompt(result.revisedPrompt ?? "");
       const u = await imageApi.usage();
@@ -123,6 +130,13 @@ export function ImagePage() {
 
           <div className="image-options">
             <label>
+              Speed
+              <select className="model-select" value={speed} onChange={(e) => setSpeed(e.target.value as typeof speed)} disabled={quality === "hd"}>
+                <option value="fast">Fast (~15s, DALL·E 2)</option>
+                <option value="quality">Quality (DALL·E 3)</option>
+              </select>
+            </label>
+            <label>
               Size
               <select className="model-select" value={size} onChange={(e) => setSize(e.target.value as typeof size)}>
                 <option value="1024x1024">Square (1024×1024)</option>
@@ -149,7 +163,9 @@ export function ImagePage() {
             {loading ? "Generating…" : "Generate Image"}
           </button>
 
-          {imageUrl && (
+          {loading && <ImageGenerating label="Rendering in Image Studio…" />}
+
+          {imageUrl && !loading && (
             <div className="image-result">
               <img src={imageUrl} alt={prompt} />
               <div className="image-result-actions">

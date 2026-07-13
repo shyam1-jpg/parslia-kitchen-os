@@ -91,7 +91,7 @@ async function tryGenerateChatImage(user: SafeUser, message: string): Promise<Ai
   const prompt = detectImageRequest(message);
   if (!prompt || !isFeatureEnabled("image-studio", user.plan)) return null;
 
-  const image = await generateImage(user, { prompt });
+  const image = await generateImage(user, { prompt, speed: "fast" });
   const caption = image.revisedPrompt ? `*${image.revisedPrompt}*` : `*${prompt}*`;
   return {
     content: `![Generated image](${image.url})\n\nHere's your image.\n\n${caption}`,
@@ -137,7 +137,7 @@ export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiR
 export async function* streamAiResponse(user: SafeUser, req: AiRequest): AsyncGenerator<string | { model: ReturnType<typeof getModelById> } | { image: AiResponse }> {
   const imagePrompt = detectImageRequest(req.message);
   if (imagePrompt && isFeatureEnabled("image-studio", user.plan)) {
-    yield "Creating your image with DALL·E 3…\n\n";
+    yield "Rendering your image…\n\n";
     try {
       const imageResult = await tryGenerateChatImage(user, req.message);
       if (imageResult) {

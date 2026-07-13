@@ -11,6 +11,10 @@ export function detectImageRequest(message: string): string | null {
     const p = text.slice(9).trim();
     return p.length >= 2 ? p : null;
   }
+  if (text.startsWith("/i ")) {
+    const p = text.slice(3).trim();
+    return p.length >= 2 ? p : null;
+  }
 
   const colon = text.match(/^image\s*:\s*(.+)$/i);
   if (colon?.[1]) {
@@ -21,12 +25,13 @@ export function detectImageRequest(message: string): string | null {
   if (/^(what|how|why|when|where|who|explain|describe|tell me about|difference between)\b/i.test(text)) {
     return null;
   }
-  if (/\b(google images?|stock photo|copyright|license)\b/i.test(text) && !/\b(generate|create|draw|make)\b/i.test(text)) {
+  if (/\b(google images?|stock photo|copyright|license)\b/i.test(text) && !/\b(generate|create|draw|make|render)\b/i.test(text)) {
     return null;
   }
 
   const patterns: Array<{ re: RegExp; group?: number }> = [
-    { re: /^(?:please\s+)?(?:can you\s+|could you\s+)?(?:generate|create|make|draw|design|produce|render|show)\s+(?:me\s+)?(?:an?\s+)?(?:image|picture|photo|illustration|artwork|logo|poster|drawing|icon)\s*(?:of\s+)?(.+)$/i, group: 1 },
+    { re: /^(?:please\s+)?(?:can you\s+|could you\s+)?(?:quickly\s+)?(?:generate|create|make|draw|design|produce|render|show)\s+(?:me\s+)?(?:an?\s+)?(?:image|picture|photo|illustration|artwork|logo|poster|drawing|icon)\s*(?:of\s+)?(.+)$/i, group: 1 },
+    { re: /^(?:quickly\s+)?render\s+(?:an?\s+)?(?:image|picture)\s*(?:of\s+)?(.+)$/i, group: 1 },
     { re: /^(?:command\s+)?image\s+(?:of\s+)?(.+)$/i, group: 1 },
     { re: /^draw\s+(?:me\s+)?(.+)$/i, group: 1 },
     { re: /^(?:show\s+me\s+)?(?:an?\s+)?(?:image|picture|photo|illustration)\s+of\s+(.+)$/i, group: 1 },

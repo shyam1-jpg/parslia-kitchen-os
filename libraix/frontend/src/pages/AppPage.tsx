@@ -213,42 +213,57 @@ export function AppPage() {
     };
     setMessages((prev) => [...prev, userMsg]);
 
-    try {
-      await chatApi.addMessage(convId, "user", content);
-      const history = messages.map((m) => ({ role: m.role, content: m.content }));
+    const imagePrompt = imageMode ? content : detectImageRequest(content);
 
-      const imagePrompt = imageMode ? content : detectImageRequest(content);
+    try {
       if (imagePrompt) {
         const assistantId = crypto.randomUUID();
         setMessages((prev) => [
           ...prev,
-          { id: assistantId, role: "assistant", content: "Creating your image with DALL·E 3…", createdAt: new Date().toISOString() },
+          {
+            id: assistantId,
+            role: "assistant",
+            content: "",
+            imageGenerating: true,
+            createdAt: new Date().toISOString(),
+          },
         ]);
         setStreaming(true);
         setLoading(false);
 
+        // Start image API immediately; save user message in parallel
+        const saveUser = chatApi.addMessage(convId, "user", content).catch(() => {});
+
         try {
-          const result = await imageApi.generate({ prompt: imagePrompt });
-          const fullContent = `![Generated image](${result.url})\n\nHere's your image.\n\n*${result.revisedPrompt ?? imagePrompt}*`;
-          const modelLabel = `Generated using ${result.displayName} (DALL·E 3) through Libraix`;
+          const result = await imageApi.generate({ prompt: imagePrompt, speed: "fast" });
+          await saveUser;
+          const modelName = result.imageModel ?? "DALL·E";
+          const fullContent = `![Generated image](${result.url})`;
+          const modelLabel = `Generated using ${result.displayName} (${modelName}) through Libraix · fast mode`;
           setMessages((prev) =>
             prev.map((m) =>
-              m.id === assistantId ? { ...m, content: fullContent, modelLabel, imageUrl: result.url } : m
+              m.id === assistantId
+                ? { ...m, content: fullContent, modelLabel, imageUrl: result.url, imageGenerating: false }
+                : m
             )
           );
-          await chatApi.addMessage(convId, "assistant", fullContent);
+          chatApi.addMessage(convId, "assistant", fullContent).catch(() => {});
           setImageMode(false);
-          await refresh();
+          refresh().catch(() => {});
           loadConversations();
         } catch (imgErr) {
+          await saveUser;
           const msg = imgErr instanceof Error ? imgErr.message : "IMAGE_FAILED";
-          setMessages((prev) => prev.filter((m) => m.role !== "assistant" || m.content !== "Creating your image with DALL·E 3…"));
-          setError(friendlyError(msg, "Image generation failed. Check OPENAI_API_KEY on server or use Image Studio."));
+          setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+          setError(friendlyError(msg, "Image generation failed. Check OPENAI_API_KEY on server."));
         } finally {
           setStreaming(false);
         }
         return;
       }
+
+      await chatApi.addMessage(convId, "user", content);
+      const history = messages.map((m) => ({ role: m.role, content: m.content }));
 
       const assistantId = crypto.randomUUID();
       setStreaming(true);
@@ -481,7 +496,7 @@ export function AppPage() {
           {messages.length === 0 && !loading && !streaming ? (
             <div className="welcome-state">
               <h2>What can I help you with?</h2>
-              <p>Chat with Libraix — type <strong>/image a sunset</strong> or tap <strong>🎨</strong> to create images with DALL·E 3. Use the <strong>mic</strong> to speak and type.</p>
+              <p>Type <strong>/i sunset</strong> or tap <strong>🎨</strong> for fast image render (~15s). Mic on the right for voice.</p>
               <div className="suggestion-row">
                 {["Create an image of a sunset", "Write an email", "Explain a concept", "Write code"].map((s) => (
                   <button key={s} className="suggestion-chip" onClick={() => sendMessage(s)}>{s}</button>
@@ -495,7 +510,8 @@ export function AppPage() {
                   {m.role === "assistant" ? (
                     <MarkdownMessage
                       content={m.content}
-                      streaming={streaming && m === messages[messages.length - 1] && m.role === "assistant"}
+                      streaming={streaming && m === messages[messages.length - 1] && m.role === "assistant" && !m.imageGenerating}
+                      imageGenerating={m.imageGenerating}
                     />
                   ) : (
                     m.content
@@ -535,7 +551,7 @@ export function AppPage() {
           onToggleImageMode={() => setImageMode((v) => !v)}
           onFileSelect={handleFileAttach}
           onDeepResearch={() => setRouterMode("deep-research")}
-          placeholder={imageMode ? "Describe the image to create…" : "Message Libraix… (or /image your prompt)"}
+          placeholder={imageMode ? "Describe the image — fast render…" : "Message Libraix… (/i for quick image)"}
           extraAbove={
             <>
               {usage && (

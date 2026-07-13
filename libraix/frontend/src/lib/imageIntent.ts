@@ -3,7 +3,7 @@ export function detectImageRequest(message: string): string | null {
   const text = message.trim();
   if (text.length < 3) return null;
 
-  // Slash commands: /image sunset over ocean
+  // Fast slash commands
   if (text.startsWith("/image ")) {
     const p = text.slice(7).trim();
     return p.length >= 2 ? p : null;
@@ -12,21 +12,24 @@ export function detectImageRequest(message: string): string | null {
     const p = text.slice(9).trim();
     return p.length >= 2 ? p : null;
   }
+  if (text.startsWith("/i ")) {
+    const p = text.slice(3).trim();
+    return p.length >= 2 ? p : null;
+  }
 
-  // image: a red sports car
   const colon = text.match(/^image\s*:\s*(.+)$/i);
   if (colon?.[1]) {
     const p = colon[1].trim();
     if (p.length >= 2) return p;
   }
 
-  // Skip pure questions (not generation)
   if (/^(what|how|why|when|where|who|explain|describe|tell me about)\b/i.test(text)) {
     return null;
   }
 
   const patterns: Array<{ re: RegExp; group?: number }> = [
-    { re: /^(?:please\s+)?(?:can you\s+|could you\s+)?(?:generate|create|make|draw|design|produce|render|show)\s+(?:me\s+)?(?:an?\s+)?(?:image|picture|photo|illustration|artwork|logo|poster|drawing|icon)\s*(?:of\s+)?(.+)$/i, group: 1 },
+    { re: /^(?:please\s+)?(?:can you\s+|could you\s+)?(?:quickly\s+)?(?:generate|create|make|draw|design|produce|render|show)\s+(?:me\s+)?(?:an?\s+)?(?:image|picture|photo|illustration|artwork|logo|poster|drawing|icon)\s*(?:of\s+)?(.+)$/i, group: 1 },
+    { re: /^(?:quickly\s+)?render\s+(?:an?\s+)?(?:image|picture)\s*(?:of\s+)?(.+)$/i, group: 1 },
     { re: /^(?:command\s+)?image\s+(?:of\s+)?(.+)$/i, group: 1 },
     { re: /^draw\s+(?:me\s+)?(.+)$/i, group: 1 },
     { re: /^(?:show\s+me\s+)?(?:an?\s+)?(?:image|picture|photo|illustration)\s+of\s+(.+)$/i, group: 1 },
