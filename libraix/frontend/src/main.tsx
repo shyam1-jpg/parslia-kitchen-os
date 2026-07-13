@@ -61,6 +61,9 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/app/images" element={<><NoIndex /><ImagePage /></>} />
               <Route path="/app/settings" element={<><NoIndex /><SettingsPage /></>} />
               <Route path="/app/billing" element={<><NoIndex /><BillingPage /></>} />
+              <Route path="/app/search" element={<><NoIndex /><SearchWorkspace /></>} />
+              <Route path="/app/library" element={<><NoIndex /><LibraryWorkspace /></>} />
+              <Route path="/app/code" element={<><NoIndex /><CodeWorkspace /></>} />
               <Route path="/account" element={<Navigate to="/app/billing" replace />} />
               <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
             </Route>
@@ -72,9 +75,6 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/admin" element={<><NoIndex /><AdminDashboardPage /></>} />
             </Route>
 
-          <Route path="/app/search" element={<SearchWorkspace />} />
-                    <Route path="/app/library" element={<LibraryWorkspace />} />
-                              <Route path="/app/code" element={<CodeWorkspace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>

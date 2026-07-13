@@ -495,6 +495,29 @@ button, input, textarea, select {
   padding: 12px 8px 6px;
 }
 
+.conv-item-wrap {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-radius: 8px;
+}
+.conv-item-wrap:hover .conv-item-actions,
+.conv-item-wrap.active .conv-item-actions { opacity: 1; }
+.conv-item-wrap .conv-item { flex: 1; min-width: 0; }
+.conv-item-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  padding-right: 4px;
+}
+.conv-action-btn {
+  width: 26px;
+  height: 26px;
+  font-size: 14px;
+  line-height: 1;
+}
+
 .conv-item {
   display: flex;
   align-items: center;

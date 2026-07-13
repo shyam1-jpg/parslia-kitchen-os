@@ -201,7 +201,7 @@ export function LoginPage() {
           <h1>{mode === "signup" ? "Create your account" : "Welcome back"}</h1>
           <p>
             {mode === "signup"
-              ? "Free account — 20 chat messages per day on Libraix Fast."
+              ? "Free account — 30 chat messages per day on Libraix Fast."
               : "Sign in to your Libraix workspace."}
           </p>
 
@@ -324,7 +324,7 @@ export function PricingPage() {
             <h3>Free</h3>
             <div className="price-amount">£0<span>/mo</span></div>
             <ul className="price-features">
-              <li>✓ {freePlan?.dailyMessages ?? 20} messages per day (fair use)</li>
+              <li>✓ {freePlan?.dailyMessages ?? 30} messages per day (fair use)</li>
               <li>✓ Libraix Fast model (live)</li>
               <li>✓ Secure server-side AI — no API key required</li>
             </ul>

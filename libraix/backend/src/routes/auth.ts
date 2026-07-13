@@ -54,10 +54,13 @@ router.post("/signup", async (req, res) => {
 
     if (isEmailConfigured()) {
       const sent = await sendVerificationEmail(parsed.data.email, verifyUrl);
-      if (!sent) payload.verifyUrl = verifyUrl;
-    } else {
+      if (!sent && process.env.NODE_ENV !== "production") payload.verifyUrl = verifyUrl;
+      if (!sent) payload.emailNote = "Verification email could not be sent. Try resend from Settings after logging in.";
+    } else if (process.env.NODE_ENV !== "production") {
       payload.verifyUrl = verifyUrl;
       payload.emailNote = "Email not configured on server — use this link to verify your account.";
+    } else {
+      payload.emailNote = "Check your inbox for a verification email.";
     }
 
     res.status(201).json(payload);
@@ -146,12 +149,19 @@ router.post("/reset-password", async (req, res) => {
 
 router.delete("/account", requireAuth, (req, res) => {
   const userId = req.session.userId!;
-  const ok = deleteUserAccount(userId);
-  if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
-  req.session.destroy(() => {
-    res.clearCookie("connect.sid");
-    res.json({ ok: true });
-  });
+  try {
+    const ok = deleteUserAccount(userId);
+    if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
+    req.session.destroy(() => {
+      res.clearCookie("connect.sid");
+      res.json({ ok: true });
+    });
+  } catch (e) {
+    if (e instanceof Error && e.message === "CANNOT_DELETE_SUPER_ADMIN") {
+      return res.status(403).json({ error: "CANNOT_DELETE_SUPER_ADMIN" });
+    }
+    throw e;
+  }
 });
 
 /** OAuth — Google & Microsoft fully wired when client secrets are set on Render */
@@ -189,6 +199,10 @@ async function handleOAuthCallback(req: import("express").Request, res: import("
 
   try {
     const user = await completeOAuthLogin(provider, code);
+    const row = findUserById(user.id);
+    if (row?.suspended) {
+      return res.redirect(`${frontend}/login?oauth_error=suspended`);
+    }
     req.session.userId = user.id;
     delete req.session.oauthState;
     res.redirect(`${frontend}/app`);
@@ -252,11 +266,16 @@ router.post("/resend-verification", requireAuth, async (req, res) => {
 
   if (isEmailConfigured()) {
     const sent = await sendVerificationEmail(row.email, verifyUrl);
-    if (!sent) return res.json({ ok: true, verifyUrl, emailNote: "Email send failed — use this link to verify." });
+    if (!sent && process.env.NODE_ENV !== "production") {
+      return res.json({ ok: true, verifyUrl, emailNote: "Email send failed — use this link to verify." });
+    }
     return res.json({ ok: true });
   }
 
-  res.json({ ok: true, verifyUrl, emailNote: "Email not configured on server — use this link to verify." });
+  if (process.env.NODE_ENV !== "production") {
+    return res.json({ ok: true, verifyUrl, emailNote: "Email not configured on server — use this link to verify." });
+  }
+  res.json({ ok: true, emailNote: "Email is not configured on this server." });
 });
 
 export default router;

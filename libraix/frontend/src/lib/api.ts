@@ -168,6 +168,11 @@ export const chatApi = {
     }),
   deleteConversation: (id: string) =>
     api<{ ok: boolean }>(`/api/conversations/${id}`, { method: "DELETE" }),
+  renameConversation: (id: string, title: string) =>
+    api<{ ok: boolean }>(`/api/conversations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ title }),
+    }),
   exportConversation: (id: string) =>
     api<{ conversation: Conversation; messages: ChatMessage[]; exportedAt: string }>(
       `/api/conversations/${id}/export`

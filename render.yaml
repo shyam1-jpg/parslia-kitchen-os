@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: starter
     buildCommand: cd libraix/backend && npm install --include=dev && npm run build
-    startCommand: cd libraix/backend && (npm run seed:owner || true) && npm start
+    startCommand: cd libraix/backend && (test -f /var/data/.owner-seeded || (npm run seed:owner && touch /var/data/.owner-seeded) || true) && npm start
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV

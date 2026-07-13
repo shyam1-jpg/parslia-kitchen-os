@@ -248,10 +248,17 @@ export async function createOwnerAccount(
 ): Promise<AdminUser> {
   const existing = findUserByEmail(email);
   if (existing) {
-    const passwordHash = await bcrypt.hash(password, 12);
-    db.prepare(
-      "UPDATE users SET role = 'super_admin', password_hash = ?, display_name = ?, updated_at = datetime('now') WHERE id = ?"
-    ).run(passwordHash, displayName, existing.id);
+    const forceReset = process.env.OWNER_FORCE_PASSWORD_RESET === "true";
+    if (forceReset) {
+      const passwordHash = await bcrypt.hash(password, 12);
+      db.prepare(
+        "UPDATE users SET role = 'super_admin', password_hash = ?, display_name = ?, updated_at = datetime('now') WHERE id = ?"
+      ).run(passwordHash, displayName, existing.id);
+    } else if (existing.role !== "super_admin") {
+      db.prepare(
+        "UPDATE users SET role = 'super_admin', display_name = ?, updated_at = datetime('now') WHERE id = ?"
+      ).run(displayName, existing.id);
+    }
     return toAdminUser(findUserById(existing.id)!);
   }
   const id = uuid();

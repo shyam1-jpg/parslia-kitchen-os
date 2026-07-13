@@ -25,6 +25,7 @@ export function LandingPage() {
 
   const modelCount = catalog?.modelCount ?? 1;
   const toolCount = catalog?.toolCount ?? 1;
+  const freeDaily = catalog?.plans?.free?.dailyMessages ?? 30;
 
   return (
     <div className="page-container">
@@ -46,7 +47,7 @@ export function LandingPage() {
         <div className="stats-row">
           <div className="stat"><div className="stat-num">{modelCount}</div><div className="stat-label">Models available now</div></div>
           <div className="stat"><div className="stat-num">{toolCount}</div><div className="stat-label">Tools available now</div></div>
-          <div className="stat"><div className="stat-num">20/day</div><div className="stat-label">Free fair-use messages</div></div>
+          <div className="stat"><div className="stat-num">{freeDaily}/day</div><div className="stat-label">Free fair-use messages</div></div>
         </div>
         {catalog?.launchNote && (
           <p className="hero-note">{catalog.launchNote}</p>
@@ -119,7 +120,7 @@ export function LandingPage() {
 
       <section className="section" style={{ textAlign: "center" }}>
         <h2 className="section-title">Start with free chat</h2>
-        <p className="section-sub" style={{ margin: "0 auto 32px" }}>20 messages per day on the Free plan. No credit card required.</p>
+        <p className="section-sub" style={{ margin: "0 auto 32px" }}>{freeDaily} messages per day on the Free plan. No credit card required.</p>
         <Link to="/login?mode=signup" className="btn btn-primary">Create free account</Link>
       </section>
 

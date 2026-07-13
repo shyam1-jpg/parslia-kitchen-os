@@ -176,6 +176,31 @@ export function AppPage() {
     setSidebarOpen(false);
   };
 
+  const renameChat = async (id: string, currentTitle: string) => {
+    const title = window.prompt("Rename conversation", currentTitle);
+    if (!title?.trim() || title.trim() === currentTitle) return;
+    try {
+      await chatApi.renameConversation(id, title.trim());
+      setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, title: title.trim() } : c)));
+    } catch {
+      setError("Could not rename conversation.");
+    }
+  };
+
+  const deleteChat = async (id: string) => {
+    if (!window.confirm("Delete this conversation? This cannot be undone.")) return;
+    try {
+      await chatApi.deleteConversation(id);
+      setConversations((prev) => prev.filter((c) => c.id !== id));
+      if (activeId === id) {
+        setActiveId(null);
+        setMessages([]);
+      }
+    } catch {
+      setError("Could not delete conversation.");
+    }
+  };
+
   const sendMessage = async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || loading || streaming) return;
@@ -394,13 +419,18 @@ export function AppPage() {
             <div key={group.label}>
               <div className="sidebar-section-label">{group.label}</div>
               {group.items.map((c) => (
-                <button
-                  key={c.id}
-                  className={`conv-item ${activeId === c.id ? "active" : ""}`}
-                  onClick={() => selectConversation(c.id)}
-                >
-                  <span>{c.title}</span>
-                </button>
+                <div key={c.id} className={`conv-item-wrap ${activeId === c.id ? "active" : ""}`}>
+                  <button
+                    className={`conv-item ${activeId === c.id ? "active" : ""}`}
+                    onClick={() => selectConversation(c.id)}
+                  >
+                    <span>{c.title}</span>
+                  </button>
+                  <div className="conv-item-actions">
+                    <button type="button" className="icon-btn conv-action-btn" title="Rename" onClick={() => renameChat(c.id, c.title)}>✎</button>
+                    <button type="button" className="icon-btn conv-action-btn" title="Delete" onClick={() => deleteChat(c.id)}>×</button>
+                  </div>
+                </div>
               ))}
             </div>
           ))}

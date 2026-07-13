@@ -1,7 +1,6 @@
 import "dotenv/config";
-import bcrypt from "bcryptjs";
 import { initDb } from "../src/db/schema.js";
-import { createOwnerAccount } from "../src/services/users.js";
+import { createOwnerAccount, findUserByEmail } from "../src/services/users.js";
 import { logAdminAction } from "../src/services/auditLog.js";
 import crypto from "node:crypto";
 
@@ -12,7 +11,16 @@ const password =
   process.env.OWNER_INITIAL_PASSWORD ?? crypto.randomBytes(12).toString("base64url").slice(0, 16);
 
 async function main() {
+  const existing = findUserByEmail(email);
   const owner = await createOwnerAccount(email, password, "Libraix Owner");
+  if (existing) {
+    console.log("\n=== Libraix Super Admin already exists ===\n");
+    console.log("Email:       ", email);
+    console.log("Role:        ", owner.role);
+    console.log("Admin login: ", `${process.env.FRONTEND_URL ?? "https://libraix.ai"}/admin/login`);
+    console.log("\nPassword was NOT reset. Set OWNER_FORCE_PASSWORD_RESET=true to rotate it.\n");
+    return;
+  }
   logAdminAction(owner.id, "owner.seed", email, { note: "Super Admin account created via seed script" });
 
   console.log("\n=== Libraix Super Admin Created ===\n");
