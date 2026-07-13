@@ -59,10 +59,6 @@ app.use(
 // Stripe webhook needs raw body before JSON parser
 app.post("/api/billing/stripe/webhook", express.raw({ type: "application/json" }), stripeWebhookHandler);
 
-// Document upload routes need a larger JSON body limit (before global parser)
-app.use("/api/tools", express.json({ limit: "12mb" }), aiLimiter, toolsRoutes);
-
-app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 
 app.use(
@@ -79,6 +75,11 @@ app.use(
     },
   })
 );
+
+// Document upload routes need a larger JSON body limit
+app.use("/api/tools", express.json({ limit: "12mb" }), aiLimiter, toolsRoutes);
+
+app.use(express.json({ limit: "2mb" }));
 
 function maintenanceGate(req: express.Request, res: express.Response, next: express.NextFunction) {
   if (req.path.startsWith("/api/admin") || req.path.includes("/health")) return next();
