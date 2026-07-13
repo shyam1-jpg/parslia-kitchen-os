@@ -259,6 +259,12 @@ function handleAiError(e: unknown, res: import("express").Response) {
   if (msg === "MODEL_NOT_FOUND" || msg === "MODEL_DISABLED" || msg === "MODEL_NOT_CHAT" || msg === "COMPARE_MODEL_COUNT") {
     return res.status(400).json({ error: msg });
   }
+  if (msg.startsWith("MODELS_UNAVAILABLE:")) {
+    return res.status(400).json({
+      error: "MODELS_UNAVAILABLE",
+      detail: msg.slice("MODELS_UNAVAILABLE:".length).replace(/,/g, ", "),
+    });
+  }
   if (e instanceof ProviderError) {
     const status = e.code === "RATE_LIMIT" ? 429 : e.code === "PROVIDER_UNAVAILABLE" ? 503 : 502;
     return res.status(status).json({

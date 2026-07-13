@@ -33,6 +33,7 @@ export function detectImageRequest(message: string): string | null {
     { re: /^(?:i want|i need)\s+(?:an?\s+)?(?:image|picture|photo)\s+of\s+(.+)$/i, group: 1 },
     { re: /^(?:generate|create|make)\s+(.+)\s+(?:as\s+)?(?:an?\s+)?(?:image|picture|photo)$/i, group: 1 },
     { re: /^(?:generate|create|make)\s+(?:an?\s+)?image\s+(.+)$/i, group: 1 },
+    { re: /^(.{3,120})\s+image$/i, group: 1 },
   ];
 
   for (const { re, group = 1 } of patterns) {

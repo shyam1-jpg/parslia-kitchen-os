@@ -447,7 +447,12 @@ export function AppPage() {
           </div>
         </header>
 
-        {showCompare && <ComparePanel models={models.filter((m) => m.available !== false)} onClose={() => setShowCompare(false)} />}
+        {showCompare && (
+          <ComparePanel
+            models={models.filter((m) => m.capabilities.chat && m.available === true)}
+            onClose={() => setShowCompare(false)}
+          />
+        )}
 
         {!user?.emailVerified && (
           <div className="verify-banner">

@@ -19,6 +19,8 @@ export function ComparePanel({ models, onClose }: ComparePanelProps) {
     if (models.length >= 2 && selected.length < 2) {
       setSelected(pickCompareModels(models, 2));
     }
+    // Drop selections that are no longer available
+    setSelected((prev) => prev.filter((id) => models.some((m) => m.id === id)));
   }, [models, selected.length]);
 
   const toggleModel = (id: string) => {
@@ -37,7 +39,10 @@ export function ComparePanel({ models, onClose }: ComparePanelProps) {
       const data = await advancedApi.compare(prompt.trim(), selected);
       setResult(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Compare failed");
+      const raw = e instanceof Error ? e.message : "Compare failed";
+      setError(raw === "MODEL_NOT_FOUND" || raw.startsWith("MODELS_UNAVAILABLE")
+        ? "One or more selected models need API keys on the server. Pick models marked available in the dropdown."
+        : raw);
     } finally {
       setLoading(false);
     }

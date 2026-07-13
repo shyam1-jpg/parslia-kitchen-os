@@ -17,6 +17,31 @@ export interface ImageGenerateResponse {
   modelId: string;
   displayName: string;
   provider: string;
+  imageModel?: string;
+}
+
+function imageModelsToTry(): string[] {
+  const preferred = process.env.OPENAI_MODEL_IMAGE?.trim() || "dall-e-3";
+  const chain = [preferred, "dall-e-3", "dall-e-2"];
+  return [...new Set(chain)];
+}
+
+function buildImageBody(modelName: string, req: ImageGenerateRequest): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    model: modelName,
+    prompt: req.prompt,
+    n: 1,
+  };
+
+  if (modelName === "dall-e-3") {
+    body.size = req.size ?? "1024x1024";
+    body.quality = req.quality ?? "standard";
+  } else {
+    // dall-e-2 only supports square sizes up to 1024
+    body.size = "1024x1024";
+  }
+
+  return body;
 }
 
 export async function generateImage(user: SafeUser, req: ImageGenerateRequest): Promise<ImageGenerateResponse> {
@@ -24,8 +49,8 @@ export async function generateImage(user: SafeUser, req: ImageGenerateRequest): 
     throw new Error("IMAGE_LIMIT_REACHED");
   }
 
-  const model = getModelById("libraix-image");
-  if (!model) throw new Error("IMAGE_MODEL_UNAVAILABLE");
+  const catalogModel = getModelById("libraix-image");
+  if (!catalogModel) throw new Error("IMAGE_MODEL_UNAVAILABLE");
 
   const apiKey = process.env.OPENAI_API_KEY?.trim() ?? "";
   if (!apiKey) {
@@ -37,47 +62,59 @@ export async function generateImage(user: SafeUser, req: ImageGenerateRequest): 
     );
   }
 
-  const res = await fetch(IMAGES_URL, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: model.providerModelId,
-      prompt: req.prompt,
-      n: 1,
-      size: req.size ?? "1024x1024",
-      quality: req.quality ?? "standard",
-    }),
-    signal: AbortSignal.timeout(120_000),
-  });
+  let lastError = "Image generation failed";
 
-  if (!res.ok) {
+  for (const modelName of imageModelsToTry()) {
+    const res = await fetch(IMAGES_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify(buildImageBody(modelName, req)),
+      signal: AbortSignal.timeout(120_000),
+    });
+
+    if (res.ok) {
+      const data = (await res.json()) as {
+        data?: { url?: string; revised_prompt?: string }[];
+      };
+      const image = data.data?.[0];
+      if (!image?.url) {
+        lastError = "No image returned from OpenAI";
+        continue;
+      }
+
+      recordImageUsage(user.id);
+
+      return {
+        url: image.url,
+        revisedPrompt: image.revised_prompt,
+        modelId: catalogModel.id,
+        displayName: catalogModel.displayName,
+        provider: catalogModel.provider,
+        imageModel: modelName,
+      };
+    }
+
     const err = await res.text();
-    let detail = err.slice(0, 300);
     try {
       const parsed = JSON.parse(err) as { error?: { message?: string } };
-      if (parsed.error?.message) detail = parsed.error.message;
+      if (parsed.error?.message) lastError = parsed.error.message;
     } catch {
-      /* use raw */
+      lastError = err.slice(0, 300);
     }
-    const code = res.status === 429 ? "RATE_LIMIT" : res.status >= 500 ? "PROVIDER_UNAVAILABLE" : "PROVIDER_ERROR";
-    throw new ProviderError(detail, "openai", code, res.status >= 500 || res.status === 429);
+
+    const retryable =
+      /does not exist|not found|invalid model|unknown model/i.test(lastError) ||
+      res.status === 404;
+    if (!retryable) break;
   }
 
-  const data = (await res.json()) as {
-    data?: { url?: string; revised_prompt?: string }[];
-  };
-  const image = data.data?.[0];
-  if (!image?.url) throw new ProviderError("No image returned", "openai", "PROVIDER_ERROR", true);
-
-  recordImageUsage(user.id);
-
-  return {
-    url: image.url,
-    revisedPrompt: image.revised_prompt,
-    modelId: model.id,
-    displayName: model.displayName,
-    provider: model.provider,
-  };
+  const code = /rate limit/i.test(lastError) ? "RATE_LIMIT" : "PROVIDER_ERROR";
+  throw new ProviderError(
+    `${lastError}. Confirm OPENAI_API_KEY is a valid OpenAI key with image access.`,
+    "openai",
+    code,
+    false
+  );
 }
 
 export function getImageUsage(user: SafeUser) {

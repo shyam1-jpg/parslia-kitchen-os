@@ -763,6 +763,33 @@ button, input, textarea, select {
   .sidebar.open { transform: translateX(0); }
   .mobile-menu-btn { display: flex; }
   .overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 150; }
+  .composer-wrap { padding: 12px 12px 16px; }
+  .composer.composer-chatgpt {
+    padding: 6px 8px;
+    gap: 2px;
+    border-radius: 24px;
+  }
+  .composer-field {
+    font-size: 16px;
+    min-width: 0;
+    padding: 10px 4px;
+  }
+  .composer-toolbar {
+    flex-shrink: 0;
+  }
+  .composer-end {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+  .composer-mic-btn,
+  .composer-tool-btn,
+  .send-btn {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+  }
+  .compare-panel { max-height: 40vh; padding: 12px 16px; }
 }
 
 .legal-page { max-width: 720px; margin: 0 auto; padding: 120px 24px 80px; }

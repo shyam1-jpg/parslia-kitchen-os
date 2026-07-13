@@ -31,8 +31,11 @@ export async function compareModels(user: SafeUser, req: CompareRequest): Promis
   }
 
   const available = getModelsForPlan(user.plan).filter((m) => m.capabilities.chat);
-  const models = req.modelIds.map((id) => getModelById(id)).filter(Boolean);
-  if (models.length !== req.modelIds.length) throw new Error("MODEL_NOT_FOUND");
+  const models = req.modelIds.map((id) => getModelById(id));
+  const missing = req.modelIds.filter((id) => !getModelById(id));
+  if (missing.length) {
+    throw new Error(`MODELS_UNAVAILABLE:${missing.join(",")}`);
+  }
 
   for (const model of models) {
     if (!available.some((m) => m.id === model!.id)) throw new Error("MODEL_NOT_AUTHORIZED");
