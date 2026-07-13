@@ -3,6 +3,16 @@ import { ProviderError } from "./types.js";
 
 const CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
 
+function parseOpenAiError(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw) as { error?: { message?: string } };
+    if (parsed.error?.message) return parsed.error.message;
+  } catch {
+    /* use raw */
+  }
+  return raw.slice(0, 300);
+}
+
 function buildOpenAiBody(request: ProviderRequest, stream: boolean) {
   const modelId = request.model.providerModelId;
   const isReasoning = /^o\d/i.test(modelId);
@@ -62,7 +72,9 @@ export class OpenAiProvider implements AiProviderAdapter {
 
     if (!res.ok) {
       const err = await res.text();
-      throw new ProviderError(err.slice(0, 300), this.name, `HTTP_${res.status}`, res.status >= 500);
+      const detail = parseOpenAiError(err);
+      const code = res.status === 429 ? "RATE_LIMIT" : res.status >= 500 ? "PROVIDER_UNAVAILABLE" : "PROVIDER_ERROR";
+      throw new ProviderError(detail, this.name, code, res.status >= 500 || res.status === 429);
     }
 
     const data = (await res.json()) as {

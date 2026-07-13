@@ -1,3 +1,5 @@
+import { readApiError } from "./errors";
+
 export interface User {
   id: string;
   email: string;
@@ -57,7 +59,6 @@ export interface ChatMessage {
   createdAt: string;
   modelLabel?: string;
 }
-
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     ...options,
@@ -68,8 +69,7 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
     },
   });
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+    throw new Error(await readApiError(res));
   }
   return res.json() as Promise<T>;
 }

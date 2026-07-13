@@ -1,4 +1,5 @@
 import type { ModelInfo } from "./api";
+import { readApiError } from "./errors";
 
 export interface RouterMode {
   id: string;
@@ -58,8 +59,7 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
     headers: { "Content-Type": "application/json", ...(options?.headers ?? {}) },
   });
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+    throw new Error(await readApiError(res));
   }
   return res.json() as Promise<T>;
 }
@@ -106,8 +106,7 @@ export const advancedApi = {
       body: JSON.stringify(body),
     });
     if (!res.ok || !res.body) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+      throw new Error(await readApiError(res));
     }
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
@@ -123,7 +122,7 @@ export const advancedApi = {
         const payload = line.slice(6).trim();
         if (payload === "[DONE]") return;
         try {
-          const parsed = JSON.parse(payload) as { delta?: string; error?: string; meta?: { modelId: string; displayName: string; provider: string; providerModelId: string } };
+          const parsed = JSON.parse(payload) as { delta?: string; error?: string; detail?: string; meta?: { modelId: string; displayName: string; provider: string; providerModelId: string } };
           if (parsed.error) throw new Error(parsed.error);
           else if (parsed.meta) yield { meta: parsed.meta };
           else if (parsed.delta) yield parsed.delta;

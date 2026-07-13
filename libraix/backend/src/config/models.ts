@@ -75,7 +75,7 @@ export const PRODUCT_CATALOG: ProductCatalog = {
       id: "libraix-advanced",
       displayName: "Libraix Advanced",
       provider: "openai",
-      providerModelId: process.env.OPENAI_MODEL_ADVANCED ?? "o3-mini",
+      providerModelId: process.env.OPENAI_MODEL_ADVANCED ?? "gpt-4o",
       tier: "pro",
       capabilities: { chat: true, streaming: true, webSearch: true, fileSearch: true },
       enabled: true,

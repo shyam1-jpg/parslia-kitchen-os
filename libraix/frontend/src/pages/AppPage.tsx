@@ -180,8 +180,9 @@ export function AppPage() {
           fullContent += chunk;
           setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, modelLabel: modelLabel || m.modelLabel } : m)));
         }
-      } catch {
+      } catch (streamErr) {
         /* stream unavailable — fall back below */
+        console.warn("Stream failed, using non-stream fallback:", streamErr);
       }
 
       if (!fullContent.trim()) {

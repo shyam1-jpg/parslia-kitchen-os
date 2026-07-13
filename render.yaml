@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: starter
     buildCommand: cd libraix/backend && npm install --include=dev && npm run build
-    startCommand: cd libraix/backend && npm run seed:owner && npm start
+    startCommand: cd libraix/backend && (npm run seed:owner || true) && npm start
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -23,7 +23,7 @@ services:
       - key: OPENAI_MODEL_SMART
         value: gpt-4o
       - key: OPENAI_MODEL_ADVANCED
-        value: o3-mini
+        value: gpt-4o
       - key: OPENAI_MODEL_IMAGE
         value: dall-e-3
       - key: OPENAI_TEMPERATURE

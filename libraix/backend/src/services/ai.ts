@@ -1,5 +1,5 @@
 import { getModelById } from "../config/models.js";
-import { completeViaGateway, streamViaGateway } from "../providers/gateway.js";
+import { completeWithFallback, streamWithFallback } from "../providers/resilience.js";
 import { canSendMessage, getUsage, recordMessageUsage } from "./usage.js";
 import { routeModel } from "./router.js";
 import { getMemoryContext } from "./memory.js";
@@ -76,11 +76,11 @@ function resolveModel(user: SafeUser, req: AiRequest) {
     }
   }
 
-  return { model, router, isPremium };
+  return { model, router, isPremium, fallback: getModelById("libraix-fast") };
 }
 
 export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiResponse> {
-  const { model, router, isPremium } = resolveModel(user, req);
+  const { model, router, isPremium, fallback } = resolveModel(user, req);
 
   const messages = [
     ...buildSystemMessages(req, user.id),
@@ -88,22 +88,23 @@ export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiR
     { role: "user" as const, content: req.message },
   ];
 
-  const response = await completeViaGateway(model, { messages });
-  recordMessageUsage(user.id, isPremium, response.tokensUsed, response.estimatedCostCents);
+  const { response, model: usedModel } = await completeWithFallback(model, fallback, messages);
+  const usedPremium = usedModel.tier !== "free";
+  recordMessageUsage(user.id, usedPremium, response.tokensUsed, response.estimatedCostCents);
 
   return {
     content: response.content,
-    modelId: model.id,
-    displayName: model.displayName,
-    provider: model.provider,
-    providerModelId: model.providerModelId,
+    modelId: usedModel.id,
+    displayName: usedModel.displayName,
+    provider: usedModel.provider,
+    providerModelId: usedModel.providerModelId,
     tokensUsed: response.tokensUsed,
     router,
   };
 }
 
-export async function* streamAiResponse(user: SafeUser, req: AiRequest): AsyncGenerator<string> {
-  const { model, isPremium } = resolveModel(user, req);
+export async function* streamAiResponse(user: SafeUser, req: AiRequest): AsyncGenerator<string | { model: ReturnType<typeof getModelById> }> {
+  const { model, fallback } = resolveModel(user, req);
 
   const messages = [
     ...buildSystemMessages(req, user.id),
@@ -112,11 +113,15 @@ export async function* streamAiResponse(user: SafeUser, req: AiRequest): AsyncGe
   ];
 
   let totalLen = 0;
-  for await (const chunk of streamViaGateway(model, { messages, stream: true })) {
-    totalLen += chunk.length;
-    yield chunk;
+  let usedModel = model;
+  for await (const item of streamWithFallback(model, fallback, messages)) {
+    usedModel = item.model;
+    totalLen += item.chunk.length;
+    yield item.chunk;
   }
-  recordMessageUsage(user.id, isPremium, Math.ceil(totalLen / 4), 0);
+  yield { model: usedModel };
+  const usedPremium = usedModel.tier !== "free";
+  recordMessageUsage(user.id, usedPremium, Math.ceil(totalLen / 4), 0);
 }
 
 export { routeModel };

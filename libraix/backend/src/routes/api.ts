@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { v4 as uuid } from "uuid";
 import { requireAuth } from "../middleware/auth.js";
+import { getUsage } from "../services/usage.js";
 import { findUserById, toSafeUser } from "../services/users.js";
 import { respondWithAi, streamAiResponse, routeModel } from "../services/ai.js";
 import { compareModels } from "../services/compare.js";
@@ -149,6 +150,11 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
+  res.flushHeaders?.();
+
+  const heartbeat = setInterval(() => {
+    res.write(": keepalive\n\n");
+  }, 12000);
 
   try {
     const reqBody = {
@@ -159,15 +165,24 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
       projectId: parsed.data.projectId,
     };
 
-    const router = routeModel({
-      message: parsed.data.message,
-      mode: (parsed.data.routerMode as RouterMode) ?? "auto",
-      userPlan: user.plan,
-      manualModelId: parsed.data.modelId,
-    });
-    const model = getModelById(router.modelId);
+    let model = getModelById(
+      routeModel({
+        message: parsed.data.message,
+        mode: (parsed.data.routerMode as RouterMode) ?? "auto",
+        userPlan: user.plan,
+        manualModelId: parsed.data.modelId,
+        premiumRemaining: (() => {
+          const u = getUsage(user.id, user.plan);
+          return Math.max(0, u.premiumLimit - u.premiumUsed);
+        })(),
+      }).modelId
+    );
 
     for await (const chunk of streamAiResponse(user, reqBody)) {
+      if (typeof chunk === "object" && chunk && "model" in chunk) {
+        model = chunk.model ?? model;
+        continue;
+      }
       res.write(`data: ${JSON.stringify({ delta: chunk })}\n\n`);
     }
     if (model) {
@@ -186,8 +201,11 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
     res.end();
   } catch (e) {
     const msg = e instanceof Error ? e.message : "UNKNOWN";
-    res.write(`data: ${JSON.stringify({ error: msg })}\n\n`);
+    const code = e instanceof ProviderError ? e.code : "PROVIDER_ERROR";
+    res.write(`data: ${JSON.stringify({ error: code, detail: msg.slice(0, 200) })}\n\n`);
     res.end();
+  } finally {
+    clearInterval(heartbeat);
   }
 });
 
@@ -223,8 +241,9 @@ function handleAiError(e: unknown, res: import("express").Response) {
     return res.status(400).json({ error: msg });
   }
   if (e instanceof ProviderError) {
-    return res.status(502).json({
-      error: e.code === "PROVIDER_UNAVAILABLE" ? "PROVIDER_UNAVAILABLE" : "PROVIDER_ERROR",
+    const status = e.code === "RATE_LIMIT" ? 429 : e.code === "PROVIDER_UNAVAILABLE" ? 503 : 502;
+    return res.status(status).json({
+      error: e.code === "PROVIDER_UNAVAILABLE" ? "PROVIDER_UNAVAILABLE" : e.code === "RATE_LIMIT" ? "RATE_LIMIT" : "PROVIDER_ERROR",
       detail: msg.slice(0, 200),
     });
   }
