@@ -828,8 +828,8 @@ export function AppPage() {
                   : <>Type <strong>/i</strong> or tap 🎨 for quick images · 🔍 for live web search.</>}
               </p>
               {homeLocation && !assistantId && (
-                <p className="location-chip" title={`Auto-detected from your IP (${homeLocation.source})`}>
-                  📍 <strong>{homeLocation.label}</strong>
+                <p className="location-chip" title={`Saved for local weather (${homeLocation.source})`}>
+                  📍 {homeLocation.label}
                 </p>
               )}
               <div className="suggestion-row">
