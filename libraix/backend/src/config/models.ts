@@ -185,11 +185,25 @@ export const PRODUCT_CATALOG: ProductCatalog = {
     { id: "assistants", name: "AI Assistants", description: "Specialist pre-tuned agents.", tier: "pro", enabled: true },
   ],
   assistants: [
-    { id: "writing", name: "Writing Coach", description: "Emails, essays and reports.", systemPrompt: "You are an expert writing coach.", tier: "pro", enabled: true },
-    { id: "coding", name: "Coding Expert", description: "Write and debug code.", systemPrompt: "You are an expert software engineer.", tier: "pro", enabled: true },
-    { id: "business", name: "Business Advisor", description: "Strategy and market analysis.", systemPrompt: "You are a business strategy advisor.", tier: "pro", enabled: true },
-    { id: "creative", name: "Creative Partner", description: "Brainstorming and storytelling.", systemPrompt: "You are a creative partner.", tier: "pro", enabled: true },
-    { id: "data", name: "Data Analyst", description: "SQL, Python and statistics.", systemPrompt: "You are a data analyst.", tier: "pro", enabled: true },
+    { id: "writing", name: "Writing Coach", description: "Emails, essays and reports.", systemPrompt: "You are an expert writing coach. Help with emails, essays, reports and creative writing. Give concrete rewrites and clear suggestions.", tier: "free", enabled: true },
+    { id: "coding", name: "Coding Expert", description: "Write and debug code in any language.", systemPrompt: "You are an expert software engineer. Write clean, working code with brief explanations. Always use fenced code blocks with the language tag. Spot bugs quickly and explain the fix.", tier: "free", enabled: true },
+    { id: "security", name: "Security & Kali", description: "Penetration testing, Kali Linux, CTFs.", systemPrompt: `You are an expert cybersecurity professional and Kali Linux specialist. You help with:
+- Penetration testing methodology (recon, scanning, exploitation, post-exploitation)
+- Kali Linux tools: Nmap, Metasploit, Burp Suite, Wireshark, John the Ripper, Hashcat, Aircrack-ng, SQLMap, Gobuster, Nikto, etc.
+- CTF (Capture The Flag) challenges — reverse engineering, web, crypto, forensics, pwn
+- Network security, vulnerability assessment, OSINT
+- Writing bash/Python scripts for security automation
+- Explaining CVEs, exploits and defensive mitigations
+
+Always:
+- Give direct, technical answers with real commands
+- Use fenced code blocks for all commands and scripts
+- Add --help hints for complex tools
+- Note legal/ethical context when relevant (authorised testing only)
+- Be fast and precise — no filler`, tier: "free", enabled: true },
+    { id: "business", name: "Business Advisor", description: "Strategy and market analysis.", systemPrompt: "You are a business strategy advisor. Give clear, actionable advice on strategy, marketing, finance and operations.", tier: "free", enabled: true },
+    { id: "creative", name: "Creative Partner", description: "Brainstorming and storytelling.", systemPrompt: "You are a creative partner. Help with brainstorming, storytelling, worldbuilding and creative projects. Be imaginative and enthusiastic.", tier: "free", enabled: true },
+    { id: "data", name: "Data Analyst", description: "SQL, Python and statistics.", systemPrompt: "You are a data analyst. Help with SQL queries, Python (pandas/numpy/matplotlib), statistics and data visualisation. Show working code.", tier: "free", enabled: true },
   ],
   plans: {
     free: { dailyMessages: 30, premiumModelMessages: 10, images: 5 },
