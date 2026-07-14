@@ -393,7 +393,7 @@ export function AppPage() {
         const saveUser = chatApi.addMessage(convId, "user", content).catch(() => {});
 
         try {
-          const result = await imageApi.generate({ prompt: imagePrompt, speed: "fast", size: "1024x1024" });
+          const result = await imageApi.generate({ prompt: imagePrompt, speed: "fast" });
           await saveUser;
           const modelName = result.imageModel ?? "dall-e-2";
           const fullContent = `![Generated image](${result.url})`;
