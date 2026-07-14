@@ -428,7 +428,7 @@ button, input, textarea, select {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.18);
 }
-.oauth-btn-disabled { opacity: 0.72; }
+.oauth-btn-disabled { opacity: 0.45; cursor: not-allowed; }
 .oauth-icon { width: 18px; height: 18px; flex-shrink: 0; }
 .oauth-badge {
   margin-left: auto;
