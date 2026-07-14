@@ -74,7 +74,7 @@ export function ChatComposer({
             <button
               type="button"
               className={`composer-tool-btn composer-image-btn ${imageMode ? "active" : ""}`}
-              title={imageMode ? "Image mode on — describe your image" : "Create an image with DALL·E 3"}
+              title={imageMode ? "Image mode on — quick render" : "Quick image creation (DALL·E 2 fast)"}
               disabled={loading || streaming}
               onClick={onToggleImageMode}
               aria-pressed={imageMode}
@@ -86,7 +86,7 @@ export function ChatComposer({
             <button
               type="button"
               className="composer-tool-btn"
-              title="Attach PDF or text file"
+              title="Attach PDF, DOCX, RTF, or text (contracts & legal files OK)"
               disabled={loading || streaming || attachLoading}
               onClick={() => fileInputRef.current?.click()}
             >
@@ -166,7 +166,7 @@ export function ChatComposer({
         <input
           ref={fileInputRef}
           type="file"
-          accept=".pdf,.txt,.md,.csv,.json,application/pdf,text/plain,text/markdown"
+          accept=".pdf,.docx,.rtf,.txt,.md,.csv,.json,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/rtf,text/plain,text/markdown"
           hidden
           onChange={(e) => {
             const f = e.target.files?.[0];

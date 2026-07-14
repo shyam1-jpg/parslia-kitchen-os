@@ -11,7 +11,7 @@ import { useSpeechInput } from "../lib/useSpeechInput";
 export function ImagePage() {
   const { user, logout } = useAuth();
   const [prompt, setPrompt] = useState("");
-  const [size, setSize] = useState<"1024x1024" | "1792x1024" | "1024x1792">("1024x1024");
+  const [size, setSize] = useState<"256x256" | "512x512" | "1024x1024" | "1792x1024" | "1024x1792">("512x512");
   const [quality, setQuality] = useState<"standard" | "hd">("standard");
   const [speed, setSpeed] = useState<"fast" | "quality">("fast");
   const [loading, setLoading] = useState(false);
@@ -132,13 +132,15 @@ export function ImagePage() {
             <label>
               Speed
               <select className="model-select" value={speed} onChange={(e) => setSpeed(e.target.value as typeof speed)} disabled={quality === "hd"}>
-                <option value="fast">Fast (~15s, DALL·E 2)</option>
+                <option value="fast">Quick (DALL·E 2 · 512px)</option>
                 <option value="quality">Quality (DALL·E 3)</option>
               </select>
             </label>
             <label>
               Size
               <select className="model-select" value={size} onChange={(e) => setSize(e.target.value as typeof size)}>
+                <option value="512x512">Quick square (512×512)</option>
+                <option value="256x256">Tiny (256×256)</option>
                 <option value="1024x1024">Square (1024×1024)</option>
                 <option value="1792x1024">Landscape (1792×1024)</option>
                 <option value="1024x1792">Portrait (1024×1792)</option>

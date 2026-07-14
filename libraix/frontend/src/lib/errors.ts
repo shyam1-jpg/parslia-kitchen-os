@@ -15,6 +15,10 @@ const ERROR_LABELS: Record<string, string> = {
   HTTP_503: "Service temporarily unavailable. Please try again shortly.",
   ABORTED: "Stopped.",
   REQUEST_TIMED_OUT: "Reply timed out. The server may be waking up — tap send again in a few seconds.",
+  NO_TEXT_EXTRACTED_SCANNED_PDF: "This PDF looks scanned (no extractable text). Try a text PDF or DOCX.",
+  LEGACY_DOC_UNSUPPORTED: "Legacy .doc isn’t supported — save as .docx or PDF and try again.",
+  FILE_TYPE_NOT_SUPPORTED: "Unsupported file type. Use PDF, DOCX, RTF, or text.",
+  NO_TEXT_EXTRACTED: "Could not extract text from that file.",
 };
 
 export function friendlyError(code: string, fallback?: string): string {

@@ -132,7 +132,23 @@ export function initDb() {
   migrateDocumentIntelligence();
   migrateUsersBillingColumns();
   migrateUserLocationColumns();
+  migrateSourceCache();
   seedDefaultSiteConfig();
+}
+
+function migrateSourceCache() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS source_cache (
+      query_hash TEXT NOT NULL,
+      provider TEXT NOT NULL,
+      query_text TEXT NOT NULL,
+      results_json TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (query_hash, provider)
+    );
+    CREATE INDEX IF NOT EXISTS idx_source_cache_expires ON source_cache(expires_at);
+  `);
 }
 
 function migrateConversationsV2() {

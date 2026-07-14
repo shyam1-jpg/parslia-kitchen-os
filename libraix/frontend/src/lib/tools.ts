@@ -7,6 +7,14 @@ export interface ParsedDocument {
   charCount: number;
   truncated: boolean;
   pageCount?: number;
+  documentKind?: "legal" | "general";
+}
+
+export interface SourceHit {
+  title: string;
+  url: string;
+  snippet: string;
+  kind?: "wikipedia" | "web";
 }
 
 export interface ResearchResult {
@@ -68,6 +76,17 @@ export const toolsApi = {
     api<ResearchResult>("/api/tools/research", {
       method: "POST",
       body: JSON.stringify({ query, depth }),
+    }),
+
+  search: (query: string, provider: "all" | "wikipedia" | "web" = "all") =>
+    api<{
+      query: string;
+      wikipedia: SourceHit[];
+      web: SourceHit[];
+      sources: SourceHit[];
+    }>("/api/tools/search", {
+      method: "POST",
+      body: JSON.stringify({ query, provider }),
     }),
 };
 

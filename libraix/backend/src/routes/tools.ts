@@ -7,6 +7,9 @@ import { parseDocument } from "../services/documents.js";
 import { fetchPageContent } from "../services/fetchPage.js";
 import { fetchYoutubeTranscript } from "../services/youtube.js";
 import { runDeepResearch } from "../services/research.js";
+import { resolveLiveSources } from "../services/liveSources.js";
+import { searchWikipedia } from "../services/wikipedia.js";
+import { searchWeb } from "../services/webSearch.js";
 import { completeViaGateway } from "../providers/gateway.js";
 import { getModelById } from "../config/models.js";
 import { canSendMessage, recordMessageUsage } from "../services/usage.js";
@@ -31,8 +34,60 @@ router.post("/parse-document", async (req, res) => {
     const msg = e instanceof Error ? e.message : "PARSE_FAILED";
     const status =
       msg === "FILE_TOO_LARGE" ? 413 :
-      msg === "FILE_TYPE_NOT_SUPPORTED" || msg === "NO_TEXT_EXTRACTED" ? 400 : 502;
+      msg === "FILE_TYPE_NOT_SUPPORTED" ||
+      msg === "NO_TEXT_EXTRACTED" ||
+      msg === "NO_TEXT_EXTRACTED_SCANNED_PDF" ||
+      msg === "LEGACY_DOC_UNSUPPORTED"
+        ? 400
+        : 502;
     res.status(status).json({ error: msg });
+  }
+});
+
+/** Fast sourced lookup — Wikipedia + web, SQLite-cached for repeat queries. */
+router.post("/search", async (req, res) => {
+  const schema = z.object({
+    query: z.string().min(1).max(500),
+    provider: z.enum(["all", "wikipedia", "web"]).optional().default("all"),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  try {
+    const q = parsed.data.query;
+    if (parsed.data.provider === "wikipedia") {
+      const wikipedia = await searchWikipedia(q, 6);
+      return res.json({
+        query: q,
+        wikipedia,
+        web: [],
+        sources: wikipedia.map((r) => ({ ...r, kind: "wikipedia" as const })),
+      });
+    }
+    if (parsed.data.provider === "web") {
+      const web = await searchWeb(q);
+      return res.json({
+        query: q,
+        wikipedia: [],
+        web,
+        sources: web.map((r) => ({ ...r, kind: "web" as const })),
+      });
+    }
+    const live = await resolveLiveSources(q);
+    res.json({
+      query: q,
+      wikipedia: live.wikipedia,
+      web: live.web,
+      sources: live.sources.map((s) => ({
+        title: s.filename,
+        url: s.url,
+        snippet: s.excerpt,
+        kind: s.kind,
+      })),
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "SEARCH_FAILED";
+    res.status(502).json({ error: msg });
   }
 });
 

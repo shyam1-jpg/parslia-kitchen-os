@@ -6,6 +6,7 @@ import { getMemoryContext } from "./memory.js";
 import { learnFromConversationTurn } from "./memoryExtract.js";
 import { getProjectDocumentContext } from "./projects.js";
 import { buildWebSearchBundle } from "./research.js";
+import { wantsLiveSources } from "./liveSources.js";
 import { getSavedLocation } from "./location.js";
 import { buildWeatherContext, isWeatherQuery, type WeatherCardData } from "./weather.js";
 import { detectImageRequest } from "./imageIntent.js";
@@ -60,7 +61,7 @@ export interface ResolvedTurn {
 export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promise<TurnContext> {
   const memoryCtx = req.useMemory !== false ? getMemoryContext(user.id, req.projectId) : "";
   const wantsWeather = isWeatherQuery(req.message);
-  const wantsWeb = req.routerMode === "deep-research";
+  const wantsWeb = wantsLiveSources(req.message, req.routerMode);
 
   const savedLoc = wantsWeather ? getSavedLocation(user.id) : null;
 
@@ -158,14 +159,15 @@ export async function tryGenerateChatImage(user: SafeUser, message: string): Pro
   const prompt = detectImageRequest(message);
   if (!prompt || !isFeatureEnabled("image-studio", user.plan)) return null;
 
-  const image = await generateImage(user, { prompt, speed: "fast" });
+  const image = await generateImage(user, { prompt, speed: "fast", size: "512x512" });
   const caption = image.revisedPrompt ? `*${image.revisedPrompt}*` : `*${prompt}*`;
+  const modelTag = image.imageModel ?? "dall-e-2";
   return {
     content: `![Generated image](${image.url})\n\nHere's your image.\n\n${caption}`,
     modelId: image.modelId,
     displayName: image.displayName,
     provider: image.provider,
-    providerModelId: "dall-e-3",
+    providerModelId: modelTag,
     imageUrl: image.url,
     type: "image",
   };

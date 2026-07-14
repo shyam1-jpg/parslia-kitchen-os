@@ -153,7 +153,7 @@ export function ProjectPanel({ projects, activeProjectId, onSelect, onProjectsCh
                 ref={fileRef}
                 type="file"
                 hidden
-                accept=".pdf,.docx,.txt,.md,.csv,.json"
+                accept=".pdf,.docx,.rtf,.txt,.md,.csv,.json"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) uploadFile(f);

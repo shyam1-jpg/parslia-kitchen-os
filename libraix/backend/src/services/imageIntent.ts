@@ -15,6 +15,15 @@ export function detectImageRequest(message: string): string | null {
     const p = text.slice(3).trim();
     return p.length >= 2 ? p : null;
   }
+  if (text.startsWith("/qi ")) {
+    const p = text.slice(4).trim();
+    return p.length >= 2 ? p : null;
+  }
+  if (/^quick(?:ly)?\s+(?:image|picture|draw)\s+(?:of\s+)?(.+)$/i.test(text)) {
+    const m = text.match(/^quick(?:ly)?\s+(?:image|picture|draw)\s+(?:of\s+)?(.+)$/i);
+    const p = m?.[1]?.trim();
+    if (p && p.length >= 2) return p.replace(/[.!?]+$/, "");
+  }
 
   const colon = text.match(/^image\s*:\s*(.+)$/i);
   if (colon?.[1]) {
