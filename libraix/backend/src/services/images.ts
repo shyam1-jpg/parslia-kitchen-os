@@ -3,6 +3,20 @@ import { ProviderError } from "../providers/types.js";
 import { getUsage, recordImageUsage, canGenerateImage } from "./usage.js";
 import type { SafeUser } from "./users.js";
 
+/**
+ * Pollinations.ai — free, no API key, no account needed.
+ * Used as primary path when OpenAI billing is not set up,
+ * or as automatic fallback when OpenAI image generation fails.
+ */
+async function generateWithPollinations(prompt: string, size: "1024x1024" | "1792x1024" | "1024x1792" = "1024x1024"): Promise<string> {
+  const [width, height] = size.split("x").map(Number);
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&nologo=true&model=flux&enhance=true`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(60_000) });
+  if (!res.ok) throw new Error(`Pollinations returned ${res.status}`);
+  // Returns the image directly — return the URL (it's a direct image URL)
+  return url;
+}
+
 const IMAGES_URL = "https://api.openai.com/v1/images/generations";
 
 export type ImageSpeed = "fast" | "quality";
@@ -78,20 +92,18 @@ export async function generateImage(user: SafeUser, req: ImageGenerateRequest): 
   if (!catalogModel) throw new Error("IMAGE_MODEL_UNAVAILABLE");
 
   const apiKey = process.env.OPENAI_API_KEY?.trim() ?? "";
+  const size = req.size ?? "1024x1024";
+
+  // If no OpenAI key at all, go straight to the free provider
   if (!apiKey) {
-    throw new ProviderError(
-      "Image generation needs an OpenAI API key. Add OPENAI_API_KEY on Render.",
-      "openai",
-      "PROVIDER_UNAVAILABLE",
-      false
-    );
+    return generateWithFreeProvider(user, req, catalogModel, size);
   }
 
   const speed: ImageSpeed =
     req.speed ?? (process.env.OPENAI_IMAGE_SPEED === "quality" ? "quality" : "fast");
   const timeoutMs = speed === "fast" ? 45_000 : 90_000;
   let lastError = "Image generation failed";
-  let lastStatus = 0;
+  let billingIssue = false;
 
   for (const modelName of imageModelsToTry(speed)) {
     try {
@@ -102,8 +114,6 @@ export async function generateImage(user: SafeUser, req: ImageGenerateRequest): 
         signal: AbortSignal.timeout(timeoutMs),
       });
 
-      lastStatus = res.status;
-
       if (res.ok) {
         const data = (await res.json()) as {
           data?: { url?: string; b64_json?: string; revised_prompt?: string }[];
@@ -111,7 +121,6 @@ export async function generateImage(user: SafeUser, req: ImageGenerateRequest): 
         const image = data.data?.[0];
         if (!image) { lastError = "No image returned"; continue; }
 
-        // gpt-image-1 returns b64_json, convert to data URL
         const url = image.url ?? (image.b64_json ? `data:image/png;base64,${image.b64_json}` : null);
         if (!url) { lastError = "No image URL in response"; continue; }
 
@@ -129,51 +138,63 @@ export async function generateImage(user: SafeUser, req: ImageGenerateRequest): 
 
       const errText = await res.text();
       try {
-        const parsed = JSON.parse(errText) as { error?: { message?: string; code?: string } };
+        const parsed = JSON.parse(errText) as { error?: { message?: string } };
         lastError = parsed.error?.message ?? errText.slice(0, 300);
       } catch {
         lastError = errText.slice(0, 300);
       }
 
-      // Billing/permission errors are not retryable with a different model
       if (res.status === 429 && /rate/i.test(lastError)) {
         throw new ProviderError("OpenAI rate limit hit. Wait a moment and try again.", "openai", "RATE_LIMIT", false);
       }
-      if (res.status === 400 && /billing|payment|quota|insufficient/i.test(lastError)) {
-        throw new ProviderError(
-          "Image generation requires OpenAI billing enabled. Go to platform.openai.com → Billing → add a payment method, then try again.",
-          "openai",
-          "BILLING_REQUIRED",
-          false
-        );
+      if (/billing|payment|quota|insufficient|access/i.test(lastError)) {
+        billingIssue = true;
+        break; // No point trying other OpenAI models — fall through to free provider
       }
 
-      // Model not found → try next
       const tryNext = /does not exist|not found|invalid model|unknown model|unsupported/i.test(lastError) || res.status === 404;
       if (!tryNext) break;
     } catch (e) {
       if (e instanceof ProviderError) throw e;
       lastError = e instanceof Error ? e.message : "Request failed";
-      if (/timeout|abort/i.test(lastError)) {
-        lastError = "Image took too long — try again.";
-        break;
-      }
+      if (/timeout|abort/i.test(lastError)) break;
       break;
     }
   }
 
-  // Billing is the most common real-world failure — surface it clearly
-  if (/billing|payment|quota|insufficient/i.test(lastError) || lastStatus === 400) {
+  // Fall back to free Pollinations.ai provider (no API key needed)
+  console.log("OpenAI image failed, falling back to Pollinations.ai:", lastError);
+  return generateWithFreeProvider(user, req, catalogModel, size);
+}
+
+async function generateWithFreeProvider(
+  user: SafeUser,
+  req: ImageGenerateRequest,
+  catalogModel: NonNullable<ReturnType<typeof getModelById>>,
+  size: string
+): Promise<ImageGenerateResponse> {
+  const validSize = (["1024x1024", "1792x1024", "1024x1792"] as const).includes(size as never)
+    ? (size as "1024x1024" | "1792x1024" | "1024x1792")
+    : "1024x1024";
+  try {
+    const url = await generateWithPollinations(req.prompt, validSize);
+    recordImageUsage(user.id);
+    return {
+      url,
+      modelId: catalogModel.id,
+      displayName: "Libraix Image",
+      provider: "pollinations",
+      imageModel: "flux",
+      speed: req.speed ?? "fast",
+    };
+  } catch (e) {
     throw new ProviderError(
-      "Image generation needs OpenAI billing. Go to platform.openai.com → Billing → add a payment method.",
-      "openai",
-      "BILLING_REQUIRED",
+      "Image generation failed. Please try again.",
+      "pollinations",
+      "PROVIDER_ERROR",
       false
     );
   }
-
-  const code = /rate limit/i.test(lastError) ? "RATE_LIMIT" : "PROVIDER_ERROR";
-  throw new ProviderError(lastError, "openai", code, false);
 }
 
 export function getImageUsage(user: SafeUser) {
