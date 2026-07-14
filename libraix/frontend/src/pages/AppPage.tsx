@@ -800,8 +800,13 @@ export function AppPage() {
                   <div className="msg-actions">
                     {m.modelLabel && <span className="model-disclosure">{m.modelLabel}</span>}
                     {speechOut.supported && (
-                      <button className="msg-action" onClick={() => speechOut.toggle(m.content)} title="Read aloud">
-                        {speechOut.speaking ? "■ Stop" : "🔊 Listen"}
+                      <button
+                        className={`msg-action ${speechOut.loading ? "msg-action-loading" : ""}`}
+                        onClick={() => speechOut.toggle(m.content)}
+                        title={speechOut.loading ? "Loading voice…" : speechOut.speaking ? "Stop" : "Read aloud (AI voice)"}
+                        disabled={speechOut.loading}
+                      >
+                        {speechOut.loading ? "⏳" : speechOut.speaking ? "■ Stop" : "🔊 Listen"}
                       </button>
                     )}
                     <button className="msg-action" onClick={() => copyMessage(m.content)}><IconCopy /> Copy</button>

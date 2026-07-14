@@ -6,6 +6,7 @@ import { useAuth } from "../lib/auth";
 import { authApi, billingApi } from "../lib/api";
 import { advancedApi, type Memory } from "../lib/advanced";
 import { friendlyError } from "../lib/errors";
+import { useSpeechOutput, type VoiceOption } from "../lib/useSpeechOutput";
 
 export function AccountPage() {
   const { user, usage, logout, refresh } = useAuth();
@@ -116,6 +117,7 @@ export function SettingsPage() {
   const [newMemory, setNewMemory] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const tts = useSpeechOutput();
 
   useEffect(() => {
     Promise.all([
@@ -193,6 +195,38 @@ export function SettingsPage() {
               <option value="temporary">Temporary — limited retention</option>
               <option value="business">Business — org-controlled</option>
             </select>
+          </div>
+        </div>
+
+        <div className="settings-group">
+          <h2>Voice</h2>
+          <p style={{ fontSize: 13, color: "var(--dim)", marginBottom: 12 }}>
+            AI-powered voice powered by OpenAI TTS — much more natural than the browser default.
+          </p>
+          {tts.voices.length > 0 && (
+            <div className="settings-row" style={{ flexWrap: "wrap", gap: 8 }}>
+              <span>Voice style</span>
+              <select
+                className="model-select"
+                value={tts.voice}
+                onChange={(e) => tts.saveVoice(e.target.value as VoiceOption["id"])}
+              >
+                {tts.voices.map((v) => (
+                  <option key={v.id} value={v.id}>{v.label} — {v.description}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div style={{ marginTop: 10 }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              disabled={tts.loading || tts.speaking}
+              onClick={() => tts.speaking || tts.loading
+                ? tts.stop()
+                : tts.speak("Hello! This is how I sound. You can change my voice using the menu above.")}
+            >
+              {tts.loading ? "⏳ Loading…" : tts.speaking ? "■ Stop preview" : "🔊 Preview voice"}
+            </button>
           </div>
         </div>
 
