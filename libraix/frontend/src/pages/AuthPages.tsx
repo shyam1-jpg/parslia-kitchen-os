@@ -96,42 +96,46 @@ function OAuthHowItWorks() {
 
 function OAuthButtons({
   authConfig,
-  onUnavailable,
 }: {
   authConfig: AuthConfig | null;
-  onUnavailable: (msg: string) => void;
 }) {
-  const startOAuth = (provider: OAuthProviderId) => {
-    const enabled = authConfig?.oauth[provider];
-    if (provider === "apple") {
-      onUnavailable("Sign in with Apple is coming soon. Use Google, Microsoft, or email below.");
-      return;
-    }
-    if (!enabled) {
-      const name = provider.charAt(0).toUpperCase() + provider.slice(1);
-      onUnavailable(`${name} sign-in is not enabled on this server yet. Use email and password below, or ask the admin to add OAuth keys.`);
-      return;
-    }
-    window.location.href = `/api/auth/oauth/${provider}/start`;
-  };
+  const configLoaded = authConfig !== null;
 
   return (
     <div className="oauth-stack">
       {OAUTH_PROVIDERS.map(({ id, label, Icon }) => {
-        const live = id !== "apple" && Boolean(authConfig?.oauth[id]);
-        const disabled = id === "apple" || !live;
+        const isApple = id === "apple";
+        const enabled = !isApple && Boolean(authConfig?.oauth[id]);
+        // Show as disabled (greyed out + "Soon") when not configured or Apple
+        const comingSoon = !enabled;
+
+        if (comingSoon) {
+          return (
+            <button
+              key={id}
+              type="button"
+              className={`oauth-btn oauth-btn-${id} oauth-btn-disabled`}
+              disabled
+              aria-label={`${label} — coming soon`}
+              title={isApple ? "Apple sign-in coming soon" : configLoaded ? "Email sign-in is available below" : "Loading…"}
+            >
+              <Icon />
+              <span>{label}</span>
+              <span className="oauth-badge">Soon</span>
+            </button>
+          );
+        }
+
         return (
           <button
             key={id}
             type="button"
-            className={`oauth-btn oauth-btn-${id}${disabled ? " oauth-btn-disabled" : ""}`}
-            disabled={false}
-            onClick={() => startOAuth(id)}
+            className={`oauth-btn oauth-btn-${id}`}
+            onClick={() => { window.location.href = `/api/auth/oauth/${id}/start`; }}
             aria-label={label}
           >
             <Icon />
             <span>{label}</span>
-            {id === "apple" && <span className="oauth-badge">Soon</span>}
           </button>
         );
       })}
@@ -207,7 +211,7 @@ export function LoginPage() {
 
           {error && <div className="error-banner auth-error">{error}</div>}
 
-          <OAuthButtons authConfig={authConfig} onUnavailable={setError} />
+          <OAuthButtons authConfig={authConfig} />
 
           <div className="auth-divider" role="separator">
             <span>OR</span>
