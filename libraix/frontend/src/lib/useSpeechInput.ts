@@ -49,6 +49,7 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
   const baseTextRef = useRef("");
   const listeningRef = useRef(false);
   const onUpdateRef = useRef(onUpdate);
+  const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     onUpdateRef.current = onUpdate;
@@ -74,13 +75,13 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
 
   const start = useCallback(async () => {
     if (!isSecureEnough()) {
-      setError("Microphone needs HTTPS. Open https://libraix.ai (not http).");
+      showError("Microphone needs HTTPS. Open https://libraix.ai (not http).");
       return;
     }
 
     const Ctor = getSpeechRecognition();
     if (!Ctor) {
-      setError("Voice input works in Chrome or Edge (desktop/Android). Safari and Firefox don’t support it yet.");
+      showError("Voice input works in Chrome or Edge. Safari and Firefox don't support it.");
       return;
     }
 
@@ -91,7 +92,7 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
         stream.getTracks().forEach((t) => t.stop());
       }
     } catch {
-      setError("Microphone blocked — click the lock icon in the address bar → allow Microphone for libraix.ai, then try again.");
+      showError("Microphone blocked — click the lock icon in your address bar → allow Microphone, then try again.");
       return;
     }
 
@@ -121,18 +122,18 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
 
     recognition.onerror = (event) => {
       const code = event.error;
-      if (code === "aborted") return;
-      if (code === "no-speech") return; // keep listening
+      if (code === "aborted" || code === "no-speech") return;
       listeningRef.current = false;
       setListening(false);
       if (code === "not-allowed" || code === "service-not-allowed") {
-        setError("Microphone blocked — allow mic for libraix.ai (address bar → Site settings).");
+        showError("Microphone blocked — click the lock icon in your address bar → allow Microphone, then try again.");
       } else if (code === "audio-capture") {
-        setError("No microphone found. Plug in a mic or check system sound settings.");
+        showError("No microphone found — check your device sound settings.");
       } else if (code === "network") {
-        setError("Voice needs an internet connection (Chrome sends audio to Google for recognition).");
+        // Transient — just silently stop; retry by tapping mic again
+        setError("");
       } else {
-        setError(`Voice error (${code}). Tap the mic and try again in Chrome.`);
+        showError("Voice stopped. Tap the mic to try again.");
       }
     };
 
@@ -155,7 +156,7 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
       setListening(true);
     } catch {
       listeningRef.current = false;
-      setError("Could not start microphone. Try Chrome, then allow mic access.");
+      showError("Could not start microphone. Try Chrome, then allow mic access.");
       setListening(false);
     }
   }, []);
@@ -178,5 +179,13 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
     }
   }, []);
 
-  return { listening, supported, error, toggle, stop, syncBase, clearError: () => setError("") };
+  const showError = useCallback((msg: string) => {
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    setError(msg);
+    if (msg) {
+      errorTimerRef.current = setTimeout(() => setError(""), 6000);
+    }
+  }, []);
+
+  return { listening, supported, error, toggle, stop, syncBase, clearError: () => setError(""), showError };
 }
