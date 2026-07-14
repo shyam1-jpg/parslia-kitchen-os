@@ -205,7 +205,7 @@ export function SettingsPage() {
             </button>
           </div>
           <p style={{ fontSize: 13, color: "var(--dim)", marginBottom: 12 }}>
-            You can see, edit and delete everything Libraix remembers.
+            When Memory is On, Libraix learns useful facts from your chats (name, preferences, notes you ask it to remember) and uses them in future replies. Temporary privacy mode stops learning. You can see, edit, and delete everything remembered.
           </p>
           <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
             <input className="input" placeholder="Add a memory…" value={newMemory} onChange={(e) => setNewMemory(e.target.value)} />
@@ -213,7 +213,12 @@ export function SettingsPage() {
           </div>
           {memories.map((m) => (
             <div key={m.id} className="settings-row">
-              <span style={{ color: "var(--muted)", fontSize: 13 }}>{m.content}</span>
+              <span style={{ color: "var(--muted)", fontSize: 13 }}>
+                {m.category?.startsWith("auto:") ? (
+                  <span style={{ opacity: 0.7, marginRight: 6 }}>Learned ·</span>
+                ) : null}
+                {m.content}
+              </span>
               <button className="btn btn-ghost btn-sm" onClick={() => advancedApi.deleteMemory(m.id).then(() => setMemories((p) => p.filter((x) => x.id !== m.id)))}>Delete</button>
             </div>
           ))}

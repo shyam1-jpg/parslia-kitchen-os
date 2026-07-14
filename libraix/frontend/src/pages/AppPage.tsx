@@ -454,6 +454,7 @@ export function AppPage() {
             history,
             systemPrompt,
             projectId: activeProjectId ?? undefined,
+            conversationId: convId,
           },
           { signal: abortCtrlRef.current?.signal, timeoutMs: 90_000 }
         )) {
@@ -514,6 +515,7 @@ export function AppPage() {
           history,
           systemPrompt,
           projectId: activeProjectId ?? undefined,
+          conversationId: convId,
         });
         fullContent = result.content;
         modelLabel = result.displayName

@@ -10,6 +10,7 @@ export function getBuildInfo() {
       catalogCache: true,
       liveWeather: true,
       autoIpLocation: true,
+      conversationMemory: true,
     },
   };
 }

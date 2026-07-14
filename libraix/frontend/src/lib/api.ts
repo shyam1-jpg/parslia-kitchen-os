@@ -200,6 +200,7 @@ export const chatApi = {
     history?: { role: "user" | "assistant"; content: string }[];
     systemPrompt?: string;
     projectId?: string;
+    conversationId?: string;
   }) => api<{ content: string; modelId: string; displayName?: string; provider?: string; providerModelId?: string; tokensUsed?: number; router?: Record<string, unknown>; imageUrl?: string; type?: string; sources?: DocumentSource[]; weatherCard?: WeatherCardData }>("/api/ai/respond", {
     method: "POST",
     body: JSON.stringify(body),

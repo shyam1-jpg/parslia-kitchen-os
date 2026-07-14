@@ -17,6 +17,7 @@ export interface AiRequest {
   conversationHistory?: { role: "user" | "assistant"; content: string }[];
   systemPrompt?: string;
   projectId?: string;
+  conversationId?: string;
   useMemory?: boolean;
 }
 
