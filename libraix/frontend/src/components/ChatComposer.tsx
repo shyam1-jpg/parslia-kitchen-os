@@ -15,6 +15,7 @@ interface ChatComposerProps {
   onToggleImageMode?: () => void;
   onFileSelect?: (file: File) => void;
   onDeepResearch?: () => void;
+  onCamera?: () => void;
   extraAbove?: ReactNode;
 }
 
@@ -31,6 +32,7 @@ export function ChatComposer({
   onToggleImageMode,
   onFileSelect,
   onDeepResearch,
+  onCamera,
   extraAbove,
 }: ChatComposerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -98,6 +100,17 @@ export function ChatComposer({
               onClick={onDeepResearch}
             >
               <IconSearch />
+            </button>
+          )}
+          {onCamera && (
+            <button
+              type="button"
+              className="composer-tool-btn"
+              title="Open camera — take a photo and ask AI about it"
+              disabled={loading || streaming}
+              onClick={onCamera}
+            >
+              📷
             </button>
           )}
         </div>

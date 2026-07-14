@@ -14,6 +14,7 @@ import { WeatherCard } from "../components/WeatherCard";
 import { encodeWeatherMarker, extractWeatherCard } from "../lib/weather";
 import { useAuth } from "../lib/auth";
 import { useSpeechOutput } from "../lib/useSpeechOutput";
+import { useCamera } from "../lib/useCamera";
 import { toolsApi, detectUrls, isYoutubeUrl } from "../lib/tools";
 import { detectImageRequest } from "../lib/imageIntent";
 import { advancedApi, type Project, type RouterMode } from "../lib/advanced";
@@ -88,6 +89,7 @@ export function AppPage() {
   const abortCtrlRef = useRef<AbortController | null>(null);
 
   const speechOut = useSpeechOutput();
+  const camera = useCamera();
 
   const loadConversations = useCallback(async () => {
     const data = await chatApi.conversations(showArchived);
@@ -391,7 +393,7 @@ export function AppPage() {
         const saveUser = chatApi.addMessage(convId, "user", content).catch(() => {});
 
         try {
-          const result = await imageApi.generate({ prompt: imagePrompt, speed: "fast", size: "512x512" });
+          const result = await imageApi.generate({ prompt: imagePrompt, speed: "fast", size: "1024x1024" });
           await saveUser;
           const modelName = result.imageModel ?? "dall-e-2";
           const fullContent = `![Generated image](${result.url})`;
@@ -589,8 +591,69 @@ export function AppPage() {
 
   const initials = user?.displayName?.[0] ?? user?.email[0]?.toUpperCase() ?? "?";
 
+  const handleCameraCapture = async () => {
+    if (!camera.open) {
+      await camera.openCamera();
+      return;
+    }
+    const result = camera.takePhoto();
+    if (!result) return;
+    camera.closeCamera();
+    const question = input.trim() || "What do you see in this image? Describe it and help me with anything relevant.";
+    const userMsg = `📷 [Camera photo] ${question}`;
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content: userMsg, createdAt: new Date().toISOString() }]);
+    const assistantId2 = crypto.randomUUID();
+    setMessages((prev) => [...prev, { id: assistantId2, role: "assistant", content: "Analysing your photo…", createdAt: new Date().toISOString() }]);
+    setLoading(true);
+    setInput("");
+    try {
+      const reply = await camera.analyse(question, result);
+      setMessages((prev) => prev.map((m) => m.id === assistantId2 ? { ...m, content: reply, modelLabel: "Vision powered by GPT-4o" } : m));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "VISION_FAILED";
+      setMessages((prev) => prev.map((m) => m.id === assistantId2 ? { ...m, content: `❌ Could not analyse photo: ${msg}` } : m));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="app-shell">
+      {camera.open && (
+        <div className="camera-modal">
+          <div className="camera-backdrop" onClick={camera.closeCamera} />
+          <div className="camera-box">
+            <div className="camera-header">
+              <span>📷 Camera</span>
+              <button className="btn btn-ghost btn-sm" onClick={camera.closeCamera}>✕ Close</button>
+            </div>
+            {camera.error && <div className="error-banner" style={{ margin: "0 0 8px" }}>{camera.error}</div>}
+            <video
+              ref={camera.attachStream}
+              autoPlay
+              playsInline
+              muted
+              className="camera-video"
+            />
+            <div className="camera-footer">
+              <input
+                className="input"
+                placeholder="What do you want to know? (optional)"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleCameraCapture(); }}
+              />
+              <button
+                className="btn btn-primary"
+                onClick={handleCameraCapture}
+                disabled={camera.analysing}
+              >
+                {camera.analysing ? "Analysing…" : "📸 Capture & Ask"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {sidebarOpen && <div className="overlay" onClick={() => setSidebarOpen(false)} />}
       <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="sidebar-header">
@@ -869,6 +932,7 @@ export function AppPage() {
           onToggleImageMode={() => setImageMode((v) => !v)}
           onFileSelect={handleFileAttach}
           onDeepResearch={() => setRouterMode("deep-research")}
+          onCamera={handleCameraCapture}
           placeholder={imageMode ? "Describe a quick image…" : "Message Libraix…"}
           extraAbove={
             <>
