@@ -63,17 +63,21 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
     };
   }, []);
 
+  const showError = useCallback((msg: string) => {
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    setError(msg);
+    if (msg) {
+      errorTimerRef.current = setTimeout(() => setError(""), 7000);
+    }
+  }, []);
+
   const stop = useCallback(() => {
     listeningRef.current = false;
-    try {
-      recognitionRef.current?.stop();
-    } catch {
-      /* ignore */
-    }
+    try { recognitionRef.current?.stop(); } catch { /* ignore */ }
     setListening(false);
   }, []);
 
-  const start = useCallback(async () => {
+  const start = useCallback(() => {
     if (!isSecureEnough()) {
       showError("Microphone needs HTTPS. Open https://libraix.ai (not http).");
       return;
@@ -81,22 +85,11 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
 
     const Ctor = getSpeechRecognition();
     if (!Ctor) {
-      showError("Voice input works in Chrome or Edge. Safari and Firefox don't support it.");
+      showError("Voice needs Chrome or Edge. Safari and Firefox don't support speech input yet.");
       return;
     }
 
-    // Ask for mic permission early so the browser shows a clear prompt
-    try {
-      if (navigator.mediaDevices?.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach((t) => t.stop());
-      }
-    } catch {
-      showError("Microphone blocked — click the lock icon in your address bar → allow Microphone, then try again.");
-      return;
-    }
-
-    setError("");
+    showError("");
     listeningRef.current = true;
 
     const recognition = new Ctor();
@@ -111,7 +104,7 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const piece = event.results[i][0]?.transcript ?? "";
         if (event.results[i].isFinal) {
-          baseTextRef.current += piece;
+          baseTextRef.current += piece + " ";
         } else {
           interim += piece;
         }
@@ -122,16 +115,18 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
 
     recognition.onerror = (event) => {
       const code = event.error;
-      if (code === "aborted" || code === "no-speech") return;
+      // These are all non-fatal / expected — just stop silently
+      if (code === "aborted" || code === "no-speech" || code === "network") {
+        listeningRef.current = false;
+        setListening(false);
+        return;
+      }
       listeningRef.current = false;
       setListening(false);
       if (code === "not-allowed" || code === "service-not-allowed") {
         showError("Microphone blocked — click the lock icon in your address bar → allow Microphone, then try again.");
       } else if (code === "audio-capture") {
-        showError("No microphone found — check your device sound settings.");
-      } else if (code === "network") {
-        // Transient — just silently stop; retry by tapping mic again
-        setError("");
+        showError("No microphone found — check your device settings.");
       } else {
         showError("Voice stopped. Tap the mic to try again.");
       }
@@ -142,6 +137,7 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
         setListening(false);
         return;
       }
+      // Auto-restart to keep listening continuously
       try {
         recognition.start();
       } catch {
@@ -156,10 +152,10 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
       setListening(true);
     } catch {
       listeningRef.current = false;
-      showError("Could not start microphone. Try Chrome, then allow mic access.");
+      showError("Could not start microphone. Make sure you allow mic access when prompted.");
       setListening(false);
     }
-  }, []);
+  }, [showError]);
 
   const toggle = useCallback(
     (currentText: string) => {
@@ -168,7 +164,7 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
         return;
       }
       baseTextRef.current = currentText.trim() ? `${currentText.trim()} ` : "";
-      void start();
+      start();
     },
     [start, stop]
   );
@@ -179,13 +175,5 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
     }
   }, []);
 
-  const showError = useCallback((msg: string) => {
-    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
-    setError(msg);
-    if (msg) {
-      errorTimerRef.current = setTimeout(() => setError(""), 6000);
-    }
-  }, []);
-
-  return { listening, supported, error, toggle, stop, syncBase, clearError: () => setError(""), showError };
+  return { listening, supported, error, toggle, stop, syncBase, clearError: () => setError("") };
 }

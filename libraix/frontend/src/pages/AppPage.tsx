@@ -698,10 +698,13 @@ export function AppPage() {
               ))}
             </select>
             {assistants.length > 0 && (
-              <select className="model-select" value={assistantId} onChange={(e) => setAssistantId(e.target.value)} title="AI assistant persona">
-                <option value="">No assistant</option>
+              <select className="model-select" value={assistantId} onChange={(e) => setAssistantId(e.target.value)} title="AI assistant preset">
+                <option value="">General assistant</option>
                 {assistants.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name}</option>
+                  <option key={a.id} value={a.id}>
+                    {a.id === "security" ? "🔐 " : a.id === "coding" ? "💻 " : a.id === "writing" ? "✍️ " : a.id === "data" ? "📊 " : a.id === "business" ? "📈 " : ""}
+                    {a.name}
+                  </option>
                 ))}
               </select>
             )}
@@ -755,20 +758,22 @@ export function AppPage() {
         <div className="chat-area">
           {messages.length === 0 && !loading && !streaming ? (
             <div className="welcome-state">
-              <h2>What can I help you with?</h2>
-              <p>Type <strong>/i</strong> or tap 🎨 for quick images · 🔍 for live web search.</p>
-              {homeLocation && (
+              <h2>{assistantId === "security" ? "🔐 Security & Kali Linux" : "What can I help you with?"}</h2>
+              <p>
+                {assistantId === "security"
+                  ? "Penetration testing · Kali tools · CTFs · Scripts · CVEs"
+                  : <>Type <strong>/i</strong> or tap 🎨 for quick images · 🔍 for live web search.</>}
+              </p>
+              {homeLocation && !assistantId && (
                 <p className="location-chip" title={`Auto-detected from your IP (${homeLocation.source})`}>
                   📍 <strong>{homeLocation.label}</strong>
                 </p>
               )}
               <div className="suggestion-row">
-                {[
-                  homeLocation ? `What's the weather near me?` : "What's the weather today?",
-                  "Create an image of a sunset",
-                  "Write an email",
-                  "Explain a concept",
-                ].map((s) => (
+                {(assistantId === "security"
+                  ? ["Nmap scan a target host", "Explain a SQL injection attack", "Write a Python reverse shell", "How do I use Metasploit?"]
+                  : [homeLocation ? `What's the weather near me?` : "What's the weather today?", "Create an image of a sunset", "Write an email", "Explain a concept"]
+                ).map((s) => (
                   <button key={s} className="suggestion-chip" onClick={() => sendMessage(s)}>{s}</button>
                 ))}
               </div>
