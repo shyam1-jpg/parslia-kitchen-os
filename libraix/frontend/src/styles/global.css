@@ -944,6 +944,20 @@ button, input, textarea, select {
   animation: mic-pulse 1.2s ease-in-out infinite;
 }
 
+.composer-mic-btn.mic-unsupported {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.thinking-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  padding: 4px 0;
+}
+
 .composer textarea,
 .composer-field {
   flex: 1;

@@ -1,3 +1,4 @@
+import { useDeferredValue } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -13,21 +14,37 @@ interface MarkdownMessageProps {
   imageGenerating?: boolean;
 }
 
+/** While streaming, render light markdown; full KaTeX/highlight after idle for speed. */
 export function MarkdownMessage({ content, streaming, imageGenerating }: MarkdownMessageProps) {
+  const deferred = useDeferredValue(content);
+
   if (imageGenerating) {
     return <ImageGenerating />;
   }
 
-  if (!content) {
-    return streaming ? <span className="stream-cursor">▍</span> : null;
+  if (!content || content === "Thinking…") {
+    return streaming ? (
+      <div className="thinking-line">
+        <span className="voice-pulse" aria-hidden />
+        Thinking…
+      </div>
+    ) : null;
+  }
+
+  if (streaming) {
+    return (
+      <div className="markdown-body is-streaming">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+        <span className="stream-cursor">▍</span>
+      </div>
+    );
   }
 
   return (
-    <div className={`markdown-body${streaming ? " is-streaming" : ""}`}>
+    <div className="markdown-body">
       <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex, rehypeHighlight]}>
-        {content}
+        {deferred}
       </ReactMarkdown>
-      {streaming && <span className="stream-cursor">▍</span>}
     </div>
   );
 }

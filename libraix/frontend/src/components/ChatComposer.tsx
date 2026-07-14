@@ -1,5 +1,5 @@
-import { useRef, type ReactNode, type KeyboardEvent } from "react";
-import { IconAttach, IconMic, IconSearch, IconSend } from "../components/Layout";
+import { useEffect, useRef, type ReactNode, type KeyboardEvent } from "react";
+import { IconAttach, IconMic, IconMicOff, IconSearch, IconSend } from "../components/Layout";
 import { useSpeechInput } from "../lib/useSpeechInput";
 
 interface ChatComposerProps {
@@ -36,23 +36,36 @@ export function ChatComposer({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const speech = useSpeechInput(onChange);
 
+  // Stop mic when a reply starts so it doesn't keep typing over the chat
+  useEffect(() => {
+    if (streaming || loading) speech.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to stream/load edges
+  }, [streaming, loading]);
+
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (!streaming && value.trim() && !loading) onSend();
+      if (!streaming && value.trim() && !loading) {
+        speech.stop();
+        onSend();
+      }
     }
   };
+
+  const unsupportedHint = !speech.supported
+    ? "Mic needs Chrome or Edge (not Safari/Firefox). Open libraix.ai in Chrome and allow microphone."
+    : null;
 
   return (
     <div className="composer-wrap">
       {extraAbove}
-      {speech.error && (
-        <div className="error-banner composer-banner">{speech.error}</div>
+      {(speech.error || unsupportedHint) && (
+        <div className="error-banner composer-banner">{speech.error || unsupportedHint}</div>
       )}
       {speech.listening && (
         <div className="voice-listening-bar composer-banner">
           <span className="voice-pulse" aria-hidden />
-          Listening — speak now. You can also type. Tap mic to stop.
+          Listening — speak clearly. Tap mic to stop, then Send.
         </div>
       )}
       <div className={`composer composer-chatgpt ${speech.listening ? "composer-listening" : ""} ${imageMode ? "composer-image-mode" : ""}`}>
@@ -110,15 +123,15 @@ export function ChatComposer({
         <div className="composer-end">
           <button
             type="button"
-            className={`composer-mic-btn ${speech.listening ? "listening" : ""}`}
+            className={`composer-mic-btn ${speech.listening ? "listening" : ""} ${!speech.supported ? "mic-unsupported" : ""}`}
             title={
               speech.supported
                 ? speech.listening
                   ? "Stop listening"
-                  : "Speak your message (voice + typing)"
-                : "Voice input — use Chrome or Edge"
+                  : "Speak your message (Chrome / Edge)"
+                : "Use Chrome or Edge for voice input"
             }
-            disabled={loading || streaming}
+            disabled={loading || streaming || !speech.supported}
             onClick={() => {
               speech.clearError();
               speech.toggle(value);
@@ -126,7 +139,7 @@ export function ChatComposer({
             aria-pressed={speech.listening}
             aria-label={speech.listening ? "Stop voice input" : "Start voice input"}
           >
-            <IconMic />
+            {speech.supported ? <IconMic /> : <IconMicOff />}
           </button>
 
           {streaming ? (
@@ -138,7 +151,10 @@ export function ChatComposer({
               type="button"
               className="send-btn"
               disabled={!value.trim() || loading}
-              onClick={onSend}
+              onClick={() => {
+                speech.stop();
+                onSend();
+              }}
               title="Send message"
               aria-label="Send"
             >

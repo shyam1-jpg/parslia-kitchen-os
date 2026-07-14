@@ -126,9 +126,13 @@ export const advancedApi = {
   ): AsyncGenerator<string | { meta: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string; sources?: DocumentSource[]; weatherCard?: WeatherCardData } }> {
     const timeoutMs = options?.timeoutMs ?? 90_000;
     const ctrl = new AbortController();
+    let timedOut = false;
     const onAbort = () => ctrl.abort();
     options?.signal?.addEventListener("abort", onAbort);
-    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    const timer = setTimeout(() => {
+      timedOut = true;
+      ctrl.abort();
+    }, timeoutMs);
     try {
       const res = await fetch("/api/ai/stream", {
         method: "POST",
@@ -161,7 +165,6 @@ export const advancedApi = {
           }
           if (parsed.error) throw new Error(parsed.detail || parsed.error);
           else if (parsed.meta) {
-            // Partial meta (weather-only) is valid mid-stream
             const meta = parsed.meta;
             yield {
               meta: {
@@ -180,7 +183,7 @@ export const advancedApi = {
       }
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") {
-        throw new Error("REQUEST_TIMED_OUT");
+        throw new Error(timedOut ? "REQUEST_TIMED_OUT" : "ABORTED");
       }
       throw e;
     } finally {

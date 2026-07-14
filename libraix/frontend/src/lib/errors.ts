@@ -13,6 +13,7 @@ const ERROR_LABELS: Record<string, string> = {
   INTERNAL_ERROR: "Something went wrong. Please try again.",
   HTTP_502: "Connection timed out. Try a shorter message or wait a few seconds and retry.",
   HTTP_503: "Service temporarily unavailable. Please try again shortly.",
+  ABORTED: "Stopped.",
   REQUEST_TIMED_OUT: "Reply timed out. The server may be waking up — tap send again in a few seconds.",
 };
 

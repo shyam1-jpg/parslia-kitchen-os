@@ -121,8 +121,8 @@ export function routeModel(input: RouterInput): RouterResult {
 function inferAutoMode(
   input: RouterInput & { needsCode: boolean; needsResearch: boolean; needsWeather?: boolean }
 ): RouterMode {
-  // Weather uses live Open-Meteo data — prefer a fast model, not deep research
-  if (input.needsWeather) return "fast";
+  // Weather gets live Open-Meteo data — use balanced (Smart) for a ChatGPT-quality brief
+  if (input.needsWeather) return "balanced";
   if (input.needsResearch) return "deep-research";
   if (input.needsCode) return "coding";
   if (input.message.length > 2000) return "advanced";

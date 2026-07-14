@@ -148,11 +148,22 @@ export function AppPage() {
   }, [input]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading, streaming]);
+    // Only auto-scroll when user is near the bottom (ChatGPT-like)
+    const el = chatEndRef.current;
+    if (!el) return;
+    const scroller = el.parentElement;
+    if (!scroller) {
+      el.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    const nearBottom = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 140;
+    if (nearBottom || !streaming) {
+      el.scrollIntoView({ behavior: streaming ? "auto" : "smooth" });
+    }
+  }, [messages.length, loading, streaming]);
 
   useEffect(() => {
-    if (!input.trim() || routerMode !== "auto") {
+    if (!input.trim() || routerMode !== "auto" || streaming || loading) {
       setRouterHint("");
       return;
     }
@@ -160,9 +171,16 @@ export function AppPage() {
       advancedApi.routerPreview(input.slice(0, 200), routerMode, modelId)
         .then((r) => setRouterHint(`${r.displayName} · ${r.reason}`))
         .catch(() => setRouterHint(""));
-    }, 500);
+    }, 800);
     return () => clearTimeout(t);
-  }, [input, routerMode, modelId]);
+  }, [input, routerMode, modelId, streaming, loading]);
+
+  const hydrateMessages = (list: ChatMessage[]) =>
+    list.map((m) => {
+      if (m.role !== "assistant") return m;
+      const parsed = extractWeatherCard(m.content);
+      return parsed.weather ? { ...m, content: parsed.text, weatherCard: parsed.weather } : m;
+    });
 
   const filteredConversations = useMemo(() => {
     if (!searchQuery.trim()) return conversations;
@@ -176,13 +194,7 @@ export function AppPage() {
     setActiveId(id);
     setSidebarOpen(false);
     const data = await chatApi.getConversation(id);
-    setMessages(
-      data.messages.map((m) => {
-        if (m.role !== "assistant") return m;
-        const parsed = extractWeatherCard(m.content);
-        return parsed.weather ? { ...m, content: parsed.text, weatherCard: parsed.weather } : m;
-      })
-    );
+    setMessages(hydrateMessages(data.messages));
     setModelId(data.conversation.modelId);
     setActiveProjectId(data.conversation.projectId ?? null);
   };
@@ -252,7 +264,7 @@ export function AppPage() {
     try {
       await chatApi.regenerateConversation(activeId);
       const data = await chatApi.getConversation(activeId);
-      setMessages(data.messages);
+      setMessages(hydrateMessages(data.messages));
       await sendMessage(lastUser.content, true);
     } catch {
       setError("Could not regenerate response.");
@@ -265,7 +277,7 @@ export function AppPage() {
     if (!content?.trim() || content === current) return;
     try {
       const { messages: updated } = await chatApi.editMessage(activeId, messageId, content.trim());
-      setMessages(updated);
+      setMessages(hydrateMessages(updated));
       await sendMessage(content.trim(), true);
     } catch {
       setError("Could not edit message.");
@@ -278,7 +290,7 @@ export function AppPage() {
       const { conversation, messages: branched } = await chatApi.branchConversation(activeId, messageId, modelId);
       setConversations((prev) => [conversation, ...prev]);
       setActiveId(conversation.id);
-      setMessages(branched);
+      setMessages(hydrateMessages(branched));
       setSidebarOpen(false);
     } catch {
       setError("Could not branch conversation.");
@@ -397,6 +409,30 @@ export function AppPage() {
       let modelLabel = "";
       let messageSources: ChatMessage["sources"];
       let weatherCard: ChatMessage["weatherCard"];
+      let raf = 0;
+      let abortedByUser = false;
+      const flushUi = () => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? {
+                  ...m,
+                  content: fullContent || (weatherCard ? "" : "Thinking…"),
+                  modelLabel: modelLabel || m.modelLabel,
+                  sources: messageSources,
+                  weatherCard: weatherCard ?? m.weatherCard,
+                }
+              : m
+          )
+        );
+      };
+      const scheduleUi = () => {
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          flushUi();
+        });
+      };
       setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "Thinking…", createdAt: new Date().toISOString() }]);
 
       try {
@@ -411,51 +447,56 @@ export function AppPage() {
           },
           { signal: abortCtrlRef.current?.signal, timeoutMs: 90_000 }
         )) {
-          if (abortRef.current) break;
+          if (abortRef.current) {
+            abortedByUser = true;
+            break;
+          }
           if (typeof chunk === "object" && chunk.meta) {
             if (chunk.meta.displayName && chunk.meta.provider) {
               modelLabel = `Generated using ${chunk.meta.displayName} (${chunk.meta.provider}) through Libraix`;
             }
             if (chunk.meta.sources?.length) messageSources = chunk.meta.sources;
             if (chunk.meta.weatherCard) weatherCard = chunk.meta.weatherCard;
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === assistantId
-                  ? {
-                      ...m,
-                      imageUrl: chunk.meta!.imageUrl ?? m.imageUrl,
-                      modelLabel: modelLabel || m.modelLabel,
-                      sources: messageSources,
-                      weatherCard: weatherCard ?? m.weatherCard,
-                    }
-                  : m
-              )
-            );
+            if (chunk.meta.imageUrl) {
+              setMessages((prev) =>
+                prev.map((m) => (m.id === assistantId ? { ...m, imageUrl: chunk.meta!.imageUrl } : m))
+              );
+            }
+            scheduleUi();
             continue;
           }
-          if (fullContent === "" && typeof chunk === "string") {
-            fullContent = chunk;
-          } else if (typeof chunk === "string") {
-            fullContent += chunk;
+          if (typeof chunk === "string") {
+            fullContent = fullContent === "" ? chunk : fullContent + chunk;
+            scheduleUi();
           }
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === assistantId
-                ? { ...m, content: fullContent, modelLabel: modelLabel || m.modelLabel, sources: messageSources, weatherCard }
-                : m
-            )
-          );
         }
+        if (raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        }
+        flushUi();
       } catch (streamErr) {
         const streamMsg = streamErr instanceof Error ? streamErr.message : "STREAM_FAILED";
-        if (streamMsg === "REQUEST_TIMED_OUT") {
+        if (streamMsg === "ABORTED") {
+          abortedByUser = true;
+        } else if (streamMsg === "REQUEST_TIMED_OUT") {
           setError("Reply timed out. The server may be waking up — tap send again.");
         } else {
           console.warn("Stream failed, using non-stream fallback:", streamErr);
         }
       }
 
-      if (!fullContent.trim() || fullContent === "Thinking…") {
+      if (abortedByUser) {
+        if (fullContent && fullContent !== "Thinking…") {
+          await saveUser;
+          const toSave = weatherCard ? `${encodeWeatherMarker(weatherCard)}\n\n${fullContent}` : fullContent;
+          await chatApi.addMessage(convId, "assistant", toSave).catch(() => {});
+        }
+        await refresh().catch(() => {});
+        return;
+      }
+
+      if (!fullContent.trim()) {
         const result = await chatApi.respond({
           message: content,
           modelId: routerMode === "auto" ? undefined : modelId,
@@ -478,9 +519,7 @@ export function AppPage() {
           )
         );
       } else if (modelLabel || weatherCard) {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === assistantId ? { ...m, modelLabel, weatherCard } : m))
-        );
+        flushUi();
       }
 
       await saveUser;
@@ -692,7 +731,7 @@ export function AppPage() {
           {messages.length === 0 && !loading && !streaming ? (
             <div className="welcome-state">
               <h2>What can I help you with?</h2>
-              <p>Type <strong>/i sunset</strong> or tap <strong>🎨</strong> for fast image render (~15s). Mic on the right for voice.</p>
+              <p>Type <strong>/i sunset</strong> or tap <strong>🎨</strong> for images. Mic works in <strong>Chrome/Edge</strong> (allow microphone).</p>
               <div className="suggestion-row">
                 {["Create an image of a sunset", "Write an email", "Explain a concept", "Write code"].map((s) => (
                   <button key={s} className="suggestion-chip" onClick={() => sendMessage(s)}>{s}</button>
