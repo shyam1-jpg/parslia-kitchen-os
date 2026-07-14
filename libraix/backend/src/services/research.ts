@@ -2,6 +2,8 @@ import { completeViaGateway } from "../providers/gateway.js";
 import { getModelById } from "../config/models.js";
 import { canSendMessage, recordMessageUsage } from "./usage.js";
 import { searchWeb, formatSearchContext, isWebSearchConfigured } from "./webSearch.js";
+import { resolveLiveSources } from "./liveSources.js";
+import { searchWikipedia } from "./wikipedia.js";
 import { fetchPageContent } from "./fetchPage.js";
 import type { SafeUser } from "./users.js";
 
@@ -27,7 +29,11 @@ export async function runDeepResearch(user: SafeUser, req: ResearchRequest): Pro
     throw new Error("USAGE_LIMIT_REACHED");
   }
 
-  const searchResults = await searchWeb(req.query);
+  const [wikiHits, webHits] = await Promise.all([searchWikipedia(req.query, 4), searchWeb(req.query)]);
+  const searchResults = [
+    ...wikiHits,
+    ...webHits.filter((w) => !wikiHits.some((h) => h.url === w.url)),
+  ];
   let pageContext = "";
   if (req.depth !== "quick" && searchResults.length) {
     const top = searchResults.slice(0, req.depth === "deep" ? 3 : 2);
@@ -110,15 +116,9 @@ export async function buildWebSearchContext(query: string): Promise<string | nul
 export async function buildWebSearchBundle(
   query: string
 ): Promise<{ context: string | null; sources: { index: number; filename: string; excerpt: string; url: string }[] }> {
-  const results = await searchWeb(query);
-  if (!results.length) return { context: null, sources: [] };
+  const live = await resolveLiveSources(query);
   return {
-    context: formatSearchContext(results),
-    sources: results.map((r, i) => ({
-      index: i + 1,
-      filename: r.title,
-      excerpt: r.snippet.slice(0, 280),
-      url: r.url,
-    })),
+    context: live.context,
+    sources: live.sources.map(({ index, filename, excerpt, url }) => ({ index, filename, excerpt, url })),
   };
 }

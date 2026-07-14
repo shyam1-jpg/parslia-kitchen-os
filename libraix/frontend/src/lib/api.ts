@@ -264,7 +264,12 @@ export const imageApi = {
     api<{ imagesUsed: number; imagesLimit: number; remainingImages: number; canGenerate: boolean }>(
       "/api/images/usage"
     ),
-  generate: (body: { prompt: string; size?: string; quality?: string; speed?: "fast" | "quality" }) =>
+  generate: (body: {
+    prompt: string;
+    size?: "256x256" | "512x512" | "1024x1024" | "1792x1024" | "1024x1792";
+    quality?: string;
+    speed?: "fast" | "quality";
+  }) =>
     api<{ url: string; revisedPrompt?: string; modelId: string; displayName: string; provider: string; imageModel?: string; speed?: string }>(
       "/api/images/generate",
       { method: "POST", body: JSON.stringify(body) }

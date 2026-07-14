@@ -125,29 +125,42 @@ export function AppPage() {
     setError("");
     const isPdf = file.name.match(/\.pdf$/i) || file.type === "application/pdf";
     const isDocx = file.name.match(/\.docx$/i) || file.type.includes("wordprocessingml");
+    const isRtf = file.name.match(/\.rtf$/i) || file.type.includes("rtf");
     const isText = file.name.match(/\.(txt|md|csv|json|log)$/i) || file.type.startsWith("text/");
 
-    if (!isPdf && !isDocx && !isText) {
-      setError("Supported files: PDF, DOCX, .txt, .md, .csv, .json");
+    if (!isPdf && !isDocx && !isRtf && !isText) {
+      setError("Supported files: PDF, DOCX, RTF, .txt, .md, .csv, .json (including contracts & legal PDFs)");
       return;
     }
-    if (file.size > 5_000_000) {
-      setError("File too large (max 5MB).");
+    if (file.size > 12_000_000) {
+      setError("File too large (max 12MB).");
       return;
     }
 
     setAttachLoading(true);
     try {
-      if (isPdf || file.size > 200_000) {
+      if (isPdf || isDocx || isRtf || file.size > 200_000) {
         const doc = await toolsApi.parseFile(file);
-        const header = `--- ${doc.filename}${doc.pageCount ? ` (${doc.pageCount} pages)` : ""}${doc.truncated ? " [truncated]" : ""} ---`;
-        setInput((prev) => (prev ? `${prev}\n\n${header}\n${doc.text}` : `${header}\n${doc.text}`));
+        const kind = doc.documentKind === "legal" ? " · legal document" : "";
+        const header = `--- ${doc.filename}${doc.pageCount ? ` (${doc.pageCount} pages)` : ""}${kind}${doc.truncated ? " [truncated]" : ""} ---`;
+        const ask =
+          doc.documentKind === "legal"
+            ? "Please summarise key clauses, obligations, and risks. This is not legal advice.\n\n"
+            : "";
+        setInput((prev) => (prev ? `${prev}\n\n${header}\n${ask}${doc.text}` : `${header}\n${ask}${doc.text}`));
       } else {
         const text = await file.text();
         setInput((prev) => (prev ? `${prev}\n\n--- ${file.name} ---\n${text}` : `--- ${file.name} ---\n${text}`));
       }
     } catch (err) {
-      setError(friendlyError(err instanceof Error ? err.message : "ATTACH_FAILED", "Could not read file"));
+      const code = err instanceof Error ? err.message : "ATTACH_FAILED";
+      const hint =
+        code === "NO_TEXT_EXTRACTED_SCANNED_PDF"
+          ? "This PDF looks scanned (no extractable text). Try a text-based PDF or DOCX."
+          : code === "LEGACY_DOC_UNSUPPORTED"
+            ? "Legacy .doc isn’t supported — save as .docx or PDF and try again."
+            : "Could not read file";
+      setError(friendlyError(code, hint));
     } finally {
       setAttachLoading(false);
     }
@@ -378,11 +391,11 @@ export function AppPage() {
         const saveUser = chatApi.addMessage(convId, "user", content).catch(() => {});
 
         try {
-          const result = await imageApi.generate({ prompt: imagePrompt, speed: "fast" });
+          const result = await imageApi.generate({ prompt: imagePrompt, speed: "fast", size: "512x512" });
           await saveUser;
-          const modelName = result.imageModel ?? "DALL·E";
+          const modelName = result.imageModel ?? "dall-e-2";
           const fullContent = `![Generated image](${result.url})`;
-          const modelLabel = `Generated using ${result.displayName} (${modelName}) through Libraix · fast mode`;
+          const modelLabel = `Quick image · ${result.displayName} (${modelName}) via Libraix`;
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantId
@@ -796,11 +809,29 @@ export function AppPage() {
                 )}
                 {m.sources && m.sources.length > 0 && (
                   <div className="citation-cards">
-                    <div className="citation-label">Sources from project files</div>
+                    <div className="citation-label">
+                      {m.sources.some((s) => s.url)
+                        ? "Sources — Wikipedia & web"
+                        : "Sources from project files"}
+                    </div>
                     {m.sources.map((s) => (
                       <div key={s.index} className="citation-card">
-                        <strong>[{s.index}] {s.filename}</strong>
+                        <strong>
+                          [{s.index}]{" "}
+                          {s.url ? (
+                            <a href={s.url} target="_blank" rel="noopener noreferrer" className="citation-link">
+                              {s.filename}
+                            </a>
+                          ) : (
+                            s.filename
+                          )}
+                        </strong>
                         <p>{s.excerpt}</p>
+                        {s.url && /wikipedia\.org/i.test(s.url) && (
+                          <a href={s.url} target="_blank" rel="noopener noreferrer" className="citation-wiki">
+                            Open on Wikipedia →
+                          </a>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -828,7 +859,7 @@ export function AppPage() {
           onToggleImageMode={() => setImageMode((v) => !v)}
           onFileSelect={handleFileAttach}
           onDeepResearch={() => setRouterMode("deep-research")}
-          placeholder={imageMode ? "Describe the image — fast render…" : "Message Libraix… (/i for quick image)"}
+          placeholder={imageMode ? "Describe a quick image…" : "Message Libraix… (/qi or /i for quick image · ask with Wikipedia for sources)"}
           extraAbove={
             <>
               {usage && (

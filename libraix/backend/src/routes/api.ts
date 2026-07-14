@@ -310,7 +310,7 @@ router.post("/images/generate", requireAuth, async (req, res) => {
 
   const schema = z.object({
     prompt: z.string().min(1).max(4000),
-    size: z.enum(["1024x1024", "1792x1024", "1024x1792"]).optional(),
+    size: z.enum(["256x256", "512x512", "1024x1024", "1792x1024", "1024x1792"]).optional(),
     quality: z.enum(["standard", "hd"]).optional(),
     speed: z.enum(["fast", "quality"]).optional(),
   });

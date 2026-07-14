@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { getCachedSources, setCachedSources } from "./sourceCache.js";
 
 export interface SearchResult {
   title: string;
@@ -91,9 +92,17 @@ export function isWebSearchConfigured(): boolean {
 }
 
 export async function searchWeb(query: string): Promise<SearchResult[]> {
+  const cached = getCachedSources(query, "web");
+  if (cached?.length) return cached;
+
   const serper = await searchViaSerper(query);
-  if (serper.length) return serper;
-  return searchViaDuckDuckGo(query);
+  if (serper.length) {
+    setCachedSources(query, "web", serper);
+    return serper;
+  }
+  const ddg = await searchViaDuckDuckGo(query);
+  if (ddg.length) setCachedSources(query, "web", ddg);
+  return ddg;
 }
 
 export function formatSearchContext(results: SearchResult[]): string {

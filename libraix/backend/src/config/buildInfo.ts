@@ -11,6 +11,10 @@ export function getBuildInfo() {
       liveWeather: true,
       autoIpLocation: true,
       conversationMemory: true,
+      quickImage: true,
+      wikipediaSources: true,
+      sourceCache: true,
+      legalDocuments: true,
     },
   };
 }
