@@ -16,6 +16,8 @@ import { db } from "../db/schema.js";
 import { generateImage, getImageUsage } from "../services/images.js";
 import { listConfiguredProviders } from "../providers/config.js";
 import { getCached, setCached } from "../services/cache.js";
+import { getSavedLocation, resolveLocationFromRequest, saveUserLocation } from "../services/location.js";
+import { getUserPreferences } from "../services/memory.js";
 
 const router = Router();
 
@@ -328,6 +330,38 @@ router.get("/images/usage", requireAuth, (req, res) => {
   const row = findUserById(req.session.userId!);
   if (!row) return res.status(401).json({ error: "UNAUTHENTICATED" });
   res.json(getImageUsage(toSafeUser(row)));
+});
+
+/** Detect location from login IP (and refresh cache). Used for local weather defaults. */
+router.get("/location", requireAuth, async (req, res) => {
+  const userId = req.session.userId!;
+  const prefs = getUserPreferences(userId);
+  if (prefs.privacyMode === "strict") {
+    return res.json({ location: getSavedLocation(userId), note: "IP auto-locate is off in privacy mode." });
+  }
+  const force = req.query.refresh === "1";
+  try {
+    const location = await resolveLocationFromRequest(userId, req, { forceRefresh: force, save: true });
+    res.json({ location, auto: true });
+  } catch {
+    res.json({ location: getSavedLocation(userId), auto: false });
+  }
+});
+
+router.post("/location", requireAuth, (req, res) => {
+  const schema = z.object({
+    city: z.string().min(1).max(100),
+    region: z.string().max(100).optional().nullable(),
+    country: z.string().max(100).optional(),
+    latitude: z.number().min(-90).max(90),
+    longitude: z.number().min(-180).max(180),
+    timezone: z.string().max(80).optional().nullable(),
+    source: z.enum(["browser", "manual"]).default("manual"),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+  const location = saveUserLocation(req.session.userId!, parsed.data);
+  res.json({ location });
 });
 
 export default router;

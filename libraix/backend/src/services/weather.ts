@@ -250,29 +250,57 @@ function buildNarrativeContext(card: WeatherCardData): string {
   ].join("\n");
 }
 
-export async function buildWeatherContext(message: string): Promise<{
+export async function buildWeatherContext(
+  message: string,
+  opts?: {
+    defaultCity?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    timezone?: string | null;
+    locationLabel?: string | null;
+  }
+): Promise<{
   context: string | null;
   sources: { index: number; filename: string; excerpt: string; url: string }[];
   weatherCard: WeatherCardData | null;
 }> {
   if (!isWeatherQuery(message)) return { context: null, sources: [], weatherCard: null };
 
-  const location = extractLocation(message) ?? "London";
-  try {
-    const geo = await fetchJson<{
-      results?: Array<{ name: string; country?: string; latitude: number; longitude: number; timezone?: string }>;
-    }>(`${GEOCODE_URL}?name=${encodeURIComponent(location)}&count=1&language=en`);
+  const named = extractLocation(message);
+  const fallbackCity = opts?.defaultCity?.trim() || null;
+  const location = named ?? fallbackCity ?? "London";
+  const useCoords = !named && opts?.latitude != null && opts?.longitude != null;
 
-    const place = geo.results?.[0];
-    if (!place) {
-      return {
-        context: `Live weather lookup: no location found for "${location}". Ask the user to clarify the city name.`,
-        sources: [],
-        weatherCard: null,
+  try {
+    let place: { name: string; country?: string; latitude: number; longitude: number; timezone?: string };
+
+    if (useCoords) {
+      place = {
+        name: opts?.locationLabel?.split(",")[0]?.trim() || fallbackCity || "Your location",
+        country: opts?.locationLabel?.includes(",")
+          ? opts.locationLabel.split(",").slice(1).join(",").trim()
+          : undefined,
+        latitude: opts!.latitude!,
+        longitude: opts!.longitude!,
+        timezone: opts?.timezone ?? undefined,
       };
+    } else {
+      const geo = await fetchJson<{
+        results?: Array<{ name: string; country?: string; latitude: number; longitude: number; timezone?: string }>;
+      }>(`${GEOCODE_URL}?name=${encodeURIComponent(location)}&count=1&language=en`);
+
+      const found = geo.results?.[0];
+      if (!found) {
+        return {
+          context: `Live weather lookup: no location found for "${location}". Ask the user to clarify the city name.`,
+          sources: [],
+          weatherCard: null,
+        };
+      }
+      place = found;
     }
 
-    const timezone = place.timezone ?? "auto";
+    const timezone = place.timezone ?? opts?.timezone ?? "auto";
     const params = new URLSearchParams({
       latitude: String(place.latitude),
       longitude: String(place.longitude),
@@ -351,7 +379,9 @@ export async function buildWeatherContext(message: string): Promise<{
     if (!cur || cur.temperature_2m == null) return { context: null, sources: [], weatherCard: null };
 
     const tz = forecast.timezone ?? timezone;
-    const label = [place.name, place.country].filter(Boolean).join(", ");
+    const label = opts?.locationLabel && !named
+      ? opts.locationLabel
+      : [place.name, place.country].filter(Boolean).join(", ");
     const code = cur.weather_code ?? 0;
     const unit = forecast.current_units?.temperature_2m ?? "°C";
     const windUnit = forecast.current_units?.wind_speed_10m ?? "km/h";

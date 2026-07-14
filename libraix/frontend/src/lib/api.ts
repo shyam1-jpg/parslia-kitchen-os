@@ -159,6 +159,38 @@ export const billingApi = {
     api<{ url: string }>("/api/billing/stripe/portal", { method: "POST", body: "{}" }),
 };
 
+export const locationApi = {
+  get: (refresh = false) =>
+    api<{ location: UserLocation | null; auto?: boolean; note?: string }>(
+      `/api/location${refresh ? "?refresh=1" : ""}`
+    ),
+  save: (body: {
+    city: string;
+    region?: string | null;
+    country?: string;
+    latitude: number;
+    longitude: number;
+    timezone?: string | null;
+    source?: "browser" | "manual";
+  }) =>
+    api<{ location: UserLocation }>("/api/location", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+};
+
+export interface UserLocation {
+  city: string;
+  region: string | null;
+  country: string;
+  latitude: number;
+  longitude: number;
+  timezone: string | null;
+  source: "ip" | "browser" | "manual" | "saved";
+  label: string;
+  ip?: string;
+}
+
 export const chatApi = {
   models: () => api<{ models: ModelInfo[] }>("/api/models"),
   respond: (body: {

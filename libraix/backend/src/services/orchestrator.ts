@@ -5,6 +5,7 @@ import { routeModel } from "./router.js";
 import { getMemoryContext } from "./memory.js";
 import { getProjectDocumentContext } from "./projects.js";
 import { buildWebSearchBundle } from "./research.js";
+import { getSavedLocation } from "./location.js";
 import { buildWeatherContext, isWeatherQuery, type WeatherCardData } from "./weather.js";
 import { detectImageRequest } from "./imageIntent.js";
 import { generateImage } from "./images.js";
@@ -45,9 +46,17 @@ export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promis
   const wantsWeather = isWeatherQuery(req.message);
   const wantsWeb = req.routerMode === "deep-research";
 
+  const savedLoc = wantsWeather ? getSavedLocation(user.id) : null;
+
   const [weatherBundle, webBundle, docBundle] = await Promise.all([
     wantsWeather
-      ? buildWeatherContext(req.message)
+      ? buildWeatherContext(req.message, {
+          defaultCity: savedLoc?.city ?? null,
+          latitude: savedLoc?.latitude ?? null,
+          longitude: savedLoc?.longitude ?? null,
+          timezone: savedLoc?.timezone ?? null,
+          locationLabel: savedLoc?.label ?? null,
+        })
       : Promise.resolve({
           context: null as string | null,
           sources: [] as NonNullable<AiResponse["sources"]>,
@@ -61,6 +70,11 @@ export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promis
       : Promise.resolve({ context: "", sources: [] as NonNullable<AiResponse["sources"]> }),
   ]);
 
+  const locationHint =
+    savedLoc && wantsWeather
+      ? `User home location (from login IP / saved): ${savedLoc.label}. When they ask about "weather" without naming a city, use this place.`
+      : null;
+
   const liveSources = [...weatherBundle.sources, ...webBundle.sources].map((s, i) => ({
     ...s,
     index: docBundle.sources.length + i + 1,
@@ -70,6 +84,7 @@ export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promis
   const systemParts = [
     DEFAULT_SYSTEM_PROMPT,
     req.systemPrompt,
+    locationHint,
     docBundle.context || null,
     memoryCtx || null,
     weatherBundle.context,

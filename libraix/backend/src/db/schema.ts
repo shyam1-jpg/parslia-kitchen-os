@@ -131,6 +131,7 @@ export function initDb() {
   migrateConversationsV2();
   migrateDocumentIntelligence();
   migrateUsersBillingColumns();
+  migrateUserLocationColumns();
   seedDefaultSiteConfig();
 }
 
@@ -191,6 +192,19 @@ function migrateUsersBillingColumns() {
   if (!names.has("billing_status")) {
     db.exec("ALTER TABLE users ADD COLUMN billing_status TEXT NOT NULL DEFAULT 'active'");
   }
+}
+
+function migrateUserLocationColumns() {
+  const cols = db.prepare("PRAGMA table_info(user_preferences)").all() as { name: string }[];
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has("home_city")) db.exec("ALTER TABLE user_preferences ADD COLUMN home_city TEXT");
+  if (!names.has("home_region")) db.exec("ALTER TABLE user_preferences ADD COLUMN home_region TEXT");
+  if (!names.has("home_country")) db.exec("ALTER TABLE user_preferences ADD COLUMN home_country TEXT");
+  if (!names.has("home_lat")) db.exec("ALTER TABLE user_preferences ADD COLUMN home_lat REAL");
+  if (!names.has("home_lon")) db.exec("ALTER TABLE user_preferences ADD COLUMN home_lon REAL");
+  if (!names.has("home_timezone")) db.exec("ALTER TABLE user_preferences ADD COLUMN home_timezone TEXT");
+  if (!names.has("location_source")) db.exec("ALTER TABLE user_preferences ADD COLUMN location_source TEXT");
+  if (!names.has("location_updated_at")) db.exec("ALTER TABLE user_preferences ADD COLUMN location_updated_at TEXT");
 }
 
 function migrateUsersAdminColumns() {

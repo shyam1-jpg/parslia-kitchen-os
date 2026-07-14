@@ -719,6 +719,17 @@ button, input, textarea, select {
 
 .welcome-state h2 { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
 .welcome-state p { color: var(--muted); max-width: 420px; line-height: 1.6; }
+.location-chip {
+  display: inline-block !important;
+  margin: 12px 0 4px !important;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  color: #bae6fd !important;
+  font-size: 12px !important;
+  max-width: 520px;
+}
 
 .suggestion-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 28px; }
 

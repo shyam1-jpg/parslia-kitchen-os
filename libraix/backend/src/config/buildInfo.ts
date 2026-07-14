@@ -9,6 +9,7 @@ export function getBuildInfo() {
       billingStatus: true,
       catalogCache: true,
       liveWeather: true,
+      autoIpLocation: true,
     },
   };
 }

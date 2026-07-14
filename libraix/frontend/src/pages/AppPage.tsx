@@ -22,9 +22,11 @@ import {
   catalogApi,
   authApi,
   imageApi,
+  locationApi,
   type ChatMessage,
   type Conversation,
   type ModelInfo,
+  type UserLocation,
 } from "../lib/api";
 import { friendlyError } from "../lib/errors";
 
@@ -80,6 +82,7 @@ export function AppPage() {
   const [imageMode, setImageMode] = useState(false);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [homeLocation, setHomeLocation] = useState<UserLocation | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
   const abortCtrlRef = useRef<AbortController | null>(null);
@@ -102,6 +105,13 @@ export function AppPage() {
     catalogApi.get().then((c) => setAssistants(c.assistants.map((a) => ({ id: a.id, name: a.name, systemPrompt: a.systemPrompt })))).catch(() => {});
     advancedApi.routerModes().then((d) => setRouterModes(d.modes)).catch(() => {});
     advancedApi.projects().then((d) => setProjects(d.projects)).catch(() => {});
+    // Auto-locate from login IP for local weather defaults
+    locationApi
+      .get(true)
+      .then((r) => {
+        if (r.location) setHomeLocation(r.location);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -732,8 +742,18 @@ export function AppPage() {
             <div className="welcome-state">
               <h2>What can I help you with?</h2>
               <p>Type <strong>/i sunset</strong> or tap <strong>🎨</strong> for images. Mic works in <strong>Chrome/Edge</strong> (allow microphone).</p>
+              {homeLocation && (
+                <p className="location-chip" title={`Detected from login IP (${homeLocation.source})`}>
+                  📍 Using your area: <strong>{homeLocation.label}</strong> — ask “What’s the weather?” for local forecast
+                </p>
+              )}
               <div className="suggestion-row">
-                {["Create an image of a sunset", "Write an email", "Explain a concept", "Write code"].map((s) => (
+                {[
+                  homeLocation ? `What's the weather near me?` : "What's the weather today?",
+                  "Create an image of a sunset",
+                  "Write an email",
+                  "Explain a concept",
+                ].map((s) => (
                   <button key={s} className="suggestion-chip" onClick={() => sendMessage(s)}>{s}</button>
                 ))}
               </div>
