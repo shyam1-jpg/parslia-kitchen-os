@@ -12,15 +12,30 @@ function searchApiKey(): string | null {
   return process.env.SERPER_API_KEY?.trim() || process.env.SEARCH_API_KEY?.trim() || null;
 }
 
+async function fetchWithTimeout(url: string, init: RequestInit = {}, ms = 10_000): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function searchViaSerper(query: string): Promise<SearchResult[]> {
   const key = searchApiKey();
   if (!key) return [];
 
-  const res = await fetch("https://google.serper.dev/search", {
-    method: "POST",
-    headers: { "X-API-KEY": key, "Content-Type": "application/json" },
-    body: JSON.stringify({ q: query, num: MAX_RESULTS }),
-  });
+  let res: Response;
+  try {
+    res = await fetchWithTimeout("https://google.serper.dev/search", {
+      method: "POST",
+      headers: { "X-API-KEY": key, "Content-Type": "application/json" },
+      body: JSON.stringify({ q: query, num: MAX_RESULTS }),
+    });
+  } catch {
+    return [];
+  }
   if (!res.ok) return [];
 
   const data = (await res.json()) as {
@@ -37,9 +52,14 @@ async function searchViaSerper(query: string): Promise<SearchResult[]> {
 }
 
 async function searchViaDuckDuckGo(query: string): Promise<SearchResult[]> {
-  const res = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`, {
-    headers: { "User-Agent": "Libraix/1.0 (+https://libraix.ai)" },
-  });
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`, {
+      headers: { "User-Agent": "Libraix/1.0 (+https://libraix.ai)" },
+    });
+  } catch {
+    return [];
+  }
   if (!res.ok) return [];
 
   const html = await res.text();

@@ -5,6 +5,7 @@ import { routeModel } from "./router.js";
 import { getMemoryContext } from "./memory.js";
 import { getProjectDocumentContext } from "./projects.js";
 import { buildWebSearchBundle } from "./research.js";
+import { buildWeatherContext, isWeatherQuery } from "./weather.js";
 import { detectImageRequest } from "./imageIntent.js";
 import { generateImage } from "./images.js";
 import { isFeatureEnabled } from "../config/featureFlags.js";
@@ -22,7 +23,8 @@ Guidelines:
 - For code, provide complete, working examples with brief comments where useful.
 - Be honest about uncertainty. Ask one clarifying question when the request is ambiguous.
 - Do not mention that you are an AI unless asked. Focus on delivering value.
-- When users ask you to generate, draw, or create an image, the Libraix system handles image creation automatically — do not tell them to use Google Images or external sites.`;
+- When users ask you to generate, draw, or create an image, the Libraix system handles image creation automatically — do not tell them to use Google Images or external sites.
+- When live weather or web search data is provided in the system context, use it and answer with the actual numbers. Never claim you cannot access real-time weather if that data is present.`;
 
 export interface TurnContext {
   systemMessages: { role: "system"; content: string }[];
@@ -37,28 +39,36 @@ export interface ResolvedTurn {
   isPremium: boolean;
 }
 
-/** Gather memory, project files, and web search in parallel where possible. */
+/** Gather memory, project files, weather, and web search in parallel where possible. */
 export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promise<TurnContext> {
   const memoryCtx = req.useMemory !== false ? getMemoryContext(user.id, req.projectId) : "";
+  const wantsWeather = isWeatherQuery(req.message);
+  const wantsWeb = req.routerMode === "deep-research";
 
-  const [webBundle, docBundle] = await Promise.all([
-    req.routerMode === "deep-research" ? buildWebSearchBundle(req.message) : Promise.resolve({ context: null as string | null, sources: [] as NonNullable<AiResponse["sources"]> }),
+  const [weatherBundle, webBundle, docBundle] = await Promise.all([
+    wantsWeather
+      ? buildWeatherContext(req.message)
+      : Promise.resolve({ context: null as string | null, sources: [] as NonNullable<AiResponse["sources"]> }),
+    wantsWeb
+      ? buildWebSearchBundle(req.message)
+      : Promise.resolve({ context: null as string | null, sources: [] as NonNullable<AiResponse["sources"]> }),
     req.projectId
       ? Promise.resolve(getProjectDocumentContext(user.id, req.projectId, req.message))
       : Promise.resolve({ context: "", sources: [] as NonNullable<AiResponse["sources"]> }),
   ]);
 
-  const webSources = webBundle.sources.map((s, i) => ({
+  const liveSources = [...weatherBundle.sources, ...webBundle.sources].map((s, i) => ({
     ...s,
     index: docBundle.sources.length + i + 1,
   }));
-  const allSources = [...(docBundle.sources ?? []), ...webSources];
+  const allSources = [...(docBundle.sources ?? []), ...liveSources];
 
   const systemParts = [
     DEFAULT_SYSTEM_PROMPT,
     req.systemPrompt,
     docBundle.context || null,
     memoryCtx || null,
+    weatherBundle.context,
     webBundle.context,
   ].filter(Boolean);
 

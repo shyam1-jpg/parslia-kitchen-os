@@ -121,37 +121,57 @@ export const advancedApi = {
       history?: { role: "user" | "assistant"; content: string }[];
       systemPrompt?: string;
       projectId?: string;
-    }
+    },
+    options?: { signal?: AbortSignal; timeoutMs?: number }
   ): AsyncGenerator<string | { meta: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string; sources?: DocumentSource[] } }> {
-    const res = await fetch("/api/ai/stream", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok || !res.body) {
-      throw new Error(await readApiError(res));
-    }
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() ?? "";
-      for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        const payload = line.slice(6).trim();
-        if (payload === "[DONE]") return;
-        try {
-          const parsed = JSON.parse(payload) as { delta?: string; error?: string; detail?: string; meta?: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string; sources?: DocumentSource[] } };
-          if (parsed.error) throw new Error(parsed.error);
+    const timeoutMs = options?.timeoutMs ?? 90_000;
+    const ctrl = new AbortController();
+    const onAbort = () => ctrl.abort();
+    options?.signal?.addEventListener("abort", onAbort);
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const res = await fetch("/api/ai/stream", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: ctrl.signal,
+      });
+      if (!res.ok || !res.body) {
+        throw new Error(await readApiError(res));
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const payload = line.slice(6).trim();
+          if (payload === "[DONE]") return;
+          let parsed: { delta?: string; error?: string; detail?: string; meta?: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string; sources?: DocumentSource[] } };
+          try {
+            parsed = JSON.parse(payload);
+          } catch {
+            continue;
+          }
+          if (parsed.error) throw new Error(parsed.detail || parsed.error);
           else if (parsed.meta) yield { meta: parsed.meta };
           else if (parsed.delta) yield parsed.delta;
-        } catch { /* skip */ }
+        }
       }
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") {
+        throw new Error("REQUEST_TIMED_OUT");
+      }
+      throw e;
+    } finally {
+      clearTimeout(timer);
+      options?.signal?.removeEventListener("abort", onAbort);
     }
   },
 };

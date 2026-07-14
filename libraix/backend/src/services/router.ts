@@ -72,6 +72,7 @@ function detectNeeds(message: string) {
   return {
     needsCode: /\b(code|python|javascript|sql|debug|function|api)\b/.test(lower),
     needsResearch: /\b(research|compare|analyze|sources|citation|market|competitor)\b/.test(lower),
+    needsWeather: /\b(weather|temperature|forecast|humidity)\b/.test(lower),
   };
 }
 
@@ -111,13 +112,17 @@ export function routeModel(input: RouterInput): RouterResult {
   if (!best) throw new Error("NO_MODEL_AVAILABLE");
 
   const reason = input.mode === "auto"
-    ? `Auto-selected for ${mode} task${needs.needsCode ? " (code detected)" : ""}${needs.needsResearch ? " (research detected)" : ""}`
+    ? `Auto-selected for ${mode} task${needs.needsCode ? " (code detected)" : ""}${needs.needsResearch ? " (research detected)" : ""}${needs.needsWeather ? " (weather)" : ""}`
     : `Selected for ${mode} mode`;
 
   return buildResult(best, mode, reason, true);
 }
 
-function inferAutoMode(input: RouterInput & { needsCode: boolean; needsResearch: boolean }): RouterMode {
+function inferAutoMode(
+  input: RouterInput & { needsCode: boolean; needsResearch: boolean; needsWeather?: boolean }
+): RouterMode {
+  // Weather uses live Open-Meteo data — prefer a fast model, not deep research
+  if (input.needsWeather) return "fast";
   if (input.needsResearch) return "deep-research";
   if (input.needsCode) return "coding";
   if (input.message.length > 2000) return "advanced";

@@ -80,6 +80,7 @@ export function AppPage() {
   const [showArchived, setShowArchived] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
+  const abortCtrlRef = useRef<AbortController | null>(null);
 
   const speechOut = useSpeechOutput();
 
@@ -89,6 +90,8 @@ export function AppPage() {
   }, [showArchived]);
 
   useEffect(() => {
+    // Wake Render cold starts early so the first chat feels faster
+    fetch("/api/health", { credentials: "include" }).catch(() => {});
     chatApi.models().then((d) => {
       setModels(d.models);
       const first = d.models.find((m) => m.available !== false && m.capabilities.chat) ?? d.models.find((m) => m.capabilities.chat);
@@ -302,6 +305,8 @@ export function AppPage() {
     setInput("");
     setLoading(true);
     abortRef.current = false;
+    abortCtrlRef.current?.abort();
+    abortCtrlRef.current = new AbortController();
 
     let convId = activeId;
     if (!convId) {
@@ -370,9 +375,8 @@ export function AppPage() {
         return;
       }
 
-      if (!resendOnly) {
-        await chatApi.addMessage(convId, "user", content);
-      }
+      // Save user message in parallel — don't block first token
+      const saveUser = resendOnly ? Promise.resolve() : chatApi.addMessage(convId, "user", content).catch(() => {});
       const history = (resendOnly ? messages : [...messages, userMsg])
         .filter((m) => m.content && !m.imageGenerating)
         .map((m) => ({ role: m.role, content: m.content }));
@@ -384,17 +388,20 @@ export function AppPage() {
       let fullContent = "";
       let modelLabel = "";
       let messageSources: ChatMessage["sources"];
-      setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "", createdAt: new Date().toISOString() }]);
+      setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "Thinking…", createdAt: new Date().toISOString() }]);
 
       try {
-        for await (const chunk of advancedApi.streamRespond({
-          message: content,
-          modelId: routerMode === "auto" ? undefined : modelId,
-          routerMode,
-          history,
-          systemPrompt,
-          projectId: activeProjectId ?? undefined,
-        })) {
+        for await (const chunk of advancedApi.streamRespond(
+          {
+            message: content,
+            modelId: routerMode === "auto" ? undefined : modelId,
+            routerMode,
+            history,
+            systemPrompt,
+            projectId: activeProjectId ?? undefined,
+          },
+          { signal: abortCtrlRef.current?.signal, timeoutMs: 90_000 }
+        )) {
           if (abortRef.current) break;
           if (typeof chunk === "object" && chunk.meta) {
             modelLabel = `Generated using ${chunk.meta.displayName} (${chunk.meta.provider}) through Libraix`;
@@ -404,15 +411,23 @@ export function AppPage() {
             }
             continue;
           }
-          fullContent += chunk;
+          if (fullContent === "" && typeof chunk === "string") {
+            fullContent = chunk;
+          } else if (typeof chunk === "string") {
+            fullContent += chunk;
+          }
           setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, modelLabel: modelLabel || m.modelLabel, sources: messageSources } : m)));
         }
       } catch (streamErr) {
-        /* stream unavailable — fall back below */
-        console.warn("Stream failed, using non-stream fallback:", streamErr);
+        const streamMsg = streamErr instanceof Error ? streamErr.message : "STREAM_FAILED";
+        if (streamMsg === "REQUEST_TIMED_OUT") {
+          setError("Reply timed out. The server may be waking up — tap send again.");
+        } else {
+          console.warn("Stream failed, using non-stream fallback:", streamErr);
+        }
       }
 
-      if (!fullContent.trim()) {
+      if (!fullContent.trim() || fullContent === "Thinking…") {
         const result = await chatApi.respond({
           message: content,
           modelId: routerMode === "auto" ? undefined : modelId,
@@ -431,7 +446,8 @@ export function AppPage() {
         setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, modelLabel } : m)));
       }
 
-      if (fullContent) {
+      await saveUser;
+      if (fullContent && fullContent !== "Thinking…") {
         await chatApi.addMessage(convId, "assistant", fullContent);
       }
       await refresh();
@@ -448,6 +464,7 @@ export function AppPage() {
 
   const stopGeneration = () => {
     abortRef.current = true;
+    abortCtrlRef.current?.abort();
     setStreaming(false);
   };
 

@@ -8,6 +8,7 @@ export function getBuildInfo() {
       asyncFileIndexing: true,
       billingStatus: true,
       catalogCache: true,
+      liveWeather: true,
     },
   };
 }
