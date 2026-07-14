@@ -15,6 +15,7 @@ export function getBuildInfo() {
       wikipediaSources: true,
       sourceCache: true,
       legalDocuments: true,
+      naturalVoiceTts: true,
     },
   };
 }

@@ -221,6 +221,7 @@ function migrateUserLocationColumns() {
   if (!names.has("home_timezone")) db.exec("ALTER TABLE user_preferences ADD COLUMN home_timezone TEXT");
   if (!names.has("location_source")) db.exec("ALTER TABLE user_preferences ADD COLUMN location_source TEXT");
   if (!names.has("location_updated_at")) db.exec("ALTER TABLE user_preferences ADD COLUMN location_updated_at TEXT");
+  if (!names.has("tts_voice")) db.exec("ALTER TABLE user_preferences ADD COLUMN tts_voice TEXT NOT NULL DEFAULT 'nova'");
 }
 
 function migrateUsersAdminColumns() {

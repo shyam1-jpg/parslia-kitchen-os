@@ -13,6 +13,7 @@ import { searchWeb } from "../services/webSearch.js";
 import { completeViaGateway } from "../providers/gateway.js";
 import { getModelById } from "../config/models.js";
 import { canSendMessage, recordMessageUsage } from "../services/usage.js";
+import { db } from "../db/schema.js";
 
 const router = Router();
 
@@ -210,6 +211,122 @@ router.post("/research", async (req, res) => {
     if (msg === "USAGE_LIMIT_REACHED") return res.status(429).json({ error: msg });
     res.status(502).json({ error: msg });
   }
+});
+
+const TTS_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] as const;
+type TtsVoice = (typeof TTS_VOICES)[number];
+
+function getUserTtsVoice(userId: string): TtsVoice {
+  const row = db
+    .prepare("SELECT tts_voice FROM user_preferences WHERE user_id = ?")
+    .get(userId) as { tts_voice: string } | undefined;
+  const v = row?.tts_voice ?? "nova";
+  return (TTS_VOICES as readonly string[]).includes(v) ? (v as TtsVoice) : "nova";
+}
+
+/**
+ * POST /api/tools/tts
+ * Returns OpenAI TTS audio (mp3) streamed to the client.
+ * Max ~4000 chars of plain text (markdown stripped server-side).
+ */
+router.post("/tts", async (req, res) => {
+  const row = findUserById(req.session.userId!);
+  if (!row) return res.status(401).json({ error: "UNAUTHENTICATED" });
+  const user = toSafeUser(row);
+
+  const schema = z.object({
+    text: z.string().min(1).max(8000),
+    voice: z.enum(TTS_VOICES).optional(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  const apiKey = process.env.OPENAI_API_KEY?.trim() ?? "";
+  if (!apiKey) return res.status(503).json({ error: "TTS_NOT_CONFIGURED" });
+
+  // Strip markdown so it reads naturally
+  const plain = parsed.data.text
+    .replace(/```[\s\S]*?```/g, "")       // code blocks
+    .replace(/`[^`]+`/g, (m) => m.replace(/`/g, "")) // inline code
+    .replace(/!\[.*?\]\(.*?\)/g, "")       // images
+    .replace(/\[([^\]]+)\]\(.*?\)/g, "$1") // links → text
+    .replace(/#{1,6}\s*/g, "")             // headings
+    .replace(/[*_~]{1,3}([^*_~]+)[*_~]{1,3}/g, "$1") // bold/italic
+    .replace(/^\s*[-*+>]\s+/gm, "")        // bullets/blockquote
+    .replace(/\n{2,}/g, ". ")
+    .replace(/\n/g, " ")
+    .trim()
+    .slice(0, 4096);
+
+  const voice = parsed.data.voice ?? getUserTtsVoice(user.id);
+
+  try {
+    const ttsRes = await fetch("https://api.openai.com/v1/audio/speech", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ model: "tts-1", input: plain, voice, response_format: "mp3" }),
+      signal: AbortSignal.timeout(30_000),
+    });
+
+    if (!ttsRes.ok) {
+      const err = await ttsRes.text();
+      return res.status(502).json({ error: "TTS_FAILED", detail: err.slice(0, 200) });
+    }
+
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("Cache-Control", "no-store");
+    // Stream audio bytes directly to the browser
+    const reader = ttsRes.body!.getReader();
+    const pump = async () => {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        res.write(value);
+      }
+      res.end();
+    };
+    await pump();
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "TTS_FAILED";
+    if (!res.headersSent) res.status(502).json({ error: msg });
+  }
+});
+
+/** GET /api/tools/tts/voices — return available voices + user's current preference */
+router.get("/tts/voices", (req, res) => {
+  const row = findUserById(req.session.userId!);
+  if (!row) return res.status(401).json({ error: "UNAUTHENTICATED" });
+  const voice = getUserTtsVoice(req.session.userId!);
+  res.json({
+    voices: [
+      { id: "nova", label: "Nova", description: "Warm, friendly — great for explanations" },
+      { id: "alloy", label: "Alloy", description: "Balanced, clear — good all-rounder" },
+      { id: "shimmer", label: "Shimmer", description: "Soft, calm — relaxed tone" },
+      { id: "echo", label: "Echo", description: "Confident, engaging" },
+      { id: "fable", label: "Fable", description: "Expressive, storytelling feel" },
+      { id: "onyx", label: "Onyx", description: "Deep, authoritative" },
+    ],
+    current: voice,
+  });
+});
+
+/** PATCH /api/tools/tts/voice — save the user's preferred TTS voice */
+router.patch("/tts/voice", (req, res) => {
+  const row = findUserById(req.session.userId!);
+  if (!row) return res.status(401).json({ error: "UNAUTHENTICATED" });
+  const schema = z.object({ voice: z.enum(TTS_VOICES) });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  db.prepare(
+    `INSERT INTO user_preferences (user_id, tts_voice) VALUES (?, ?)
+     ON CONFLICT(user_id) DO UPDATE SET tts_voice = ?, updated_at = datetime('now')`
+  ).run(req.session.userId!, parsed.data.voice, parsed.data.voice);
+
+  res.json({ voice: parsed.data.voice });
 });
 
 export default router;
