@@ -43,14 +43,35 @@ export function deleteAllMemories(userId: string): number {
 }
 
 export function getMemoryContext(userId: string, projectId?: string): string {
-  const prefs = db.prepare("SELECT memory_enabled FROM user_preferences WHERE user_id = ?").get(userId) as
-    | { memory_enabled: number }
-    | undefined;
+  const prefs = db
+    .prepare("SELECT memory_enabled, privacy_mode FROM user_preferences WHERE user_id = ?")
+    .get(userId) as { memory_enabled: number; privacy_mode: string } | undefined;
   if (prefs && prefs.memory_enabled === 0) return "";
+  if (prefs?.privacy_mode === "temporary") return "";
 
-  const memories = listMemories(userId, projectId).slice(0, 20);
+  const now = Date.now();
+  const memories = listMemories(userId, projectId).filter((m) => {
+    if (!m.expiresAt) return true;
+    const exp = Date.parse(m.expiresAt);
+    return Number.isNaN(exp) || exp > now;
+  });
   if (!memories.length) return "";
-  return "User memory:\n" + memories.map((m) => `- [${m.category}] ${m.content}`).join("\n");
+
+  // Prefer durable identity/prefs over rolling thread summaries
+  const rank = (category: string) => {
+    if (category === "identity" || category.startsWith("auto:identity")) return 0;
+    if (category === "preference" || category.startsWith("auto:preference")) return 1;
+    if (category === "location" || category.startsWith("auto:location")) return 2;
+    if (category === "work" || category.startsWith("auto:work")) return 3;
+    if (category === "auto:thread") return 9;
+    return 5;
+  };
+  const selected = [...memories].sort((a, b) => rank(a.category) - rank(b.category)).slice(0, 20);
+
+  return (
+    "User memory (use to personalize replies; do not invent facts beyond this):\n" +
+    selected.map((m) => `- [${m.category}] ${m.content}`).join("\n")
+  );
 }
 
 export function getUserPreferences(userId: string) {

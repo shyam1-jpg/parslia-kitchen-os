@@ -141,6 +141,7 @@ router.post("/ai/respond", requireAuth, async (req, res) => {
       conversationHistory: parsed.data.history,
       systemPrompt: parsed.data.systemPrompt,
       projectId: parsed.data.projectId,
+      conversationId: parsed.data.conversationId,
       useMemory: parsed.data.useMemory,
     });
     res.json(result);
@@ -178,6 +179,7 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
       conversationHistory: parsed.data.history,
       systemPrompt: parsed.data.systemPrompt,
       projectId: parsed.data.projectId,
+      conversationId: parsed.data.conversationId,
       useMemory: parsed.data.useMemory,
     };
 

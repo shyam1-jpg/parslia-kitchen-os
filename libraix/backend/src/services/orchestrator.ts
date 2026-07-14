@@ -3,6 +3,7 @@ import { completeWithFallback, streamWithFallback } from "../providers/resilienc
 import { canSendMessage, getUsage, recordMessageUsage } from "./usage.js";
 import { routeModel } from "./router.js";
 import { getMemoryContext } from "./memory.js";
+import { learnFromConversationTurn } from "./memoryExtract.js";
 import { getProjectDocumentContext } from "./projects.js";
 import { buildWebSearchBundle } from "./research.js";
 import { getSavedLocation } from "./location.js";
@@ -12,6 +13,20 @@ import { generateImage } from "./images.js";
 import { isFeatureEnabled } from "../config/featureFlags.js";
 import type { SafeUser } from "./users.js";
 import type { AiRequest, AiResponse } from "./ai.js";
+
+/** Persist durable facts from this turn for future chats (never blocks the reply path). */
+function scheduleMemoryLearn(user: SafeUser, req: AiRequest, assistantContent: string) {
+  setImmediate(() => {
+    learnFromConversationTurn({
+      userId: user.id,
+      userPlan: user.plan,
+      userMessage: req.message,
+      assistantContent,
+      projectId: req.projectId,
+      conversationId: req.conversationId,
+    });
+  });
+}
 
 const DEFAULT_SYSTEM_PROMPT = `You are Libraix, a capable AI assistant in the Libraix workspace. Your answers should feel polished and professional — like ChatGPT or Claude.
 
@@ -24,7 +39,8 @@ Guidelines:
 - Be honest about uncertainty. Ask one clarifying question when the request is ambiguous.
 - Do not mention that you are an AI unless asked. Focus on delivering value.
 - When users ask you to generate, draw, or create an image, the Libraix system handles image creation automatically — do not tell them to use Google Images or external sites.
-- When live weather or web search data is provided in the system context, use it and answer with the actual numbers. Never claim you cannot access real-time weather if that data is present.`;
+- When live weather or web search data is provided in the system context, use it and answer with the actual numbers. Never claim you cannot access real-time weather if that data is present.
+- When User memory is provided, use those facts naturally to personalize replies. Do not recite the memory list unless the user asks what you remember.`;
 
 export interface TurnContext {
   systemMessages: { role: "system"; content: string }[];
@@ -174,6 +190,7 @@ export async function runTurnComplete(user: SafeUser, req: AiRequest): Promise<A
   const { response, model: usedModel } = await completeWithFallback(model, fallback, messages);
   const usedPremium = usedModel.tier !== "free";
   recordMessageUsage(user.id, usedPremium, response.tokensUsed, response.estimatedCostCents);
+  scheduleMemoryLearn(user, req, response.content);
 
   return {
     content: response.content,
@@ -223,14 +240,17 @@ export async function* runTurnStream(
   if (turn.weatherCard) yield { weatherCard: turn.weatherCard };
 
   let totalLen = 0;
+  let fullContent = "";
   let usedModel = model;
   for await (const item of streamWithFallback(model, fallback, messages)) {
     usedModel = item.model;
     totalLen += item.chunk.length;
+    fullContent += item.chunk;
     yield item.chunk;
   }
   if (turn.sources.length) yield { sources: turn.sources };
   yield { model: usedModel };
   const usedPremium = usedModel.tier !== "free";
   recordMessageUsage(user.id, usedPremium, Math.ceil(totalLen / 4), 0);
+  scheduleMemoryLearn(user, req, fullContent);
 }

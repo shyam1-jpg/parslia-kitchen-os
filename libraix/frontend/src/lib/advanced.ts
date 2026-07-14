@@ -121,6 +121,7 @@ export const advancedApi = {
       history?: { role: "user" | "assistant"; content: string }[];
       systemPrompt?: string;
       projectId?: string;
+      conversationId?: string;
     },
     options?: { signal?: AbortSignal; timeoutMs?: number }
   ): AsyncGenerator<string | { meta: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string; sources?: DocumentSource[]; weatherCard?: WeatherCardData } }> {
