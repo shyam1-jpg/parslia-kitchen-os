@@ -3,18 +3,30 @@ import { ProviderError } from "../providers/types.js";
 import { getUsage, recordImageUsage, canGenerateImage } from "./usage.js";
 import type { SafeUser } from "./users.js";
 
+/** Download remote image bytes once and embed as a data URL so chat shows it instantly (ChatGPT-style). */
+async function toEmbeddedDataUrl(url: string): Promise<string> {
+  if (url.startsWith("data:")) return url;
+  const res = await fetch(url, { signal: AbortSignal.timeout(60_000) });
+  if (!res.ok) throw new Error(`Image fetch failed (${res.status})`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  // Cap ~2.5MB so SQLite message storage stays sane
+  if (buf.length > 2_500_000) return url;
+  const mime = res.headers.get("content-type")?.split(";")[0]?.trim() || "image/jpeg";
+  return `data:${mime};base64,${buf.toString("base64")}`;
+}
+
 /**
  * Pollinations.ai — free, no API key, no account needed.
  * Used as primary path when OpenAI billing is not set up,
  * or as automatic fallback when OpenAI image generation fails.
+ * Embeds bytes as data URL so the picture appears in chat without a second download/click.
  */
 async function generateWithPollinations(prompt: string, size: "1024x1024" | "1792x1024" | "1024x1792" = "1024x1024"): Promise<string> {
   const [width, height] = size.split("x").map(Number);
-  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&nologo=true&model=flux&enhance=true`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(60_000) });
-  if (!res.ok) throw new Error(`Pollinations returned ${res.status}`);
-  // Returns the image directly — return the URL (it's a direct image URL)
-  return url;
+  const url =
+    `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}` +
+    `?width=${width}&height=${height}&nologo=true&model=flux&enhance=true`;
+  return toEmbeddedDataUrl(url);
 }
 
 const IMAGES_URL = "https://api.openai.com/v1/images/generations";
@@ -121,8 +133,14 @@ export async function generateImage(user: SafeUser, req: ImageGenerateRequest): 
         const image = data.data?.[0];
         if (!image) { lastError = "No image returned"; continue; }
 
-        const url = image.url ?? (image.b64_json ? `data:image/png;base64,${image.b64_json}` : null);
+        let url = image.url ?? (image.b64_json ? `data:image/png;base64,${image.b64_json}` : null);
         if (!url) { lastError = "No image URL in response"; continue; }
+        // Embed remote OpenAI URLs so the picture stays visible in chat (signed URLs expire)
+        try {
+          url = await toEmbeddedDataUrl(url);
+        } catch {
+          /* keep original URL if embed fails */
+        }
 
         recordImageUsage(user.id);
         return {

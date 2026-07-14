@@ -842,11 +842,49 @@ button, input, textarea, select {
 .markdown-body th { background: rgba(255, 255, 255, 0.04); font-weight: 600; }
 .markdown-body img {
   max-width: 100%;
-  max-height: 512px;
-  border-radius: 12px;
+  max-height: none;
+  width: 100%;
+  border-radius: 14px;
   border: 1px solid var(--border);
   margin: 8px 0;
   display: block;
+}
+/* ChatGPT-style: generated picture appears fully in the bubble — no click/download needed */
+.chat-gen-image-wrap {
+  margin: 4px 0 10px;
+  width: min(100%, 640px);
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+.chat-gen-image-wrap.is-loading {
+  min-height: 220px;
+}
+.chat-gen-image-skeleton {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  color: var(--dim);
+  font-size: 13px;
+}
+.chat-gen-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(70vh, 720px);
+  object-fit: contain;
+  background: #0a0a0a;
+}
+.chat-gen-image-wrap.is-loading .chat-gen-image {
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+.chat-gen-image-error {
+  color: var(--danger, #f87171);
+  font-size: 13px;
+  margin: 6px 0;
 }
 .stream-cursor {
   display: inline-block;
@@ -1275,6 +1313,15 @@ button, input, textarea, select {
 }
 .image-options { display: flex; gap: 16px; flex-wrap: wrap; }
 .image-options label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--dim); }
-.image-result { margin-top: 8px; }
-.image-result img { width: 100%; max-width: 1024px; border-radius: 12px; border: 1px solid var(--border); }
+.image-result { margin-top: 12px; }
+.image-result img {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  max-height: min(70vh, 720px);
+  object-fit: contain;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #0a0a0a;
+}
 .image-result-actions { display: flex; gap: 8px; margin-top: 12px; }

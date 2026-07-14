@@ -10,6 +10,7 @@ import { ChatComposer } from "../components/ChatComposer";
 import { ComparePanel } from "../components/ComparePanel";
 import { ProjectPanel } from "../components/ProjectPanel";
 import { MarkdownMessage } from "../components/MarkdownMessage";
+import { ChatGeneratedImage } from "../components/ChatGeneratedImage";
 import { WeatherCard } from "../components/WeatherCard";
 import { encodeWeatherMarker, extractWeatherCard } from "../lib/weather";
 import { useAuth } from "../lib/auth";
@@ -203,8 +204,28 @@ export function AppPage() {
   const hydrateMessages = (list: ChatMessage[]) =>
     list.map((m) => {
       if (m.role !== "assistant") return m;
-      const parsed = extractWeatherCard(m.content);
-      return parsed.weather ? { ...m, content: parsed.text, weatherCard: parsed.weather } : m;
+      let next = { ...m };
+      const weather = extractWeatherCard(next.content);
+      if (weather.weather) {
+        next = { ...next, content: weather.text, weatherCard: weather.weather };
+      }
+      // Pull embedded/markdown images into imageUrl so they show full-size inline like ChatGPT
+      if (!next.imageUrl) {
+        const imgMatch = next.content.match(/!\[[^\]]*\]\((data:image\/[^)]+|https?:\/\/[^)\s]+)\)/);
+        if (imgMatch?.[1]) {
+          next = {
+            ...next,
+            imageUrl: imgMatch[1],
+            content: next.content.replace(/!\[[^\]]*\]\((data:image\/[^)]+|https?:\/\/[^)\s]+)\)\s*/g, "").trim(),
+          };
+        }
+      } else {
+        next = {
+          ...next,
+          content: next.content.replace(/!\[[^\]]*\]\((data:image\/[^)]+|https?:\/\/[^)\s]+)\)\s*/g, "").trim(),
+        };
+      }
+      return next;
     });
 
   const filteredConversations = useMemo(() => {
@@ -395,13 +416,20 @@ export function AppPage() {
         try {
           const result = await imageApi.generate({ prompt: imagePrompt, speed: "fast" });
           await saveUser;
-          const modelName = result.imageModel ?? "dall-e-2";
-          const fullContent = `![Generated image](${result.url})`;
+          const modelName = result.imageModel ?? "flux";
+          // Persist as markdown so reload restores the picture; UI shows full image via imageUrl (no click needed)
+          const fullContent = `![Generated image](${result.url})\n\nHere's your image.`;
           const modelLabel = `Quick image · ${result.displayName} (${modelName}) via Libraix`;
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantId
-                ? { ...m, content: fullContent, modelLabel, imageUrl: result.url, imageGenerating: false }
+                ? {
+                    ...m,
+                    content: "Here's your image.",
+                    modelLabel,
+                    imageUrl: result.url,
+                    imageGenerating: false,
+                  }
                 : m
             )
           );
@@ -848,10 +876,14 @@ export function AppPage() {
                   {m.role === "assistant" ? (
                     <>
                       {m.weatherCard && <WeatherCard data={m.weatherCard} />}
+                      {m.imageUrl && !m.imageGenerating && (
+                        <ChatGeneratedImage src={m.imageUrl} alt="Generated image" />
+                      )}
                       <MarkdownMessage
                         content={m.content}
                         streaming={streaming && m === messages[messages.length - 1] && m.role === "assistant" && !m.imageGenerating}
                         imageGenerating={m.imageGenerating}
+                        suppressImages={Boolean(m.imageUrl)}
                       />
                     </>
                   ) : (
