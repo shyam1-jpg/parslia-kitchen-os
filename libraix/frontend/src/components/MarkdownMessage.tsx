@@ -5,6 +5,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import { ImageGenerating } from "./ImageGenerating";
+import { ChatGeneratedImage } from "./ChatGeneratedImage";
 import "katex/dist/katex.min.css";
 import "highlight.js/styles/github-dark.css";
 
@@ -12,10 +13,12 @@ interface MarkdownMessageProps {
   content: string;
   streaming?: boolean;
   imageGenerating?: boolean;
+  /** When true, skip markdown images (already shown via ChatGeneratedImage). */
+  suppressImages?: boolean;
 }
 
 /** While streaming, render light markdown; full KaTeX/highlight after idle for speed. */
-export function MarkdownMessage({ content, streaming, imageGenerating }: MarkdownMessageProps) {
+export function MarkdownMessage({ content, streaming, imageGenerating, suppressImages }: MarkdownMessageProps) {
   const deferred = useDeferredValue(content);
 
   if (imageGenerating) {
@@ -31,10 +34,20 @@ export function MarkdownMessage({ content, streaming, imageGenerating }: Markdow
     ) : null;
   }
 
+  const imgComponent = suppressImages
+    ? () => null
+    : ({ src, alt }: { src?: string; alt?: string }) =>
+        src ? <ChatGeneratedImage src={src} alt={alt || "Image"} /> : null;
+
   if (streaming) {
     return (
       <div className="markdown-body is-streaming">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{ img: imgComponent }}
+        >
+          {content}
+        </ReactMarkdown>
         <span className="stream-cursor">▍</span>
       </div>
     );
@@ -42,7 +55,11 @@ export function MarkdownMessage({ content, streaming, imageGenerating }: Markdow
 
   return (
     <div className="markdown-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex, rehypeHighlight]}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex, rehypeHighlight]}
+        components={{ img: imgComponent }}
+      >
         {deferred}
       </ReactMarkdown>
     </div>

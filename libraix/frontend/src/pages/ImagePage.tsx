@@ -167,15 +167,15 @@ export function ImagePage() {
 
           {imageUrl && !loading && (
             <div className="image-result">
+              {/* Picture shows fully on screen immediately — same as ChatGPT */}
               <img src={imageUrl} alt={prompt} />
-              <div className="image-result-actions">
-                <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">Open full size</a>
-                <a href={imageUrl} download="libraix-image.png" className="btn btn-ghost btn-sm">Download</a>
-              </div>
               {revisedPrompt && (
                 <p className="model-disclosure">Prompt used: {revisedPrompt}</p>
               )}
-              <p className="model-disclosure">Generated using Libraix Image (OpenAI DALL·E 3) through Libraix</p>
+              <p className="model-disclosure">Generated using Libraix Image through Libraix</p>
+              <div className="image-result-actions">
+                <a href={imageUrl} download="libraix-image.png" className="btn btn-ghost btn-sm">Download (optional)</a>
+              </div>
             </div>
           )}
         </div>
