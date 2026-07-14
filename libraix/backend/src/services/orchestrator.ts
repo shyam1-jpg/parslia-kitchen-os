@@ -157,7 +157,7 @@ export async function tryGenerateChatImage(user: SafeUser, message: string): Pro
   const prompt = detectImageRequest(message);
   if (!prompt || !isFeatureEnabled("image-studio", user.plan)) return null;
 
-  const image = await generateImage(user, { prompt, speed: "fast", size: "512x512" });
+  const image = await generateImage(user, { prompt, speed: "fast", size: "1024x1024" });
   const caption = image.revisedPrompt ? `*${image.revisedPrompt}*` : `*${prompt}*`;
   const modelTag = image.imageModel ?? "dall-e-2";
   return {

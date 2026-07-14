@@ -8,6 +8,7 @@ const ERROR_LABELS: Record<string, string> = {
   PROVIDER_ERROR: "AI service error. Try again in a moment.",
   PROVIDER_UNAVAILABLE: "AI service is temporarily unavailable. Please try again shortly.",
   IMAGE_LIMIT_REACHED: "Daily image limit reached. Upgrade to Pro for more images.",
+  BILLING_REQUIRED: "Image generation needs OpenAI billing enabled. Go to platform.openai.com → Billing → add a payment method, then try again.",
   MODELS_UNAVAILABLE: "Selected models are not available. Add API keys on Render or pick OpenAI models only.",
   FEATURE_DISABLED: "This feature requires a Pro plan.",
   INTERNAL_ERROR: "Something went wrong. Please try again.",
