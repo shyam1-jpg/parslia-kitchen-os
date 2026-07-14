@@ -756,10 +756,10 @@ export function AppPage() {
           {messages.length === 0 && !loading && !streaming ? (
             <div className="welcome-state">
               <h2>What can I help you with?</h2>
-              <p>Type <strong>/i sunset</strong> or tap <strong>🎨</strong> for images. Mic works in <strong>Chrome/Edge</strong> (allow microphone).</p>
+              <p>Type <strong>/i</strong> or tap 🎨 for quick images · 🔍 for live web search.</p>
               {homeLocation && (
-                <p className="location-chip" title={`Detected from login IP (${homeLocation.source})`}>
-                  📍 Using your area: <strong>{homeLocation.label}</strong> — ask “What’s the weather?” for local forecast
+                <p className="location-chip" title={`Auto-detected from your IP (${homeLocation.source})`}>
+                  📍 <strong>{homeLocation.label}</strong>
                 </p>
               )}
               <div className="suggestion-row">
@@ -859,7 +859,7 @@ export function AppPage() {
           onToggleImageMode={() => setImageMode((v) => !v)}
           onFileSelect={handleFileAttach}
           onDeepResearch={() => setRouterMode("deep-research")}
-          placeholder={imageMode ? "Describe a quick image…" : "Message Libraix… (/qi or /i for quick image · ask with Wikipedia for sources)"}
+          placeholder={imageMode ? "Describe a quick image…" : "Message Libraix…"}
           extraAbove={
             <>
               {usage && (

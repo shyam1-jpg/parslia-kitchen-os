@@ -52,15 +52,11 @@ export function ChatComposer({
     }
   };
 
-  const unsupportedHint = !speech.supported
-    ? "Mic needs Chrome or Edge (not Safari/Firefox). Open libraix.ai in Chrome and allow microphone."
-    : null;
-
   return (
     <div className="composer-wrap">
       {extraAbove}
-      {(speech.error || unsupportedHint) && (
-        <div className="error-banner composer-banner">{speech.error || unsupportedHint}</div>
+      {speech.error && (
+        <div className="error-banner composer-banner">{speech.error}</div>
       )}
       {speech.listening && (
         <div className="voice-listening-bar composer-banner">
@@ -125,11 +121,11 @@ export function ChatComposer({
             type="button"
             className={`composer-mic-btn ${speech.listening ? "listening" : ""} ${!speech.supported ? "mic-unsupported" : ""}`}
             title={
-              speech.supported
-                ? speech.listening
+              !speech.supported
+                ? "Voice input needs Chrome or Edge"
+                : speech.listening
                   ? "Stop listening"
-                  : "Speak your message (Chrome / Edge)"
-                : "Use Chrome or Edge for voice input"
+                  : "Speak your message"
             }
             disabled={loading || streaming || !speech.supported}
             onClick={() => {
