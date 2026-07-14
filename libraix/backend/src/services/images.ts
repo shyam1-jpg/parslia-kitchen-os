@@ -47,14 +47,12 @@ function buildImageBody(modelName: string, req: ImageGenerateRequest): Record<st
     body.size = size;
     body.quality = req.quality ?? "standard";
   } else {
-    // DALL·E 2: smaller sizes resolve faster for quick chat images
-    const size =
-      req.speed === "fast"
-        ? req.size === "256x256" || req.size === "512x512" || req.size === "1024x1024"
-          ? req.size
-          : "512x512"
-        : "1024x1024";
-    body.size = size;
+    // DALL·E 2: only 256x256, 512x512, 1024x1024 are valid
+    // 512x512 is deprecated on some keys — default to 1024x1024 for reliability
+    const allowed = ["256x256", "512x512", "1024x1024"] as const;
+    type D2Size = (typeof allowed)[number];
+    const requested = req.size as string | undefined;
+    body.size = allowed.includes(requested as D2Size) ? requested : "1024x1024";
   }
 
   return body;

@@ -213,6 +213,75 @@ router.post("/research", async (req, res) => {
   }
 });
 
+/**
+ * POST /api/tools/vision
+ * Send a base64 image + question to GPT-4o vision. Returns AI analysis.
+ */
+router.post("/vision", async (req, res) => {
+  const row = findUserById(req.session.userId!);
+  if (!row) return res.status(401).json({ error: "UNAUTHENTICATED" });
+  const user = toSafeUser(row);
+
+  const schema = z.object({
+    imageBase64: z.string().min(100).max(10_000_000),
+    mimeType: z.string().default("image/jpeg"),
+    question: z.string().max(2000).optional().default("What do you see in this image? Describe it fully and helpfully."),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  const model = getModelById("libraix-smart") ?? getModelById("libraix-fast");
+  if (!model) return res.status(503).json({ error: "MODEL_NOT_AVAILABLE" });
+  if (!canSendMessage(user.id, user.plan, model.tier !== "free")) {
+    return res.status(429).json({ error: "USAGE_LIMIT_REACHED" });
+  }
+
+  const apiKey = process.env.OPENAI_API_KEY?.trim() ?? "";
+  if (!apiKey) return res.status(503).json({ error: "VISION_NOT_CONFIGURED" });
+
+  try {
+    const visionRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        max_tokens: 1024,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image_url",
+                image_url: { url: `data:${parsed.data.mimeType};base64,${parsed.data.imageBase64}`, detail: "auto" },
+              },
+              { type: "text", text: parsed.data.question },
+            ],
+          },
+        ],
+      }),
+      signal: AbortSignal.timeout(30_000),
+    });
+
+    if (!visionRes.ok) {
+      const err = await visionRes.text();
+      return res.status(502).json({ error: "VISION_FAILED", detail: err.slice(0, 200) });
+    }
+
+    const data = (await visionRes.json()) as {
+      choices?: { message?: { content?: string } }[];
+      usage?: { total_tokens?: number };
+    };
+    const content = data.choices?.[0]?.message?.content ?? "";
+    if (!content) return res.status(502).json({ error: "VISION_NO_RESPONSE" });
+
+    recordMessageUsage(user.id, model.tier !== "free", data.usage?.total_tokens ?? 0, 0);
+    res.json({ content, model: "gpt-4o" });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "VISION_FAILED";
+    if (!res.headersSent) res.status(502).json({ error: msg });
+  }
+});
+
 const TTS_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] as const;
 type TtsVoice = (typeof TTS_VOICES)[number];
 
