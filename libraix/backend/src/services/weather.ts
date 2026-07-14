@@ -34,6 +34,13 @@ export function isWeatherQuery(message: string): boolean {
   );
 }
 
+function cleanLocation(raw: string): string {
+  return raw
+    .replace(/[?.!,]+$/g, "")
+    .replace(/\b(today|tonight|tomorrow|now|currently|please|right now)\b.*$/i, "")
+    .trim();
+}
+
 function extractLocation(message: string): string | null {
   const patterns = [
     /\b(?:weather|forecast|temperature|temps?)\s+(?:in|for|at|near)\s+([A-Za-z][A-Za-z\s,'-]{1,60})/i,
@@ -43,7 +50,8 @@ function extractLocation(message: string): string | null {
   for (const re of patterns) {
     const m = message.match(re);
     if (m?.[1]) {
-      return m[1].replace(/[?.!,]+$/, "").trim();
+      const loc = cleanLocation(m[1]);
+      if (loc.length >= 2) return loc;
     }
   }
   return null;
