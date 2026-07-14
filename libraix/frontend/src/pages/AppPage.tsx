@@ -10,6 +10,8 @@ import { ChatComposer } from "../components/ChatComposer";
 import { ComparePanel } from "../components/ComparePanel";
 import { ProjectPanel } from "../components/ProjectPanel";
 import { MarkdownMessage } from "../components/MarkdownMessage";
+import { WeatherCard } from "../components/WeatherCard";
+import { encodeWeatherMarker, extractWeatherCard } from "../lib/weather";
 import { useAuth } from "../lib/auth";
 import { useSpeechOutput } from "../lib/useSpeechOutput";
 import { toolsApi, detectUrls, isYoutubeUrl } from "../lib/tools";
@@ -174,7 +176,13 @@ export function AppPage() {
     setActiveId(id);
     setSidebarOpen(false);
     const data = await chatApi.getConversation(id);
-    setMessages(data.messages);
+    setMessages(
+      data.messages.map((m) => {
+        if (m.role !== "assistant") return m;
+        const parsed = extractWeatherCard(m.content);
+        return parsed.weather ? { ...m, content: parsed.text, weatherCard: parsed.weather } : m;
+      })
+    );
     setModelId(data.conversation.modelId);
     setActiveProjectId(data.conversation.projectId ?? null);
   };
@@ -388,6 +396,7 @@ export function AppPage() {
       let fullContent = "";
       let modelLabel = "";
       let messageSources: ChatMessage["sources"];
+      let weatherCard: ChatMessage["weatherCard"];
       setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "Thinking…", createdAt: new Date().toISOString() }]);
 
       try {
@@ -404,11 +413,24 @@ export function AppPage() {
         )) {
           if (abortRef.current) break;
           if (typeof chunk === "object" && chunk.meta) {
-            modelLabel = `Generated using ${chunk.meta.displayName} (${chunk.meta.provider}) through Libraix`;
-            if (chunk.meta.sources?.length) messageSources = chunk.meta.sources;
-            if (chunk.meta.imageUrl) {
-              setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, imageUrl: chunk.meta!.imageUrl, modelLabel, sources: messageSources } : m)));
+            if (chunk.meta.displayName && chunk.meta.provider) {
+              modelLabel = `Generated using ${chunk.meta.displayName} (${chunk.meta.provider}) through Libraix`;
             }
+            if (chunk.meta.sources?.length) messageSources = chunk.meta.sources;
+            if (chunk.meta.weatherCard) weatherCard = chunk.meta.weatherCard;
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId
+                  ? {
+                      ...m,
+                      imageUrl: chunk.meta!.imageUrl ?? m.imageUrl,
+                      modelLabel: modelLabel || m.modelLabel,
+                      sources: messageSources,
+                      weatherCard: weatherCard ?? m.weatherCard,
+                    }
+                  : m
+              )
+            );
             continue;
           }
           if (fullContent === "" && typeof chunk === "string") {
@@ -416,7 +438,13 @@ export function AppPage() {
           } else if (typeof chunk === "string") {
             fullContent += chunk;
           }
-          setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, modelLabel: modelLabel || m.modelLabel, sources: messageSources } : m)));
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId
+                ? { ...m, content: fullContent, modelLabel: modelLabel || m.modelLabel, sources: messageSources, weatherCard }
+                : m
+            )
+          );
         }
       } catch (streamErr) {
         const streamMsg = streamErr instanceof Error ? streamErr.message : "STREAM_FAILED";
@@ -441,14 +469,24 @@ export function AppPage() {
           ? `Generated using ${result.displayName} (${result.provider ?? "provider"}) through Libraix`
           : "";
         if (result.modelId) setModelId(result.modelId);
-        setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, modelLabel, imageUrl: result.imageUrl, sources: result.sources } : m)));
-      } else if (modelLabel) {
-        setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, modelLabel } : m)));
+        weatherCard = result.weatherCard ?? weatherCard;
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? { ...m, content: fullContent, modelLabel, imageUrl: result.imageUrl, sources: result.sources, weatherCard }
+              : m
+          )
+        );
+      } else if (modelLabel || weatherCard) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === assistantId ? { ...m, modelLabel, weatherCard } : m))
+        );
       }
 
       await saveUser;
       if (fullContent && fullContent !== "Thinking…") {
-        await chatApi.addMessage(convId, "assistant", fullContent);
+        const toSave = weatherCard ? `${encodeWeatherMarker(weatherCard)}\n\n${fullContent}` : fullContent;
+        await chatApi.addMessage(convId, "assistant", toSave);
       }
       await refresh();
       loadConversations();
@@ -666,11 +704,14 @@ export function AppPage() {
               <div key={m.id} className={`message ${m.role}`}>
                 <div className="bubble">
                   {m.role === "assistant" ? (
-                    <MarkdownMessage
-                      content={m.content}
-                      streaming={streaming && m === messages[messages.length - 1] && m.role === "assistant" && !m.imageGenerating}
-                      imageGenerating={m.imageGenerating}
-                    />
+                    <>
+                      {m.weatherCard && <WeatherCard data={m.weatherCard} />}
+                      <MarkdownMessage
+                        content={m.content}
+                        streaming={streaming && m === messages[messages.length - 1] && m.role === "assistant" && !m.imageGenerating}
+                        imageGenerating={m.imageGenerating}
+                      />
+                    </>
                   ) : (
                     m.content
                   )}

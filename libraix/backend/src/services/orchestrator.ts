@@ -5,11 +5,10 @@ import { routeModel } from "./router.js";
 import { getMemoryContext } from "./memory.js";
 import { getProjectDocumentContext } from "./projects.js";
 import { buildWebSearchBundle } from "./research.js";
-import { buildWeatherContext, isWeatherQuery } from "./weather.js";
+import { buildWeatherContext, isWeatherQuery, type WeatherCardData } from "./weather.js";
 import { detectImageRequest } from "./imageIntent.js";
 import { generateImage } from "./images.js";
 import { isFeatureEnabled } from "../config/featureFlags.js";
-import type { RouterMode } from "../config/featureFlags.js";
 import type { SafeUser } from "./users.js";
 import type { AiRequest, AiResponse } from "./ai.js";
 
@@ -30,6 +29,7 @@ export interface TurnContext {
   systemMessages: { role: "system"; content: string }[];
   sources: NonNullable<AiResponse["sources"]>;
   webContext: string | null;
+  weatherCard: WeatherCardData | null;
 }
 
 export interface ResolvedTurn {
@@ -48,7 +48,11 @@ export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promis
   const [weatherBundle, webBundle, docBundle] = await Promise.all([
     wantsWeather
       ? buildWeatherContext(req.message)
-      : Promise.resolve({ context: null as string | null, sources: [] as NonNullable<AiResponse["sources"]> }),
+      : Promise.resolve({
+          context: null as string | null,
+          sources: [] as NonNullable<AiResponse["sources"]>,
+          weatherCard: null as WeatherCardData | null,
+        }),
     wantsWeb
       ? buildWebSearchBundle(req.message)
       : Promise.resolve({ context: null as string | null, sources: [] as NonNullable<AiResponse["sources"]> }),
@@ -80,6 +84,7 @@ export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promis
     systemMessages,
     sources: allSources,
     webContext: webBundle.context,
+    weatherCard: weatherBundle.weatherCard,
   };
 }
 
@@ -164,6 +169,7 @@ export async function runTurnComplete(user: SafeUser, req: AiRequest): Promise<A
     tokensUsed: response.tokensUsed,
     router,
     sources: turn.sources.length ? turn.sources : undefined,
+    weatherCard: turn.weatherCard ?? undefined,
   };
 }
 
@@ -171,7 +177,11 @@ export async function* runTurnStream(
   user: SafeUser,
   req: AiRequest
 ): AsyncGenerator<
-  string | { model: ReturnType<typeof getModelById> } | { image: AiResponse } | { sources: NonNullable<AiResponse["sources"]> }
+  | string
+  | { model: ReturnType<typeof getModelById> }
+  | { image: AiResponse }
+  | { sources: NonNullable<AiResponse["sources"]> }
+  | { weatherCard: WeatherCardData }
 > {
   const imagePrompt = detectImageRequest(req.message);
   if (imagePrompt && isFeatureEnabled("image-studio", user.plan)) {
@@ -193,6 +203,9 @@ export async function* runTurnStream(
   const turn = await prepareTurnContext(user, req);
   const { model, fallback } = resolveTurnModel(user, req);
   const messages = buildChatMessages(req, turn);
+
+  // Send visual weather card before tokens so the UI feels instant
+  if (turn.weatherCard) yield { weatherCard: turn.weatherCard };
 
   let totalLen = 0;
   let usedModel = model;

@@ -8,6 +8,7 @@ import {
   runTurnStream,
   tryGenerateChatImage,
 } from "./orchestrator.js";
+import type { WeatherCardData } from "./weather.js";
 
 export interface AiRequest {
   message: string;
@@ -30,6 +31,7 @@ export interface AiResponse {
   imageUrl?: string;
   type?: "text" | "image";
   sources?: Array<{ index: number; filename: string; excerpt: string; url?: string }>;
+  weatherCard?: WeatherCardData;
 }
 
 export async function respondWithAi(user: SafeUser, req: AiRequest): Promise<AiResponse> {
@@ -40,7 +42,11 @@ export async function* streamAiResponse(
   user: SafeUser,
   req: AiRequest
 ): AsyncGenerator<
-  string | { model: ReturnType<typeof getModelById> } | { image: AiResponse } | { sources: NonNullable<AiResponse["sources"]> }
+  | string
+  | { model: ReturnType<typeof getModelById> }
+  | { image: AiResponse }
+  | { sources: NonNullable<AiResponse["sources"]> }
+  | { weatherCard: WeatherCardData }
 > {
   yield* runTurnStream(user, req);
 }

@@ -39,7 +39,11 @@ export interface DocumentSource {
   index: number;
   filename: string;
   excerpt: string;
+  url?: string;
 }
+
+export type { WeatherCardData } from "./weather";
+import type { WeatherCardData } from "./weather";
 
 export interface Conversation {
   id: string;
@@ -61,6 +65,7 @@ export interface ChatMessage {
   imageUrl?: string;
   imageGenerating?: boolean;
   sources?: DocumentSource[];
+  weatherCard?: WeatherCardData;
 }
 
 export type LaunchStatus = "live" | "beta" | "coming_soon" | "disabled";
@@ -163,7 +168,7 @@ export const chatApi = {
     history?: { role: "user" | "assistant"; content: string }[];
     systemPrompt?: string;
     projectId?: string;
-  }) => api<{ content: string; modelId: string; displayName?: string; provider?: string; providerModelId?: string; tokensUsed?: number; router?: Record<string, unknown>; imageUrl?: string; type?: string; sources?: DocumentSource[] }>("/api/ai/respond", {
+  }) => api<{ content: string; modelId: string; displayName?: string; provider?: string; providerModelId?: string; tokensUsed?: number; router?: Record<string, unknown>; imageUrl?: string; type?: string; sources?: DocumentSource[]; weatherCard?: WeatherCardData }>("/api/ai/respond", {
     method: "POST",
     body: JSON.stringify(body),
   }),

@@ -193,13 +193,20 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
     );
 
     let imageMeta: { imageUrl: string; type: string } | null = null;
-    let sourcesMeta: Array<{ index: number; filename: string; excerpt: string }> | undefined;
+    let sourcesMeta: Array<{ index: number; filename: string; excerpt: string; url?: string }> | undefined;
+    let weatherCardMeta: unknown;
 
     for await (const chunk of streamAiResponse(user, reqBody)) {
       if (typeof chunk === "object" && chunk && "image" in chunk) {
         const img = chunk.image;
         model = getModelById(img.modelId) ?? model;
         imageMeta = { imageUrl: img.imageUrl!, type: "image" };
+        continue;
+      }
+      if (typeof chunk === "object" && chunk && "weatherCard" in chunk) {
+        weatherCardMeta = chunk.weatherCard;
+        // Push card immediately so the UI can animate before text finishes
+        res.write(`data: ${JSON.stringify({ meta: { weatherCard: weatherCardMeta } })}\n\n`);
         continue;
       }
       if (typeof chunk === "object" && chunk && "sources" in chunk) {
@@ -222,6 +229,7 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
             providerModelId: imageMeta ? "dall-e-3" : model.providerModelId,
             ...(imageMeta ?? {}),
             ...(sourcesMeta ? { sources: sourcesMeta } : {}),
+            ...(weatherCardMeta ? { weatherCard: weatherCardMeta } : {}),
           },
         })}\n\n`
       );
