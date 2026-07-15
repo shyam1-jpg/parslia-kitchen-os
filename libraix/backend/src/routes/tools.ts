@@ -221,9 +221,23 @@ router.post("/research", async (req, res) => {
   }
 });
 
+const LIVE_VISION_SYSTEM = `You are Libraix Live Vision — a hands-on visual guide like having an expert looking through the user's phone camera.
+
+Your job with each frame:
+1. Identify the product, machinery, equipment, labels, screens, parts, or environment you can actually see.
+2. Read visible text, model numbers, warning labels, and UI elements when legible.
+3. Give clear step-by-step instructions for what to do next (use numbered steps).
+4. If something looks wrong (error lights, damage, misalignment, spills, wrong settings), say what you notice and how to fix or safely check it.
+5. Ask at most one short clarifying question only when the next action depends on it.
+6. Prefer safety first for power tools, electricity, chemicals, gas, and moving machinery.
+7. Stay in the user's language. Be direct — no filler.
+8. Remember prior turns in this live session; continue the same procedure instead of restarting from scratch unless the scene clearly changed.
+
+Format: short identification → steps → (optional) what to show next on camera.`;
+
 /**
  * POST /api/tools/vision
- * Send a base64 image + question to GPT-4o vision. Returns AI analysis.
+ * GPT-4o vision — snapshot or live_assist (equipment / product step-by-step coaching).
  */
 router.post("/vision", async (req, res) => {
   const row = findUserById(req.session.userId!);
@@ -233,7 +247,22 @@ router.post("/vision", async (req, res) => {
   const schema = z.object({
     imageBase64: z.string().min(100).max(10_000_000),
     mimeType: z.string().default("image/jpeg"),
-    question: z.string().max(2000).optional().default("What do you see in this image? Describe it fully and helpfully."),
+    question: z
+      .string()
+      .max(2000)
+      .optional()
+      .default("What do you see? Identify it and tell me step-by-step what to do."),
+    mode: z.enum(["snapshot", "live_assist"]).optional().default("live_assist"),
+    history: z
+      .array(
+        z.object({
+          role: z.enum(["user", "assistant"]),
+          text: z.string().max(4000),
+        })
+      )
+      .max(12)
+      .optional()
+      .default([]),
   });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
@@ -247,27 +276,44 @@ router.post("/vision", async (req, res) => {
   const apiKey = process.env.OPENAI_API_KEY?.trim() ?? "";
   if (!apiKey) return res.status(503).json({ error: "VISION_NOT_CONFIGURED" });
 
+  const historyMsgs = parsed.data.history.slice(-8).map((h) => ({
+    role: h.role as "user" | "assistant",
+    content: h.text.slice(0, 2000),
+  }));
+
+  const userText =
+    parsed.data.mode === "live_assist"
+      ? `Live camera frame. ${parsed.data.question}`
+      : parsed.data.question;
+
   try {
     const visionRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "gpt-4o",
-        max_tokens: 1024,
+        model: process.env.OPENAI_VISION_MODEL?.trim() || "gpt-4o",
+        max_tokens: parsed.data.mode === "live_assist" ? 1400 : 1024,
         messages: [
+          ...(parsed.data.mode === "live_assist"
+            ? [{ role: "system" as const, content: LIVE_VISION_SYSTEM }]
+            : []),
+          ...historyMsgs,
           {
-            role: "user",
+            role: "user" as const,
             content: [
               {
                 type: "image_url",
-                image_url: { url: `data:${parsed.data.mimeType};base64,${parsed.data.imageBase64}`, detail: "auto" },
+                image_url: {
+                  url: `data:${parsed.data.mimeType};base64,${parsed.data.imageBase64}`,
+                  detail: "high",
+                },
               },
-              { type: "text", text: parsed.data.question },
+              { type: "text", text: userText },
             ],
           },
         ],
       }),
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(45_000),
     });
 
     if (!visionRes.ok) {
@@ -283,7 +329,7 @@ router.post("/vision", async (req, res) => {
     if (!content) return res.status(502).json({ error: "VISION_NO_RESPONSE" });
 
     recordMessageUsage(user.id, model.tier !== "free", data.usage?.total_tokens ?? 0, 0);
-    res.json({ content, model: "gpt-4o" });
+    res.json({ content, model: "gpt-4o", mode: parsed.data.mode });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "VISION_FAILED";
     if (!res.headersSent) res.status(502).json({ error: msg });

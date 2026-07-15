@@ -415,6 +415,40 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
     setError("");
   }, []);
 
+  /**
+   * Share a camera JPEG with the live voice model (Realtime input_image).
+   * Call while status === "live" so Libraix can see what you're pointing at.
+   */
+  const sendVisionFrame = useCallback((base64Jpeg: string, prompt?: string) => {
+    const dc = dcRef.current;
+    if (!dc || dc.readyState !== "open") return false;
+    const text =
+      prompt?.trim() ||
+      "Look at my camera frame. Identify what you see and guide me step by step. If something looks wrong, help me fix it safely.";
+    try {
+      dc.send(
+        JSON.stringify({
+          type: "conversation.item.create",
+          item: {
+            type: "message",
+            role: "user",
+            content: [
+              {
+                type: "input_image",
+                image_url: `data:image/jpeg;base64,${base64Jpeg}`,
+              },
+              { type: "input_text", text },
+            ],
+          },
+        })
+      );
+      dc.send(JSON.stringify({ type: "response.create" }));
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   return {
     status,
     active: status === "live" || status === "connecting",
@@ -433,5 +467,6 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
     stop,
     toggle,
     clearError,
+    sendVisionFrame,
   };
 }

@@ -776,43 +776,97 @@ export function AppPage() {
 
   const initials = user?.displayName?.[0] ?? user?.email[0]?.toUpperCase() ?? "?";
 
-  const handleCameraCapture = async () => {
+  const openLiveVision = async () => {
+    if (!camera.open) await camera.openCamera("environment");
+  };
+
+  const askLiveVision = async (prompt?: string) => {
     if (!camera.open) {
-      await camera.openCamera();
+      await camera.openCamera("environment");
       return;
     }
-    const result = camera.takePhoto();
-    if (!result) return;
-    camera.closeCamera();
-    const question = input.trim() || "What do you see in this image? Describe it and help me with anything relevant.";
-    const userMsg = `📷 [Camera photo] ${question}`;
-    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content: userMsg, createdAt: new Date().toISOString() }]);
+    const question =
+      (prompt ?? input).trim() ||
+      "What do you see? Identify the product or equipment and give me clear step-by-step instructions. If something looks wrong, tell me how to fix it safely.";
+    const userMsg = `📷 Live Vision: ${question}`;
+    setMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), role: "user", content: userMsg, createdAt: new Date().toISOString() },
+    ]);
     const assistantId2 = crypto.randomUUID();
-    setMessages((prev) => [...prev, { id: assistantId2, role: "assistant", content: "Analysing your photo…", createdAt: new Date().toISOString() }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: assistantId2,
+        role: "assistant",
+        content: "Looking through your camera…",
+        createdAt: new Date().toISOString(),
+      },
+    ]);
     setLoading(true);
     setInput("");
     try {
-      const reply = await camera.analyse(question, result);
-      setMessages((prev) => prev.map((m) => m.id === assistantId2 ? { ...m, content: reply, modelLabel: "Vision powered by GPT-4o" } : m));
+      const result = await camera.askLive(question);
+      if (!result) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId2
+              ? { ...m, content: "Camera isn’t ready yet — wait for the live picture, then tap Guide me again." }
+              : m
+          )
+        );
+        return;
+      }
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId2
+            ? { ...m, content: result.reply, modelLabel: "Live Vision · GPT-4o" }
+            : m
+        )
+      );
+      // Speak guidance on phones so it feels like a live coach (user can Stop from Listen)
+      void speechOut.speak(result.reply);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "VISION_FAILED";
-      setMessages((prev) => prev.map((m) => m.id === assistantId2 ? { ...m, content: `❌ Could not analyse photo: ${msg}` } : m));
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId2 ? { ...m, content: `Could not analyse camera: ${msg}` } : m
+        )
+      );
     } finally {
       setLoading(false);
     }
   };
+
+  const LIVE_VISION_CHIPS = [
+    "What is this product / machine?",
+    "Tell me step-by-step what to do",
+    "Something’s wrong — help me fix it",
+    "Read the labels and settings I can see",
+    "What’s the next step from here?",
+  ];
 
   return (
     <div className="app-shell">
       {camera.open && (
         <div className="camera-modal">
           <div className="camera-backdrop" onClick={camera.closeCamera} />
-          <div className="camera-box">
+          <div className="camera-box" role="dialog" aria-label="Live Vision Assist">
             <div className="camera-header">
-              <span>📷 Camera</span>
-              <button className="btn btn-ghost btn-sm" onClick={camera.closeCamera}>✕ Close</button>
+              <span>📷 Live Vision Assist</span>
+              <div className="camera-header-actions">
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => void camera.flipCamera()} title="Flip camera">
+                  Flip
+                </button>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={camera.closeCamera}>
+                  Done
+                </button>
+              </div>
             </div>
-            {camera.error && <div className="error-banner" style={{ margin: "0 0 8px" }}>{camera.error}</div>}
+            <p className="camera-sub">
+              Point at a product, machine, screen, or part. Libraix keeps watching this session — ask follow-ups without closing the camera.
+            </p>
+            {camera.error && <div className="error-banner" style={{ margin: 0 }}>{camera.error}</div>}
             <video
               ref={camera.attachStream}
               autoPlay
@@ -820,20 +874,36 @@ export function AppPage() {
               muted
               className="camera-video"
             />
+            <div className="camera-quick">
+              {LIVE_VISION_CHIPS.map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  className="camera-chip"
+                  disabled={camera.analysing || loading}
+                  onClick={() => void askLiveVision(chip)}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
             <div className="camera-footer">
               <input
                 className="input"
-                placeholder="What do you want to know? (optional)"
+                placeholder="Ask about what you see…"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleCameraCapture(); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void askLiveVision();
+                }}
               />
               <button
+                type="button"
                 className="btn btn-primary"
-                onClick={handleCameraCapture}
-                disabled={camera.analysing}
+                onClick={() => void askLiveVision()}
+                disabled={camera.analysing || loading}
               >
-                {camera.analysing ? "Analysing…" : "📸 Capture & Ask"}
+                {camera.analysing ? "Looking…" : "Guide me"}
               </button>
             </div>
           </div>
@@ -1261,7 +1331,7 @@ export function AppPage() {
           onToggleImageMode={() => setImageMode((v) => !v)}
           onFileSelect={handleFileAttach}
           onDeepResearch={() => setRouterMode("deep-research")}
-          onCamera={handleCameraCapture}
+          onCamera={() => void openLiveVision()}
           speechLocale={speechLocale}
           liveVoiceId={speechOut.voice}
           onLiveTranscript={appendLiveTranscript}

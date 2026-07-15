@@ -1,7 +1,49 @@
-import { useEffect, useRef, type ReactNode, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode, type KeyboardEvent } from "react";
 import { IconAttach, IconMic, IconMicOff, IconSearch, IconSend } from "../components/Layout";
 import { useSpeechInput } from "../lib/useSpeechInput";
 import { useLiveVoice, type LiveTranscript } from "../lib/useLiveVoice";
+
+async function captureEnvironmentFrame(): Promise<string | null> {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false,
+    });
+    const video = document.createElement("video");
+    video.playsInline = true;
+    video.muted = true;
+    video.srcObject = stream;
+    await video.play();
+    // Wait for a real frame
+    await new Promise<void>((resolve) => {
+      if (video.videoWidth) {
+        resolve();
+        return;
+      }
+      video.onloadeddata = () => resolve();
+      window.setTimeout(() => resolve(), 800);
+    });
+    await new Promise((r) => window.setTimeout(r, 120));
+    const canvas = document.createElement("canvas");
+    const w = video.videoWidth || 1280;
+    const h = video.videoHeight || 720;
+    const scale = Math.min(1, 1280 / w);
+    canvas.width = Math.round(w * scale);
+    canvas.height = Math.round(h * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      stream.getTracks().forEach((t) => t.stop());
+      return null;
+    }
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    stream.getTracks().forEach((t) => t.stop());
+    video.srcObject = null;
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+    return dataUrl.split(",")[1] ?? null;
+  } catch {
+    return null;
+  }
+}
 
 interface ChatComposerProps {
   value: string;
@@ -62,6 +104,8 @@ export function ChatComposer({
   });
   const voiceBlocked =
     !voiceUnlimited && typeof voiceSecondsRemaining === "number" && voiceSecondsRemaining >= 0 && voiceSecondsRemaining < 15;
+  const [sharingVision, setSharingVision] = useState(false);
+  const [visionShareError, setVisionShareError] = useState("");
 
   // Stop dictation mic when a reply starts so it doesn't keep typing over the chat
   useEffect(() => {
@@ -74,6 +118,27 @@ export function ChatComposer({
     if (live.active) speech.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live.active]);
+
+  const shareLiveCamera = useCallback(async () => {
+    if (!live.live || sharingVision) return;
+    setSharingVision(true);
+    setVisionShareError("");
+    try {
+      const frame = await captureEnvironmentFrame();
+      if (!frame) {
+        throw new Error("Couldn’t open camera. Allow Camera, then try Show view again.");
+      }
+      const ok = live.sendVisionFrame(
+        frame,
+        "I'm showing you my camera. Identify the product or equipment and guide me step by step. If something looks wrong, help me fix it safely."
+      );
+      if (!ok) throw new Error("Live Voice isn’t ready to see the camera yet — try again in a second.");
+    } catch (e) {
+      setVisionShareError(e instanceof Error ? e.message : "Couldn’t share camera.");
+    } finally {
+      setSharingVision(false);
+    }
+  }, [live, sharingVision]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -88,12 +153,12 @@ export function ChatComposer({
   return (
     <div className="composer-wrap">
       {extraAbove}
-      {(speech.error || live.error) && (
+      {(speech.error || live.error || visionShareError) && (
         <div
-          className={`composer-banner ${/Mic blocked|lock icon|Settings →/i.test(speech.error || live.error) ? "info-banner" : "error-banner"}`}
+          className={`composer-banner ${/Mic blocked|lock icon|Settings →|Aa →|Camera/i.test(speech.error || live.error || visionShareError) ? "info-banner" : "error-banner"}`}
           role="status"
         >
-          {speech.error || live.error}
+          {speech.error || live.error || visionShareError}
         </div>
       )}
       {live.live && (
@@ -107,6 +172,16 @@ export function ChatComposer({
             </em>
           ) : null}
           {live.partialUser ? <em className="voice-partial"> Hearing: {live.partialUser}</em> : null}
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            style={{ marginLeft: 8 }}
+            disabled={sharingVision}
+            onClick={() => void shareLiveCamera()}
+            title="Share a live camera view so Libraix can see what you’re pointing at"
+          >
+            {sharingVision ? "Sharing…" : "📷 Show view"}
+          </button>
         </div>
       )}
       {!live.active && !voiceUnlimited && typeof voiceSecondsRemaining === "number" && voiceSecondsRemaining >= 0 && (
@@ -168,7 +243,7 @@ export function ChatComposer({
             <button
               type="button"
               className="composer-tool-btn"
-              title="Open camera — take a photo and ask AI about it"
+              title="Live Vision — point camera at a product or machine for step-by-step help"
               disabled={loading || streaming || live.active}
               onClick={onCamera}
             >
