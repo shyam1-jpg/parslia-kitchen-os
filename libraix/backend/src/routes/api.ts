@@ -119,6 +119,7 @@ const respondSchema = z.object({
   projectId: z.string().optional(),
   systemPrompt: z.string().max(8000).optional(),
   useMemory: z.boolean().optional(),
+  preferredLanguage: z.string().max(16).optional(),
   history: z
     .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() }))
     .max(50)
@@ -143,6 +144,7 @@ router.post("/ai/respond", requireAuth, async (req, res) => {
       projectId: parsed.data.projectId,
       conversationId: parsed.data.conversationId,
       useMemory: parsed.data.useMemory,
+      preferredLanguage: parsed.data.preferredLanguage,
     });
     res.json(result);
   } catch (e) {
@@ -181,6 +183,7 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
       projectId: parsed.data.projectId,
       conversationId: parsed.data.conversationId,
       useMemory: parsed.data.useMemory,
+      preferredLanguage: parsed.data.preferredLanguage,
     };
 
     let model = getModelById(

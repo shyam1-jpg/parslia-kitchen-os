@@ -16,6 +16,8 @@ interface ChatComposerProps {
   onFileSelect?: (file: File) => void;
   onDeepResearch?: () => void;
   onCamera?: () => void;
+  /** BCP-47 locale for speech recognition (hi-IN, ta-IN, …). */
+  speechLocale?: string;
   extraAbove?: ReactNode;
 }
 
@@ -33,10 +35,11 @@ export function ChatComposer({
   onFileSelect,
   onDeepResearch,
   onCamera,
+  speechLocale,
   extraAbove,
 }: ChatComposerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const speech = useSpeechInput(onChange);
+  const speech = useSpeechInput(onChange, { speechLocale });
 
   // Stop mic when a reply starts so it doesn't keep typing over the chat
   useEffect(() => {

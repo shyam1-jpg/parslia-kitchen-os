@@ -19,6 +19,8 @@ export interface AiRequest {
   projectId?: string;
   conversationId?: string;
   useMemory?: boolean;
+  /** ISO-ish language code, or "auto" / undefined to detect from the message. */
+  preferredLanguage?: string;
 }
 
 export interface AiResponse {

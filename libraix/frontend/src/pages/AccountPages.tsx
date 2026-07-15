@@ -7,6 +7,7 @@ import { authApi, billingApi } from "../lib/api";
 import { advancedApi, type Memory } from "../lib/advanced";
 import { friendlyError } from "../lib/errors";
 import { useSpeechOutput, type VoiceOption } from "../lib/useSpeechOutput";
+import { SPEECH_LANGUAGE_OPTIONS } from "../lib/language";
 
 export function AccountPage() {
   const { user, usage, logout, refresh } = useAuth();
@@ -201,8 +202,31 @@ export function SettingsPage() {
         <div className="settings-group">
           <h2>Voice</h2>
           <p style={{ fontSize: 13, color: "var(--dim)", marginBottom: 12 }}>
-            AI-powered voice powered by OpenAI TTS — much more natural than the browser default.
+            AI voice works in many languages — speak Hindi, Tamil, Spanish, etc. and Libraix answers in the same language. OpenAI TTS reads the reply naturally in that language.
           </p>
+          <div className="settings-row" style={{ flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+            <span>Reply language</span>
+            <select
+              className="model-select"
+              defaultValue={(() => {
+                try {
+                  return localStorage.getItem("libraix_reply_lang") || "auto";
+                } catch {
+                  return "auto";
+                }
+              })()}
+              onChange={(e) => {
+                try {
+                  localStorage.setItem("libraix_reply_lang", e.target.value);
+                } catch { /* ignore */ }
+              }}
+            >
+              <option value="auto">Auto-detect from your message</option>
+              {SPEECH_LANGUAGE_OPTIONS.map((o) => (
+                <option key={o.code} value={o.code}>{o.name}</option>
+              ))}
+            </select>
+          </div>
           {tts.voices.length > 0 && (
             <div className="settings-row" style={{ flexWrap: "wrap", gap: 8 }}>
               <span>Voice style</span>
@@ -223,7 +247,7 @@ export function SettingsPage() {
               disabled={tts.loading || tts.speaking}
               onClick={() => tts.speaking || tts.loading
                 ? tts.stop()
-                : tts.speak("Hello! This is how I sound. You can change my voice using the menu above.")}
+                : tts.speak("Hello! Namaste! Vanakkam! This is how I sound in different languages.")}
             >
               {tts.loading ? "⏳ Loading…" : tts.speaking ? "■ Stop preview" : "🔊 Preview voice"}
             </button>

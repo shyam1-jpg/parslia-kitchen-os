@@ -16,6 +16,7 @@ export function getBuildInfo() {
       sourceCache: true,
       legalDocuments: true,
       naturalVoiceTts: true,
+      multilingualVoice: true,
     },
   };
 }

@@ -122,6 +122,7 @@ export const advancedApi = {
       systemPrompt?: string;
       projectId?: string;
       conversationId?: string;
+      preferredLanguage?: string;
     },
     options?: { signal?: AbortSignal; timeoutMs?: number }
   ): AsyncGenerator<string | { meta: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string; sources?: DocumentSource[]; weatherCard?: WeatherCardData } }> {
