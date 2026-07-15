@@ -23,6 +23,11 @@ interface ChatComposerProps {
   liveVoiceId?: string;
   /** Append Live Voice transcripts into the chat thread */
   onLiveTranscript?: (entry: LiveTranscript) => void;
+  /** Refresh daily usage after a Live Voice session reports seconds */
+  onLiveUsageReported?: () => void;
+  /** Remaining Live Voice seconds today (−1 / undefined = unlimited) */
+  voiceSecondsRemaining?: number | null;
+  voiceUnlimited?: boolean;
   extraAbove?: ReactNode;
 }
 
@@ -43,11 +48,20 @@ export function ChatComposer({
   speechLocale,
   liveVoiceId,
   onLiveTranscript,
+  onLiveUsageReported,
+  voiceSecondsRemaining,
+  voiceUnlimited = false,
   extraAbove,
 }: ChatComposerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const speech = useSpeechInput(onChange, { speechLocale });
-  const live = useLiveVoice({ voice: liveVoiceId, onTranscript: onLiveTranscript });
+  const live = useLiveVoice({
+    voice: liveVoiceId,
+    onTranscript: onLiveTranscript,
+    onUsageReported: onLiveUsageReported,
+  });
+  const voiceBlocked =
+    !voiceUnlimited && typeof voiceSecondsRemaining === "number" && voiceSecondsRemaining >= 0 && voiceSecondsRemaining < 15;
 
   // Stop dictation mic when a reply starts so it doesn't keep typing over the chat
   useEffect(() => {
@@ -86,7 +100,19 @@ export function ChatComposer({
         <div className="voice-live-bar composer-banner">
           <span className="voice-pulse" aria-hidden />
           Live Voice — speak naturally. Tap 🎙 again to hang up.
+          {live.secondsLeft != null ? (
+            <em className="voice-partial">
+              {" "}
+              · {Math.floor(live.secondsLeft / 60)}:{String(live.secondsLeft % 60).padStart(2, "0")} left
+            </em>
+          ) : null}
           {live.partialUser ? <em className="voice-partial"> Hearing: {live.partialUser}</em> : null}
+        </div>
+      )}
+      {!live.active && !voiceUnlimited && typeof voiceSecondsRemaining === "number" && voiceSecondsRemaining >= 0 && (
+        <div className="info-banner composer-banner">
+          Free Live Voice: {Math.max(0, Math.floor(voiceSecondsRemaining / 60))}m {voiceSecondsRemaining % 60}s left today
+          (5 min/day). Pro = unlimited.
         </div>
       )}
       {live.connecting && (
@@ -173,16 +199,18 @@ export function ChatComposer({
           <button
             type="button"
             className={`composer-live-btn ${live.active ? "active" : ""} ${!live.supported ? "mic-unsupported" : ""}`}
+            disabled={loading || streaming || !live.supported || (voiceBlocked && !live.active)}
             title={
-              !live.supported
-                ? "Live Voice needs Chrome, Edge, or Safari"
-                : live.live
-                  ? "End Live Voice"
-                  : live.connecting
-                    ? "Connecting…"
-                    : "Live Voice — talk with Libraix (Realtime)"
+              voiceBlocked && !live.active
+                ? "Free Live Voice used up for today (5 min). Upgrade for unlimited."
+                : !live.supported
+                  ? "Live Voice needs Chrome, Edge, or Safari"
+                  : live.live
+                    ? "End Live Voice"
+                    : live.connecting
+                      ? "Connecting…"
+                      : "Live Voice — talk with Libraix (Realtime)"
             }
-            disabled={loading || streaming || !live.supported}
             onClick={() => {
               live.clearError();
               speech.stop();

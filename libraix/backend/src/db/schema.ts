@@ -134,7 +134,16 @@ export function initDb() {
   migrateUserLocationColumns();
   migrateSourceCache();
   migrateShipAllFeatures();
+  migrateVoiceUsage();
   seedDefaultSiteConfig();
+}
+
+function migrateVoiceUsage() {
+  const cols = db.prepare("PRAGMA table_info(usage_daily)").all() as { name: string }[];
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has("voice_seconds_used")) {
+    db.exec("ALTER TABLE usage_daily ADD COLUMN voice_seconds_used INTEGER NOT NULL DEFAULT 0");
+  }
 }
 
 /** Prompt library, custom assistants, share links, folders, automations, connectors. */

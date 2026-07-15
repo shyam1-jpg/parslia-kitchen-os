@@ -192,7 +192,7 @@ export function AdminDashboardPage() {
             <section>
               <h2>Plan limits (no code deploy required)</h2>
               {(["free", "pro", "enterprise"] as const).map((plan) => {
-                const plans = config.plans as Record<string, { dailyMessages: number; premiumModelMessages: number; images: number }>;
+                const plans = config.plans as Record<string, { dailyMessages: number; premiumModelMessages: number; images: number; liveVoiceMinutes?: number }>;
                 const p = plans[plan];
                 return (
                   <div key={plan} className="admin-config-block">
@@ -200,6 +200,20 @@ export function AdminDashboardPage() {
                     <label>Daily messages <input type="number" className="input" value={p.dailyMessages} onChange={(e) => setConfig({ ...config, plans: { ...plans, [plan]: { ...p, dailyMessages: Number(e.target.value) } } })} /></label>
                     <label>Premium messages <input type="number" className="input" value={p.premiumModelMessages} onChange={(e) => setConfig({ ...config, plans: { ...plans, [plan]: { ...p, premiumModelMessages: Number(e.target.value) } } })} /></label>
                     <label>Images <input type="number" className="input" value={p.images} onChange={(e) => setConfig({ ...config, plans: { ...plans, [plan]: { ...p, images: Number(e.target.value) } } })} /></label>
+                    <label>
+                      Live Voice minutes/day (−1 = unlimited)
+                      <input
+                        type="number"
+                        className="input"
+                        value={p.liveVoiceMinutes ?? (plan === "free" ? 5 : -1)}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            plans: { ...plans, [plan]: { ...p, liveVoiceMinutes: Number(e.target.value) } },
+                          })
+                        }
+                      />
+                    </label>
                   </div>
                 );
               })}

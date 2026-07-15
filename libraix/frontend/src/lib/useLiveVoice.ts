@@ -11,6 +11,8 @@ interface UseLiveVoiceOptions {
   /** Preferred Realtime / TTS voice id */
   voice?: string;
   onTranscript?: (entry: LiveTranscript) => void;
+  /** Called after usage is reported so the UI can refresh daily quotas */
+  onUsageReported?: () => void;
 }
 
 function isSecureEnough(): boolean {
@@ -58,7 +60,12 @@ function friendlyLiveError(raw: string, name?: string): string {
   if (/REALTIME_NOT_ENABLED|REALTIME_UNAUTHORIZED/i.test(blob)) {
     return "Live Voice needs OpenAI Realtime enabled on the API key. Mic + speak-back still work.";
   }
-  if (/USAGE_LIMIT/i.test(blob)) return "Daily message limit reached — try again tomorrow or upgrade.";
+  if (/VOICE_LIMIT/i.test(blob)) {
+    return "Free Live Voice is limited to 5 minutes/day. Upgrade to Pro for unlimited Live Voice.";
+  }
+  if (/USAGE_LIMIT/i.test(blob)) {
+    return "Daily message limit reached on Free (30/day). Upgrade to Pro for more messages.";
+  }
   if (/NotAllowedError|Permission denied|Permission|NotAllowed/i.test(blob)) return micBlockedHelp();
   if (/NotFoundError|DevicesNotFound/i.test(blob)) return "No microphone found. Plug one in (or check system mic settings) and try again.";
   if (/NotReadableError|TrackStartError|AbortError/i.test(blob)) {
@@ -79,13 +86,20 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
   const [status, setStatus] = useState<LiveVoiceStatus>("idle");
   const [error, setError] = useState("");
   const [partialUser, setPartialUser] = useState("");
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const dcRef = useRef<RTCDataChannel | null>(null);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const limitTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startedAtRef = useRef<number | null>(null);
+  const maxSecondsRef = useRef(0);
+  const reportedRef = useRef(false);
   const onTranscriptRef = useRef(opts.onTranscript);
   onTranscriptRef.current = opts.onTranscript;
+  const onUsageReportedRef = useRef(opts.onUsageReported);
+  onUsageReportedRef.current = opts.onUsageReported;
   const voiceRef = useRef(opts.voice);
   voiceRef.current = opts.voice;
 
@@ -99,7 +113,29 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
     }
   }, []);
 
+  const reportUsage = useCallback(async () => {
+    if (reportedRef.current || !startedAtRef.current) return;
+    reportedRef.current = true;
+    const seconds = Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000));
+    startedAtRef.current = null;
+    try {
+      await fetch("/api/tools/realtime/usage", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seconds }),
+      });
+      onUsageReportedRef.current?.();
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const cleanup = useCallback(() => {
+    if (limitTimerRef.current) {
+      clearInterval(limitTimerRef.current);
+      limitTimerRef.current = null;
+    }
     try {
       dcRef.current?.close();
     } catch {
@@ -122,17 +158,20 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
   }, []);
 
   const stop = useCallback(() => {
+    void reportUsage();
     cleanup();
     setPartialUser("");
+    setSecondsLeft(null);
     setStatus("idle");
-  }, [cleanup]);
+  }, [cleanup, reportUsage]);
 
   useEffect(
     () => () => {
+      void reportUsage();
       cleanup();
       if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
     },
-    [cleanup]
+    [cleanup, reportUsage]
   );
 
   const handleServerEvent = useCallback((raw: string) => {
@@ -283,15 +322,48 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
         throw new Error(detail);
       }
 
-      const answerSdp = await res.text();
-      await pc.setRemoteDescription({ type: "answer", sdp: answerSdp });
+      const payload = (await res.json()) as {
+        sdp: string;
+        maxSessionSeconds?: number;
+        remainingVoiceSeconds?: number;
+        voiceUnlimited?: boolean;
+      };
+      if (!payload.sdp) throw new Error("Couldn’t start Live Voice session.");
+      await pc.setRemoteDescription({ type: "answer", sdp: payload.sdp });
+
+      const maxSec = Math.max(15, payload.maxSessionSeconds ?? 300);
+      maxSecondsRef.current = maxSec;
+      startedAtRef.current = Date.now();
+      reportedRef.current = false;
+      setSecondsLeft(payload.voiceUnlimited ? null : maxSec);
+
+      if (limitTimerRef.current) clearInterval(limitTimerRef.current);
+      limitTimerRef.current = setInterval(() => {
+        if (!startedAtRef.current) return;
+        const elapsed = Math.round((Date.now() - startedAtRef.current) / 1000);
+        const left = maxSecondsRef.current - elapsed;
+        if (!payload.voiceUnlimited) setSecondsLeft(Math.max(0, left));
+        if (left <= 0) {
+          showError(
+            payload.voiceUnlimited
+              ? "Live Voice session ended."
+              : "Free Live Voice time used up for today (5 min). Upgrade to Pro for unlimited voice."
+          );
+          void reportUsage();
+          cleanup();
+          setSecondsLeft(null);
+          setStatus("idle");
+        }
+      }, 1000);
 
       pc.onconnectionstatechange = () => {
         if (
           pcRef.current === pc &&
           (pc.connectionState === "failed" || pc.connectionState === "closed")
         ) {
+          void reportUsage();
           cleanup();
+          setSecondsLeft(null);
           setStatus("idle");
         }
       };
@@ -304,7 +376,7 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
       showError(msg);
       setStatus("error");
     }
-  }, [cleanup, handleServerEvent, showError, status]);
+  }, [cleanup, handleServerEvent, reportUsage, showError, status]);
 
   const toggle = useCallback(async () => {
     if (status === "live" || status === "connecting") {
@@ -326,6 +398,8 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
     live: status === "live",
     error,
     partialUser,
+    /** Seconds left in this free session; null when unlimited / idle */
+    secondsLeft,
     supported:
       typeof window !== "undefined" &&
       typeof RTCPeerConnection !== "undefined" &&

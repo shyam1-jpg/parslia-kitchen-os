@@ -16,10 +16,23 @@ export interface UsageSummary {
   imagesLimit: number;
   remainingMessages: number;
   limitReached: boolean;
+  /** Seconds of Live Voice used today */
+  voiceSecondsUsed: number;
+  /** Daily Live Voice allowance in seconds; -1 means unlimited */
+  voiceSecondsLimit: number;
+  remainingVoiceSeconds: number;
+  voiceUnlimited: boolean;
+  voiceLimitReached: boolean;
 }
 
 function getLimits(plan: PlanTier) {
   return getPlanLimits(plan);
+}
+
+function voiceLimitSeconds(plan: PlanTier): number {
+  const mins = getLimits(plan).liveVoiceMinutes ?? 0;
+  if (mins < 0) return -1;
+  return Math.max(0, mins) * 60;
 }
 
 export function getUsage(userId: string, plan: PlanTier): UsageSummary {
@@ -27,14 +40,25 @@ export function getUsage(userId: string, plan: PlanTier): UsageSummary {
   const row = db
     .prepare("SELECT * FROM usage_daily WHERE user_id = ? AND date = ?")
     .get(userId, date) as
-    | { messages_used: number; premium_used: number; images_used: number }
+    | {
+        messages_used: number;
+        premium_used: number;
+        images_used: number;
+        voice_seconds_used?: number;
+      }
     | undefined;
 
   const limits = getLimits(plan);
   const messagesUsed = row?.messages_used ?? 0;
   const premiumUsed = row?.premium_used ?? 0;
   const imagesUsed = row?.images_used ?? 0;
+  const voiceSecondsUsed = row?.voice_seconds_used ?? 0;
   const remainingMessages = Math.max(0, limits.dailyMessages - messagesUsed);
+  const voiceSecondsLimit = voiceLimitSeconds(plan);
+  const voiceUnlimited = voiceSecondsLimit < 0;
+  const remainingVoiceSeconds = voiceUnlimited
+    ? Number.MAX_SAFE_INTEGER
+    : Math.max(0, voiceSecondsLimit - voiceSecondsUsed);
 
   return {
     plan,
@@ -46,6 +70,11 @@ export function getUsage(userId: string, plan: PlanTier): UsageSummary {
     imagesLimit: limits.images,
     remainingMessages,
     limitReached: remainingMessages <= 0,
+    voiceSecondsUsed,
+    voiceSecondsLimit,
+    remainingVoiceSeconds: voiceUnlimited ? -1 : remainingVoiceSeconds,
+    voiceUnlimited,
+    voiceLimitReached: !voiceUnlimited && remainingVoiceSeconds <= 0,
   };
 }
 
@@ -82,4 +111,41 @@ export function recordImageUsage(userId: string) {
     ON CONFLICT(user_id, date) DO UPDATE SET
       images_used = images_used + 1
   `).run(userId, date);
+}
+
+export function canUseLiveVoice(userId: string, plan: PlanTier): boolean {
+  const usage = getUsage(userId, plan);
+  // Also require at least one chat message remaining so free accounts stay capped overall
+  if (usage.limitReached) return false;
+  return !usage.voiceLimitReached;
+}
+
+export function getLiveVoiceAllowance(userId: string, plan: PlanTier): {
+  maxSessionSeconds: number;
+  remainingVoiceSeconds: number;
+  voiceUnlimited: boolean;
+} {
+  const usage = getUsage(userId, plan);
+  if (usage.voiceUnlimited) {
+    return { maxSessionSeconds: 60 * 60, remainingVoiceSeconds: -1, voiceUnlimited: true }; // 1h soft cap per session
+  }
+  const remaining = Math.max(0, usage.remainingVoiceSeconds);
+  return {
+    maxSessionSeconds: remaining,
+    remainingVoiceSeconds: remaining,
+    voiceUnlimited: false,
+  };
+}
+
+/** Record Live Voice seconds after a session ends (or periodically). */
+export function recordVoiceUsage(userId: string, seconds: number) {
+  const add = Math.max(0, Math.min(Math.floor(seconds), 60 * 60));
+  if (add <= 0) return;
+  const date = today();
+  db.prepare(`
+    INSERT INTO usage_daily (user_id, date, voice_seconds_used)
+    VALUES (?, ?, ?)
+    ON CONFLICT(user_id, date) DO UPDATE SET
+      voice_seconds_used = voice_seconds_used + excluded.voice_seconds_used
+  `).run(userId, date, add);
 }

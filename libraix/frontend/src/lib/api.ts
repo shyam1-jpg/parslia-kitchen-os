@@ -19,6 +19,18 @@ export interface Usage {
   imagesLimit: number;
   remainingMessages: number;
   limitReached: boolean;
+  voiceSecondsUsed?: number;
+  voiceSecondsLimit?: number;
+  remainingVoiceSeconds?: number;
+  voiceUnlimited?: boolean;
+  voiceLimitReached?: boolean;
+}
+
+export interface PlanLimits {
+  dailyMessages: number;
+  premiumModelMessages: number;
+  images: number;
+  liveVoiceMinutes?: number;
 }
 
 export interface ModelInfo {
@@ -79,7 +91,7 @@ export interface Catalog {
   models: (ModelInfo & { launchStatus: LaunchStatus })[];
   tools: { id: string; name: string; description: string; tier: string; launchStatus: LaunchStatus }[];
   assistants: { id: string; name: string; description: string; systemPrompt: string; tier: string; launchStatus?: LaunchStatus }[];
-  plans: Record<string, { dailyMessages: number; premiumModelMessages: number; images: number }>;
+  plans: Record<string, PlanLimits>;
 }
 
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
