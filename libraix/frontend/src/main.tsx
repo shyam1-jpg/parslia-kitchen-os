@@ -15,12 +15,21 @@ import { ImagePage } from "./pages/ImagePage";
 import { SearchWorkspace, LibraryWorkspace, CodeWorkspace } from "./pages/WorkspacePages";
 import { SettingsPage, PrivacyPage, TermsPage } from "./pages/AccountPages";
 import { BillingPage } from "./pages/BillingPage";
+import { SharePage } from "./pages/SharePage";
 import { AdminLoginPage } from "./pages/admin/AdminLoginPage";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { SupportPage } from "./pages/SupportPage";
 import { AboutPage, BlogPage, ContactPage, CookiePolicyPage, RefundPolicyPage, AcceptableUsePage, SubscriptionsPage, SubprocessorsPage, SecurityPage, AiLimitationsPage, AccessibilityPage, VerifyEmailPage } from "./pages/LegalPages";
 import { NoIndex } from "./components/NoIndex";
+import { initTheme } from "./lib/theme";
 import "./styles/global.css";
+
+initTheme();
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -50,6 +59,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/share/:token" element={<SharePage />} />
 
             <Route element={<PublicOnlyRoute />}>
               <Route path="/login" element={<><NoIndex /><LoginPage /></>} />

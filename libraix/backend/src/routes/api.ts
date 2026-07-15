@@ -13,7 +13,7 @@ import { ProviderError } from "../providers/types.js";
 import { getPublicRuntimeConfig } from "../services/siteConfig.js";
 import { getCompanyInfo } from "../config/company.js";
 import { db } from "../db/schema.js";
-import { generateImage, getImageUsage } from "../services/images.js";
+import { generateImage, editImage, getImageUsage } from "../services/images.js";
 import { listConfiguredProviders } from "../providers/config.js";
 import { getCached, setCached } from "../services/cache.js";
 import { getSavedLocation, resolveLocationFromRequest, saveUserLocation } from "../services/location.js";
@@ -322,6 +322,34 @@ router.post("/images/generate", requireAuth, async (req, res) => {
 
   try {
     const result = await generateImage(user, parsed.data);
+    res.json(result);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "UNKNOWN";
+    if (msg === "IMAGE_LIMIT_REACHED") return res.status(429).json({ error: "IMAGE_LIMIT_REACHED" });
+    if (msg === "IMAGE_MODEL_UNAVAILABLE") return res.status(503).json({ error: "IMAGE_MODEL_UNAVAILABLE" });
+    handleAiError(e, res);
+  }
+});
+
+router.post("/images/edit", requireAuth, async (req, res) => {
+  const row = findUserById(req.session.userId!);
+  if (!row) return res.status(401).json({ error: "UNAUTHENTICATED" });
+  const user = toSafeUser(row);
+
+  if (!isFeatureEnabled("image-studio", user.plan)) {
+    return res.status(403).json({ error: "FEATURE_DISABLED" });
+  }
+
+  const schema = z.object({
+    prompt: z.string().min(1).max(4000),
+    sourceHint: z.string().max(500).optional(),
+    size: z.enum(["1024x1024", "1792x1024", "1024x1792"]).optional(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  try {
+    const result = await editImage(user, parsed.data);
     res.json(result);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "UNKNOWN";

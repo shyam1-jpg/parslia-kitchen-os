@@ -1,0 +1,17 @@
+{
+  "name": "Libraix",
+  "short_name": "Libraix",
+  "description": "One AI workspace. Multiple models.",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#05050f",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

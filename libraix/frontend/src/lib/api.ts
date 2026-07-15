@@ -52,6 +52,7 @@ export interface Conversation {
   pinned: boolean;
   archived?: boolean;
   projectId?: string | null;
+  folderId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -273,6 +274,15 @@ export const imageApi = {
   }) =>
     api<{ url: string; revisedPrompt?: string; modelId: string; displayName: string; provider: string; imageModel?: string; speed?: string }>(
       "/api/images/generate",
+      { method: "POST", body: JSON.stringify(body) }
+    ),
+  edit: (body: {
+    prompt: string;
+    sourceHint?: string;
+    size?: "1024x1024" | "1792x1024" | "1024x1792";
+  }) =>
+    api<{ url: string; revisedPrompt?: string; modelId: string; displayName: string; provider: string; imageModel?: string; speed?: string }>(
+      "/api/images/edit",
       { method: "POST", body: JSON.stringify(body) }
     ),
 };

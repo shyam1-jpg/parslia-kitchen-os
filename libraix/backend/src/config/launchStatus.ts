@@ -9,8 +9,12 @@ export const TOOL_LAUNCH_STATUS: Record<string, LaunchStatus> = {
   "link-analyser": "beta",
   "image-gen": "beta",
   voice: "beta",
-  "prompt-library": "coming_soon",
+  "prompt-library": "beta",
   assistants: "beta",
+  "code-sandbox": "beta",
+  canvas: "beta",
+  connectors: "beta",
+  automations: "beta",
 };
 
 export const MODEL_LAUNCH_STATUS: Record<string, LaunchStatus> = {

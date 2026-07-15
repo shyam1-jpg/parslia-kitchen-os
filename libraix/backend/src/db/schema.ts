@@ -133,7 +133,81 @@ export function initDb() {
   migrateUsersBillingColumns();
   migrateUserLocationColumns();
   migrateSourceCache();
+  migrateShipAllFeatures();
   seedDefaultSiteConfig();
+}
+
+/** Prompt library, custom assistants, share links, folders, automations, connectors. */
+function migrateShipAllFeatures() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS prompt_library (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_prompt_library_user ON prompt_library(user_id);
+
+    CREATE TABLE IF NOT EXISTS custom_assistants (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      system_prompt TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_custom_assistants_user ON custom_assistants(user_id);
+
+    CREATE TABLE IF NOT EXISTS shared_chats (
+      id TEXT PRIMARY KEY,
+      token TEXT NOT NULL UNIQUE,
+      conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_shared_chats_token ON shared_chats(token);
+
+    CREATE TABLE IF NOT EXISTS chat_folders (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_chat_folders_user ON chat_folders(user_id);
+
+    CREATE TABLE IF NOT EXISTS automations (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      prompt TEXT NOT NULL,
+      schedule TEXT NOT NULL DEFAULT 'daily',
+      enabled INTEGER NOT NULL DEFAULT 1,
+      last_run_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_automations_user ON automations(user_id);
+
+    CREATE TABLE IF NOT EXISTS connectors (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      provider TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'disconnected',
+      meta_json TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(user_id, provider)
+    );
+  `);
+
+  const cols = db.prepare("PRAGMA table_info(conversations)").all() as { name: string }[];
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has("folder_id")) {
+    db.exec("ALTER TABLE conversations ADD COLUMN folder_id TEXT REFERENCES chat_folders(id) ON DELETE SET NULL");
+  }
 }
 
 function migrateSourceCache() {

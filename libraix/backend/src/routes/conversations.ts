@@ -59,6 +59,7 @@ router.patch("/:id", requireAuth, (req, res) => {
     pinned?: boolean;
     archived?: boolean;
     projectId?: string | null;
+    folderId?: string | null;
   };
   const userId = req.session.userId!;
   const id = paramId(req);
@@ -67,11 +68,17 @@ router.patch("/:id", requireAuth, (req, res) => {
     const ok = updateConversationTitle(userId, id, body.title);
     if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
   }
-  if (body.pinned !== undefined || body.archived !== undefined || body.projectId !== undefined) {
+  if (
+    body.pinned !== undefined ||
+    body.archived !== undefined ||
+    body.projectId !== undefined ||
+    body.folderId !== undefined
+  ) {
     const ok = updateConversationMeta(userId, id, {
       pinned: body.pinned,
       archived: body.archived,
       projectId: body.projectId,
+      folderId: body.folderId,
     });
     if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
   }

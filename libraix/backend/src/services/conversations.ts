@@ -8,6 +8,7 @@ export interface Conversation {
   pinned: boolean;
   archived: boolean;
   projectId: string | null;
+  folderId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,6 +27,7 @@ type ConversationRow = {
   pinned: number;
   archived: number;
   project_id: string | null;
+  folder_id?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -38,6 +40,7 @@ function mapConversation(r: ConversationRow): Conversation {
     pinned: r.pinned === 1,
     archived: r.archived === 1,
     projectId: r.project_id,
+    folderId: r.folder_id ?? null,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -124,7 +127,7 @@ export function updateConversationTitle(userId: string, conversationId: string, 
 export function updateConversationMeta(
   userId: string,
   conversationId: string,
-  updates: { pinned?: boolean; archived?: boolean; projectId?: string | null }
+  updates: { pinned?: boolean; archived?: boolean; projectId?: string | null; folderId?: string | null }
 ): boolean {
   const sets: string[] = [];
   const vals: unknown[] = [];
@@ -139,6 +142,10 @@ export function updateConversationMeta(
   if (updates.projectId !== undefined) {
     sets.push("project_id = ?");
     vals.push(updates.projectId);
+  }
+  if (updates.folderId !== undefined) {
+    sets.push("folder_id = ?");
+    vals.push(updates.folderId);
   }
   if (!sets.length) return false;
   sets.push("updated_at = datetime('now')");

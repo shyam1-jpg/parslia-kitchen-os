@@ -15,6 +15,7 @@ import memoryRoutes from "./routes/memory.js";
 import projectRoutes from "./routes/projects.js";
 import billingRoutes, { stripeWebhookHandler } from "./routes/billing.js";
 import toolsRoutes from "./routes/tools.js";
+import workspaceExtrasRoutes from "./routes/workspaceExtras.js";
 import adminRoutes from "./routes/admin.js";
 import { getMaintenance } from "./services/siteConfig.js";
 import { resumeFileIndexQueue } from "./services/fileIndexQueue.js";
@@ -82,6 +83,7 @@ app.use(
 // Document upload routes need a larger JSON body limit
 app.use("/api/tools", express.json({ limit: "12mb" }), aiLimiter, toolsRoutes);
 app.use("/api/projects", express.json({ limit: "12mb" }), projectRoutes);
+app.use("/api/workspace", express.json({ limit: "2mb" }), aiLimiter, workspaceExtrasRoutes);
 
 app.use(express.json({ limit: "2mb" }));
 
