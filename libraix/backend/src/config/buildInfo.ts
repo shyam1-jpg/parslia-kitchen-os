@@ -31,6 +31,9 @@ export function getBuildInfo() {
       chatFolders: true,
       lightMode: true,
       pwa: true,
+      openWeightModels: true,
+      openrouterLlamaQwen: true,
+      ollamaLocalModels: true,
     },
   };
 }

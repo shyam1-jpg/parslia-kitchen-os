@@ -5,6 +5,7 @@ const PROVIDER_KEY_ENV: Record<string, string> = {
   google: "GOOGLE_API_KEY",
   xai: "XAI_API_KEY",
   ollama: "OLLAMA_API_KEY",
+  openrouter: "OPENROUTER_API_KEY",
 };
 
 /** True when the provider has an API key configured (OpenAI always shown — dev fallback). */

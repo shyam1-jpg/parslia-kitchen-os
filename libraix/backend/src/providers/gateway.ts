@@ -26,6 +26,20 @@ const ollamaProvider = createOpenAiCompatibleProvider({
   apiKeyEnv: "OLLAMA_API_KEY",
   baseUrl: process.env.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434",
   costPer1kTokensCents: 0,
+  authOptional: true,
+  configuredEnv: "OLLAMA_BASE_URL",
+});
+
+/** OpenRouter — cloud access to Llama, Qwen, and other open-weight models with one key. */
+const openrouterProvider = createOpenAiCompatibleProvider({
+  name: "openrouter",
+  apiKeyEnv: "OPENROUTER_API_KEY",
+  baseUrl: process.env.OPENROUTER_BASE_URL ?? "https://openrouter.ai/api",
+  costPer1kTokensCents: 0.2,
+  extraHeaders: {
+    "HTTP-Referer": process.env.FRONTEND_URL ?? "https://libraix.ai",
+    "X-Title": "Libraix",
+  },
 });
 
 const adapters: Record<string, AiProviderAdapter> = {
@@ -33,6 +47,7 @@ const adapters: Record<string, AiProviderAdapter> = {
   deepseek: deepseekProvider,
   xai: xaiProvider,
   ollama: ollamaProvider,
+  openrouter: openrouterProvider,
   anthropic: new AnthropicProvider(),
   google: new GoogleProvider(),
   meta: metaProvider,

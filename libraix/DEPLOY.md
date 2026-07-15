@@ -67,6 +67,23 @@ Optional tuning on Render:
 | `OPENAI_TEMPERATURE` | `0.7` | Response creativity |
 | `OPENAI_MAX_TOKENS` | `4096` | Max reply length |
 
+### Open-weight models (Llama, Qwen, DeepSeek, Ollama)
+
+| Variable | Purpose |
+|---|---|
+| `DEEPSEEK_API_KEY` | Enables Libraix DeepSeek (already supported) |
+| `OPENROUTER_API_KEY` | Enables **Libraix Llama** + **Libraix Qwen** in the cloud ([openrouter.ai](https://openrouter.ai)) |
+| `OPENROUTER_MODEL_LLAMA` | Override Llama model id (default `meta-llama/llama-3.3-70b-instruct`) |
+| `OPENROUTER_MODEL_QWEN` | Override Qwen model id (default `qwen/qwen-2.5-72b-instruct`) |
+| `OLLAMA_BASE_URL` | Public URL of your Ollama server (must be reachable from Render — not `localhost`) |
+| `OLLAMA_MODEL` / `OLLAMA_MODEL_LLAMA` / `OLLAMA_MODEL_QWEN` | Local model names pulled in Ollama |
+
+**Will it work?** Yes, when keys/hosts are set:
+
+- **Cloud Llama/Qwen** → add `OPENROUTER_API_KEY` on Render (easiest).
+- **Local Ollama** → run Ollama on a VPS/PC with a public URL (or tunnel), set `OLLAMA_BASE_URL`, then `ollama pull llama3.2` and `ollama pull qwen2.5`.
+- Render cannot talk to Ollama on your home laptop via `127.0.0.1`.
+
 Service URL: `https://libraix-api.onrender.com`
 
 ## Email (password reset)
