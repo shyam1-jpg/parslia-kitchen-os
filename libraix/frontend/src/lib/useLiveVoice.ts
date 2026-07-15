@@ -258,15 +258,34 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
       const audioEl = document.createElement("audio");
       audioEl.autoplay = true;
       audioEl.setAttribute("playsinline", "true");
-      // iOS often needs muted=false after a user gesture
+      audioEl.setAttribute("webkit-playsinline", "true");
+      (audioEl as HTMLAudioElement & { playsInline?: boolean }).playsInline = true;
+      // iOS often needs muted=false after a user gesture; never start muted
       audioEl.muted = false;
+      audioEl.volume = 1;
+      // Keep in DOM — some mobile browsers refuse detached MediaStream playback
+      audioEl.style.display = "none";
       document.body.appendChild(audioEl);
       audioRef.current = audioEl;
-      pc.ontrack = (e) => {
-        audioEl.srcObject = e.streams[0] ?? null;
+
+      const unlockPlay = () => {
         void audioEl.play().catch(() => {
-          /* autoplay may need a prior user gesture — start() is from a click */
+          /* will retry on track */
         });
+      };
+      unlockPlay();
+
+      pc.ontrack = (e) => {
+        const stream = e.streams[0] ?? new MediaStream([e.track]);
+        audioEl.srcObject = stream;
+        audioEl.muted = false;
+        audioEl.volume = 1;
+        const tryPlay = () =>
+          void audioEl.play().catch(() => {
+            /* user already gestured via 🎙 — retry once */
+            window.setTimeout(() => void audioEl.play().catch(() => {}), 120);
+          });
+        tryPlay();
       };
 
       for (const track of ms.getTracks()) {
