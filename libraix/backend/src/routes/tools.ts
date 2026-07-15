@@ -13,6 +13,7 @@ import { searchWeb } from "../services/webSearch.js";
 import { completeViaGateway } from "../providers/gateway.js";
 import { getModelById } from "../config/models.js";
 import { canSendMessage, recordMessageUsage } from "../services/usage.js";
+import { createRealtimeCall, resolveRealtimeVoice, realtimeSafetyId } from "../services/realtime.js";
 import { db } from "../db/schema.js";
 
 const router = Router();
@@ -401,6 +402,55 @@ router.patch("/tts/voice", (req, res) => {
   ).run(req.session.userId!, parsed.data.voice, parsed.data.voice);
 
   res.json({ voice: parsed.data.voice });
+});
+
+/**
+ * POST /api/tools/realtime/session
+ * Browser sends WebRTC SDP offer; we authenticate with OpenAI and return SDP answer.
+ * Enables ChatGPT-style live voice (speech ↔ speech) without exposing OPENAI_API_KEY.
+ */
+router.post("/realtime/session", async (req, res) => {
+  const row = findUserById(req.session.userId!);
+  if (!row) return res.status(401).json({ error: "UNAUTHENTICATED" });
+  const user = toSafeUser(row);
+
+  const schema = z.object({
+    sdp: z.string().min(20).max(200_000),
+    voice: z.string().max(32).optional(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  if (!canSendMessage(user.id, user.plan, true)) {
+    return res.status(429).json({ error: "USAGE_LIMIT_REACHED" });
+  }
+
+  const apiKey = process.env.OPENAI_API_KEY?.trim() ?? "";
+  if (!apiKey) return res.status(503).json({ error: "REALTIME_NOT_CONFIGURED" });
+
+  const voice = resolveRealtimeVoice(parsed.data.voice ?? getUserTtsVoice(user.id));
+
+  try {
+    const { sdp } = await createRealtimeCall({
+      sdp: parsed.data.sdp,
+      voice,
+      safetyIdentifier: realtimeSafetyId(user.id),
+    });
+    // Count one premium turn for starting a live session
+    recordMessageUsage(user.id, true, 0, 0);
+    res.type("application/sdp").send(sdp);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "REALTIME_FAILED";
+    const detail = e && typeof e === "object" && "detail" in e ? String((e as { detail?: string }).detail ?? "") : "";
+    if (msg === "REALTIME_NOT_CONFIGURED") return res.status(503).json({ error: msg });
+    if (msg === "REALTIME_NOT_ENABLED" || msg === "REALTIME_UNAUTHORIZED") {
+      return res.status(503).json({
+        error: msg,
+        hint: "Live Voice needs OpenAI Realtime access on your API key. Chat + TTS still work without it.",
+      });
+    }
+    res.status(502).json({ error: msg, detail: detail.slice(0, 300) || undefined });
+  }
 });
 
 export default router;
