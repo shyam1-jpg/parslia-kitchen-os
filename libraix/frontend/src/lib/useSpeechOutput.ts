@@ -28,6 +28,7 @@ export function useSpeechOutput() {
   const [supported] = useState(true); // always available via API
   const [voice, setVoiceState] = useState<TtsVoice>("nova");
   const [voices, setVoices] = useState<VoiceOption[]>([]);
+  const [speechLocale, setSpeechLocale] = useState(navigator.language || "en-GB");
   const audioCtxRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<AudioBufferSourceNode | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -92,7 +93,7 @@ export function useSpeechOutput() {
         setLoading(false);
         if (typeof window !== "undefined" && "speechSynthesis" in window) {
           const utt = new SpeechSynthesisUtterance(text.slice(0, 4000));
-          utt.lang = navigator.language || "en-GB";
+          utt.lang = speechLocale || navigator.language || "en-GB";
           utt.onend = () => setSpeaking(false);
           utt.onerror = () => setSpeaking(false);
           setSpeaking(true);
@@ -100,7 +101,7 @@ export function useSpeechOutput() {
         }
       }
     },
-    [voice, stop]
+    [voice, stop, speechLocale]
   );
 
   const toggle = useCallback(
@@ -121,5 +122,5 @@ export function useSpeechOutput() {
     }).catch(() => {});
   }, []);
 
-  return { speaking, loading, supported, voice, voices, speak, stop, toggle, saveVoice };
+  return { speaking, loading, supported, voice, voices, speechLocale, setSpeechLocale, speak, stop, toggle, saveVoice };
 }

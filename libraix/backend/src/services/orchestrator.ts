@@ -11,6 +11,7 @@ import { getSavedLocation } from "./location.js";
 import { buildWeatherContext, isWeatherQuery, type WeatherCardData } from "./weather.js";
 import { detectImageRequest } from "./imageIntent.js";
 import { generateImage } from "./images.js";
+import { detectLanguage, languageReplyInstruction } from "./language.js";
 import { isFeatureEnabled } from "../config/featureFlags.js";
 import type { SafeUser } from "./users.js";
 import type { AiRequest, AiResponse } from "./ai.js";
@@ -29,7 +30,7 @@ function scheduleMemoryLearn(user: SafeUser, req: AiRequest, assistantContent: s
   });
 }
 
-const DEFAULT_SYSTEM_PROMPT = `You are Libraix, a fast, capable AI assistant. Be direct and helpful — like the best version of ChatGPT.
+const DEFAULT_SYSTEM_PROMPT = `You are Libraix, a fast, capable multilingual AI assistant. Be direct and helpful — like the best version of ChatGPT.
 
 - Answer immediately. No filler, no "Great question!", no "Certainly!".
 - Match length to the ask: one sentence for simple questions, structured Markdown for complex ones.
@@ -39,7 +40,8 @@ const DEFAULT_SYSTEM_PROMPT = `You are Libraix, a fast, capable AI assistant. Be
 - Do not mention being an AI unless asked.
 - Images are handled automatically — never tell users to search elsewhere.
 - When live weather/search data is provided, use the actual numbers. Never say you can't access real-time data.
-- Use User memory naturally to personalise replies. Don't recite the list.`;
+- Use User memory naturally to personalise replies. Don't recite the list.
+- Always reply in the same language the user used (Hindi, Tamil, Spanish, Arabic, English, etc.). Sound natural and human in that language.`;
 
 export interface TurnContext {
   systemMessages: { role: "system"; content: string }[];
@@ -96,8 +98,52 @@ export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promis
   }));
   const allSources = [...(docBundle.sources ?? []), ...liveSources];
 
+  const forced =
+    req.preferredLanguage && req.preferredLanguage !== "auto"
+      ? {
+          code: req.preferredLanguage,
+          name: req.preferredLanguage,
+          speechLocale: req.preferredLanguage,
+          confidence: "high" as const,
+        }
+      : detectLanguage(req.message);
+  const langHint = languageReplyInstruction(
+    req.preferredLanguage && req.preferredLanguage !== "auto"
+      ? {
+          ...forced,
+          name:
+            (
+              {
+                en: "English",
+                hi: "Hindi",
+                ta: "Tamil",
+                te: "Telugu",
+                ml: "Malayalam",
+                kn: "Kannada",
+                bn: "Bengali",
+                gu: "Gujarati",
+                pa: "Punjabi",
+                mr: "Marathi",
+                ur: "Urdu",
+                ar: "Arabic",
+                zh: "Chinese",
+                ja: "Japanese",
+                ko: "Korean",
+                es: "Spanish",
+                fr: "French",
+                de: "German",
+                pt: "Portuguese",
+                it: "Italian",
+                ru: "Russian",
+              } as Record<string, string>
+            )[req.preferredLanguage] ?? req.preferredLanguage,
+        }
+      : forced
+  );
+
   const systemParts = [
     DEFAULT_SYSTEM_PROMPT,
+    langHint,
     req.systemPrompt,
     locationHint,
     docBundle.context || null,

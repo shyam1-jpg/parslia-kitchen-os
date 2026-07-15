@@ -18,6 +18,7 @@ import { useSpeechOutput } from "../lib/useSpeechOutput";
 import { useCamera } from "../lib/useCamera";
 import { toolsApi, detectUrls, isYoutubeUrl } from "../lib/tools";
 import { detectImageRequest } from "../lib/imageIntent";
+import { detectLanguage, SPEECH_LANGUAGE_OPTIONS } from "../lib/language";
 import { advancedApi, type Project, type RouterMode } from "../lib/advanced";
 import {
   chatApi,
@@ -90,7 +91,38 @@ export function AppPage() {
   const abortCtrlRef = useRef<AbortController | null>(null);
 
   const speechOut = useSpeechOutput();
+  const { setSpeechLocale: setTtsLocale } = speechOut;
   const camera = useCamera();
+  const [preferredLanguage, setPreferredLanguage] = useState(() => {
+    try {
+      return localStorage.getItem("libraix_reply_lang") || "auto";
+    } catch {
+      return "auto";
+    }
+  });
+  const [speechLocale, setSpeechLocale] = useState(() => {
+    try {
+      return localStorage.getItem("libraix_speech_locale") || navigator.language || "en-GB";
+    } catch {
+      return navigator.language || "en-GB";
+    }
+  });
+
+  useEffect(() => {
+    setTtsLocale(speechLocale);
+  }, [speechLocale, setTtsLocale]);
+
+  const resolveLangForTurn = (text: string) => {
+    if (preferredLanguage && preferredLanguage !== "auto") {
+      const opt = SPEECH_LANGUAGE_OPTIONS.find((o) => o.code === preferredLanguage);
+      return {
+        code: preferredLanguage,
+        speechLocale: opt?.speechLocale || preferredLanguage,
+      };
+    }
+    const detected = detectLanguage(text);
+    return { code: detected.code, speechLocale: detected.speechLocale };
+  };
 
   const loadConversations = useCallback(async () => {
     const data = await chatApi.conversations(showArchived);
@@ -374,6 +406,14 @@ export function AppPage() {
     abortCtrlRef.current?.abort();
     abortCtrlRef.current = new AbortController();
 
+    const turnLang = resolveLangForTurn(content);
+    setSpeechLocale(turnLang.speechLocale);
+    try {
+      localStorage.setItem("libraix_speech_locale", turnLang.speechLocale);
+    } catch { /* ignore */ }
+    const preferredLanguagePayload =
+      preferredLanguage !== "auto" ? preferredLanguage : turnLang.code;
+
     let convId = activeId;
     if (!convId) {
       const conv = await chatApi.createConversation(modelId, content.slice(0, 40), activeProjectId);
@@ -498,6 +538,7 @@ export function AppPage() {
             systemPrompt,
             projectId: activeProjectId ?? undefined,
             conversationId: convId,
+            preferredLanguage: preferredLanguagePayload,
           },
           { signal: abortCtrlRef.current?.signal, timeoutMs: 90_000 }
         )) {
@@ -559,6 +600,7 @@ export function AppPage() {
           systemPrompt,
           projectId: activeProjectId ?? undefined,
           conversationId: convId,
+          preferredLanguage: preferredLanguagePayload,
         });
         fullContent = result.content;
         modelLabel = result.displayName
@@ -799,6 +841,34 @@ export function AppPage() {
                 ))}
               </select>
             )}
+            <select
+              className="model-select"
+              value={preferredLanguage}
+              title="Reply & voice language"
+              onChange={(e) => {
+                const v = e.target.value;
+                setPreferredLanguage(v);
+                try {
+                  localStorage.setItem("libraix_reply_lang", v);
+                } catch { /* ignore */ }
+                if (v !== "auto") {
+                  const opt = SPEECH_LANGUAGE_OPTIONS.find((o) => o.code === v);
+                  if (opt) {
+                    setSpeechLocale(opt.speechLocale);
+                    try {
+                      localStorage.setItem("libraix_speech_locale", opt.speechLocale);
+                    } catch { /* ignore */ }
+                  }
+                }
+              }}
+            >
+              <option value="auto">🌐 Auto language</option>
+              {SPEECH_LANGUAGE_OPTIONS.map((o) => (
+                <option key={o.code} value={o.code}>
+                  {o.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             {messages.some((m) => m.role === "assistant") && (
@@ -902,8 +972,12 @@ export function AppPage() {
                     {speechOut.supported && (
                       <button
                         className={`msg-action ${speechOut.loading ? "msg-action-loading" : ""}`}
-                        onClick={() => speechOut.toggle(m.content)}
-                        title={speechOut.loading ? "Loading voice…" : speechOut.speaking ? "Stop" : "Read aloud (AI voice)"}
+                        onClick={() => {
+                          const lang = detectLanguage(m.content);
+                          speechOut.setSpeechLocale(lang.speechLocale);
+                          speechOut.toggle(m.content);
+                        }}
+                        title={speechOut.loading ? "Loading voice…" : speechOut.speaking ? "Stop" : "Read aloud (matches reply language)"}
                         disabled={speechOut.loading}
                       >
                         {speechOut.loading ? "⏳" : speechOut.speaking ? "■ Stop" : "🔊 Listen"}
@@ -965,6 +1039,7 @@ export function AppPage() {
           onFileSelect={handleFileAttach}
           onDeepResearch={() => setRouterMode("deep-research")}
           onCamera={handleCameraCapture}
+          speechLocale={speechLocale}
           placeholder={imageMode ? "Describe a quick image…" : "Message Libraix…"}
           extraAbove={
             <>

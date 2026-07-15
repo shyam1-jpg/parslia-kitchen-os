@@ -201,6 +201,7 @@ export const chatApi = {
     systemPrompt?: string;
     projectId?: string;
     conversationId?: string;
+    preferredLanguage?: string;
   }) => api<{ content: string; modelId: string; displayName?: string; provider?: string; providerModelId?: string; tokensUsed?: number; router?: Record<string, unknown>; imageUrl?: string; type?: string; sources?: DocumentSource[]; weatherCard?: WeatherCardData }>("/api/ai/respond", {
     method: "POST",
     body: JSON.stringify(body),

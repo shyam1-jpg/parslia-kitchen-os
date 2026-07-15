@@ -41,7 +41,10 @@ function isSecureEnough(): boolean {
   return window.isSecureContext || window.location.hostname === "localhost";
 }
 
-export function useSpeechInput(onUpdate: (text: string) => void) {
+export function useSpeechInput(
+  onUpdate: (text: string) => void,
+  options?: { speechLocale?: string }
+) {
   const [listening, setListening] = useState(false);
   const [supported, setSupported] = useState(false);
   const [error, setError] = useState("");
@@ -50,10 +53,15 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
   const listeningRef = useRef(false);
   const onUpdateRef = useRef(onUpdate);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const localeRef = useRef(options?.speechLocale || "");
 
   useEffect(() => {
     onUpdateRef.current = onUpdate;
   }, [onUpdate]);
+
+  useEffect(() => {
+    localeRef.current = options?.speechLocale || "";
+  }, [options?.speechLocale]);
 
   useEffect(() => {
     setSupported(Boolean(getSpeechRecognition()) && isSecureEnough());
@@ -95,7 +103,8 @@ export function useSpeechInput(onUpdate: (text: string) => void) {
     const recognition = new Ctor();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = navigator.language || "en-GB";
+    // Match mic language to user preference / last detected language (Hindi, Tamil, …)
+    recognition.lang = localeRef.current || navigator.language || "en-GB";
 
     recognition.onstart = () => setListening(true);
 

@@ -336,8 +336,13 @@ router.post("/tts", async (req, res) => {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ model: "tts-1", input: plain, voice, response_format: "mp3" }),
-      signal: AbortSignal.timeout(30_000),
+      body: JSON.stringify({
+        model: process.env.OPENAI_TTS_MODEL?.trim() || "tts-1-hd",
+        input: plain,
+        voice,
+        response_format: "mp3",
+      }),
+      signal: AbortSignal.timeout(45_000),
     });
 
     if (!ttsRes.ok) {
