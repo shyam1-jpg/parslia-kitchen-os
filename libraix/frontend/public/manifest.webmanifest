@@ -4,8 +4,8 @@
   "description": "One AI workspace. Multiple models.",
   "start_url": "/app",
   "display": "standalone",
-  "background_color": "#05050f",
-  "theme_color": "#6366f1",
+  "background_color": "#0c0b0a",
+  "theme_color": "#c4a574",
   "icons": [
     {
       "src": "/pwa-icon.svg",

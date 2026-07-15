@@ -20,9 +20,9 @@ export function PublicNav() {
     <nav className="public-nav">
       <Logo />
       <div className="nav-links">
-        <a href="/#features">Features</a>
+        <a href="/#features">Capabilities</a>
         <a href="/#models">Models</a>
-        <Link to="/pricing">Pricing</Link>
+        <Link to="/pricing">Plans</Link>
       </div>
       <div className="nav-actions">
         {user ? (
