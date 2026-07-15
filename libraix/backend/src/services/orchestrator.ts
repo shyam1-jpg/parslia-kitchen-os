@@ -13,6 +13,12 @@ import { detectImageRequest } from "./imageIntent.js";
 import { generateImage } from "./images.js";
 import { detectLanguage, languageReplyInstruction } from "./language.js";
 import { isFeatureEnabled } from "../config/featureFlags.js";
+import {
+  AGENT_SYSTEM,
+  formatAgentPlanBlock,
+  formatAgentStatus,
+  runAgentToolPass,
+} from "./agent.js";
 import type { SafeUser } from "./users.js";
 import type { AiRequest, AiResponse } from "./ai.js";
 
@@ -65,7 +71,8 @@ export interface ResolvedTurn {
 
 /** Gather memory, project files, weather, and web search in parallel where possible. */
 export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promise<TurnContext> {
-  const memoryCtx = req.useMemory !== false ? getMemoryContext(user.id, req.projectId) : "";
+  const memoryCtx =
+    req.useMemory !== false ? await getMemoryContext(user.id, req.projectId, req.message) : "";
   const wantsWeather = isWeatherQuery(req.message);
   const wantsWeb = wantsLiveSources(req.message, req.routerMode);
 
@@ -89,7 +96,7 @@ export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promis
       ? buildWebSearchBundle(req.message)
       : Promise.resolve({ context: null as string | null, sources: [] as NonNullable<AiResponse["sources"]> }),
     req.projectId
-      ? Promise.resolve(getProjectDocumentContext(user.id, req.projectId, req.message))
+      ? getProjectDocumentContext(user.id, req.projectId, req.message)
       : Promise.resolve({ context: "", sources: [] as NonNullable<AiResponse["sources"]> }),
   ]);
 
@@ -170,6 +177,36 @@ export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promis
   };
 }
 
+async function prepareContextForRequest(user: SafeUser, req: AiRequest): Promise<TurnContext & { agentStatus?: string }> {
+  const isAgent = req.routerMode === "agent" && isFeatureEnabled("multi-agent", user.plan);
+  if (!isAgent) {
+    return prepareTurnContext(user, req);
+  }
+
+  const agentReq: AiRequest = { ...req, routerMode: "agent" };
+  const [base, agent] = await Promise.all([prepareTurnContext(user, agentReq), runAgentToolPass(user, agentReq)]);
+
+  const systemMessages = [
+    {
+      role: "system" as const,
+      content: [
+        AGENT_SYSTEM,
+        formatAgentPlanBlock(agent.plan),
+        agent.toolContext,
+        ...base.systemMessages.map((m) => m.content),
+      ]
+        .filter(Boolean)
+        .join("\n\n"),
+    },
+  ];
+
+  return {
+    ...base,
+    systemMessages,
+    agentStatus: formatAgentStatus(agent.plan),
+  };
+}
+
 export function resolveTurnModel(user: SafeUser, req: AiRequest): ResolvedTurn {
   const usage = getUsage(user.id, user.plan);
   const premiumRemaining = Math.max(0, usage.premiumLimit - usage.premiumUsed);
@@ -235,7 +272,7 @@ export async function runTurnComplete(user: SafeUser, req: AiRequest): Promise<A
   const imageResult = await tryGenerateChatImage(user, req.message);
   if (imageResult) return imageResult;
 
-  const turn = await prepareTurnContext(user, req);
+  const turn = await prepareContextForRequest(user, req);
   const { model, fallback, router } = resolveTurnModel(user, req);
   const messages = buildChatMessages(req, turn);
 
@@ -244,8 +281,9 @@ export async function runTurnComplete(user: SafeUser, req: AiRequest): Promise<A
   recordMessageUsage(user.id, usedPremium, response.tokensUsed, response.estimatedCostCents);
   scheduleMemoryLearn(user, req, response.content);
 
+  const prefix = turn.agentStatus ?? "";
   return {
-    content: response.content,
+    content: prefix + response.content,
     modelId: usedModel.id,
     displayName: usedModel.displayName,
     provider: usedModel.provider,
@@ -284,9 +322,11 @@ export async function* runTurnStream(
     }
   }
 
-  const turn = await prepareTurnContext(user, req);
+  const turn = await prepareContextForRequest(user, req);
   const { model, fallback } = resolveTurnModel(user, req);
   const messages = buildChatMessages(req, turn);
+
+  if (turn.agentStatus) yield turn.agentStatus;
 
   // Send visual weather card before tokens so the UI feels instant
   if (turn.weatherCard) yield { weatherCard: turn.weatherCard };

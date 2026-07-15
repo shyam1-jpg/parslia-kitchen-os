@@ -130,7 +130,7 @@ export async function uploadProjectFileContent(
   const parsed = await parseDocument(filename, mimeType, contentBase64);
   const file = registerProjectFile(projectId, filename, mimeType, buffer.length);
   db.prepare("UPDATE project_files SET extracted_text = ? WHERE id = ?").run(parsed.text, file.id);
-  const chunkCount = indexFileChunks(file.id, projectId, parsed.text);
+  const chunkCount = await indexFileChunks(file.id, projectId, parsed.text);
   return {
     file: listProjectFiles(projectId).find((f) => f.id === file.id)!,
     chunkCount,
@@ -148,11 +148,15 @@ export function getProjectContext(userId: string, projectId: string): string {
   return ctx;
 }
 
-export function getProjectDocumentContext(userId: string, projectId: string, query: string): { context: string; sources: DocumentSource[] } {
+export async function getProjectDocumentContext(
+  userId: string,
+  projectId: string,
+  query: string
+): Promise<{ context: string; sources: DocumentSource[] }> {
   const project = getProject(userId, projectId);
   if (!project) return { context: "", sources: [] };
   const base = getProjectContext(userId, projectId);
-  const { context: docCtx, sources } = buildDocumentContext(projectId, query);
+  const { context: docCtx, sources } = await buildDocumentContext(projectId, query);
   const context = [base, docCtx].filter(Boolean).join("\n\n");
   return { context, sources };
 }

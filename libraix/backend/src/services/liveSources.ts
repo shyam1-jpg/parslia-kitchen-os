@@ -12,7 +12,7 @@ export type LiveSource = {
 
 /** When chat should pull live Wikipedia / web sources (not only deep-research mode). */
 export function wantsLiveSources(message: string, routerMode?: string): boolean {
-  if (routerMode === "deep-research") return true;
+  if (routerMode === "deep-research" || routerMode === "agent") return true;
   if (wantsWikipedia(message)) return true;
   if (/\b(source|sources|citation|cite|according to|look up|fact.?check|verify)\b/i.test(message)) {
     return true;

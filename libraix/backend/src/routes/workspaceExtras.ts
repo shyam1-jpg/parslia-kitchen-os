@@ -27,6 +27,7 @@ import {
   listConnectors,
   setConnectorStatus,
 } from "../services/workspaceExtras.js";
+import { invokeMcpTool, listMcpTools } from "../services/mcpTools.js";
 
 const router = Router();
 
@@ -218,15 +219,37 @@ router.post("/automations/due", (req, res) => {
   res.json({ due: claimDueAutomations(uid(req)) });
 });
 
-/* Connectors */
+/* Connectors + MCP-style tools */
 router.get("/connectors", (req, res) => {
   if (!isFeatureEnabled("connectors", planOf(req))) {
     return res.status(403).json({ error: "FEATURE_DISABLED" });
   }
   res.json({
     connectors: listConnectors(uid(req)),
-    note: "OAuth app credentials required on the server to fully connect Google / GitHub. You can mark intent now.",
+    note: "OAuth app credentials required on the server to fully connect Google / GitHub. Pending/connected connectors expose Agent tools today.",
   });
+});
+
+router.get("/connectors/tools", (req, res) => {
+  if (!isFeatureEnabled("connectors", planOf(req))) {
+    return res.status(403).json({ error: "FEATURE_DISABLED" });
+  }
+  res.json({ tools: listMcpTools(uid(req)) });
+});
+
+router.post("/connectors/tools/invoke", async (req, res) => {
+  if (!isFeatureEnabled("connectors", planOf(req))) {
+    return res.status(403).json({ error: "FEATURE_DISABLED" });
+  }
+  const { tool, query, projectId, brief } = req.body as {
+    tool?: string;
+    query?: string;
+    projectId?: string;
+    brief?: string;
+  };
+  if (!tool) return res.status(400).json({ error: "TOOL_REQUIRED" });
+  const result = await invokeMcpTool(uid(req), tool, { query, projectId, brief });
+  res.json({ result });
 });
 
 router.post("/connectors/:provider/connect", (req, res) => {
