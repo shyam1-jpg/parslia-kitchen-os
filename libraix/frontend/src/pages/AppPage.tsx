@@ -34,6 +34,64 @@ import {
 } from "../lib/api";
 import { friendlyError } from "../lib/errors";
 
+const ASSISTANT_UI: Record<
+  string,
+  { emoji: string; title: string; blurb: string; suggestions: string[] }
+> = {
+  security: {
+    emoji: "🔐",
+    title: "Security & Kali Linux",
+    blurb: "Penetration testing · Kali tools · CTFs · Scripts · CVEs",
+    suggestions: [
+      "Nmap scan a target host",
+      "Explain a SQL injection attack",
+      "Write a Python reverse shell",
+      "How do I use Metasploit?",
+    ],
+  },
+  astrology: {
+    emoji: "✨",
+    title: "Astrology & Horoscope",
+    blurb: "Daily signs · birth charts · love & career · Vedic & Western",
+    suggestions: [
+      "What's my daily horoscope? I'm a Leo",
+      "Explain my birth chart — 14 July 1995, London, 3:20pm",
+      "Are Cancer and Scorpio compatible?",
+      "What does Mercury retrograde mean for me this month?",
+    ],
+  },
+  writing: {
+    emoji: "✍️",
+    title: "Writing Coach",
+    blurb: "Emails, essays, reports and rewrites",
+    suggestions: ["Rewrite this email more politely", "Outline a blog post", "Improve my CV summary", "Write a short story opener"],
+  },
+  coding: {
+    emoji: "💻",
+    title: "Coding Expert",
+    blurb: "Write, explain and debug code",
+    suggestions: ["Write a Python script that…", "Explain this error", "Review my function", "Build a REST API stub"],
+  },
+  business: {
+    emoji: "📈",
+    title: "Business Advisor",
+    blurb: "Strategy, marketing and operations",
+    suggestions: ["Draft a one-page business plan", "Price my SaaS product", "Write a cold outreach email", "Analyse this market"],
+  },
+  creative: {
+    emoji: "🎨",
+    title: "Creative Partner",
+    blurb: "Brainstorming, stories and worldbuilding",
+    suggestions: ["Brainstorm product names", "Build a fantasy world", "Plot twist ideas", "Write a scene in my story"],
+  },
+  data: {
+    emoji: "📊",
+    title: "Data Analyst",
+    blurb: "SQL, Python, stats and charts",
+    suggestions: ["Write a SQL query for…", "Explain this chart", "Pandas clean this CSV", "What test should I run?"],
+  },
+};
+
 function groupConversations(conversations: Conversation[]) {
   const now = new Date();
   const today = now.toDateString();
@@ -851,7 +909,7 @@ export function AppPage() {
                 <option value="">General assistant</option>
                 {assistants.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.id === "security" ? "🔐 " : a.id === "coding" ? "💻 " : a.id === "writing" ? "✍️ " : a.id === "data" ? "📊 " : a.id === "business" ? "📈 " : ""}
+                    {ASSISTANT_UI[a.id]?.emoji ? `${ASSISTANT_UI[a.id].emoji} ` : ""}
                     {a.name}
                   </option>
                 ))}
@@ -935,11 +993,15 @@ export function AppPage() {
         <div className="chat-area">
           {messages.length === 0 && !loading && !streaming ? (
             <div className="welcome-state">
-              <h2>{assistantId === "security" ? "🔐 Security & Kali Linux" : "What can I help you with?"}</h2>
+              <h2>
+                {ASSISTANT_UI[assistantId]
+                  ? `${ASSISTANT_UI[assistantId].emoji} ${ASSISTANT_UI[assistantId].title}`
+                  : "What can I help you with?"}
+              </h2>
               <p>
-                {assistantId === "security"
-                  ? "Penetration testing · Kali tools · CTFs · Scripts · CVEs"
-                  : <>Type <strong>/i</strong> or tap 🎨 for quick images · 🔍 for live web search.</>}
+                {ASSISTANT_UI[assistantId]?.blurb ?? (
+                  <>Type <strong>/i</strong> or tap 🎨 for quick images · 🔍 for live web search.</>
+                )}
               </p>
               {homeLocation && !assistantId && (
                 <p className="location-chip" title={`Saved for local weather (${homeLocation.source})`}>
@@ -947,9 +1009,13 @@ export function AppPage() {
                 </p>
               )}
               <div className="suggestion-row">
-                {(assistantId === "security"
-                  ? ["Nmap scan a target host", "Explain a SQL injection attack", "Write a Python reverse shell", "How do I use Metasploit?"]
-                  : [homeLocation ? `What's the weather near me?` : "What's the weather today?", "Create an image of a sunset", "Write an email", "Explain a concept"]
+                {(
+                  ASSISTANT_UI[assistantId]?.suggestions ?? [
+                    homeLocation ? "What's the weather near me?" : "What's the weather today?",
+                    "Create an image of a sunset",
+                    "Write an email",
+                    "Explain a concept",
+                  ]
                 ).map((s) => (
                   <button key={s} className="suggestion-chip" onClick={() => sendMessage(s)}>{s}</button>
                 ))}
