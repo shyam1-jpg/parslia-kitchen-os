@@ -1,4 +1,5 @@
 export function LibraixLogoMark({ size = 32 }: { size?: number }) {
+  const gid = `libraix-lux-${size}`;
   return (
     <svg
       width={size}
@@ -9,20 +10,19 @@ export function LibraixLogoMark({ size = 32 }: { size?: number }) {
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id="libraix-grad" x1="8" y1="6" x2="40" y2="42" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#6366f1" />
-          <stop offset="1" stopColor="#06b6d4" />
+        <linearGradient id={gid} x1="8" y1="6" x2="40" y2="42" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#e8d5b5" />
+          <stop offset="0.55" stopColor="#c4a574" />
+          <stop offset="1" stopColor="#8a7350" />
         </linearGradient>
       </defs>
-      <rect x="4" y="4" width="40" height="40" rx="12" fill="url(#libraix-grad)" />
+      <rect x="4" y="4" width="40" height="40" rx="14" fill={`url(#${gid})`} />
       <path
-        d="M24 12v24M14 18h20M14 30h20"
-        stroke="#fff"
-        strokeWidth="2.5"
+        d="M24 13v22M15 19h18M15 29h18"
+        stroke="#1a1612"
+        strokeWidth="2.4"
         strokeLinecap="round"
       />
-      <circle cx="14" cy="18" r="3" fill="#fff" fillOpacity="0.9" />
-      <circle cx="34" cy="30" r="3" fill="#fff" fillOpacity="0.9" />
     </svg>
   );
 }
