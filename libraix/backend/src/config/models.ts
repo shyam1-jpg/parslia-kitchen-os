@@ -316,16 +316,6 @@ export function getModelsForPlan(plan: PlanTier): ModelDefinition[] {
     .filter((m) => isModelOperational(m) && tierOrder.indexOf(m.tier) <= planIndex);
 }
 
-const PROVIDER_KEY_LABEL: Record<string, string> = {
-  openai: "OPENAI_API_KEY",
-  deepseek: "DEEPSEEK_API_KEY",
-  google: "GOOGLE_API_KEY",
-  anthropic: "ANTHROPIC_API_KEY",
-  xai: "XAI_API_KEY",
-  ollama: "OLLAMA_BASE_URL",
-  openrouter: "OPENROUTER_API_KEY",
-};
-
 const MODEL_HINTS: Record<string, { speed: string; cost: string }> = {
   "libraix-fast": { speed: "Fast", cost: "Low" },
   "libraix-smart": { speed: "Medium", cost: "Medium" },
@@ -344,36 +334,36 @@ const MODEL_HINTS: Record<string, { speed: string; cost: string }> = {
   "libraix-local-qwen": { speed: "Varies", cost: "Free (local)" },
 };
 
-/** All models for a plan (including those needing API keys), for UI display. */
+/**
+ * Models shown in the chat picker.
+ * Only returns models that are actually configured — never leak “needs API key” to end users.
+ */
 export function listDisplayModelsForPlan(plan: PlanTier) {
   const tierOrder: PlanTier[] = ["free", "pro", "enterprise"];
   const planIndex = tierOrder.indexOf(plan);
   return PRODUCT_CATALOG.models
     .map(applyModelOverrides)
-    .filter((m) => m.enabled && tierOrder.indexOf(m.tier) <= planIndex)
+    .filter((m) => m.enabled && tierOrder.indexOf(m.tier) <= planIndex && isModelOperational(m))
     .map((m) => {
-      const available = isModelOperational(m);
       const { providerModelId: _, ...rest } = m;
       return {
         ...rest,
-        available,
+        available: true as const,
         speedHint: MODEL_HINTS[m.id]?.speed,
         costHint: MODEL_HINTS[m.id]?.cost,
-        unavailableReason: available
-          ? undefined
-          : `Add ${PROVIDER_KEY_LABEL[m.provider] ?? m.provider + " API key"} on Render`,
       };
     });
 }
 
 export function getPublicCatalog() {
+  // Public site only lists models that work today — no unfinished / key-missing entries.
   const models = withLaunchStatus(
     PRODUCT_CATALOG.models
       .map(applyModelOverrides)
-      .filter((m) => m.enabled)
+      .filter((m) => m.enabled && isModelOperational(m))
       .map((m) => {
         const { providerModelId: _, ...rest } = m;
-        return { ...rest, available: isModelOperational(m) };
+        return { ...rest, available: true };
       }),
     MODEL_LAUNCH_STATUS
   );

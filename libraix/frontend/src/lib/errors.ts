@@ -8,6 +8,9 @@ const ERROR_LABELS: Record<string, string> = {
   PROVIDER_ERROR: "AI service error. Try again in a moment.",
   PROVIDER_UNAVAILABLE: "AI service is temporarily unavailable. Please try again shortly.",
   IMAGE_LIMIT_REACHED: "Daily image limit reached. Upgrade to Pro for more images.",
+  PASSWORD_TOO_SHORT: "Password must be at least 10 characters.",
+  PASSWORD_NEED_LETTER: "Password needs at least one letter.",
+  PASSWORD_NEED_NUMBER: "Password needs at least one number.",
   BILLING_REQUIRED: "Image generation needs OpenAI billing enabled. Go to platform.openai.com → Billing → add a payment method, then try again.",
   MODELS_UNAVAILABLE: "Selected models are not available. Add API keys on Render or pick OpenAI models only.",
   FEATURE_DISABLED: "This feature requires a Pro plan.",
@@ -32,7 +35,8 @@ export function friendlyError(code: string, fallback?: string): string {
 export async function readApiError(res: Response): Promise<string> {
   const text = await res.text();
   try {
-    const body = JSON.parse(text) as { error?: string; detail?: string; message?: string };
+    const body = JSON.parse(text) as { error?: string; detail?: string; message?: string; hint?: string };
+    if (body.hint) return body.hint;
     if (body.error && body.detail) return `${body.error}: ${body.detail}`;
     return body.error ?? body.message ?? `HTTP_${res.status}`;
   } catch {
