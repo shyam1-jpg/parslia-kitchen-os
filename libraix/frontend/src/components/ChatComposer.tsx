@@ -75,7 +75,12 @@ export function ChatComposer({
     <div className="composer-wrap">
       {extraAbove}
       {(speech.error || live.error) && (
-        <div className="error-banner composer-banner">{speech.error || live.error}</div>
+        <div
+          className={`composer-banner ${/Mic blocked|lock icon|Settings →/i.test(speech.error || live.error) ? "info-banner" : "error-banner"}`}
+          role="status"
+        >
+          {speech.error || live.error}
+        </div>
       )}
       {live.live && (
         <div className="voice-live-bar composer-banner">
