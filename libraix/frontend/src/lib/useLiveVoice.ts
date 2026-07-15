@@ -13,17 +13,62 @@ interface UseLiveVoiceOptions {
   onTranscript?: (entry: LiveTranscript) => void;
 }
 
-function friendlyLiveError(raw: string): string {
-  if (/REALTIME_NOT_CONFIGURED|TTS_NOT_CONFIGURED/i.test(raw)) {
+function isSecureEnough(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.isSecureContext || window.location.hostname === "localhost";
+}
+
+function isIos(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function isAndroid(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /Android/i.test(navigator.userAgent);
+}
+
+async function micPermissionState(): Promise<PermissionState | "unknown"> {
+  try {
+    const perms = navigator.permissions;
+    if (!perms?.query) return "unknown";
+    // Some browsers throw on microphone; others use "microphone"
+    const status = await perms.query({ name: "microphone" as PermissionName });
+    return status.state;
+  } catch {
+    return "unknown";
+  }
+}
+
+function micBlockedHelp(): string {
+  if (isIos()) {
+    return "Mic blocked. On iPhone: Settings → Safari → Microphone → Allow, then reload libraix.ai and tap 🎙 again.";
+  }
+  if (isAndroid()) {
+    return "Mic blocked. Tap the lock/tune icon left of the URL → Permissions → Microphone → Allow, then tap 🎙 again.";
+  }
+  return "Mic blocked. Click the lock icon next to the URL → allow Microphone for libraix.ai, then tap 🎙 again.";
+}
+
+function friendlyLiveError(raw: string, name?: string): string {
+  const blob = `${name ?? ""} ${raw}`;
+  if (/REALTIME_NOT_CONFIGURED|TTS_NOT_CONFIGURED/i.test(blob)) {
     return "Live Voice isn’t configured yet (needs OpenAI API key on the server).";
   }
-  if (/REALTIME_NOT_ENABLED|REALTIME_UNAUTHORIZED/i.test(raw)) {
+  if (/REALTIME_NOT_ENABLED|REALTIME_UNAUTHORIZED/i.test(blob)) {
     return "Live Voice needs OpenAI Realtime enabled on the API key. Mic + speak-back still work.";
   }
-  if (/USAGE_LIMIT/i.test(raw)) return "Daily message limit reached — try again tomorrow or upgrade.";
-  if (/NotAllowedError|Permission/i.test(raw)) return "Microphone permission blocked. Allow mic for Live Voice.";
-  if (/getUserMedia|NotFoundError/i.test(raw)) return "No microphone found. Plug one in and try again.";
-  return raw.slice(0, 160) || "Couldn’t start Live Voice.";
+  if (/USAGE_LIMIT/i.test(blob)) return "Daily message limit reached — try again tomorrow or upgrade.";
+  if (/NotAllowedError|Permission denied|Permission|NotAllowed/i.test(blob)) return micBlockedHelp();
+  if (/NotFoundError|DevicesNotFound/i.test(blob)) return "No microphone found. Plug one in (or check system mic settings) and try again.";
+  if (/NotReadableError|TrackStartError|AbortError/i.test(blob)) {
+    return "Microphone is in use by another app. Close that app, then tap 🎙 again.";
+  }
+  if (/insecure|secure context|HTTPS/i.test(blob)) {
+    return "Live Voice needs a secure (HTTPS) connection. Open https://libraix.ai directly.";
+  }
+  if (/getUserMedia/i.test(blob)) return "Couldn’t access the microphone. Check browser mic settings and try again.";
+  return raw.slice(0, 180) || "Couldn’t start Live Voice.";
 }
 
 /**
@@ -38,10 +83,21 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
   const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const dcRef = useRef<RTCDataChannel | null>(null);
+  const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onTranscriptRef = useRef(opts.onTranscript);
   onTranscriptRef.current = opts.onTranscript;
   const voiceRef = useRef(opts.voice);
   voiceRef.current = opts.voice;
+
+  const showError = useCallback((msg: string) => {
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    setError(msg);
+    if (msg) {
+      // Permission help is longer — keep it visible a bit more
+      const ms = /Mic blocked|Settings →|lock icon/i.test(msg) ? 14_000 : 8_000;
+      errorTimerRef.current = setTimeout(() => setError(""), ms);
+    }
+  }, []);
 
   const cleanup = useCallback(() => {
     try {
@@ -71,7 +127,13 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
     setStatus("idle");
   }, [cleanup]);
 
-  useEffect(() => () => cleanup(), [cleanup]);
+  useEffect(
+    () => () => {
+      cleanup();
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    },
+    [cleanup]
+  );
 
   const handleServerEvent = useCallback((raw: string) => {
     let event: Record<string, unknown>;
@@ -112,15 +174,44 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
 
   const start = useCallback(async () => {
     if (status === "connecting" || status === "live") return;
-    setError("");
+    showError("");
     setPartialUser("");
     setStatus("connecting");
     cleanup();
 
     try {
+      if (!isSecureEnough()) {
+        throw new Error("Live Voice needs a secure (HTTPS) connection.");
+      }
       if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error("Live Voice needs a modern browser with microphone support.");
       }
+
+      const perm = await micPermissionState();
+      if (perm === "denied") {
+        throw new Error("NotAllowedError");
+      }
+
+      // Request mic first (from the user tap) so permission UI feels instant
+      let ms: MediaStream;
+      try {
+        ms = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+      } catch (first) {
+        // Retry with bare constraints — some mobile browsers reject advanced constraints
+        const name = first instanceof DOMException ? first.name : "";
+        if (name === "OverconstrainedError" || name === "NotFoundError" || name === "TypeError") {
+          ms = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } else {
+          throw first;
+        }
+      }
+      streamRef.current = ms;
 
       const pc = new RTCPeerConnection();
       pcRef.current = pc;
@@ -128,6 +219,8 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
       const audioEl = document.createElement("audio");
       audioEl.autoplay = true;
       audioEl.setAttribute("playsinline", "true");
+      // iOS often needs muted=false after a user gesture
+      audioEl.muted = false;
       document.body.appendChild(audioEl);
       audioRef.current = audioEl;
       pc.ontrack = (e) => {
@@ -137,14 +230,6 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
         });
       };
 
-      const ms = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-      });
-      streamRef.current = ms;
       for (const track of ms.getTracks()) {
         pc.addTrack(track, ms);
       }
@@ -214,11 +299,12 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
       setStatus("live");
     } catch (e) {
       cleanup();
-      const msg = friendlyLiveError(e instanceof Error ? e.message : String(e));
-      setError(msg);
+      const name = e instanceof DOMException ? e.name : e instanceof Error ? e.name : "";
+      const msg = friendlyLiveError(e instanceof Error ? e.message : String(e), name);
+      showError(msg);
       setStatus("error");
     }
-  }, [cleanup, handleServerEvent, status]);
+  }, [cleanup, handleServerEvent, showError, status]);
 
   const toggle = useCallback(async () => {
     if (status === "live" || status === "connecting") {
@@ -228,7 +314,10 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
     await start();
   }, [start, status, stop]);
 
-  const clearError = useCallback(() => setError(""), []);
+  const clearError = useCallback(() => {
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    setError("");
+  }, []);
 
   return {
     status,
@@ -237,7 +326,11 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
     live: status === "live",
     error,
     partialUser,
-    supported: typeof RTCPeerConnection !== "undefined" && !!navigator.mediaDevices?.getUserMedia,
+    supported:
+      typeof window !== "undefined" &&
+      typeof RTCPeerConnection !== "undefined" &&
+      !!navigator.mediaDevices?.getUserMedia &&
+      isSecureEnough(),
     start,
     stop,
     toggle,
