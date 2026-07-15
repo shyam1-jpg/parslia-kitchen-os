@@ -328,7 +328,8 @@ export function PricingPage() {
             <h3>Free</h3>
             <div className="price-amount">£0<span>/mo</span></div>
             <ul className="price-features">
-              <li>✓ {freePlan?.dailyMessages ?? 30} messages per day (fair use)</li>
+              <li>✓ {freePlan?.dailyMessages ?? 30} messages per day</li>
+              <li>✓ Live Voice: {freePlan?.liveVoiceMinutes ?? 5} minutes per day</li>
               <li>✓ Libraix Fast model (live)</li>
               <li>✓ Secure server-side AI — no API key required</li>
             </ul>
@@ -340,7 +341,8 @@ export function PricingPage() {
             <div className="price-amount">£9<span>/mo</span></div>
             <ul className="price-features">
               <li>✓ All live & beta models</li>
-              <li>✓ {proPlan?.dailyMessages ?? 500} messages per day (fair use)</li>
+              <li>✓ {proPlan?.dailyMessages ?? 500} messages per day</li>
+              <li>✓ Unlimited Live Voice</li>
             </ul>
             <button type="button" className="btn btn-primary" style={{ width: "100%" }} disabled={checkoutLoading} onClick={() => startCheckout("pro")}>
               {checkoutLoading ? "Please wait…" : user ? "Start Pro — £9/mo" : "Sign up for Pro"}

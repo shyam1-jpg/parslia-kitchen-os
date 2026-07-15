@@ -12,7 +12,14 @@ import { searchWikipedia } from "../services/wikipedia.js";
 import { searchWeb } from "../services/webSearch.js";
 import { completeViaGateway } from "../providers/gateway.js";
 import { getModelById } from "../config/models.js";
-import { canSendMessage, recordMessageUsage } from "../services/usage.js";
+import {
+  canSendMessage,
+  canUseLiveVoice,
+  getLiveVoiceAllowance,
+  getUsage,
+  recordMessageUsage,
+  recordVoiceUsage,
+} from "../services/usage.js";
 import { createRealtimeCall, resolveRealtimeVoice, realtimeSafetyId } from "../services/realtime.js";
 import { db } from "../db/schema.js";
 
@@ -407,7 +414,7 @@ router.patch("/tts/voice", (req, res) => {
 /**
  * POST /api/tools/realtime/session
  * Browser sends WebRTC SDP offer; we authenticate with OpenAI and return SDP answer.
- * Enables ChatGPT-style live voice (speech ↔ speech) without exposing OPENAI_API_KEY.
+ * Free plan: Live Voice capped (default 5 min/day). Pro/Enterprise: unlimited.
  */
 router.post("/realtime/session", async (req, res) => {
   const row = findUserById(req.session.userId!);
@@ -421,8 +428,29 @@ router.post("/realtime/session", async (req, res) => {
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
 
-  if (!canSendMessage(user.id, user.plan, true)) {
-    return res.status(429).json({ error: "USAGE_LIMIT_REACHED" });
+  const usage = getUsage(user.id, user.plan);
+  if (usage.limitReached) {
+    return res.status(429).json({
+      error: "USAGE_LIMIT_REACHED",
+      hint: `Free plan is limited to ${usage.messagesLimit} messages/day. Upgrade for more.`,
+    });
+  }
+  if (!canUseLiveVoice(user.id, user.plan)) {
+    return res.status(429).json({
+      error: "VOICE_LIMIT_REACHED",
+      hint:
+        user.plan === "free"
+          ? "Free Live Voice is limited to 5 minutes/day. Upgrade to Pro for unlimited Live Voice."
+          : "Daily Live Voice limit reached. Try again tomorrow.",
+    });
+  }
+
+  const allowance = getLiveVoiceAllowance(user.id, user.plan);
+  if (allowance.maxSessionSeconds < 15) {
+    return res.status(429).json({
+      error: "VOICE_LIMIT_REACHED",
+      hint: "Less than 15 seconds of Live Voice left today. Upgrade to Pro for unlimited voice.",
+    });
   }
 
   const apiKey = process.env.OPENAI_API_KEY?.trim() ?? "";
@@ -436,9 +464,13 @@ router.post("/realtime/session", async (req, res) => {
       voice,
       safetyIdentifier: realtimeSafetyId(user.id),
     });
-    // Count one premium turn for starting a live session
-    recordMessageUsage(user.id, true, 0, 0);
-    res.type("application/sdp").send(sdp);
+    res.json({
+      sdp,
+      maxSessionSeconds: allowance.maxSessionSeconds,
+      remainingVoiceSeconds: allowance.remainingVoiceSeconds,
+      voiceUnlimited: allowance.voiceUnlimited,
+      plan: user.plan,
+    });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "REALTIME_FAILED";
     const detail = e && typeof e === "object" && "detail" in e ? String((e as { detail?: string }).detail ?? "") : "";
@@ -451,6 +483,22 @@ router.post("/realtime/session", async (req, res) => {
     }
     res.status(502).json({ error: msg, detail: detail.slice(0, 300) || undefined });
   }
+});
+
+/** POST /api/tools/realtime/usage — report how long a Live Voice session ran */
+router.post("/realtime/usage", (req, res) => {
+  const row = findUserById(req.session.userId!);
+  if (!row) return res.status(401).json({ error: "UNAUTHENTICATED" });
+  const user = toSafeUser(row);
+
+  const schema = z.object({
+    seconds: z.number().min(0).max(7200),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  recordVoiceUsage(user.id, parsed.data.seconds);
+  res.json({ ok: true, usage: getUsage(user.id, user.plan) });
 });
 
 export default router;

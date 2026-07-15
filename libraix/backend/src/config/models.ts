@@ -43,9 +43,9 @@ export interface ProductCatalog {
   tools: ToolDefinition[];
   assistants: AssistantDefinition[];
   plans: {
-    free: { dailyMessages: number; premiumModelMessages: number; images: number };
-    pro: { dailyMessages: number; premiumModelMessages: number; images: number };
-    enterprise: { dailyMessages: number; premiumModelMessages: number; images: number };
+    free: { dailyMessages: number; premiumModelMessages: number; images: number; liveVoiceMinutes: number };
+    pro: { dailyMessages: number; premiumModelMessages: number; images: number; liveVoiceMinutes: number };
+    enterprise: { dailyMessages: number; premiumModelMessages: number; images: number; liveVoiceMinutes: number };
   };
 }
 
@@ -238,9 +238,10 @@ Be specific: name planets, signs, and themes — not vague fortune-cookie lines.
     },
   ],
   plans: {
-    free: { dailyMessages: 30, premiumModelMessages: 10, images: 5 },
-    pro: { dailyMessages: 500, premiumModelMessages: 200, images: 50 },
-    enterprise: { dailyMessages: 5000, premiumModelMessages: 2000, images: 500 },
+    /** Free: capped chat + short Live Voice. `-1` voice minutes = unlimited. */
+    free: { dailyMessages: 30, premiumModelMessages: 10, images: 5, liveVoiceMinutes: 5 },
+    pro: { dailyMessages: 500, premiumModelMessages: 200, images: 50, liveVoiceMinutes: -1 },
+    enterprise: { dailyMessages: 5000, premiumModelMessages: 2000, images: 500, liveVoiceMinutes: -1 },
   },
 };
 

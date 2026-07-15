@@ -1269,16 +1269,30 @@ export function AppPage() {
           speechLocale={speechLocale}
           liveVoiceId={speechOut.voice}
           onLiveTranscript={appendLiveTranscript}
+          onLiveUsageReported={() => {
+            refresh().catch(() => {});
+          }}
+          voiceSecondsRemaining={usage?.remainingVoiceSeconds ?? null}
+          voiceUnlimited={usage?.voiceUnlimited ?? usage?.plan !== "free"}
           placeholder={imageMode ? "Describe a quick image…" : "Message Libraix…"}
           extraAbove={
             <>
               {usage && (
-                <div className={`usage-bar ${usage.limitReached ? "usage-limit" : ""}`}>
+                <div className={`usage-bar ${usage.limitReached || usage.voiceLimitReached ? "usage-limit" : ""}`}>
                   {usage.limitReached
-                    ? `Daily limit reached (${usage.messagesUsed}/${usage.messagesLimit} messages used on ${usage.plan} plan).`
+                    ? `Daily message limit reached (${usage.messagesUsed}/${usage.messagesLimit} on ${usage.plan}). Upgrade for more.`
                     : `${usage.remainingMessages} of ${usage.messagesLimit} messages remaining today`}
                   {usage.premiumLimit > 0 && !usage.limitReached && (
                     <span> · Premium: {usage.premiumUsed}/{usage.premiumLimit}</span>
+                  )}
+                  {usage.plan === "free" && (
+                    <span>
+                      {" "}
+                      · Live Voice:{" "}
+                      {usage.voiceLimitReached
+                        ? "0 min left (Free = 5 min/day)"
+                        : `${Math.max(0, Math.floor((usage.remainingVoiceSeconds ?? 0) / 60))} min left`}
+                    </span>
                   )}
                   {routerHint && routerMode === "auto" && !usage.limitReached && <span> · {routerHint}</span>}
                 </div>

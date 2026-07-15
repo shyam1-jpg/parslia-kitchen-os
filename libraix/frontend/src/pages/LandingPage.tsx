@@ -120,7 +120,7 @@ export function LandingPage() {
 
       <section className="section" style={{ textAlign: "center" }}>
         <h2 className="section-title">Start with free chat</h2>
-        <p className="section-sub" style={{ margin: "0 auto 32px" }}>{freeDaily} messages per day on the Free plan. No credit card required.</p>
+        <p className="section-sub" style={{ margin: "0 auto 32px" }}>{freeDaily} messages + 5 minutes Live Voice per day on Free. Pro unlocks unlimited voice. No credit card required.</p>
         <Link to="/login?mode=signup" className="btn btn-primary">Create free account</Link>
       </section>
 
