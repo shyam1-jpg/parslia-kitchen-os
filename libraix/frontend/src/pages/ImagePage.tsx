@@ -175,6 +175,37 @@ export function ImagePage() {
               <p className="model-disclosure">Generated using Libraix Image through Libraix</p>
               <div className="image-result-actions">
                 <a href={imageUrl} download="libraix-image.png" className="btn btn-ghost btn-sm">Download (optional)</a>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  disabled={loading || usage?.canGenerate === false}
+                  onClick={async () => {
+                    const instruction = window.prompt(
+                      "How should we edit this image?",
+                      "Make it warmer lighting, same subject"
+                    );
+                    if (!instruction?.trim()) return;
+                    setLoading(true);
+                    setError("");
+                    try {
+                      const result = await imageApi.edit({
+                        prompt: instruction.trim(),
+                        sourceHint: prompt.trim().slice(0, 400),
+                        size,
+                      });
+                      setImageUrl(result.url);
+                      setRevisedPrompt(result.revisedPrompt ?? instruction.trim());
+                      setPrompt(instruction.trim());
+                      setUsage(await imageApi.usage());
+                    } catch (e) {
+                      setError(friendlyError(e instanceof Error ? e.message : "FAILED", "Image edit failed"));
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
+                  Edit image…
+                </button>
               </div>
             </div>
           )}

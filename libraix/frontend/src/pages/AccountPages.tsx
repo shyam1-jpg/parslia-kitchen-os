@@ -8,6 +8,8 @@ import { advancedApi, type Memory } from "../lib/advanced";
 import { friendlyError } from "../lib/errors";
 import { useSpeechOutput, type VoiceOption } from "../lib/useSpeechOutput";
 import { SPEECH_LANGUAGE_OPTIONS } from "../lib/language";
+import { getStoredTheme, toggleTheme, type ThemeMode } from "../lib/theme";
+import { workspaceApi, type AutomationItem, type ConnectorItem } from "../lib/workspaceApi";
 
 export function AccountPage() {
   const { user, usage, logout, refresh } = useAuth();
@@ -118,6 +120,11 @@ export function SettingsPage() {
   const [newMemory, setNewMemory] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [theme, setTheme] = useState<ThemeMode>(() => getStoredTheme());
+  const [connectors, setConnectors] = useState<ConnectorItem[]>([]);
+  const [automations, setAutomations] = useState<AutomationItem[]>([]);
+  const [autoName, setAutoName] = useState("");
+  const [autoPrompt, setAutoPrompt] = useState("");
   const tts = useSpeechOutput();
 
   useEffect(() => {
@@ -132,6 +139,9 @@ export function SettingsPage() {
       })
       .catch((e) => setError(friendlyError(e instanceof Error ? e.message : "Failed to load settings")))
       .finally(() => setLoading(false));
+
+    workspaceApi.connectors().then((d) => setConnectors(d.connectors)).catch(() => {});
+    workspaceApi.automations().then((d) => setAutomations(d.automations)).catch(() => {});
   }, []);
 
   const savePrefs = async (updates: { memoryEnabled?: boolean; privacyMode?: string }) => {
@@ -185,6 +195,23 @@ export function SettingsPage() {
             <span>Email</span>
             <span style={{ color: "var(--muted)" }}>{user?.email}</span>
           </div>
+        </div>
+
+        <div className="settings-group">
+          <h2>Appearance</h2>
+          <div className="settings-row">
+            <span>Theme</span>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setTheme(toggleTheme())}
+            >
+              {theme === "light" ? "☀ Light" : "☾ Dark"} — tap to switch
+            </button>
+          </div>
+          <p style={{ fontSize: 13, color: "var(--dim)" }}>
+            Tip: on your phone, use the browser Share / Add to Home Screen for the Libraix PWA app icon.
+          </p>
         </div>
 
         <div className="settings-group">
@@ -285,6 +312,94 @@ export function SettingsPage() {
               Delete all memories
             </button>
           )}
+        </div>
+
+        <div className="settings-group">
+          <h2>Connectors</h2>
+          <p style={{ fontSize: 13, color: "var(--dim)", marginBottom: 12 }}>
+            Connect Google Drive, Gmail, Calendar, or GitHub. Full sync needs OAuth keys on the server — request connection to save intent.
+          </p>
+          {connectors.map((c) => (
+            <div key={c.id} className="settings-row">
+              <span>
+                {c.name}
+                <span style={{ color: "var(--dim)", fontSize: 12, marginLeft: 8 }}>{c.status}</span>
+              </span>
+              {c.status === "disconnected" ? (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={async () => {
+                    try {
+                      const r = await workspaceApi.connect(c.id);
+                      setConnectors((prev) => prev.map((x) => (x.id === c.id ? r.connector : x)));
+                      if (r.hint) setError(r.hint);
+                    } catch (e) {
+                      setError(friendlyError(e instanceof Error ? e.message : "", "Could not connect"));
+                    }
+                  }}
+                >
+                  Connect
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={async () => {
+                    const r = await workspaceApi.disconnect(c.id);
+                    setConnectors((prev) => prev.map((x) => (x.id === c.id ? r.connector : x)));
+                  }}
+                >
+                  Disconnect
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="settings-group">
+          <h2>Automations</h2>
+          <p style={{ fontSize: 13, color: "var(--dim)", marginBottom: 12 }}>
+            Scheduled prompts run when you open chat (daily / weekdays / weekly).
+          </p>
+          <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
+            <input className="input" placeholder="Name (e.g. Morning brief)" value={autoName} onChange={(e) => setAutoName(e.target.value)} />
+            <input className="input" placeholder="Prompt to run…" value={autoPrompt} onChange={(e) => setAutoPrompt(e.target.value)} />
+            <button
+              className="btn btn-primary btn-sm"
+              disabled={!autoName.trim() || !autoPrompt.trim()}
+              onClick={async () => {
+                try {
+                  const a = await workspaceApi.createAutomation({
+                    name: autoName.trim(),
+                    prompt: autoPrompt.trim(),
+                    schedule: "daily",
+                  });
+                  setAutomations((prev) => [a, ...prev]);
+                  setAutoName("");
+                  setAutoPrompt("");
+                } catch (e) {
+                  setError(friendlyError(e instanceof Error ? e.message : "", "Could not create automation"));
+                }
+              }}
+            >
+              Add daily automation
+            </button>
+          </div>
+          {automations.map((a) => (
+            <div key={a.id} className="settings-row">
+              <span style={{ fontSize: 13 }}>
+                {a.enabled ? "●" : "○"} {a.name} · {a.schedule}
+              </span>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => workspaceApi.deleteAutomation(a.id).then(() => setAutomations((p) => p.filter((x) => x.id !== a.id)))}
+              >
+                Delete
+              </button>
+            </div>
+          ))}
         </div>
 
         <div className="settings-group">

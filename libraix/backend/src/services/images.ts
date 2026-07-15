@@ -215,6 +215,29 @@ async function generateWithFreeProvider(
   }
 }
 
+/**
+ * Image edit / variation — rewrite a previous image from a text instruction.
+ * Uses Pollinations with an edit-oriented prompt (works without OpenAI billing).
+ */
+export async function editImage(
+  user: SafeUser,
+  req: { prompt: string; sourceHint?: string; size?: "1024x1024" | "1792x1024" | "1024x1792" }
+): Promise<ImageGenerateResponse> {
+  const editPrompt = [
+    req.prompt.trim(),
+    req.sourceHint?.trim() ? `Keep the same subject and composition as: ${req.sourceHint.trim().slice(0, 400)}` : "",
+    "High quality edited image, coherent lighting",
+  ]
+    .filter(Boolean)
+    .join(". ");
+
+  return generateImage(user, {
+    prompt: editPrompt,
+    size: req.size ?? "1024x1024",
+    speed: "quality",
+  });
+}
+
 export function getImageUsage(user: SafeUser) {
   const usage = getUsage(user.id, user.plan);
   return {

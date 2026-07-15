@@ -9,6 +9,7 @@ import {
 import { ChatComposer } from "../components/ChatComposer";
 import { ComparePanel } from "../components/ComparePanel";
 import { ProjectPanel } from "../components/ProjectPanel";
+import { CanvasPanel } from "../components/CanvasPanel";
 import { MarkdownMessage } from "../components/MarkdownMessage";
 import { ChatGeneratedImage } from "../components/ChatGeneratedImage";
 import { WeatherCard } from "../components/WeatherCard";
@@ -21,6 +22,8 @@ import { toolsApi, detectUrls, isYoutubeUrl } from "../lib/tools";
 import { detectImageRequest } from "../lib/imageIntent";
 import { detectLanguage, SPEECH_LANGUAGE_OPTIONS } from "../lib/language";
 import { advancedApi, type Project, type RouterMode } from "../lib/advanced";
+import { workspaceApi, type ChatFolder, type CustomAssistant } from "../lib/workspaceApi";
+import { getStoredTheme, toggleTheme, type ThemeMode } from "../lib/theme";
 import {
   chatApi,
   catalogApi,
@@ -137,7 +140,14 @@ export function AppPage() {
   const [showCompare, setShowCompare] = useState(false);
   const [routerHint, setRouterHint] = useState("");
   const [assistants, setAssistants] = useState<{ id: string; name: string; systemPrompt: string }[]>([]);
+  const [customAssistants, setCustomAssistants] = useState<CustomAssistant[]>([]);
+  const [folders, setFolders] = useState<ChatFolder[]>([]);
+  const [folderFilter, setFolderFilter] = useState<string>("");
   const [assistantId, setAssistantId] = useState("");
+  const [canvasOpen, setCanvasOpen] = useState(false);
+  const [canvasContent, setCanvasContent] = useState("");
+  const [canvasTitle, setCanvasTitle] = useState("Canvas");
+  const [theme, setTheme] = useState<ThemeMode>(() => getStoredTheme());
   const [verifyNotice, setVerifyNotice] = useState("");
   const [attachLoading, setAttachLoading] = useState(false);
   const [urlTools, setUrlTools] = useState<string[]>([]);
@@ -214,11 +224,36 @@ export function AppPage() {
     catalogApi.get().then((c) => setAssistants(c.assistants.map((a) => ({ id: a.id, name: a.name, systemPrompt: a.systemPrompt })))).catch(() => {});
     advancedApi.routerModes().then((d) => setRouterModes(d.modes)).catch(() => {});
     advancedApi.projects().then((d) => setProjects(d.projects)).catch(() => {});
+    workspaceApi.customAssistants().then((d) => setCustomAssistants(d.assistants)).catch(() => {});
+    workspaceApi.folders().then((d) => setFolders(d.folders)).catch(() => {});
     // Auto-locate from login IP for local weather defaults
     locationApi
       .get(true)
       .then((r) => {
         if (r.location) setHomeLocation(r.location);
+      })
+      .catch(() => {});
+    try {
+      const prefill = sessionStorage.getItem("libraix_prefill");
+      if (prefill) {
+        setInput(prefill);
+        sessionStorage.removeItem("libraix_prefill");
+      }
+      const customId = sessionStorage.getItem("libraix_custom_assistant");
+      if (customId) {
+        setAssistantId(customId);
+        sessionStorage.removeItem("libraix_custom_assistant");
+      }
+    } catch { /* ignore */ }
+
+    // Run due automations once per day when chat opens
+    workspaceApi
+      .dueAutomations()
+      .then((d) => {
+        if (d.due?.[0]?.prompt) {
+          setInput((prev) => prev || d.due[0].prompt);
+          setError(`Automation ready: ${d.due[0].name} — tap Send to run.`);
+        }
       })
       .catch(() => {});
   }, []);
@@ -227,7 +262,9 @@ export function AppPage() {
     loadConversations().catch(console.error);
   }, [loadConversations, showArchived]);
 
-  const activeAssistant = assistants.find((a) => a.id === assistantId);
+  const activeAssistant =
+    assistants.find((a) => a.id === assistantId) ??
+    customAssistants.find((a) => a.id === assistantId);
   const systemPrompt = activeAssistant?.systemPrompt;
 
   const handleFileAttach = async (file: File) => {
@@ -335,10 +372,14 @@ export function AppPage() {
     });
 
   const filteredConversations = useMemo(() => {
-    if (!searchQuery.trim()) return conversations;
+    let list = conversations;
+    if (folderFilter) {
+      list = list.filter((c) => (c.folderId ?? "") === folderFilter);
+    }
+    if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
-    return conversations.filter((c) => c.title.toLowerCase().includes(q));
-  }, [conversations, searchQuery]);
+    return list.filter((c) => c.title.toLowerCase().includes(q));
+  }, [conversations, searchQuery, folderFilter]);
 
   const grouped = groupConversations(filteredConversations);
 
@@ -810,9 +851,12 @@ export function AppPage() {
             <IconPlus /> New Chat
           </button>
 
-          <Link to="/app/images" className="conv-item" style={{ marginBottom: 12, display: "block", textAlign: "center", textDecoration: "none" }}>
-            🎨 Image Studio
-          </Link>
+          <div className="sidebar-nav-links">
+            <Link to="/app/images" className="conv-item">🎨 Images</Link>
+            <Link to="/app/library" className="conv-item">📚 Library</Link>
+            <Link to="/app/search" className="conv-item">🔍 Search</Link>
+            <Link to="/app/code" className="conv-item">⟨/⟩ Code</Link>
+          </div>
 
           <input
             className="input sidebar-search"
@@ -824,6 +868,38 @@ export function AppPage() {
           <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
             <button type="button" className={`btn btn-ghost btn-sm${!showArchived ? " active-tab" : ""}`} style={{ flex: 1 }} onClick={() => setShowArchived(false)}>Chats</button>
             <button type="button" className={`btn btn-ghost btn-sm${showArchived ? " active-tab" : ""}`} style={{ flex: 1 }} onClick={() => setShowArchived(true)}>Archived</button>
+          </div>
+
+          <div className="folder-row">
+            <select
+              className="model-select"
+              style={{ flex: 1, fontSize: 12 }}
+              value={folderFilter}
+              onChange={(e) => setFolderFilter(e.target.value)}
+              title="Filter by folder"
+            >
+              <option value="">All folders</option>
+              {folders.map((f) => (
+                <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              title="New folder"
+              onClick={async () => {
+                const name = window.prompt("Folder name");
+                if (!name?.trim()) return;
+                try {
+                  const f = await workspaceApi.createFolder(name.trim());
+                  setFolders((prev) => [...prev, f].sort((a, b) => a.name.localeCompare(b.name)));
+                } catch (e) {
+                  setError(friendlyError(e instanceof Error ? e.message : "", "Could not create folder"));
+                }
+              }}
+            >
+              +
+            </button>
           </div>
 
           <ProjectPanel
@@ -850,9 +926,53 @@ export function AppPage() {
                     {!showArchived && (
                       <button type="button" className="icon-btn conv-action-btn" title={c.pinned ? "Unpin" : "Pin"} onClick={() => pinChat(c.id, !c.pinned)}>📌</button>
                     )}
+                    <button
+                      type="button"
+                      className="icon-btn conv-action-btn"
+                      title="Move to folder"
+                      onClick={async () => {
+                        if (!folders.length) {
+                          setError("Create a folder first (+ next to All folders).");
+                          return;
+                        }
+                        const names = folders.map((f, i) => `${i + 1}. ${f.name}`).join("\n");
+                        const pick = window.prompt(`Move to folder number (or 0 for none):\n${names}`, "1");
+                        if (pick === null) return;
+                        const n = Number(pick);
+                        const folderId = n === 0 ? null : folders[n - 1]?.id ?? null;
+                        try {
+                          await workspaceApi.assignFolder(c.id, folderId);
+                          setConversations((prev) =>
+                            prev.map((x) => (x.id === c.id ? { ...x, folderId } : x))
+                          );
+                        } catch (e) {
+                          setError(friendlyError(e instanceof Error ? e.message : "", "Could not move chat"));
+                        }
+                      }}
+                    >
+                      📁
+                    </button>
                     <button type="button" className="icon-btn conv-action-btn" title="Rename" onClick={() => renameChat(c.id, c.title)}>✎</button>
                     {activeId === c.id && (
-                      <button type="button" className="icon-btn conv-action-btn" title="Export" onClick={() => exportChat(c.id)}>⤓</button>
+                      <>
+                        <button type="button" className="icon-btn conv-action-btn" title="Export" onClick={() => exportChat(c.id)}>⤓</button>
+                        <button
+                          type="button"
+                          className="icon-btn conv-action-btn"
+                          title="Share link"
+                          onClick={async () => {
+                            try {
+                              const r = await workspaceApi.shareChat(c.id);
+                              await navigator.clipboard.writeText(r.url);
+                              setError(`Share link copied: ${r.url}`);
+                            } catch (e) {
+                              setError(friendlyError(e instanceof Error ? e.message : "", "Could not share"));
+                            }
+                          }}
+                        >
+                          🔗
+                        </button>
+                      </>
                     )}
                     {!showArchived ? (
                       <button type="button" className="icon-btn conv-action-btn" title="Archive" onClick={() => archiveChat(c.id)}>🗄</button>
@@ -904,13 +1024,18 @@ export function AppPage() {
                 </option>
               ))}
             </select>
-            {assistants.length > 0 && (
+            {(assistants.length > 0 || customAssistants.length > 0) && (
               <select className="model-select" value={assistantId} onChange={(e) => setAssistantId(e.target.value)} title="AI assistant preset">
                 <option value="">General assistant</option>
                 {assistants.map((a) => (
                   <option key={a.id} value={a.id}>
                     {ASSISTANT_UI[a.id]?.emoji ? `${ASSISTANT_UI[a.id].emoji} ` : ""}
                     {a.name}
+                  </option>
+                ))}
+                {customAssistants.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    🧩 {a.name}
                   </option>
                 ))}
               </select>
@@ -944,7 +1069,15 @@ export function AppPage() {
               ))}
             </select>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              title="Toggle light / dark"
+              onClick={() => setTheme(toggleTheme())}
+            >
+              {theme === "light" ? "☀" : "☾"}
+            </button>
             {messages.some((m) => m.role === "assistant") && (
               <button type="button" className="btn btn-ghost btn-sm" onClick={regenerateLast} disabled={loading || streaming}>Regenerate</button>
             )}
@@ -1066,6 +1199,18 @@ export function AppPage() {
                       </button>
                     )}
                     <button className="msg-action" onClick={() => copyMessage(m.content)}><IconCopy /> Copy</button>
+                    {m.content.length > 280 && (
+                      <button
+                        className="msg-action"
+                        onClick={() => {
+                          setCanvasTitle("Canvas");
+                          setCanvasContent(m.content);
+                          setCanvasOpen(true);
+                        }}
+                      >
+                        ✏ Canvas
+                      </button>
+                    )}
                   </div>
                 )}
                 {m.sources && m.sources.length > 0 && (
@@ -1153,6 +1298,18 @@ export function AppPage() {
           }
         />
       </main>
+
+      <CanvasPanel
+        open={canvasOpen}
+        title={canvasTitle}
+        content={canvasContent}
+        onChange={setCanvasContent}
+        onClose={() => setCanvasOpen(false)}
+        onInsertToChat={(value) => {
+          setInput(value);
+          setCanvasOpen(false);
+        }}
+      />
     </div>
   );
 }
