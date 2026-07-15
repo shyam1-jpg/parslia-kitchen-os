@@ -66,6 +66,9 @@ Optional tuning on Render:
 |---|---|---|
 | `OPENAI_TEMPERATURE` | `0.7` | Response creativity |
 | `OPENAI_MAX_TOKENS` | `4096` | Max reply length |
+| `OPENAI_EMBEDDING_MODEL` | `text-embedding-3-small` | Embeddings for project RAG + memory (uses `OPENAI_API_KEY`) |
+
+**Agent mode / RAG:** With `OPENAI_API_KEY`, project file chunks and memories get embeddings for semantic recall. Without embeddings, keyword search still works. Pick **Agent** in the router dropdown for plan → tools → answer (connectors, project search, memory).
 
 ### Open-weight models (Llama, Qwen, DeepSeek, Ollama)
 

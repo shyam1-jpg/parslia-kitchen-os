@@ -51,8 +51,18 @@ export interface ConnectorItem {
   id: string;
   name: string;
   description: string;
+  tools?: string[];
   status: "connected" | "disconnected" | "pending";
   updatedAt: string | null;
+}
+
+export interface McpToolItem {
+  name: string;
+  provider: string;
+  description: string;
+  requiresConnection: boolean;
+  available: boolean;
+  status: string;
 }
 
 export const workspaceApi = {
@@ -107,5 +117,11 @@ export const workspaceApi = {
     api<{ connector: ConnectorItem }>(`/api/workspace/connectors/${provider}/disconnect`, {
       method: "POST",
       body: "{}",
+    }),
+  connectorTools: () => api<{ tools: McpToolItem[] }>("/api/workspace/connectors/tools"),
+  invokeTool: (tool: string, args?: { query?: string; projectId?: string; brief?: string }) =>
+    api<{ result: { tool: string; ok: boolean; summary: string } }>("/api/workspace/connectors/tools/invoke", {
+      method: "POST",
+      body: JSON.stringify({ tool, ...args }),
     }),
 };

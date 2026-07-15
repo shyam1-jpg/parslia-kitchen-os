@@ -135,7 +135,23 @@ export function initDb() {
   migrateSourceCache();
   migrateShipAllFeatures();
   migrateVoiceUsage();
+  migrateEmbeddings();
   seedDefaultSiteConfig();
+}
+
+/** Vector embeddings for RAG (document chunks) and memory recall. Stored as JSON text. */
+function migrateEmbeddings() {
+  const chunkCols = db.prepare("PRAGMA table_info(document_chunks)").all() as { name: string }[];
+  const chunkNames = new Set(chunkCols.map((c) => c.name));
+  if (!chunkNames.has("embedding")) {
+    db.exec("ALTER TABLE document_chunks ADD COLUMN embedding TEXT");
+  }
+
+  const memCols = db.prepare("PRAGMA table_info(memories)").all() as { name: string }[];
+  const memNames = new Set(memCols.map((c) => c.name));
+  if (!memNames.has("embedding")) {
+    db.exec("ALTER TABLE memories ADD COLUMN embedding TEXT");
+  }
 }
 
 function migrateVoiceUsage() {

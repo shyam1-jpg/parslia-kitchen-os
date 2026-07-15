@@ -72,7 +72,7 @@ async function drainQueue() {
           parsed.text,
           job.file_id
         );
-        const chunkCount = indexFileChunks(job.file_id, job.project_id, parsed.text);
+        const chunkCount = await indexFileChunks(job.file_id, job.project_id, parsed.text);
         db.prepare(
           `UPDATE file_index_jobs SET status = 'done', chunk_count = ?, updated_at = datetime('now') WHERE id = ?`
         ).run(chunkCount, job.id);

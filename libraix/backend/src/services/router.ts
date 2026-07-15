@@ -40,7 +40,7 @@ function scoreModel(model: ModelDefinition, mode: RouterMode, input: RouterInput
     if (model.id === "libraix-claude-sonnet") score += 80;
     if (model.id === "libraix-fast") score += 60;
   }
-  if (mode === "advanced" || mode === "deep-research") {
+  if (mode === "advanced" || mode === "deep-research" || mode === "agent") {
     if (model.id === "libraix-advanced") score += 100;
     if (model.id === "libraix-deepseek-r1") score += 95;
     if (model.id === "libraix-grok-pro") score += 92;
@@ -133,6 +133,9 @@ function buildResult(model: ModelDefinition, mode: RouterMode, reason: string, w
   const tools: string[] = [];
   if (model.capabilities.webSearch) tools.push("web-search");
   if (model.capabilities.fileSearch) tools.push("file-search");
+  if (mode === "agent") {
+    tools.push("agent-tools", "mcp-connectors", "memory-recall");
+  }
 
   return {
     modelId: model.id,

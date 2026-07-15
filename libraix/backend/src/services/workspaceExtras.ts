@@ -312,10 +312,30 @@ export function claimDueAutomations(userId: string) {
 /* ── Connectors ─────────────────────────────────────────────── */
 
 const CONNECTOR_CATALOG = [
-  { id: "google-drive", name: "Google Drive", description: "Open docs from Drive in chat" },
-  { id: "gmail", name: "Gmail", description: "Draft and summarise email" },
-  { id: "google-calendar", name: "Google Calendar", description: "Check upcoming events" },
-  { id: "github", name: "GitHub", description: "Repo context for coding chats" },
+  {
+    id: "google-drive",
+    name: "Google Drive",
+    description: "Open docs from Drive in chat",
+    tools: ["drive.search"],
+  },
+  {
+    id: "gmail",
+    name: "Gmail",
+    description: "Draft and summarise email",
+    tools: ["gmail.draft"],
+  },
+  {
+    id: "google-calendar",
+    name: "Google Calendar",
+    description: "Check upcoming events",
+    tools: ["calendar.upcoming"],
+  },
+  {
+    id: "github",
+    name: "GitHub",
+    description: "Repo context for coding chats",
+    tools: ["github.repos"],
+  },
 ] as const;
 
 export function listConnectors(userId: string) {
@@ -332,6 +352,7 @@ export function listConnectors(userId: string) {
       id: c.id,
       name: c.name,
       description: c.description,
+      tools: [...c.tools],
       status: (row?.status as "connected" | "disconnected" | "pending") ?? "disconnected",
       updatedAt: row?.updatedAt ?? null,
     };

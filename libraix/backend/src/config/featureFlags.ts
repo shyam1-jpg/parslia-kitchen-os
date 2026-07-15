@@ -21,8 +21,9 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
   { id: "image-studio", name: "Image Studio", description: "Creative image workspace", state: "beta", minPlan: "free" },
   { id: "code-sandbox", name: "Code Sandbox", description: "Isolated browser code runner", state: "beta", minPlan: "free" },
   { id: "custom-agents", name: "Custom Agent Builder", description: "Build your own assistants", state: "beta", minPlan: "free" },
-  { id: "multi-agent", name: "Multi-Agent Orchestration", description: "Agent delegation workflows", state: "disabled" },
-  { id: "connectors", name: "App Connectors", description: "Google, GitHub integrations", state: "beta", minPlan: "free" },
+  { id: "multi-agent", name: "Agent Mode", description: "Plan → tools → answer with connectors & RAG", state: "beta", minPlan: "free" },
+  { id: "connectors", name: "App Connectors", description: "Google, GitHub, MCP-style tool adapters", state: "beta", minPlan: "free" },
+  { id: "embeddings-rag", name: "Embeddings RAG", description: "Semantic search over project docs & memory", state: "enabled", minPlan: "free" },
   { id: "automations", name: "Automations", description: "Scheduled AI tasks", state: "beta", minPlan: "free" },
   { id: "prompt-library", name: "Prompt Library", description: "Save and reuse prompts", state: "enabled", minPlan: "free" },
   { id: "share-chats", name: "Share Chats", description: "Public read-only chat links", state: "enabled", minPlan: "free" },
@@ -61,6 +62,7 @@ export type RouterMode =
   | "balanced"
   | "advanced"
   | "deep-research"
+  | "agent"
   | "coding"
   | "creative"
   | "private"
@@ -71,6 +73,7 @@ export const ROUTER_MODES: { id: RouterMode; label: string; description: string 
   { id: "fast", label: "Fast", description: "Lowest latency, cost-efficient" },
   { id: "balanced", label: "Balanced", description: "Quality and speed balanced" },
   { id: "advanced", label: "Advanced", description: "Highest quality reasoning" },
+  { id: "agent", label: "Agent", description: "Plan → tools → answer (RAG, memory, connectors)" },
   { id: "coding", label: "Coding", description: "Optimised for code tasks" },
   { id: "creative", label: "Creative", description: "Optimised for creative writing" },
   { id: "lowest-cost", label: "Lowest Cost", description: "Minimise credit usage" },

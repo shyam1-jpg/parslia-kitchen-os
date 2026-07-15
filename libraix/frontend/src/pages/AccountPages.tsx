@@ -317,13 +317,16 @@ export function SettingsPage() {
         <div className="settings-group">
           <h2>Connectors</h2>
           <p style={{ fontSize: 13, color: "var(--dim)", marginBottom: 12 }}>
-            Connect Google Drive, Gmail, Calendar, or GitHub. Full sync needs OAuth keys on the server — request connection to save intent.
+            Connect Google Drive, Gmail, Calendar, or GitHub for Agent mode tools. Full live sync needs OAuth keys; pending connections still expose drafting/search tools.
           </p>
           {connectors.map((c) => (
             <div key={c.id} className="settings-row">
               <span>
                 {c.name}
                 <span style={{ color: "var(--dim)", fontSize: 12, marginLeft: 8 }}>{c.status}</span>
+                {c.tools?.length ? (
+                  <span style={{ color: "var(--dim)", fontSize: 11, marginLeft: 8 }}>{c.tools.join(", ")}</span>
+                ) : null}
               </span>
               {c.status === "disconnected" ? (
                 <button
