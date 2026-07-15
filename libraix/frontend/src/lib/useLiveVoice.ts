@@ -44,7 +44,7 @@ async function micPermissionState(): Promise<PermissionState | "unknown"> {
 
 function micBlockedHelp(): string {
   if (isIos()) {
-    return "Mic blocked. On iPhone: Settings → Safari → Microphone → Allow, then reload libraix.ai and tap 🎙 again.";
+    return "Mic needs permission. On this page tap Aa (left of the address bar) → Website Settings → Microphone → Allow, then tap 🎙 again. Or: Settings → Safari → Microphone → Allow, then reload.";
   }
   if (isAndroid()) {
     return "Mic blocked. Tap the lock/tune icon left of the URL → Permissions → Microphone → Allow, then tap 🎙 again.";
@@ -226,12 +226,14 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
         throw new Error("Live Voice needs a modern browser with microphone support.");
       }
 
-      const perm = await micPermissionState();
-      if (perm === "denied") {
+      // Do NOT pre-check navigator.permissions on iOS — Safari often reports "denied"
+      // before the user has ever been prompted, which blocked Live Voice incorrectly.
+      const perm = isIos() ? "unknown" : await micPermissionState();
+      if (perm === "denied" && !isIos()) {
         throw new Error("NotAllowedError");
       }
 
-      // Request mic first (from the user tap) so permission UI feels instant
+      // Request mic first (from the user tap) so iOS/Android shows the system prompt
       let ms: MediaStream;
       try {
         ms = await navigator.mediaDevices.getUserMedia({
@@ -245,6 +247,9 @@ export function useLiveVoice(opts: UseLiveVoiceOptions = {}) {
         // Retry with bare constraints — some mobile browsers reject advanced constraints
         const name = first instanceof DOMException ? first.name : "";
         if (name === "OverconstrainedError" || name === "NotFoundError" || name === "TypeError") {
+          ms = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } else if (isIos() && name !== "NotAllowedError" && name !== "PermissionDeniedError") {
+          // iOS sometimes rejects constraint bags without a clear OverconstrainedError
           ms = await navigator.mediaDevices.getUserMedia({ audio: true });
         } else {
           throw first;
