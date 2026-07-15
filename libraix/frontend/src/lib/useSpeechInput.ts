@@ -335,9 +335,15 @@ export function useSpeechInput(
 
     showError("");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true },
-      });
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true },
+        });
+      } catch (first) {
+        // iOS Safari often needs bare constraints; don't treat that as a hard block
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
       mediaRef.current = stream;
       const mime = pickRecorderMime();
       const recorder = mime
@@ -358,7 +364,7 @@ export function useSpeechInput(
       if (name === "NotAllowedError" || name === "PermissionDeniedError") {
         showError(
           isIos()
-            ? "Mic blocked. Settings → Safari → Microphone → Allow, then try again."
+            ? "Mic needs permission. Tap Aa → Website Settings → Microphone → Allow, then tap the mic again."
             : "Mic blocked — allow Microphone for libraix.ai, then try again."
         );
       } else {
