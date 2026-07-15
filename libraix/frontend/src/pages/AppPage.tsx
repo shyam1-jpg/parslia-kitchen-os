@@ -35,6 +35,8 @@ import {
   type ModelInfo,
 } from "../lib/api";
 import { friendlyError } from "../lib/errors";
+import { BRAND } from "../lib/brand";
+import { OnboardingModal, hasCompletedOnboarding } from "../components/OnboardingModal";
 
 const ASSISTANT_UI: Record<
   string,
@@ -155,6 +157,8 @@ export function AppPage() {
   const [showArchived, setShowArchived] = useState(false);
   /** Whether a background home location exists — never display the place name in the UI. */
   const [hasHomeLocation, setHasHomeLocation] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedOnboarding());
+  const [showUsageDetails, setShowUsageDetails] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
   const abortCtrlRef = useRef<AbortController | null>(null);
@@ -848,6 +852,26 @@ export function AppPage() {
 
   return (
     <div className="app-shell">
+      {showOnboarding && (
+        <OnboardingModal
+          assistants={assistants}
+          onComplete={({ assistantId: aId, language }) => {
+            setShowOnboarding(false);
+            if (aId) setAssistantId(aId);
+            if (language && language !== "auto") {
+              setPreferredLanguage(language);
+              const opt = SPEECH_LANGUAGE_OPTIONS.find((o) => o.code === language);
+              if (opt) {
+                setSpeechLocale(opt.speechLocale);
+                try {
+                  localStorage.setItem("libraix_reply_lang", language);
+                  localStorage.setItem("libraix_speech_locale", opt.speechLocale);
+                } catch { /* ignore */ }
+              }
+            }
+          }}
+        />
+      )}
       {camera.open && (
         <div className="camera-modal">
           <div className="camera-backdrop" onClick={camera.closeCamera} />
@@ -1088,9 +1112,13 @@ export function AppPage() {
               disabled={routerMode === "auto"}
               title={routerMode === "auto" ? "Switch to Manual to pick a model" : "Choose AI model"}
             >
-              {models.filter((m) => m.capabilities.chat).map((m) => (
-                <option key={m.id} value={m.id} disabled={m.available === false} title={[m.description, m.speedHint && `Speed: ${m.speedHint}`, m.costHint && `Cost: ${m.costHint}`].filter(Boolean).join(" · ")}>
-                  {m.displayName}{m.speedHint ? ` · ${m.speedHint}` : ""}{m.available === false ? " (needs API key)" : ""}
+              {models.filter((m) => m.capabilities.chat && m.available !== false).map((m) => (
+                <option
+                  key={m.id}
+                  value={m.id}
+                  title={[m.description, m.speedHint && `Best when you need: ${m.speedHint}`, m.costHint && `Cost: ${m.costHint}`].filter(Boolean).join(" · ")}
+                >
+                  {m.displayName}{m.speedHint ? ` · ${m.speedHint}` : ""}
                 </option>
               ))}
             </select>
@@ -1152,9 +1180,28 @@ export function AppPage() {
               <button type="button" className="btn btn-ghost btn-sm" onClick={regenerateLast} disabled={loading || streaming}>Regenerate</button>
             )}
             {user?.plan !== "free" && (
-              <button className="btn btn-ghost btn-sm" onClick={() => setShowCompare((v) => !v)}>Compare</button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => setShowCompare((v) => !v)}
+                title="Send one prompt to several models and compare answers side by side"
+              >
+                Compare
+              </button>
             )}
-            <Link to="/pricing" className="btn btn-ghost btn-sm">Upgrade</Link>
+            {user?.plan === "free" ? (
+              <Link
+                to="/pricing"
+                className="btn btn-primary btn-sm"
+                title="Pro: more messages, unlimited Live Voice, and all live models"
+              >
+                Go Pro — £9/mo
+              </Link>
+            ) : (
+              <Link to="/billing" className="btn btn-ghost btn-sm" title="Manage billing">
+                Billing
+              </Link>
+            )}
           </div>
         </header>
 
@@ -1199,11 +1246,13 @@ export function AppPage() {
               <h2>
                 {ASSISTANT_UI[assistantId]
                   ? `${ASSISTANT_UI[assistantId].emoji} ${ASSISTANT_UI[assistantId].title}`
-                  : "What can I help you with?"}
+                  : `Ask ${BRAND.name} anything`}
               </h2>
               <p>
                 {ASSISTANT_UI[assistantId]?.blurb ?? (
-                  <>Type <strong>/i</strong> or tap 🎨 for quick images · 🔍 for live web search.</>
+                  <>
+                    {BRAND.tagline} Type <strong>/i</strong> or tap 🎨 for images · 📷 Live Vision · 🔍 web search.
+                  </>
                 )}
               </p>
               <div className="suggestion-row">
@@ -1340,28 +1389,42 @@ export function AppPage() {
           }}
           voiceSecondsRemaining={usage?.remainingVoiceSeconds ?? null}
           voiceUnlimited={usage?.voiceUnlimited ?? usage?.plan !== "free"}
-          placeholder={imageMode ? "Describe a quick image…" : "Message Libraix…"}
+          placeholder={imageMode ? "Describe a quick image…" : `Ask ${BRAND.name}…`}
           extraAbove={
             <>
-              {usage && (
+              {usage && (usage.limitReached || usage.voiceLimitReached || showUsageDetails || usage.remainingMessages <= 5) && (
                 <div className={`usage-bar ${usage.limitReached || usage.voiceLimitReached ? "usage-limit" : ""}`}>
                   {usage.limitReached
-                    ? `Daily message limit reached (${usage.messagesUsed}/${usage.messagesLimit} on ${usage.plan}). Upgrade for more.`
-                    : `${usage.remainingMessages} of ${usage.messagesLimit} messages remaining today`}
-                  {usage.premiumLimit > 0 && !usage.limitReached && (
-                    <span> · Premium: {usage.premiumUsed}/{usage.premiumLimit}</span>
+                    ? `Daily message limit reached (${usage.messagesUsed}/${usage.messagesLimit}). `
+                    : usage.remainingMessages <= 5
+                      ? `${usage.remainingMessages} messages left today. `
+                      : null}
+                  {usage.plan === "free" && usage.voiceLimitReached && (
+                    <span>Live Voice used up for today (5 min Free). </span>
                   )}
-                  {usage.plan === "free" && (
+                  {(usage.limitReached || usage.voiceLimitReached) && (
+                    <Link to="/pricing">Upgrade to Pro</Link>
+                  )}
+                  {showUsageDetails && !usage.limitReached && (
                     <span>
-                      {" "}
-                      · Live Voice:{" "}
-                      {usage.voiceLimitReached
-                        ? "0 min left (Free = 5 min/day)"
-                        : `${Math.max(0, Math.floor((usage.remainingVoiceSeconds ?? 0) / 60))} min left`}
+                      {usage.remainingMessages}/{usage.messagesLimit} messages
+                      {usage.plan === "free" && !usage.voiceLimitReached
+                        ? ` · Live Voice ${Math.max(0, Math.floor((usage.remainingVoiceSeconds ?? 0) / 60))}m left`
+                        : ""}
+                      {routerHint && routerMode === "auto" ? ` · ${routerHint}` : ""}
                     </span>
                   )}
-                  {routerHint && routerMode === "auto" && !usage.limitReached && <span> · {routerHint}</span>}
                 </div>
+              )}
+              {usage && !usage.limitReached && usage.remainingMessages > 5 && (
+                <button
+                  type="button"
+                  className="usage-quiet-toggle"
+                  onClick={() => setShowUsageDetails((v) => !v)}
+                  aria-expanded={showUsageDetails}
+                >
+                  {showUsageDetails ? "Hide usage" : "Usage"}
+                </button>
               )}
               {error && <div className="error-banner composer-banner">{error}</div>}
               {attachLoading && <div className="info-banner composer-banner">Reading document…</div>}

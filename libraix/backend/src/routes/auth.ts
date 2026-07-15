@@ -30,7 +30,11 @@ const router = Router();
 
 const signupSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z
+    .string()
+    .min(10, "PASSWORD_TOO_SHORT")
+    .regex(/[A-Za-z]/, "PASSWORD_NEED_LETTER")
+    .regex(/[0-9]/, "PASSWORD_NEED_NUMBER"),
   displayName: z.string().optional(),
 });
 
@@ -41,7 +45,16 @@ const loginSchema = z.object({
 
 router.post("/signup", async (req, res) => {
   const parsed = signupSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0]?.message;
+    if (issue === "PASSWORD_TOO_SHORT" || issue === "PASSWORD_NEED_LETTER" || issue === "PASSWORD_NEED_NUMBER") {
+      return res.status(400).json({
+        error: issue,
+        hint: "Use at least 10 characters with a letter and a number.",
+      });
+    }
+    return res.status(400).json({ error: "INVALID_INPUT" });
+  }
 
   try {
     const user = await createUser(parsed.data.email, parsed.data.password, parsed.data.displayName);
@@ -138,9 +151,21 @@ router.post("/forgot-password", async (req, res) => {
 
 router.post("/reset-password", async (req, res) => {
   const parsed = z
-    .object({ token: z.string().min(1), password: z.string().min(8) })
+    .object({
+      token: z.string().min(1),
+      password: z
+        .string()
+        .min(10, "PASSWORD_TOO_SHORT")
+        .regex(/[A-Za-z]/, "PASSWORD_NEED_LETTER")
+        .regex(/[0-9]/, "PASSWORD_NEED_NUMBER"),
+    })
     .safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "INVALID_INPUT",
+      hint: "Use at least 10 characters with a letter and a number.",
+    });
+  }
 
   const ok = resetPasswordWithToken(parsed.data.token, parsed.data.password);
   if (!ok) return res.status(400).json({ error: "INVALID_OR_EXPIRED_TOKEN" });

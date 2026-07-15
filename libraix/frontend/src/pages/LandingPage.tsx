@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PublicNav, Footer } from "../components/Layout";
 import { catalogApi, type Catalog, type LaunchStatus } from "../lib/api";
+import { BRAND } from "../lib/brand";
 
 function statusLabel(status: LaunchStatus) {
   if (status === "live") return "Available";
@@ -33,10 +34,10 @@ export function LandingPage() {
         <div className="luxury-hero-atmosphere" aria-hidden />
         <div className="luxury-hero-grain" aria-hidden />
         <div className="luxury-hero-inner">
-          <p className="luxury-brand">Libraix</p>
-          <h1 className="luxury-headline">Quiet power for every conversation.</h1>
+          <p className="luxury-brand">{BRAND.name}</p>
+          <h1 className="luxury-headline">{BRAND.tagline}</h1>
           <p className="luxury-lede">
-            A private AI workspace — models, voice, and craft in one calm place.
+            {BRAND.slogan} A private workspace for chat, Live Voice, vision, and tools — honestly labelled as live or beta.
           </p>
           <div className="hero-actions luxury-hero-actions">
             <Link to="/login?mode=signup" className="btn btn-primary">
@@ -74,9 +75,11 @@ export function LandingPage() {
       <section className="section luxury-section" id="models">
         <div className="section-label">Models</div>
         <h2 className="section-title">A curated atelier of AI</h2>
-        <p className="section-sub">OpenAI, Anthropic, Google, DeepSeek, Llama, Qwen — presented under Libraix names.</p>
+        <p className="section-sub">
+          Only models that are live on the server appear here — named under Libraix, never unfinished entries.
+        </p>
         <div className="model-grid luxury-model-grid">
-          {(catalog?.models ?? []).map((m) => (
+          {(catalog?.models ?? []).filter((m) => m.available !== false).map((m) => (
             <div className="model-chip" key={m.id}>
               {m.displayName}
               <span className={`badge ${m.tier === "free" ? "badge-free" : "badge-pro"}`}>

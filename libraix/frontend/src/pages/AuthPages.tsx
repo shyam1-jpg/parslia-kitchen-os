@@ -205,8 +205,8 @@ export function LoginPage() {
           <h1>{mode === "signup" ? "Create your account" : "Welcome back"}</h1>
           <p>
             {mode === "signup"
-              ? "Free account — 30 chat messages per day on Libraix Fast."
-              : "Sign in to your Libraix workspace."}
+              ? "One AI workspace. Multiple models. Free — 30 messages/day + 5 min Live Voice."
+              : "Sign in to Libraix — balance meets intelligence."}
           </p>
 
           {error && <div className="error-banner auth-error">{error}</div>}
@@ -235,12 +235,12 @@ export function LoginPage() {
                 type="password"
                 className="input"
                 required
-                minLength={8}
+                minLength={10}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete={mode === "signup" ? "new-password" : "current-password"}
               />
-              {mode === "signup" && <p className="auth-hint">Minimum 8 characters</p>}
+              {mode === "signup" && <p className="auth-hint">At least 10 characters, with a letter and a number</p>}
             </div>
             {mode === "signup" && (
               <label className="auth-terms">
@@ -351,15 +351,19 @@ export function PricingPage() {
 
           <div className="price-card">
             <h3>Enterprise</h3>
-            <div className="price-amount">£29<span>/mo per seat</span></div>
+            <div className="price-amount">Custom</div>
             <ul className="price-features">
-              <li>✓ Everything in Pro</li>
-              <li>✓ Team workspace</li>
-              <li>✓ Custom AI Assistants</li>
-              <li>✓ API access</li>
-              <li>✓ SSO & admin controls</li>
+              <li>✓ Everything in Pro today</li>
+              <li>○ Higher limits &amp; priority support</li>
+              <li>○ Team workspace — coming soon</li>
+              <li>○ SSO &amp; API access — coming soon</li>
             </ul>
-            <a href="mailto:hello@libraix.ai" className="btn btn-ghost" style={{ width: "100%" }}>Contact sales</a>
+            <p style={{ fontSize: 12, color: "var(--dim)", marginBottom: 12 }}>
+              We only sell Enterprise features that are live. Ask about early access.
+            </p>
+            <a href="mailto:hello@libraix.ai?subject=Libraix%20Enterprise" className="btn btn-ghost" style={{ width: "100%" }}>
+              Contact sales
+            </a>
           </div>
         </div>
       </section>
@@ -459,7 +463,7 @@ export function ResetPasswordPage() {
               {error && <div className="error-banner">{error}</div>}
               <div>
                 <label htmlFor="password">New password</label>
-                <input id="password" type="password" className="input" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+                <input id="password" type="password" className="input" required minLength={10} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="10+ chars, letter + number" />
               </div>
               <button type="submit" className="btn btn-primary" disabled={loading || !token}>
                 {loading ? "Please wait…" : "Update password"}
