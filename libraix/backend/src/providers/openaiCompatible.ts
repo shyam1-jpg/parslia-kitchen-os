@@ -36,31 +36,57 @@ export interface OpenAiCompatibleConfig {
   apiKeyEnv: string;
   baseUrl: string;
   costPer1kTokensCents?: number;
+  /** Local Ollama etc. — no real key required when base URL is set. */
+  authOptional?: boolean;
+  /** Env var that marks the provider configured when auth is optional (e.g. OLLAMA_BASE_URL). */
+  configuredEnv?: string;
+  /** Extra headers (OpenRouter asks for HTTP-Referer / X-Title). */
+  extraHeaders?: Record<string, string>;
+}
+
+function resolveApiKey(config: OpenAiCompatibleConfig): string {
+  const key = process.env[config.apiKeyEnv]?.trim() ?? "";
+  if (key) return key;
+  if (config.authOptional) return "ollama";
+  return "";
+}
+
+function isConfigured(config: OpenAiCompatibleConfig): boolean {
+  if (process.env[config.apiKeyEnv]?.trim()) return true;
+  if (config.authOptional && config.configuredEnv) {
+    return Boolean(process.env[config.configuredEnv]?.trim());
+  }
+  return false;
 }
 
 export function createOpenAiCompatibleProvider(config: OpenAiCompatibleConfig): AiProviderAdapter {
-  const completionsUrl = `${config.baseUrl.replace(/\/$/, "")}/v1/chat/completions`;
+  const base = (process.env[`${config.name.toUpperCase()}_BASE_URL`]?.trim() || config.baseUrl).replace(/\/$/, "");
+  const completionsUrl = `${base}/v1/chat/completions`;
   const cost = config.costPer1kTokensCents ?? 0.2;
 
   return {
     name: config.name,
 
     async healthCheck(): Promise<ProviderHealth> {
-      const key = process.env[config.apiKeyEnv]?.trim() ?? "";
+      const ok = isConfigured(config);
       return {
         provider: config.name,
-        available: Boolean(key),
+        available: ok,
         lastChecked: new Date().toISOString(),
-        error: key ? undefined : `Set ${config.apiKeyEnv} on the server`,
+        error: ok
+          ? undefined
+          : config.authOptional
+            ? `Set ${config.configuredEnv ?? config.apiKeyEnv} on the server`
+            : `Set ${config.apiKeyEnv} on the server`,
       };
     },
 
     async complete(request: ProviderRequest): Promise<ProviderResponse> {
       const start = Date.now();
-      const apiKey = process.env[config.apiKeyEnv]?.trim() ?? "";
-      if (!apiKey) {
+      const apiKey = resolveApiKey(config);
+      if (!apiKey || !isConfigured(config)) {
         throw new ProviderError(
-          `${config.name} API key not configured`,
+          `${config.name} is not configured`,
           config.name,
           "PROVIDER_UNAVAILABLE",
           false
@@ -69,7 +95,11 @@ export function createOpenAiCompatibleProvider(config: OpenAiCompatibleConfig): 
 
       const res = await fetch(completionsUrl, {
         method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          ...(config.extraHeaders ?? {}),
+        },
         body: JSON.stringify(buildBody(request, false)),
         signal: AbortSignal.timeout(120_000),
       });
@@ -96,14 +126,18 @@ export function createOpenAiCompatibleProvider(config: OpenAiCompatibleConfig): 
     },
 
     async *stream(request: ProviderRequest): AsyncGenerator<string> {
-      const apiKey = process.env[config.apiKeyEnv]?.trim() ?? "";
-      if (!apiKey) {
-        throw new ProviderError(`${config.name} API key not configured`, config.name, "PROVIDER_UNAVAILABLE", false);
+      const apiKey = resolveApiKey(config);
+      if (!apiKey || !isConfigured(config)) {
+        throw new ProviderError(`${config.name} is not configured`, config.name, "PROVIDER_UNAVAILABLE", false);
       }
 
       const res = await fetch(completionsUrl, {
         method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          ...(config.extraHeaders ?? {}),
+        },
         body: JSON.stringify(buildBody(request, true)),
         signal: AbortSignal.timeout(120_000),
       });

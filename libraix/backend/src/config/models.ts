@@ -7,7 +7,7 @@ export type PlanTier = "free" | "pro" | "enterprise";
 export interface ModelDefinition {
   id: string;
   displayName: string;
-  provider: "openai" | "anthropic" | "google" | "deepseek" | "meta" | "xai" | "perplexity" | "ollama";
+  provider: "openai" | "anthropic" | "google" | "deepseek" | "meta" | "xai" | "perplexity" | "ollama" | "openrouter";
   providerModelId: string;
   tier: PlanTier;
   capabilities: {
@@ -163,6 +163,26 @@ export const PRODUCT_CATALOG: ProductCatalog = {
       description: "xAI Grok flagship — advanced reasoning and agentic tasks.",
     },
     {
+      id: "libraix-llama",
+      displayName: "Libraix Llama",
+      provider: "openrouter",
+      providerModelId: process.env.OPENROUTER_MODEL_LLAMA ?? "meta-llama/llama-3.3-70b-instruct",
+      tier: "free",
+      capabilities: { chat: true, streaming: true },
+      enabled: true,
+      description: "Meta Llama 3.3 — strong open-weight model via OpenRouter.",
+    },
+    {
+      id: "libraix-qwen",
+      displayName: "Libraix Qwen",
+      provider: "openrouter",
+      providerModelId: process.env.OPENROUTER_MODEL_QWEN ?? "qwen/qwen-2.5-72b-instruct",
+      tier: "free",
+      capabilities: { chat: true, streaming: true },
+      enabled: true,
+      description: "Alibaba Qwen 2.5 — excellent multilingual & coding open-weight model via OpenRouter.",
+    },
+    {
       id: "libraix-local",
       displayName: "Libraix Local",
       provider: "ollama",
@@ -170,7 +190,27 @@ export const PRODUCT_CATALOG: ProductCatalog = {
       tier: "free",
       capabilities: { chat: true, streaming: true },
       enabled: true,
-      description: "Run models locally via Ollama on your machine or server.",
+      description: "Default local Ollama model on your machine or private server.",
+    },
+    {
+      id: "libraix-local-llama",
+      displayName: "Libraix Local Llama",
+      provider: "ollama",
+      providerModelId: process.env.OLLAMA_MODEL_LLAMA ?? "llama3.2",
+      tier: "free",
+      capabilities: { chat: true, streaming: true },
+      enabled: true,
+      description: "Meta Llama via Ollama — self-hosted, no cloud fee when online.",
+    },
+    {
+      id: "libraix-local-qwen",
+      displayName: "Libraix Local Qwen",
+      provider: "ollama",
+      providerModelId: process.env.OLLAMA_MODEL_QWEN ?? "qwen2.5",
+      tier: "free",
+      capabilities: { chat: true, streaming: true },
+      enabled: true,
+      description: "Qwen via Ollama — self-hosted multilingual & coding model.",
     },
   ],
   tools: [
@@ -283,6 +323,7 @@ const PROVIDER_KEY_LABEL: Record<string, string> = {
   anthropic: "ANTHROPIC_API_KEY",
   xai: "XAI_API_KEY",
   ollama: "OLLAMA_BASE_URL",
+  openrouter: "OPENROUTER_API_KEY",
 };
 
 const MODEL_HINTS: Record<string, { speed: string; cost: string }> = {
@@ -296,7 +337,11 @@ const MODEL_HINTS: Record<string, { speed: string; cost: string }> = {
   "libraix-claude-sonnet": { speed: "Medium", cost: "High" },
   "libraix-grok": { speed: "Fast", cost: "Low" },
   "libraix-grok-pro": { speed: "Medium", cost: "High" },
+  "libraix-llama": { speed: "Fast", cost: "Low" },
+  "libraix-qwen": { speed: "Fast", cost: "Low" },
   "libraix-local": { speed: "Varies", cost: "Free (local)" },
+  "libraix-local-llama": { speed: "Varies", cost: "Free (local)" },
+  "libraix-local-qwen": { speed: "Varies", cost: "Free (local)" },
 };
 
 /** All models for a plan (including those needing API keys), for UI display. */
