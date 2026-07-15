@@ -121,7 +121,9 @@ export function ChatComposer({
       {speech.listening && !live.active && (
         <div className="voice-listening-bar composer-banner">
           <span className="voice-pulse" aria-hidden />
-          Listening — speak clearly. Tap mic to stop, then Send.
+          {speech.mode === "whisper"
+            ? "Recording — speak clearly, then tap mic to stop and convert to text."
+            : "Listening — speak clearly. Tap mic to stop, then Send."}
         </div>
       )}
       <div
@@ -227,10 +229,14 @@ export function ChatComposer({
             className={`composer-mic-btn ${speech.listening ? "listening" : ""} ${!speech.supported ? "mic-unsupported" : ""}`}
             title={
               !speech.supported
-                ? "Voice input needs Chrome or Edge"
+                ? "Voice input needs mic access in a modern browser (HTTPS)"
                 : speech.listening
-                  ? "Stop listening"
-                  : "Dictate your message"
+                  ? speech.mode === "whisper"
+                    ? "Stop recording & convert to text"
+                    : "Stop listening"
+                  : speech.mode === "whisper"
+                    ? "Tap to record your message (phone-friendly)"
+                    : "Dictate your message"
             }
             disabled={loading || streaming || !speech.supported || live.active}
             onClick={() => {

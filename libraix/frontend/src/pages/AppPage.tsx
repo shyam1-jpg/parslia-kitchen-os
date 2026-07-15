@@ -33,7 +33,6 @@ import {
   type ChatMessage,
   type Conversation,
   type ModelInfo,
-  type UserLocation,
 } from "../lib/api";
 import { friendlyError } from "../lib/errors";
 
@@ -154,7 +153,8 @@ export function AppPage() {
   const [imageMode, setImageMode] = useState(false);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
-  const [homeLocation, setHomeLocation] = useState<UserLocation | null>(null);
+  /** Whether a background home location exists — never display the place name in the UI. */
+  const [hasHomeLocation, setHasHomeLocation] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
   const abortCtrlRef = useRef<AbortController | null>(null);
@@ -226,11 +226,11 @@ export function AppPage() {
     advancedApi.projects().then((d) => setProjects(d.projects)).catch(() => {});
     workspaceApi.customAssistants().then((d) => setCustomAssistants(d.assistants)).catch(() => {});
     workspaceApi.folders().then((d) => setFolders(d.folders)).catch(() => {});
-    // Auto-locate from login IP for local weather defaults
+    // Auto-locate from login IP for local weather (server-side only; do not show the place on-screen)
     locationApi
       .get(true)
       .then((r) => {
-        if (r.location) setHomeLocation(r.location);
+        setHasHomeLocation(Boolean(r.location));
       })
       .catch(() => {});
     try {
@@ -1136,15 +1136,11 @@ export function AppPage() {
                   <>Type <strong>/i</strong> or tap 🎨 for quick images · 🔍 for live web search.</>
                 )}
               </p>
-              {homeLocation && !assistantId && (
-                <p className="location-chip" title={`Saved for local weather (${homeLocation.source})`}>
-                  📍 {homeLocation.label}
-                </p>
-              )}
               <div className="suggestion-row">
                 {(
                   ASSISTANT_UI[assistantId]?.suggestions ?? [
-                    homeLocation ? "What's the weather near me?" : "What's the weather today?",
+                    // Location stays server-side for weather; do not show city/area on the page.
+                    hasHomeLocation ? "What's the weather near me?" : "What's the weather today?",
                     "Create an image of a sunset",
                     "Write an email",
                     "Explain a concept",

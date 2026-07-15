@@ -379,9 +379,12 @@ export async function buildWeatherContext(
     if (!cur || cur.temperature_2m == null) return { context: null, sources: [], weatherCard: null };
 
     const tz = forecast.timezone ?? timezone;
-    const label = opts?.locationLabel && !named
+    // Keep the precise place for the model context; never expose IP/home city on the card/citations.
+    const preciseLabel = opts?.locationLabel && !named
       ? opts.locationLabel
       : [place.name, place.country].filter(Boolean).join(", ");
+    const publicLabel = opts?.locationLabel && !named ? "Local weather" : preciseLabel;
+    const label = preciseLabel;
     const code = cur.weather_code ?? 0;
     const unit = forecast.current_units?.temperature_2m ?? "°C";
     const windUnit = forecast.current_units?.wind_speed_10m ?? "km/h";
@@ -425,7 +428,7 @@ export async function buildWeatherContext(
     });
 
     const card: WeatherCardData = {
-      location: label,
+      location: publicLabel,
       latitude: place.latitude,
       longitude: place.longitude,
       timezone: tz,
@@ -461,7 +464,7 @@ export async function buildWeatherContext(
       sources: [
         {
           index: 1,
-          filename: `Weather · ${label}`,
+          filename: `Weather · ${publicLabel}`,
           excerpt: `${card.current.condition}, ${card.current.temp}${unit} · 7-day + hourly`,
           url: "https://open-meteo.com/",
         },

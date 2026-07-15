@@ -412,6 +412,70 @@ router.patch("/tts/voice", (req, res) => {
 });
 
 /**
+ * POST /api/tools/stt
+ * Whisper transcription for phones (iOS Safari) where Web Speech API is unavailable.
+ * Body: { audioBase64, mimeType?, language? }
+ */
+router.post("/stt", async (req, res) => {
+  const row = findUserById(req.session.userId!);
+  if (!row) return res.status(401).json({ error: "UNAUTHENTICATED" });
+
+  const schema = z.object({
+    audioBase64: z.string().min(8).max(12_000_000),
+    mimeType: z.string().max(80).optional(),
+    language: z.string().max(16).optional(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  const apiKey = process.env.OPENAI_API_KEY?.trim() ?? "";
+  if (!apiKey) return res.status(503).json({ error: "STT_NOT_CONFIGURED" });
+
+  const mime = (parsed.data.mimeType || "audio/webm").split(";")[0].trim();
+  const ext =
+    mime.includes("mp4") || mime.includes("m4a") ? "m4a" :
+    mime.includes("ogg") ? "ogg" :
+    mime.includes("wav") ? "wav" :
+    mime.includes("mpeg") || mime.includes("mp3") ? "mp3" :
+    "webm";
+
+  try {
+    const bytes = Buffer.from(parsed.data.audioBase64, "base64");
+    if (bytes.length < 200) return res.status(400).json({ error: "AUDIO_TOO_SHORT" });
+    if (bytes.length > 8_000_000) return res.status(413).json({ error: "AUDIO_TOO_LARGE" });
+
+    const form = new FormData();
+    const fileBytes = new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    form.append("file", new Blob([fileBytes], { type: mime }), `speech.${ext}`);
+    form.append("model", process.env.OPENAI_STT_MODEL?.trim() || "whisper-1");
+    if (parsed.data.language) {
+      // Whisper wants ISO-639-1 (en, hi, ta…) — strip region
+      const lang = parsed.data.language.split("-")[0].toLowerCase();
+      if (/^[a-z]{2}$/.test(lang)) form.append("language", lang);
+    }
+
+    const sttRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}` },
+      body: form,
+      signal: AbortSignal.timeout(60_000),
+    });
+
+    if (!sttRes.ok) {
+      const err = await sttRes.text().catch(() => "");
+      return res.status(502).json({ error: "STT_FAILED", detail: err.slice(0, 200) });
+    }
+
+    const data = (await sttRes.json()) as { text?: string };
+    const text = (data.text ?? "").trim();
+    res.json({ text });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "STT_FAILED";
+    res.status(502).json({ error: msg });
+  }
+});
+
+/**
  * POST /api/tools/realtime/session
  * Browser sends WebRTC SDP offer; we authenticate with OpenAI and return SDP answer.
  * Free plan: Live Voice capped (default 5 min/day). Pro/Enterprise: unlimited.
