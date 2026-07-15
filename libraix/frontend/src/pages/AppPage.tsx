@@ -16,6 +16,7 @@ import { encodeWeatherMarker, extractWeatherCard } from "../lib/weather";
 import { useAuth } from "../lib/auth";
 import { useSpeechOutput } from "../lib/useSpeechOutput";
 import { useCamera } from "../lib/useCamera";
+import type { LiveTranscript } from "../lib/useLiveVoice";
 import { toolsApi, detectUrls, isYoutubeUrl } from "../lib/tools";
 import { detectImageRequest } from "../lib/imageIntent";
 import { detectLanguage, SPEECH_LANGUAGE_OPTIONS } from "../lib/language";
@@ -93,6 +94,21 @@ export function AppPage() {
   const speechOut = useSpeechOutput();
   const { setSpeechLocale: setTtsLocale } = speechOut;
   const camera = useCamera();
+
+  const appendLiveTranscript = useCallback((entry: LiveTranscript) => {
+    const text = entry.text.trim();
+    if (!text) return;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `live-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        role: entry.role,
+        content: text,
+        createdAt: new Date().toISOString(),
+        modelLabel: entry.role === "assistant" ? "Live Voice" : undefined,
+      },
+    ]);
+  }, []);
   const [preferredLanguage, setPreferredLanguage] = useState(() => {
     try {
       return localStorage.getItem("libraix_reply_lang") || "auto";
@@ -1040,6 +1056,8 @@ export function AppPage() {
           onDeepResearch={() => setRouterMode("deep-research")}
           onCamera={handleCameraCapture}
           speechLocale={speechLocale}
+          liveVoiceId={speechOut.voice}
+          onLiveTranscript={appendLiveTranscript}
           placeholder={imageMode ? "Describe a quick image…" : "Message Libraix…"}
           extraAbove={
             <>

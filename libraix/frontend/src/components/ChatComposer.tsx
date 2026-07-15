@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode, type KeyboardEvent } from "react";
 import { IconAttach, IconMic, IconMicOff, IconSearch, IconSend } from "../components/Layout";
 import { useSpeechInput } from "../lib/useSpeechInput";
+import { useLiveVoice, type LiveTranscript } from "../lib/useLiveVoice";
 
 interface ChatComposerProps {
   value: string;
@@ -18,6 +19,10 @@ interface ChatComposerProps {
   onCamera?: () => void;
   /** BCP-47 locale for speech recognition (hi-IN, ta-IN, …). */
   speechLocale?: string;
+  /** Preferred TTS / Realtime voice */
+  liveVoiceId?: string;
+  /** Append Live Voice transcripts into the chat thread */
+  onLiveTranscript?: (entry: LiveTranscript) => void;
   extraAbove?: ReactNode;
 }
 
@@ -36,21 +41,30 @@ export function ChatComposer({
   onDeepResearch,
   onCamera,
   speechLocale,
+  liveVoiceId,
+  onLiveTranscript,
   extraAbove,
 }: ChatComposerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const speech = useSpeechInput(onChange, { speechLocale });
+  const live = useLiveVoice({ voice: liveVoiceId, onTranscript: onLiveTranscript });
 
-  // Stop mic when a reply starts so it doesn't keep typing over the chat
+  // Stop dictation mic when a reply starts so it doesn't keep typing over the chat
   useEffect(() => {
     if (streaming || loading) speech.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to stream/load edges
   }, [streaming, loading]);
 
+  // Don't run dictation and Live Voice at the same time
+  useEffect(() => {
+    if (live.active) speech.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live.active]);
+
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (!streaming && value.trim() && !loading) {
+      if (!streaming && !live.active && value.trim() && !loading) {
         speech.stop();
         onSend();
       }
@@ -60,23 +74,35 @@ export function ChatComposer({
   return (
     <div className="composer-wrap">
       {extraAbove}
-      {speech.error && (
-        <div className="error-banner composer-banner">{speech.error}</div>
+      {(speech.error || live.error) && (
+        <div className="error-banner composer-banner">{speech.error || live.error}</div>
       )}
-      {speech.listening && (
+      {live.live && (
+        <div className="voice-live-bar composer-banner">
+          <span className="voice-pulse" aria-hidden />
+          Live Voice — speak naturally. Tap 🎙 again to hang up.
+          {live.partialUser ? <em className="voice-partial"> Hearing: {live.partialUser}</em> : null}
+        </div>
+      )}
+      {live.connecting && (
+        <div className="info-banner composer-banner">Connecting Live Voice…</div>
+      )}
+      {speech.listening && !live.active && (
         <div className="voice-listening-bar composer-banner">
           <span className="voice-pulse" aria-hidden />
           Listening — speak clearly. Tap mic to stop, then Send.
         </div>
       )}
-      <div className={`composer composer-chatgpt ${speech.listening ? "composer-listening" : ""} ${imageMode ? "composer-image-mode" : ""}`}>
+      <div
+        className={`composer composer-chatgpt ${speech.listening ? "composer-listening" : ""} ${live.active ? "composer-live" : ""} ${imageMode ? "composer-image-mode" : ""}`}
+      >
         <div className="composer-toolbar">
           {onToggleImageMode && (
             <button
               type="button"
               className={`composer-tool-btn composer-image-btn ${imageMode ? "active" : ""}`}
               title={imageMode ? "Image mode on — quick render" : "Quick image creation (DALL·E 2 fast)"}
-              disabled={loading || streaming}
+              disabled={loading || streaming || live.active}
               onClick={onToggleImageMode}
               aria-pressed={imageMode}
             >
@@ -88,7 +114,7 @@ export function ChatComposer({
               type="button"
               className="composer-tool-btn"
               title="Attach PDF, DOCX, RTF, or text (contracts & legal files OK)"
-              disabled={loading || streaming || attachLoading}
+              disabled={loading || streaming || attachLoading || live.active}
               onClick={() => fileInputRef.current?.click()}
             >
               <IconAttach />
@@ -99,7 +125,7 @@ export function ChatComposer({
               type="button"
               className="composer-tool-btn"
               title="Deep research mode (live web search)"
-              disabled={loading || streaming}
+              disabled={loading || streaming || live.active}
               onClick={onDeepResearch}
             >
               <IconSearch />
@@ -110,7 +136,7 @@ export function ChatComposer({
               type="button"
               className="composer-tool-btn"
               title="Open camera — take a photo and ask AI about it"
-              disabled={loading || streaming}
+              disabled={loading || streaming || live.active}
               onClick={onCamera}
             >
               📷
@@ -121,18 +147,48 @@ export function ChatComposer({
         <textarea
           rows={1}
           className="composer-field"
-          placeholder={speech.listening ? "Listening… speak or type here" : placeholder}
+          placeholder={
+            live.live
+              ? "Live Voice on — just talk…"
+              : speech.listening
+                ? "Listening… speak or type here"
+                : placeholder
+          }
           value={value}
           onChange={(e) => {
             onChange(e.target.value);
             speech.syncBase(e.target.value);
           }}
           onKeyDown={handleKeyDown}
-          disabled={loading && !streaming}
+          disabled={(loading && !streaming) || live.active}
           aria-label="Message input"
         />
 
         <div className="composer-end">
+          <button
+            type="button"
+            className={`composer-live-btn ${live.active ? "active" : ""} ${!live.supported ? "mic-unsupported" : ""}`}
+            title={
+              !live.supported
+                ? "Live Voice needs Chrome, Edge, or Safari"
+                : live.live
+                  ? "End Live Voice"
+                  : live.connecting
+                    ? "Connecting…"
+                    : "Live Voice — talk with Libraix (Realtime)"
+            }
+            disabled={loading || streaming || !live.supported}
+            onClick={() => {
+              live.clearError();
+              speech.stop();
+              void live.toggle();
+            }}
+            aria-pressed={live.active}
+            aria-label={live.active ? "End Live Voice" : "Start Live Voice"}
+          >
+            🎙
+          </button>
+
           <button
             type="button"
             className={`composer-mic-btn ${speech.listening ? "listening" : ""} ${!speech.supported ? "mic-unsupported" : ""}`}
@@ -141,9 +197,9 @@ export function ChatComposer({
                 ? "Voice input needs Chrome or Edge"
                 : speech.listening
                   ? "Stop listening"
-                  : "Speak your message"
+                  : "Dictate your message"
             }
-            disabled={loading || streaming || !speech.supported}
+            disabled={loading || streaming || !speech.supported || live.active}
             onClick={() => {
               speech.clearError();
               speech.toggle(value);
@@ -162,7 +218,7 @@ export function ChatComposer({
             <button
               type="button"
               className="send-btn"
-              disabled={!value.trim() || loading}
+              disabled={!value.trim() || loading || live.active}
               onClick={() => {
                 speech.stop();
                 onSend();
