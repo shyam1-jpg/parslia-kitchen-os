@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<base href="/academy/" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Staff area — Kiteline Academy</title>
+<link rel="icon" type="image/png" href="/academy/kitline-academy-logo.png?v=1">
+<style>
+:root{--bg:#070b18;--line:rgba(255,255,255,.12);--muted:#aab4d6;--cyan:#36e6ff}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:#f6f8ff;padding:28px 22px 60px;line-height:1.6}
+h1{margin:0 0 8px;font-size:clamp(28px,4vw,40px)}
+p{color:var(--muted)}
+.card{border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:24px;padding:22px;margin:22px 0;max-width:920px}
+input{background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:14px;padding:12px 14px;color:#fff;width:100%;max-width:420px;margin-bottom:14px;display:block}
+.btn{border:0;border-radius:999px;padding:12px 17px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,var(--cyan),#676bff);color:#061020}
+.btn.secondary{background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--line)}
+a{color:var(--cyan);text-decoration:none;font-weight:700}
+#adminStudents{margin-top:16px;font-size:14px;line-height:1.7}
+#status{margin-top:12px;color:var(--muted);font-size:14px;min-height:1.2em}
+</style>
+</head>
+<body>
+<h1>Staff area</h1>
+<p>Internal Kiteline Academy tools. This page is not linked from the public site unless you are in preview mode.</p>
+<p><a href="/academy/">Back to Academy</a></p>
+<div class="card">
+  <label for="adminKey" style="display:block;color:var(--muted);font-size:14px;margin-bottom:8px">Admin key</label>
+  <input id="adminKey" type="password" placeholder="Admin secret key" autocomplete="off">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+    <button class="btn secondary" type="button" id="loadStudentsBtn">Load students</button>
+    <button class="btn" type="button" id="exportCsvBtn">Export CSV</button>
+  </div>
+  <div id="status" role="status" aria-live="polite"></div>
+  <div id="adminStudents"></div>
+</div>
+<script>
+const API_BASE = '/api/academy';
+function adminHeaders(){const key=document.getElementById('adminKey').value.trim();return key?{'x-academy-admin':key}:{}}
+function setStatus(msg){document.getElementById('status').textContent=msg||''}
+async function loadAdminStudents(){setStatus('Loading…');try{const r=await fetch(API_BASE+'/admin/students',{credentials:'include',headers:adminHeaders()});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'Failed to load students');const list=data.students||[];document.getElementById('adminStudents').innerHTML='<b style="color:#ffca6b">'+list.length+' students</b><br><br>'+list.slice(0,300).map(s=>(s.email||'?')+' · '+(s.country||'—')+(s.at?' · '+s.at:'')).join('<br>')+(list.length>300?'<br><br>…':'');setStatus('')}catch(e){document.getElementById('adminStudents').innerHTML='';setStatus(e.message||'Error')}}
+async function exportAdminCsv(){setStatus('Exporting…');try{const r=await fetch(API_BASE+'/admin/export',{credentials:'include',headers:adminHeaders()});if(!r.ok){const data=await r.json().catch(()=>({}));throw new Error(data.error||'Export failed')}const blob=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kiteline-academy-students.csv';a.click();URL.revokeObjectURL(a.href);setStatus('CSV downloaded')}catch(e){setStatus(e.message||'Export failed')}}
+document.getElementById('loadStudentsBtn').addEventListener('click',loadAdminStudents);
+document.getElementById('exportCsvBtn').addEventListener('click',exportAdminCsv);
+</script>
+</body>
+</html>

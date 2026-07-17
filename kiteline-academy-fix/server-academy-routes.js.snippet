@@ -1,0 +1,44 @@
+    // Kiteline Academy (static site under site/academy/)
+    // Always use a trailing slash so relative CSS/JS/image URLs resolve under /academy/
+    // (visiting /academy without a slash previously broke the whole page: assets 404 as JSON).
+    if (url.pathname === '/academy') {
+      res.writeHead(302, security.securityHeaders({
+        Location: '/academy/' + (url.search || ''),
+        'Cache-Control': 'no-store',
+      }));
+      return res.end();
+    }
+    if (url.pathname === '/academy/') {
+      return serveFile(res, path.join(ROOT, 'site', 'academy', 'index.html'));
+    }
+    if (url.pathname === '/academy/learn') {
+      res.writeHead(302, security.securityHeaders({
+        Location: '/academy/learn/' + (url.search || ''),
+        'Cache-Control': 'no-store',
+      }));
+      return res.end();
+    }
+    if (url.pathname === '/academy/learn/' || url.pathname.startsWith('/academy/learn/')) {
+      return serveFile(res, path.join(ROOT, 'site', 'academy', 'learn.html'));
+    }
+    if (url.pathname === '/academy/staff') {
+      res.writeHead(302, security.securityHeaders({
+        Location: '/academy/staff/' + (url.search || ''),
+        'Cache-Control': 'no-store',
+      }));
+      return res.end();
+    }
+    if (url.pathname === '/academy/staff/' || url.pathname === '/academy/staff.html') {
+      return serveFile(res, path.join(ROOT, 'site', 'academy', 'staff.html'));
+    }
+    if (url.pathname === '/academy/admin') {
+      res.writeHead(302, security.securityHeaders({
+        Location: '/academy/admin/' + (url.search || ''),
+        'Cache-Control': 'no-store',
+      }));
+      return res.end();
+    }
+    if (url.pathname === '/academy/admin/') {
+      return serveFile(res, path.join(ROOT, 'site', 'academy', 'admin.html'));
+    }
+

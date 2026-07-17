@@ -1,0 +1,340 @@
+diff --git a/server/server.js b/server/server.js
+index fe82ccd..7b91711 100644
+--- a/server/server.js
++++ b/server/server.js
+@@ -1435,20 +1435,47 @@ const server = http.createServer(async (req, res) => {
+       }
+     }
+ 
+-    // Kitline Academy (static site under site/academy/)
+-    if (url.pathname === '/academy' || url.pathname === '/academy/') {
++    // Kiteline Academy (static site under site/academy/)
++    // Always use a trailing slash so relative CSS/JS/image URLs resolve under /academy/
++    // (visiting /academy without a slash previously broke the whole page: assets 404 as JSON).
++    if (url.pathname === '/academy') {
++      res.writeHead(302, security.securityHeaders({
++        Location: '/academy/' + (url.search || ''),
++        'Cache-Control': 'no-store',
++      }));
++      return res.end();
++    }
++    if (url.pathname === '/academy/') {
+       return serveFile(res, path.join(ROOT, 'site', 'academy', 'index.html'));
+     }
+-    if (url.pathname === '/academy/learn' || url.pathname.startsWith('/academy/learn/')) {
++    if (url.pathname === '/academy/learn') {
++      res.writeHead(302, security.securityHeaders({
++        Location: '/academy/learn/' + (url.search || ''),
++        'Cache-Control': 'no-store',
++      }));
++      return res.end();
++    }
++    if (url.pathname === '/academy/learn/' || url.pathname.startsWith('/academy/learn/')) {
+       return serveFile(res, path.join(ROOT, 'site', 'academy', 'learn.html'));
+     }
+-    if (url.pathname === '/academy/staff' || url.pathname === '/academy/staff/') {
+-      return serveFile(res, path.join(ROOT, 'site', 'academy', 'staff.html'));
++    if (url.pathname === '/academy/staff') {
++      res.writeHead(302, security.securityHeaders({
++        Location: '/academy/staff/' + (url.search || ''),
++        'Cache-Control': 'no-store',
++      }));
++      return res.end();
+     }
+-    if (url.pathname === '/academy/staff.html') {
++    if (url.pathname === '/academy/staff/' || url.pathname === '/academy/staff.html') {
+       return serveFile(res, path.join(ROOT, 'site', 'academy', 'staff.html'));
+     }
+-    if (url.pathname === '/academy/admin' || url.pathname === '/academy/admin/') {
++    if (url.pathname === '/academy/admin') {
++      res.writeHead(302, security.securityHeaders({
++        Location: '/academy/admin/' + (url.search || ''),
++        'Cache-Control': 'no-store',
++      }));
++      return res.end();
++    }
++    if (url.pathname === '/academy/admin/') {
+       return serveFile(res, path.join(ROOT, 'site', 'academy', 'admin.html'));
+     }
+ 
+diff --git a/site/academy/admin.html b/site/academy/admin.html
+index 371c4bb..713be9d 100644
+--- a/site/academy/admin.html
++++ b/site/academy/admin.html
+@@ -2,9 +2,10 @@
+ <html lang="en">
+ <head>
+ <meta charset="UTF-8">
++<base href="/academy/" />
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>Staff area — Kiteline Academy</title>
+-<link rel="icon" type="image/png" href="kitline-academy-logo.png?v=1">
++<link rel="icon" type="image/png" href="/academy/kitline-academy-logo.png?v=1">
+ <style>
+ :root{--bg:#070b18;--line:rgba(255,255,255,.12);--muted:#aab4d6;--cyan:#36e6ff}
+ *{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:#f6f8ff;padding:28px 22px 60px;line-height:1.6}
+@@ -22,7 +23,7 @@ a{color:var(--cyan);text-decoration:none;font-weight:700}
+ <body>
+ <h1>Staff area</h1>
+ <p>Internal Kiteline Academy tools. This page is not linked from the public site unless you are in preview mode.</p>
+-<p><a href="index.html">Back to Academy</a></p>
++<p><a href="/academy/">Back to Academy</a></p>
+ <div class="card">
+   <label for="adminKey" style="display:block;color:var(--muted);font-size:14px;margin-bottom:8px">Admin key</label>
+   <input id="adminKey" type="password" placeholder="Admin secret key" autocomplete="off">
+diff --git a/site/academy/cookies.html b/site/academy/cookies.html
+index f1dcce2..dab0f56 100644
+--- a/site/academy/cookies.html
++++ b/site/academy/cookies.html
+@@ -1,9 +1,10 @@
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+-<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
++<meta charset="UTF-8" />
++<base href="/academy/" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Cookie Policy — Kiteline Academy</title>
+-<link rel="icon" type="image/png" href="kitline-academy-logo.png?v=1" />
++<link rel="icon" type="image/png" href="/academy/kitline-academy-logo.png?v=1" />
+ <style>body{margin:0;background:#070b18;color:#f6f8ff;font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.65}.wrap{max-width:720px;margin:auto;padding:48px 22px 80px}a{color:#36e6ff}h1{font-size:2rem}h2{font-size:1.1rem;margin:2rem 0 .75rem;color:#fff}p,li{color:#aab4d6;font-size:.95rem}.btn{display:inline-block;padding:10px 16px;border-radius:999px;background:rgba(255,255,255,.08);color:#fff;text-decoration:none;font-weight:800;border:1px solid rgba(255,255,255,.12)}</style>
+ </head>
+ <body><div class="wrap"><a href="/academy/" class="btn">← Kiteline Academy</a>
+diff --git a/site/academy/index.html b/site/academy/index.html
+index c3cd58a..379390f 100644
+--- a/site/academy/index.html
++++ b/site/academy/index.html
+@@ -2,10 +2,11 @@
+ <html lang="en">
+ <head>
+ <meta charset="UTF-8" />
++<base href="/academy/" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Kiteline Academy — AI & Coding Courses</title>
+-<link rel="icon" type="image/png" href="kitline-academy-logo.png?v=1" />
+-<link rel="apple-touch-icon" href="kitline-academy-logo.png?v=1" />
++<link rel="icon" type="image/png" href="/academy/kitline-academy-logo.png?v=1" />
++<link rel="apple-touch-icon" href="/academy/kitline-academy-logo.png?v=1" />
+ <style>
+ :root {
+   --bg:#070b18; --panel:#0e1530; --panel2:#111b3d; --line:rgba(255,255,255,.12);
+@@ -210,16 +211,16 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
+ .build-list{margin:10px 0 0;padding-left:20px;color:var(--cyan);line-height:1.8;font-size:14px}
+ @media(max-width:980px){.navlinks{display:none}.nav-auth .nav-user{display:none}.form-grid{grid-template-columns:1fr}.hero,.playground,.about-grid,.free-trial-box{grid-template-columns:1fr}.playground{grid-template-columns:1fr}.grid,.feature-grid,.paths,.contact-grid,.featured-strip,.pricing-grid,.testimonial-grid,.resources-grid,.foot-grid,.learn-track-grid,.learn-how-steps{grid-template-columns:1fr}.audience-grid,.roadmap-grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.searchbar{grid-template-columns:1fr}.dashboard{grid-template-columns:1fr}.projects-grid,.learn-courses-grid,.ai-tools-grid{grid-template-columns:1fr}.code-lab-panel{min-height:320px}.editor textarea{min-height:280px}.preview{min-height:320px}}
+ </style>
+-<link rel="stylesheet" href="learn.css?v=7" />
+-<script src="i18n.js?v=2"></script>
+-<script src="curriculum.js?v=9"></script>
+-<script src="learn.js?v=7"></script>
++<link rel="stylesheet" href="/academy/learn.css?v=8" />
++<script src="/academy/i18n.js?v=3"></script>
++<script src="/academy/curriculum.js?v=10"></script>
++<script src="/academy/learn.js?v=8"></script>
+ </head>
+ <body>
+ <div class="beta-banner">✨ <b>Kiteline Academy is open for early learners.</b> Try free lessons today — no card required. <a href="#free-trial">Start free</a></div>
+ <header class="nav-wrap">
+   <nav class="nav">
+-    <a class="brand" href="#home"><img class="brand-wordmark" src="kitline-academy-wordmark.png?v=1" alt="Kiteline Academy — Code, AI, Data, Future Skills" width="280" height="52"></a>
++    <a class="brand" href="#home"><img class="brand-wordmark" src="/academy/kitline-academy-wordmark.png?v=1" alt="Kiteline Academy — Code, AI, Data, Future Skills" width="280" height="52"></a>
+     <div class="navlinks">
+       <a href="#home">Home</a><a href="#learn-hub">Learn</a><a href="#courses">Courses</a><a href="#ai-tools">AI Tools</a><a href="#pricing">Pricing</a><a href="#playground">Code Lab</a><a href="#about">About</a><a href="#faq">FAQ</a><a href="#contact">Contact</a>
+     </div>
+@@ -363,7 +364,7 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
+     <div class="plan popular"><h3>Pro Student</h3><div class="amount">£19.99<span style="font-size:16px;color:var(--muted)">/mo</span></div><ul><li>All courses & paths</li><li>Code Lab & downloads</li><li>Certificates</li><li>Priority support</li></ul><button class="btn" type="button" onclick="openCheckout('Pro Student — £19.99/month',19.99,'subscription')">Join Pro</button></div>
+     <div class="plan"><h3>Annual Bundle</h3><div class="amount">£99</div><ul><li>All beginner courses</li><li>One-time payment</li><li>1 year access</li><li>Certificate included</li></ul><button class="btn gold" type="button" onclick="openCheckout('Annual Bundle — £99 (1 year)',99,'annual')">Buy 1-year access</button></div>
+   </div>
+-  <p class="notice" style="margin-top:18px">Prices include VAT where applicable. Monthly plans renew until cancelled in your student dashboard. Digital content access begins immediately after payment. See <a href="refunds.html" style="color:var(--cyan)">refund policy</a> and <a href="terms.html" style="color:var(--cyan)">terms</a>. Operator: Kiteline Academy · Support: <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a></p>
++  <p class="notice" style="margin-top:18px">Prices include VAT where applicable. Monthly plans renew until cancelled in your student dashboard. Digital content access begins immediately after payment. See <a href="/academy/refunds.html" style="color:var(--cyan)">refund policy</a> and <a href="/academy/terms.html" style="color:var(--cyan)">terms</a>. Operator: Kiteline Academy · Support: <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a></p>
+ </section>
+ 
+ <section id="paths">
+@@ -441,7 +442,7 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
+       <div class="panel" id="lessons"><h3>Lesson Progress</h3><div id="lessonRows"></div></div>
+       <div class="panel" id="downloads"><h3>Downloads</h3><div class="row"><span>Python Cheat Sheet<br><small>PDF resource</small></span><button class="btn secondary" type="button" onclick="promptDownload('Python Cheat Sheet')">Download</button></div><div class="row"><span>HTML/CSS Starter Pack<br><small>PDF + project files</small></span><button class="btn secondary" type="button" onclick="promptDownload('HTML/CSS Starter Pack')">Download</button></div></div>
+       <div class="panel" id="security"><h3>Account security</h3><p style="color:var(--muted);line-height:1.6">Optional two-factor authentication with Google Authenticator, Authy or Microsoft Authenticator.</p><div id="securityPanel"><p style="color:var(--muted)">Sign in to manage security settings.</p></div></div>
+-      <div class="panel" id="billing"><h3>Billing & subscription</h3><p style="color:var(--muted);line-height:1.6">Manage paid plans, view invoices and cancel monthly subscriptions.</p><div id="billingPanel"><p style="color:var(--muted)">Sign in to view billing. Cancel anytime before your next billing date — see <a href="refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div></div>
++      <div class="panel" id="billing"><h3>Billing & subscription</h3><p style="color:var(--muted);line-height:1.6">Manage paid plans, view invoices and cancel monthly subscriptions.</p><div id="billingPanel"><p style="color:var(--muted)">Sign in to view billing. Cancel anytime before your next billing date — see <a href="/academy/refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div></div>
+       <div class="panel" id="certificate"><h3>Certificate</h3><p style="color:var(--muted)">Complete all lessons in your course to unlock your Kiteline Academy certificate.</p>
+         <div class="cert-preview" aria-label="Certificate sample">
+           <div class="brand-mark">Kiteline Academy</div>
+@@ -483,15 +484,15 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
+     <div class="faq-item"><b>Do I need coding experience?</b><p>No. Beginner courses start from zero. We explain every step in plain language.</p></div>
+     <div class="faq-item"><b>Can I learn from mobile?</b><p>Yes. Lessons and the student dashboard are mobile-friendly. Code Lab works best on a laptop or tablet.</p></div>
+     <div class="faq-item"><b>Do I get a certificate?</b><p>Yes — after completing all lessons and quizzes in a course. Certificates show completion only; they are not formal accredited qualifications unless clearly stated.</p></div>
+-    <div class="faq-item"><b>How do payments work?</b><p>Create a free account first. Paid plans use secure Stripe checkout when enabled. You can also email <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a> for help. See our <a href="refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div>
+-    <div class="faq-item"><b>Can I cancel my subscription?</b><p>Yes. Monthly Starter and Pro plans can be cancelled anytime before your next billing date from your student dashboard Billing tab. See our <a href="refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div>
+-    <div class="faq-item"><b>What is your refund policy?</b><p>Digital content access starts immediately. UK consumers may lose the 14-day cancellation right once streaming begins — you confirm this at checkout. See <a href="refunds.html" style="color:var(--cyan)">refunds.html</a> for full details.</p></div>
++    <div class="faq-item"><b>How do payments work?</b><p>Create a free account first. Paid plans use secure Stripe checkout when enabled. You can also email <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a> for help. See our <a href="/academy/refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div>
++    <div class="faq-item"><b>Can I cancel my subscription?</b><p>Yes. Monthly Starter and Pro plans can be cancelled anytime before your next billing date from your student dashboard Billing tab. See our <a href="/academy/refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div>
++    <div class="faq-item"><b>What is your refund policy?</b><p>Digital content access starts immediately. UK consumers may lose the 14-day cancellation right once streaming begins — you confirm this at checkout. See <a href="/academy/refunds.html" style="color:var(--cyan)">refunds.html</a> for full details.</p></div>
+     <div class="faq-item"><b>Is there a minimum age?</b><p>Accounts are for learners aged 13+. Under-18s should have a parent or guardian’s permission.</p></div>
+     <div class="faq-item"><b>I forgot my password or cannot sign in</b><p>Use <b>Forgot password?</b> on the sign-in form. If email does not arrive, click <b>Resend verification</b> — we also show a verify link on screen. Check spam/junk.</p></div>
+     <div class="faq-item"><b>How do I delete my account?</b><p>Email <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a> from your registered address and we will delete your account and personal data within 30 days.</p></div>
+     <div class="faq-item"><b>Are payments secure?</b><p>Yes. Card payments are processed through Stripe. We never store your full card number.</p></div>
+-    <div class="faq-item"><b>Do you use analytics cookies?</b><p>We use essential session and language cookies only. If we add analytics or marketing cookies later, we will show a cookie choice banner. See <a href="cookies.html" style="color:var(--cyan)">cookie policy</a>.</p></div>
+-    <div class="faq-item"><b>Where are your policies?</b><p>Read our <a href="terms.html" style="color:var(--cyan)">terms</a>, <a href="privacy.html" style="color:var(--cyan)">privacy policy</a>, <a href="refunds.html" style="color:var(--cyan)">refund policy</a> and <a href="cookies.html" style="color:var(--cyan)">cookie policy</a>.</p></div>
++    <div class="faq-item"><b>Do you use analytics cookies?</b><p>We use essential session and language cookies only. If we add analytics or marketing cookies later, we will show a cookie choice banner. See <a href="/academy/cookies.html" style="color:var(--cyan)">cookie policy</a>.</p></div>
++    <div class="faq-item"><b>Where are your policies?</b><p>Read our <a href="/academy/terms.html" style="color:var(--cyan)">terms</a>, <a href="/academy/privacy.html" style="color:var(--cyan)">privacy policy</a>, <a href="/academy/refunds.html" style="color:var(--cyan)">refund policy</a> and <a href="/academy/cookies.html" style="color:var(--cyan)">cookie policy</a>.</p></div>
+   </div>
+ </section>
+ 
+@@ -506,7 +507,7 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
+         <input id="cfEmail" type="email" required placeholder="Email address">
+         <select id="cfInterest"><option value="">Course interest</option><option>AI Tools for Beginners</option><option>HTML, CSS & Website Building</option><option>Python for Beginners</option><option>Pro Student plan</option><option>Annual Bundle (1 year)</option><option>Other</option></select>
+         <textarea id="cfMessage" rows="4" required placeholder="Your message — enrolment help, billing, etc."></textarea>
+-        <label class="check-row"><input id="cfConsent" type="checkbox" required><span>I consent to Kiteline Academy contacting me about my message. See <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--cyan)">privacy policy</a>.</span></label>
++        <label class="check-row"><input id="cfConsent" type="checkbox" required><span>I consent to Kiteline Academy contacting me about my message. See <a href="/academy/privacy.html" target="_blank" rel="noopener" style="color:var(--cyan)">privacy policy</a>.</span></label>
+         <button class="btn" type="submit">Send message</button>
+         <p id="cfSuccess" style="display:none;color:#50f0a0;font-size:14px;margin:0">Thanks — your email app should open. We reply within 24–48 hours.</p>
+       </form>
+@@ -519,8 +520,8 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
+   <div class="foot-grid">
+     <div class="foot-col"><b>Kiteline Academy</b><p style="margin:0;line-height:1.6">Learn AI, coding and digital skills from zero.</p><p style="margin-top:10px"><a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a></p><p class="company-note" style="margin-top:12px"><a href="https://kiteline.uk/" style="color:var(--muted)">Kiteline kitchen software</a> — separate product</p></div>
+     <div class="foot-col"><b>Explore</b><a href="#home">Home</a><a href="#learn-hub">Learning Hub</a><a href="#ai-tools">AI Tools</a><a href="#courses">Courses</a><a href="#pricing">Pricing</a><a href="#contact">Contact</a><a href="#playground">Code Lab</a></div>
+-    <div class="foot-col"><b>Legal</b><a href="terms.html">Terms & Conditions</a><a href="privacy.html">Privacy Policy</a><a href="refunds.html">Refund Policy</a><a href="cookies.html">Cookie Policy</a></div>
+-    <div class="foot-col"><b>Account</b><a href="#" onclick="openAuth('signin');return false">Sign in</a><a href="#" onclick="openAuth('register');return false">Create account</a><a href="#" onclick="openStaffLogin();return false">Staff login</a><a href="staff.html">Staff page</a><a href="#free-trial">Free trial</a><button type="button" class="btn secondary" style="margin-top:10px" onclick="openAuth('signin')">Student login</button></div>
++    <div class="foot-col"><b>Legal</b><a href="/academy/terms.html">Terms & Conditions</a><a href="/academy/privacy.html">Privacy Policy</a><a href="/academy/refunds.html">Refund Policy</a><a href="/academy/cookies.html">Cookie Policy</a></div>
++    <div class="foot-col"><b>Account</b><a href="#" onclick="openAuth('signin');return false">Sign in</a><a href="#" onclick="openAuth('register');return false">Create account</a><a href="#" onclick="openStaffLogin();return false">Staff login</a><a href="/academy/staff.html">Staff page</a><a href="#free-trial">Free trial</a><button type="button" class="btn secondary" style="margin-top:10px" onclick="openAuth('signin')">Student login</button></div>
+   </div>
+ </footer>
+ 
+@@ -590,7 +591,7 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
+       </details>
+       <div class="pw-meter"><span id="pwBar"></span></div>
+       <p class="pw-hint" id="pwHint">Use 10+ characters with upper, lower, number and symbol.</p>
+-      <label class="check-row"><input id="regTerms" type="checkbox"><span>I agree to the <a href="terms.html" target="_blank" rel="noopener" style="color:var(--cyan)">terms</a>, <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--cyan)">privacy policy</a> and <a href="refunds.html" target="_blank" rel="noopener" style="color:var(--cyan)">refund policy</a></span></label>
++      <label class="check-row"><input id="regTerms" type="checkbox"><span>I agree to the <a href="/academy/terms.html" target="_blank" rel="noopener" style="color:var(--cyan)">terms</a>, <a href="/academy/privacy.html" target="_blank" rel="noopener" style="color:var(--cyan)">privacy policy</a> and <a href="/academy/refunds.html" target="_blank" rel="noopener" style="color:var(--cyan)">refund policy</a></span></label>
+       <div id="regCaptcha" style="margin-bottom:10px"></div>
+       <button class="btn" style="width:100%" type="button" onclick="registerAccount()" data-i18n="createAccount">Create my account</button>
+     </div>
+@@ -623,9 +624,9 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
+       Digital content: immediate online access after payment<br>
+       Subscription length: monthly until cancelled (Starter/Pro) or 12 months from purchase (Annual Bundle)<br>
+       Cancellation: cancel monthly plans anytime before next billing date in your dashboard<br>
+-      Refunds: see <a href="refunds.html" target="_blank" rel="noopener" style="color:var(--cyan)">refund policy</a>
++      Refunds: see <a href="/academy/refunds.html" target="_blank" rel="noopener" style="color:var(--cyan)">refund policy</a>
+     </div>
+-    <label class="check-row"><input id="checkoutTerms" type="checkbox"><span>I agree to the <a href="terms.html" target="_blank" rel="noopener" style="color:var(--cyan)">terms</a>, <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--cyan)">privacy</a> and <a href="refunds.html" target="_blank" rel="noopener" style="color:var(--cyan)">refund policy</a>.</span></label>
++    <label class="check-row"><input id="checkoutTerms" type="checkbox"><span>I agree to the <a href="/academy/terms.html" target="_blank" rel="noopener" style="color:var(--cyan)">terms</a>, <a href="/academy/privacy.html" target="_blank" rel="noopener" style="color:var(--cyan)">privacy</a> and <a href="/academy/refunds.html" target="_blank" rel="noopener" style="color:var(--cyan)">refund policy</a>.</span></label>
+     <label class="check-row"><input id="checkoutDigital" type="checkbox"><span>I understand this is digital content. I request immediate access and accept that I may lose my 14-day cancellation right once access begins (UK consumer law).</span></label>
+     <button class="btn" style="width:100%;margin-top:8px" type="button" id="checkoutPayBtn" onclick="completeCheckout()">Continue to payment</button>
+     <button class="btn secondary" style="width:100%;margin-top:8px" type="button" onclick="requestEnrolmentFromCheckout()">Request enrolment by email instead</button>
+diff --git a/site/academy/learn.html b/site/academy/learn.html
+index 5033978..65e8145 100644
+--- a/site/academy/learn.html
++++ b/site/academy/learn.html
+@@ -2,9 +2,10 @@
+ <html lang="en">
+ <head>
+ <meta charset="UTF-8" />
++<base href="/academy/" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+ <title>Learn — Kiteline Academy</title>
+-<link rel="icon" type="image/png" href="kiteline-academy-logo.png?v=1" />
++<link rel="icon" type="image/png" href="/academy/kitline-academy-logo.png?v=1" />
+ <style>
+ :root{--line:rgba(255,255,255,.12);--muted:#aab4d6;--cyan:#36e6ff}
+ *{box-sizing:border-box}
+@@ -16,14 +17,14 @@ body.learn-page{margin:0;background:#0a1024;color:#f6f8ff;font-family:Inter,Sego
+ .btn.secondary{background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--line);box-shadow:none}
+ .learn-page .lp-topbar .btn.secondary{display:none}
+ </style>
+-<link rel="stylesheet" href="learn.css?v=8" />
+-<script src="curriculum.js?v=9"></script>
++<link rel="stylesheet" href="/academy/learn.css?v=8" />
++<script src="/academy/curriculum.js?v=10"></script>
+ </head>
+ <body class="learn-page">
+ <header class="learn-top">
+-  <a href="index.html#learn-hub">← Academy</a>
++  <a href="/academy/#learn-hub">← Academy</a>
+   <h1 id="learnPageTitle">Learning</h1>
+-  <a href="index.html#learn-hub" class="btn secondary" style="padding:8px 12px;font-size:12px">Hub</a>
++  <a href="/academy/#learn-hub" class="btn secondary" style="padding:8px 12px;font-size:12px">Hub</a>
+ </header>
+ <div class="lp-shell" id="learnShell">
+   <aside class="lp-sidebar" id="lpSidebar"><h3>Chapters</h3></aside>
+@@ -46,7 +47,7 @@ body.learn-page{margin:0;background:#0a1024;color:#f6f8ff;font-family:Inter,Sego
+     </div>
+   </div>
+ </div>
+-<script src="learn.js?v=8"></script>
++<script src="/academy/learn.js?v=8"></script>
+ <script>
+ (function(){
+   function titleFromHash(){
+diff --git a/site/academy/privacy.html b/site/academy/privacy.html
+index 541df37..795e6e3 100644
+--- a/site/academy/privacy.html
++++ b/site/academy/privacy.html
+@@ -2,9 +2,10 @@
+ <html lang="en">
+ <head>
+ <meta charset="UTF-8" />
++<base href="/academy/" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Privacy Policy — Kiteline Academy</title>
+-<link rel="icon" type="image/png" href="kitline-academy-logo.png?v=1" />
++<link rel="icon" type="image/png" href="/academy/kitline-academy-logo.png?v=1" />
+ <style>
+ body{margin:0;background:#070b18;color:#f6f8ff;font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.65}
+ .wrap{max-width:720px;margin:auto;padding:48px 22px 80px}
+diff --git a/site/academy/refunds.html b/site/academy/refunds.html
+index 788a8f9..913e876 100644
+--- a/site/academy/refunds.html
++++ b/site/academy/refunds.html
+@@ -1,9 +1,10 @@
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+-<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
++<meta charset="UTF-8" />
++<base href="/academy/" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Refund Policy — Kiteline Academy</title>
+-<link rel="icon" type="image/png" href="kitline-academy-logo.png?v=1" />
++<link rel="icon" type="image/png" href="/academy/kitline-academy-logo.png?v=1" />
+ <style>body{margin:0;background:#070b18;color:#f6f8ff;font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.65}.wrap{max-width:720px;margin:auto;padding:48px 22px 80px}a{color:#36e6ff}h1{font-size:2rem}h2{font-size:1.1rem;margin:2rem 0 .75rem;color:#fff}p,li{color:#aab4d6;font-size:.95rem}.btn{display:inline-block;padding:10px 16px;border-radius:999px;background:rgba(255,255,255,.08);color:#fff;text-decoration:none;font-weight:800;border:1px solid rgba(255,255,255,.12)}</style>
+ </head>
+ <body><div class="wrap"><a href="/academy/" class="btn">← Kiteline Academy</a>
+diff --git a/site/academy/staff.html b/site/academy/staff.html
+index 50d9d4e..aa93e85 100644
+--- a/site/academy/staff.html
++++ b/site/academy/staff.html
+@@ -2,9 +2,10 @@
+ <html lang="en">
+ <head>
+ <meta charset="UTF-8" />
++<base href="/academy/" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Staff login — Kiteline Academy</title>
+-<link rel="icon" type="image/png" href="kitline-academy-logo.png?v=1" />
++<link rel="icon" type="image/png" href="/academy/kitline-academy-logo.png?v=1" />
+ <style>
+ :root{--bg:#070b18;--line:rgba(255,255,255,.12);--text:#f6f8ff;--muted:#aab4d6;--cyan:#36e6ff;--gold:#ffca6b}
+ *{box-sizing:border-box}
+@@ -38,7 +39,7 @@ a{color:var(--cyan);text-decoration:none;font-weight:800}
+     <button class="btn" type="submit">Sign in with staff ID</button>
+     <button class="btn secondary" type="button" onclick="location.href='index.html'">Back to Academy</button>
+   </form>
+-  <p class="note">Students should use the normal <a href="index.html">sign in</a>. Founders signed in with a founder email get preview automatically. Need the staff ID? Ask Shyam at <a href="mailto:contact@kiteline.uk">contact@kiteline.uk</a>.</p>
++  <p class="note">Students should use the normal <a href="/academy/">sign in</a>. Founders signed in with a founder email get preview automatically. Need the staff ID? Ask Shyam at <a href="mailto:contact@kiteline.uk">contact@kiteline.uk</a>.</p>
+ </div>
+ <div class="toast" id="toast"></div>
+ <script>
+diff --git a/site/academy/terms.html b/site/academy/terms.html
+index 0ed8413..ef5dbc4 100644
+--- a/site/academy/terms.html
++++ b/site/academy/terms.html
+@@ -1,9 +1,10 @@
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+-<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
++<meta charset="UTF-8" />
++<base href="/academy/" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Terms & Conditions — Kiteline Academy</title>
+-<link rel="icon" type="image/png" href="kitline-academy-logo.png?v=1" />
++<link rel="icon" type="image/png" href="/academy/kitline-academy-logo.png?v=1" />
+ <style>body{margin:0;background:#070b18;color:#f6f8ff;font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.65}.wrap{max-width:720px;margin:auto;padding:48px 22px 80px}a{color:#36e6ff}h1{font-size:2rem}h2{font-size:1.1rem;margin:2rem 0 .75rem;color:#fff}p,li{color:#aab4d6;font-size:.95rem}.btn{display:inline-block;padding:10px 16px;border-radius:999px;background:rgba(255,255,255,.08);color:#fff;text-decoration:none;font-weight:800;border:1px solid rgba(255,255,255,.12)}</style>
+ </head>
+ <body><div class="wrap"><a href="/academy/" class="btn">← Kiteline Academy</a>

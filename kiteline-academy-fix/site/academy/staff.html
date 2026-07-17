@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<base href="/academy/" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Staff login — Kiteline Academy</title>
+<link rel="icon" type="image/png" href="/academy/kitline-academy-logo.png?v=1" />
+<style>
+:root{--bg:#070b18;--line:rgba(255,255,255,.12);--text:#f6f8ff;--muted:#aab4d6;--cyan:#36e6ff;--gold:#ffca6b}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at 12% 8%,rgba(54,230,255,.18),transparent 30%),linear-gradient(180deg,#070b18,#0b1024)}
+.card{width:min(440px,100%);border:1px solid var(--line);border-radius:24px;padding:28px;background:rgba(255,255,255,.06);box-shadow:0 28px 90px rgba(0,0,0,.35)}
+h1{margin:0 0 8px;font-size:28px;letter-spacing:-.04em}
+p.lead{color:var(--muted);line-height:1.6;margin:0 0 22px;font-size:15px}
+label{display:block;font-size:13px;font-weight:800;color:var(--muted);margin:14px 0 6px}
+input{width:100%;padding:13px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:#fff;outline:none}
+.btn{width:100%;margin-top:20px;border:0;border-radius:999px;padding:14px;font-weight:900;cursor:pointer;color:#061020;background:linear-gradient(135deg,var(--gold),#ff9f43)}
+.btn.secondary{background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--line);margin-top:12px}
+.note{margin-top:16px;font-size:13px;color:var(--muted);line-height:1.55}
+a{color:var(--cyan);text-decoration:none;font-weight:800}
+.badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,202,107,.15);color:var(--gold);border:1px solid rgba(255,202,107,.35);margin-bottom:14px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120%);background:#111b3d;border:1px solid var(--line);padding:12px 18px;border-radius:14px;opacity:0;transition:.25s;z-index:99}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<div class="card">
+  <span class="badge">Staff only</span>
+  <h1>Staff login</h1>
+  <p class="lead">Use your Kiteline Academy account plus the staff login ID to unlock every course in preview mode (for teaching and QA).</p>
+  <form id="staffForm">
+    <label for="staffId0">Staff login ID</label>
+    <input id="staffId0" name="staffId" autocomplete="off" placeholder="e.g. KITELINE-STAFF-2026" required />
+    <label for="staffEmail">Work email</label>
+    <input id="staffEmail" name="email" type="email" autocomplete="username" placeholder="you@kiteline.uk" required />
+    <label for="staffPass">Password</label>
+    <input id="staffPass" name="password" type="password" autocomplete="current-password" required />
+    <button class="btn" type="submit">Sign in with staff ID</button>
+    <button class="btn secondary" type="button" onclick="location.href='index.html'">Back to Academy</button>
+  </form>
+  <p class="note">Students should use the normal <a href="/academy/">sign in</a>. Founders signed in with a founder email get preview automatically. Need the staff ID? Ask Shyam at <a href="mailto:contact@kiteline.uk">contact@kiteline.uk</a>.</p>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const API = '/api/academy';
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2800);}
+document.getElementById('staffForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const staffId = document.getElementById('staffId0').value.trim();
+  const email = document.getElementById('staffEmail').value.trim();
+  const password = document.getElementById('staffPass').value;
+  if (!staffId || !email || !password) { toast('Fill in all fields'); return; }
+  try {
+    const r = await fetch(API + '/staff/login', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ staffId, email, password })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || 'Staff login failed');
+    toast(data.message || 'Staff login OK — opening Academy…');
+    setTimeout(() => { location.href = 'index.html#learn-hub'; }, 600);
+  } catch (err) { toast(err.message || 'Staff login failed'); }
+});
+</script>
+</body>
+</html>

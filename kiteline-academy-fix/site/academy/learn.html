@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<base href="/academy/" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Learn — Kiteline Academy</title>
+<link rel="icon" type="image/png" href="/academy/kitline-academy-logo.png?v=1" />
+<style>
+:root{--line:rgba(255,255,255,.12);--muted:#aab4d6;--cyan:#36e6ff}
+*{box-sizing:border-box}
+body.learn-page{margin:0;background:#0a1024;color:#f6f8ff;font-family:Inter,Segoe UI,Arial,sans-serif;overflow:hidden;height:100dvh}
+.learn-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid var(--line);background:rgba(7,11,24,.95);flex-shrink:0;height:52px;z-index:20}
+.learn-top a{color:var(--cyan);font-weight:800;font-size:14px;text-decoration:none}
+.learn-top h1{margin:0;font-size:15px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
+.btn{border:0;border-radius:999px;padding:10px 16px;cursor:pointer;font-weight:900;color:#061020;background:linear-gradient(135deg,var(--cyan),#7df0ff);display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.btn.secondary{background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--line);box-shadow:none}
+.learn-page .lp-topbar .btn.secondary{display:none}
+</style>
+<link rel="stylesheet" href="/academy/learn.css?v=8" />
+<script src="/academy/curriculum.js?v=10"></script>
+</head>
+<body class="learn-page">
+<header class="learn-top">
+  <a href="/academy/#learn-hub">← Academy</a>
+  <h1 id="learnPageTitle">Learning</h1>
+  <a href="/academy/#learn-hub" class="btn secondary" style="padding:8px 12px;font-size:12px">Hub</a>
+</header>
+<div class="lp-shell" id="learnShell">
+  <aside class="lp-sidebar" id="lpSidebar"><h3>Chapters</h3></aside>
+  <div class="lp-main">
+    <div class="lp-topbar">
+      <div><h2 id="lpTitle">Course</h2><p class="lp-meta" id="lpMeta"></p></div>
+    </div>
+    <div class="lp-scroll" id="lpScroll">
+      <div class="lp-body" id="lpBody"><p style="color:var(--muted)">Loading lesson…</p></div>
+      <div class="lp-tryit" id="lpTryIt" style="display:none"></div>
+      <div class="lp-exercise" id="lpExercise" style="display:none"></div>
+      <div class="lp-quiz" id="lpQuiz" style="display:none"></div>
+      <div class="lp-sources" id="lpSources" style="display:none"></div>
+      <div id="lpDownloads" style="display:none"></div>
+    </div>
+    <div class="lp-footer" role="navigation" aria-label="Lesson navigation">
+      <button class="btn secondary" type="button" id="lpPrev">← Previous</button>
+      <button class="btn" type="button" id="lpComplete">Mark complete</button>
+      <button class="btn secondary" type="button" id="lpNext">Next →</button>
+    </div>
+  </div>
+</div>
+<script src="/academy/learn.js?v=8"></script>
+<script>
+(function(){
+  function titleFromHash(){
+    var h=location.hash.match(/^#learn\/([^/]+)/);
+    if(!h||!window.KA_CURRICULUM)return;
+    var c=KA_CURRICULUM.getCourse(h[1]);
+    if(c){ var el=document.getElementById('learnPageTitle'); if(el) el.textContent=c.title; }
+  }
+  if(window.KA_LEARN){ KA_LEARN.init(); titleFromHash(); window.addEventListener('hashchange',titleFromHash); }
+  else window.addEventListener('load',function(){ if(window.KA_LEARN){ KA_LEARN.init(); titleFromHash(); }});
+})();
+</script>
+</body>
+</html>
