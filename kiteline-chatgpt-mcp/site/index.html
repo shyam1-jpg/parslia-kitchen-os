@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kiteline — The Command Line for Professional Kitchens</title>
+  <meta name="description" content="Kiteline — kitchen operations software for HACCP, allergens, labelling, and waste. 14-day free trial." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:{50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',300:'#5eead4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a'},ink:{50:'#f8fafc',100:'#f1f5f9',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',700:'#334155',800:'#1e293b',900:'#0f172a',950:'#020617'}},fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="icon" type="image/png" href="/kiteline-logo.png?v=mark3" />
+  <link rel="apple-touch-icon" href="/kiteline-logo.png?v=mark3" />
+  <style>body{font-family:Inter,system-ui,sans-serif}.gradient{background:linear-gradient(135deg,#0f766e 0%,#0b1220 100%)}</style>
+</head>
+<body class="text-ink-900 antialiased">
+
+  <!-- NAV -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-ink-100">
+    <div class="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
+      <a href="/" class="brand-lockup brand-lockup--light">
+        <img src="/kiteline-logo.png?v=mark3" alt="" class="brand-mark" width="32" height="32">
+        <span class="brand-name">Kit<em>eline</em></span>
+      </a>
+      <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-ink-700">
+        <a href="product-haccp.html" class="hover:text-brand-700">SafeServe</a>
+        <a href="#products" class="hover:text-brand-700">Products</a>
+        <a href="pricing.html" class="hover:text-brand-700">Pricing</a>
+        <a href="hardware.html" class="hover:text-brand-700">Hardware</a>
+        <a href="contact.html" class="hover:text-brand-700">Contact</a>
+        <a href="#milestones" class="hover:text-brand-700">Milestones</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button id="siteMenuBtn" class="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg border border-ink-200 text-ink-700" aria-label="Open menu">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <a href="/app" class="hidden sm:inline-flex px-4 py-2 text-sm font-semibold text-ink-700 hover:text-brand-700">Sign in</a>
+        <a href="/app#register" class="hidden sm:inline-flex px-4 py-2 text-sm font-semibold text-brand-700 hover:text-brand-700">Create account</a>
+        <a href="/app" class="inline-flex px-4 py-2 text-sm font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700">Open the App</a>
+      </div>
+    </div>
+    <div id="siteNavOverlay" class="site-nav-overlay"></div>
+    <nav id="siteNavPanel" class="site-nav-panel md:hidden" aria-label="Mobile navigation">
+      <div class="flex items-center justify-between mb-6">
+        <span class="font-bold text-ink-900">Menu</span>
+        <button id="siteNavClose" class="w-10 h-10 rounded-lg border border-ink-200 text-ink-700" aria-label="Close menu">&times;</button>
+      </div>
+      <div class="flex flex-col gap-4 text-base font-semibold text-ink-800">
+        <a href="product-haccp.html">SafeServe</a>
+        <a href="#products">Products</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="hardware.html">Hardware</a>
+        <a href="contact.html">Contact</a>
+        <a href="#why">Why Kiteline</a>
+        <a href="#milestones">Milestones</a>
+        <a href="/app" class="text-brand-700">Sign in</a>
+        <a href="/app#register" class="text-brand-700">Create account</a>
+        <a href="/app" class="inline-flex justify-center px-4 py-3 rounded-lg bg-brand-600 text-white">Open the App</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="gradient text-white">
+    <div class="max-w-7xl mx-auto px-5 py-20 lg:py-28 grid lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <span class="inline-block px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 text-sm font-semibold mb-5">Early access · UK kitchens</span>
+        <h1 class="text-4xl lg:text-6xl font-black leading-[1.05]">The Command Line for <span class="text-brand-400">Professional Kitchens</span></h1>
+        <p class="mt-6 text-lg text-white/75 max-w-xl">One place for daily food-safety work — checklists, temperature logs, allergen menus, labels, and waste records. Software you can try today; sensor hardware coming through our pilot programme.</p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="/app" class="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-400 text-ink-950 font-bold">Try free trial</a>
+          <a href="/app#register" class="px-6 py-3 rounded-xl bg-white text-ink-900 font-bold hover:bg-white/90">Create free account</a>
+          <a href="contact.html#demo" class="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold">Book a demo</a>
+          <a href="pricing.html" class="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold hidden sm:inline-flex">View pricing</a>
+        </div>
+        <p class="mt-4 text-sm text-white/50">14-day free trial · No card required to register · UK-based support</p>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white/10 rounded-2xl p-6"><div class="text-lg font-black">Software</div><div class="text-white/60 mt-1 text-sm">HACCP, logs & reports — live in the app</div></div>
+        <div class="bg-white/10 rounded-2xl p-6"><div class="text-lg font-black">Multi-site</div><div class="text-white/60 mt-1 text-sm">Switch kitchens from one dashboard</div></div>
+        <div class="bg-white/10 rounded-2xl p-6"><div class="text-lg font-black">Sensor pilot</div><div class="text-white/60 mt-1 text-sm">Automated temps — waitlist open</div></div>
+        <div class="bg-white/10 rounded-2xl p-6"><div class="text-lg font-black">Your data</div><div class="text-white/60 mt-1 text-sm">Cloud sync when using hosted Kiteline</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY KITELINE -->
+  <section id="why" class="max-w-7xl mx-auto px-5 py-20">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <h2 class="text-3xl lg:text-4xl font-extrabold">Why Kiteline</h2>
+      <p class="text-ink-500 mt-3">Professional kitchen software built in the UK — honest about what is live, beta, or pilot.</p>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">Less paper</div><h3 class="font-bold mt-2">Digital daily records</h3><p class="text-sm text-ink-500 mt-1">Checklists and logs on phone, tablet, or PC — not clipboards in the dry store.</p></div>
+      <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">EHO-ready</div><h3 class="font-bold mt-2">Inspection history</h3><p class="text-sm text-ink-500 mt-1">Export temperature logs and corrective actions when the EHO visits.</p></div>
+      <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">Staff accountability</div><h3 class="font-bold mt-2">Named checks</h3><p class="text-sm text-ink-500 mt-1">See who completed each checklist and what they did when something failed.</p></div>
+      <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">Multi-site</div><h3 class="font-bold mt-2">One login, many kitchens</h3><p class="text-sm text-ink-500 mt-1">Switch sites from a single dashboard — ideal for groups and hotels.</p></div>
+      <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">Private data</div><h3 class="font-bold mt-2">Company workspace</h3><p class="text-sm text-ink-500 mt-1">Each customer organisation has an isolated workspace — your recipes and logs stay yours.</p></div>
+      <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">UK focus</div><h3 class="font-bold mt-2">Built for professional kitchens</h3><p class="text-sm text-ink-500 mt-1">HACCP, allergens, labels, waste, and recipe library in one early-access platform.</p></div>
+    </div>
+    <p class="text-center mt-10"><a href="security.html" class="text-brand-700 font-semibold text-sm">How we protect your data →</a></p>
+  </section>
+
+  <!-- APP PREVIEWS -->
+  <section id="screenshots" class="bg-ink-950 text-white py-20">
+    <div class="max-w-7xl mx-auto px-5">
+      <div class="text-center max-w-2xl mx-auto mb-12">
+        <h2 class="text-3xl lg:text-4xl font-extrabold">Inside the Kiteline app</h2>
+        <p class="text-white/60 mt-3">Preview cards for the modules professional kitchens use every day.</p>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-5"><div class="h-32 rounded-xl bg-gradient-to-br from-brand-600/40 to-ink-900 mb-4 flex items-end p-3"><span class="text-xs font-bold text-brand-200">Dashboard</span></div><p class="text-sm text-white/70">Live ops, overdue tasks, and site overview in one screen.</p></div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-5"><div class="h-32 rounded-xl bg-gradient-to-br from-brand-500/30 to-ink-900 mb-4 flex items-end p-3"><span class="text-xs font-bold text-brand-200">HACCP logs</span></div><p class="text-sm text-white/70">Opening, closing, cleaning, and delivery checks with timestamps.</p></div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-5"><div class="h-32 rounded-xl bg-gradient-to-br from-cyan-500/25 to-ink-900 mb-4 flex items-end p-3"><span class="text-xs font-bold text-cyan-200">Temperature records</span></div><p class="text-sm text-white/70">Fridge, freezer, and cooking temps — manual today, sensors in pilot.</p></div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-5"><div class="h-32 rounded-xl bg-gradient-to-br from-violet-500/25 to-ink-900 mb-4 flex items-end p-3"><span class="text-xs font-bold text-violet-200">Recipe library</span></div><p class="text-sm text-white/70">Allergens, costing, methods, and prep labels linked to recipes.</p></div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-5"><div class="h-32 rounded-xl bg-gradient-to-br from-amber-500/25 to-ink-900 mb-4 flex items-end p-3"><span class="text-xs font-bold text-amber-200">Labels</span></div><p class="text-sm text-white/70">Prep labels with use-by dates, allergens, and batch codes.</p></div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-5"><div class="h-32 rounded-xl bg-gradient-to-br from-emerald-500/25 to-ink-900 mb-4 flex items-end p-3"><span class="text-xs font-bold text-emerald-200">Allergen QR menu</span></div><p class="text-sm text-white/70">Guest-facing allergen pages linked to your ingredients.</p></div>
+      </div>
+      <div class="mt-10 flex flex-wrap gap-3 justify-center">
+        <a href="/app" class="px-6 py-3 rounded-xl bg-brand-500 text-ink-950 font-bold">Try free trial</a>
+        <a href="/app#register" class="px-6 py-3 rounded-xl bg-white/10 font-bold hover:bg-white/20">Create free account</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- USE CASES -->
+  <section class="max-w-7xl mx-auto px-5 py-16">
+    <div class="text-center max-w-2xl mx-auto mb-10">
+      <h2 class="text-3xl font-extrabold">Use cases</h2>
+      <p class="text-ink-500 mt-3">How different kitchen operations use Kiteline.</p>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <a href="use-cases/restaurants.html" class="rounded-xl border border-ink-100 p-5 hover:border-brand-300 hover:bg-brand-50/30 transition"><strong>Restaurant kitchen</strong><p class="text-sm text-ink-500 mt-1">Daily HACCP, temps, and allergen menus for busy service.</p></a>
+      <a href="use-cases/retreat-centres.html" class="rounded-xl border border-ink-100 p-5 hover:border-brand-300 hover:bg-brand-50/30 transition"><strong>Retreat centre kitchen</strong><p class="text-sm text-ink-500 mt-1">Seasonal menus, dietary needs, and simple staff records.</p></a>
+      <a href="use-cases/hotels.html" class="rounded-xl border border-ink-100 p-5 hover:border-brand-300 hover:bg-brand-50/30 transition"><strong>Hotel kitchen</strong><p class="text-sm text-ink-500 mt-1">Multi-outlet control from one account.</p></a>
+      <a href="use-cases/schools.html" class="rounded-xl border border-ink-100 p-5 hover:border-brand-300 hover:bg-brand-50/30 transition"><strong>School kitchen</strong><p class="text-sm text-ink-500 mt-1">Clear records for catering teams and inspections.</p></a>
+      <a href="use-cases/catering.html" class="rounded-xl border border-ink-100 p-5 hover:border-brand-300 hover:bg-brand-50/30 transition"><strong>Catering business</strong><p class="text-sm text-ink-500 mt-1">Labels, recipes, and logs across events and sites.</p></a>
+      <a href="faq.html" class="rounded-xl border border-ink-100 p-5 hover:border-brand-300 hover:bg-brand-50/30 transition"><strong>FAQ</strong><p class="text-sm text-ink-500 mt-1">Trials, pricing, hardware pilot, and support.</p></a>
+    </div>
+  </section>
+
+  <!-- WHO IT'S FOR -->
+  <section class="bg-ink-50 py-16">
+    <div class="max-w-7xl mx-auto px-5">
+      <div class="text-center max-w-2xl mx-auto mb-10">
+        <h2 class="text-3xl font-extrabold">Who Kiteline is for</h2>
+        <p class="text-ink-500 mt-3">Professional kitchens that need reliable records, not more paperwork.</p>
+      </div>
+      <div class="flex flex-wrap justify-center gap-3">
+        <span class="px-4 py-2 rounded-full bg-white border border-ink-200 text-sm font-semibold">Restaurants</span>
+        <span class="px-4 py-2 rounded-full bg-white border border-ink-200 text-sm font-semibold">Retreat centres</span>
+        <span class="px-4 py-2 rounded-full bg-white border border-ink-200 text-sm font-semibold">Cafés</span>
+        <span class="px-4 py-2 rounded-full bg-white border border-ink-200 text-sm font-semibold">Hotels</span>
+        <span class="px-4 py-2 rounded-full bg-white border border-ink-200 text-sm font-semibold">Schools</span>
+        <span class="px-4 py-2 rounded-full bg-white border border-ink-200 text-sm font-semibold">Caterers</span>
+        <span class="px-4 py-2 rounded-full bg-white border border-ink-200 text-sm font-semibold">Care homes</span>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-10 max-w-5xl mx-auto text-sm">
+        <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>Save time</strong><p class="text-ink-500 mt-1">Daily checks on phone or tablet, not clipboards.</p></div>
+        <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>Less paper</strong><p class="text-ink-500 mt-1">Digital logs replace filing cabinets.</p></div>
+        <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>EHO-ready records</strong><p class="text-ink-500 mt-1">Export history for inspections.</p></div>
+        <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>Allergen safety</strong><p class="text-ink-500 mt-1">Guest menus linked to your recipes.</p></div>
+        <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>Staff accountability</strong><p class="text-ink-500 mt-1">Named checks and corrective actions.</p></div>
+        <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>Multi-site control</strong><p class="text-ink-500 mt-1">Switch kitchens from one account.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST -->
+  <section class="max-w-7xl mx-auto px-5 py-14">
+    <div class="rounded-2xl border border-brand-200 bg-brand-50/40 p-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center text-sm">
+      <div><p class="font-bold text-brand-800">UK-based</p><p class="text-ink-600 mt-1">kiteline.uk</p></div>
+      <div><p class="font-bold text-brand-800">Built for professional kitchens</p><p class="text-ink-600 mt-1">HACCP, allergens, labels & waste</p></div>
+      <div><p class="font-bold text-brand-800">Early access</p><p class="text-ink-600 mt-1">Honest beta & pilot labels</p></div>
+      <div><p class="font-bold text-brand-800">Private workspace</p><p class="text-ink-600 mt-1">Your company data isolated</p></div>
+    </div>
+  </section>
+
+  <!-- PRODUCTS -->
+  <section id="products" class="bg-ink-50 py-20">
+    <div class="max-w-7xl mx-auto px-5">
+      <div class="text-center max-w-2xl mx-auto mb-12">
+        <h2 class="text-3xl lg:text-4xl font-extrabold">Kiteline modules</h2>
+        <p class="text-ink-500 mt-3">Four products in one platform. Status shown so you know what is ready today.</p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white rounded-2xl border border-ink-100 p-6 flex flex-col">
+          <span class="text-[10px] font-bold uppercase text-brand-700">Live</span>
+          <h3 class="font-bold text-lg mt-1">SafeServe</h3>
+          <p class="text-sm text-ink-400">HACCP & temperature records</p>
+          <p class="text-brand-700 font-bold mt-2">from £19/mo <span class="text-ink-400 font-normal text-xs">1 user · scales with team</span></p>
+          <p class="text-sm text-ink-500 mt-2 flex-1">Checklists, manual temp logs, alerts, and audit exports. Sensor add-on via pilot.</p>
+          <a href="product-haccp.html" class="mt-4 text-brand-700 font-semibold text-sm">Learn more →</a>
+        </div>
+        <div class="bg-white rounded-2xl border border-ink-100 p-6 flex flex-col">
+          <span class="text-[10px] font-bold uppercase text-ink-500">Beta</span>
+          <h3 class="font-bold text-lg mt-1">MenuGuard</h3>
+          <p class="text-sm text-ink-400">Allergen menus & QR codes</p>
+          <p class="text-brand-700 font-bold mt-2">In Team trial</p>
+          <p class="text-sm text-ink-500 mt-2 flex-1">Guest-facing allergen info linked to your ingredients and recipes.</p>
+          <a href="/app#allerq" class="mt-4 text-brand-700 font-semibold text-sm">Open in app →</a>
+        </div>
+        <div class="bg-white rounded-2xl border border-ink-100 p-6 flex flex-col">
+          <span class="text-[10px] font-bold uppercase text-ink-500">Beta</span>
+          <h3 class="font-bold text-lg mt-1">LabelSmart</h3>
+          <p class="text-sm text-ink-400">Prep & use-by labels</p>
+          <p class="text-brand-700 font-bold mt-2">In Team trial</p>
+          <p class="text-sm text-ink-500 mt-2 flex-1">Print labels with dates and allergens. Use your own printer — bundles on request.</p>
+          <a href="/app#labels" class="mt-4 text-brand-700 font-semibold text-sm">Open in app →</a>
+        </div>
+        <div class="bg-white rounded-2xl border border-ink-100 p-6 flex flex-col">
+          <span class="text-[10px] font-bold uppercase text-amber-700">Roadmap</span>
+          <h3 class="font-bold text-lg mt-1">WasteWise</h3>
+          <p class="text-sm text-ink-400">Waste tracking</p>
+          <p class="text-ink-500 font-bold mt-2">Preview in app</p>
+          <p class="text-sm text-ink-500 mt-2 flex-1">Log waste today. Smart scales and advanced analytics — not on sale yet.</p>
+          <a href="/app#waste" class="mt-4 text-brand-700 font-semibold text-sm">Preview in app →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MILESTONES -->
+  <section id="milestones" class="max-w-7xl mx-auto px-5 py-20">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <h2 class="text-3xl lg:text-4xl font-extrabold">Kiteline milestones</h2>
+      <p class="text-ink-500 mt-3">What we have shipped — and what is next on kiteline.uk.</p>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div class="rounded-2xl border border-brand-200 bg-brand-50/50 p-5">
+        <span class="text-[10px] font-bold uppercase text-brand-700">✓ Live</span>
+        <h3 class="font-bold mt-2">Secure login & accounts</h3>
+        <p class="text-sm text-ink-500 mt-1">Register, sign-in, and forgot password. Reset link on screen until email is configured.</p>
+      </div>
+      <div class="rounded-2xl border border-brand-200 bg-brand-50/50 p-5">
+        <span class="text-[10px] font-bold uppercase text-brand-700">✓ Live</span>
+        <h3 class="font-bold mt-2">Multi-site kitchens</h3>
+        <p class="text-sm text-ink-500 mt-1">Run many kitchens in one organisation — switch sites, add outlets, team per site.</p>
+      </div>
+      <div class="rounded-2xl border border-brand-200 bg-brand-50/50 p-5">
+        <span class="text-[10px] font-bold uppercase text-brand-700">✓ Live</span>
+        <h3 class="font-bold mt-2">Starter recipe library</h3>
+        <p class="text-sm text-ink-500 mt-1">Sample recipes with allergens, costing, labels, and method steps to get you started.</p>
+      </div>
+      <div class="rounded-2xl border border-brand-200 bg-brand-50/50 p-5">
+        <span class="text-[10px] font-bold uppercase text-brand-700">✓ Live</span>
+        <h3 class="font-bold mt-2">Private workspace per company</h3>
+        <p class="text-sm text-ink-500 mt-1">Each customer gets their own isolated workspace — your data stays separate from other companies.</p>
+      </div>
+      <div class="rounded-2xl border border-brand-200 bg-brand-50/50 p-5">
+        <span class="text-[10px] font-bold uppercase text-brand-700">✓ Live</span>
+        <h3 class="font-bold mt-2">Early-access customers</h3>
+        <p class="text-sm text-ink-500 mt-1">Private workspaces with your own site, team, and recipes.</p>
+      </div>
+      <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+        <span class="text-[10px] font-bold uppercase text-amber-800">● Next</span>
+        <h3 class="font-bold mt-2">Card payments & plans</h3>
+        <p class="text-sm text-ink-500 mt-1">Stripe checkout — team plans by size with member limits.</p>
+      </div>
+      <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+        <span class="text-[10px] font-bold uppercase text-amber-800">● Next</span>
+        <h3 class="font-bold mt-2">Email alerts & verification</h3>
+        <p class="text-sm text-ink-500 mt-1">SMTP on the server — password reset, alerts, and verify-by-email in your inbox.</p>
+      </div>
+      <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+        <span class="text-[10px] font-bold uppercase text-amber-800">● Next</span>
+        <h3 class="font-bold mt-2">Recipe AI (per company)</h3>
+        <p class="text-sm text-ink-500 mt-1">Subscribe, use your own OpenAI key, or we enable manually — billed per kitchen company.</p>
+      </div>
+      <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+        <span class="text-[10px] font-bold uppercase text-amber-800">● Next</span>
+        <h3 class="font-bold mt-2">Sensor hardware pilot</h3>
+        <p class="text-sm text-ink-500 mt-1">Automated fridge temps via LoRaWAN — register interest on the Hardware page.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- EARLY ACCESS -->
+  <section class="max-w-4xl mx-auto px-5 py-20">
+    <div class="rounded-2xl border border-brand-200 bg-brand-50/40 p-8 lg:p-10 text-center">
+      <h2 class="text-2xl lg:text-3xl font-extrabold">Join early access</h2>
+      <p class="text-ink-600 mt-3 max-w-xl mx-auto">We are onboarding UK kitchens for early access. Start your free trial, then email us for a private workspace or sensor pilot.</p>
+      <div class="mt-6 flex flex-wrap gap-3 justify-center">
+        <a href="/app#register" class="px-6 py-3 rounded-xl bg-brand-600 text-white font-bold text-sm">Start free trial</a>
+        <a href="contact.html#demo" class="px-6 py-3 rounded-xl border border-brand-300 text-brand-800 font-bold text-sm hover:bg-white">Book a demo</a>
+        <a href="mailto:contact@kiteline.uk?subject=Kiteline%20early%20access" class="px-6 py-3 rounded-xl border border-brand-300 text-brand-800 font-bold text-sm hover:bg-white">Email us</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="gradient text-white">
+    <div class="max-w-4xl mx-auto px-5 py-16 text-center">
+      <h2 class="text-3xl lg:text-4xl font-extrabold">Ready to look around?</h2>
+      <p class="text-white/70 mt-3">Start your 14-day free trial — every module included, no card required to register.</p>
+      <div class="mt-7 flex flex-wrap gap-3 justify-center">
+        <a href="/app#register" class="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-400 text-ink-950 font-bold">Start free trial</a>
+        <a href="contact.html#demo" class="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold">Book a demo</a>
+        <a href="pricing.html" class="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold">View pricing</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER + FOOTER -->
+  <footer class="bg-ink-950 text-ink-400">
+    <div class="max-w-7xl mx-auto px-5 py-14 grid md:grid-cols-2 gap-8 items-center border-b border-white/10">
+      <div>
+        <h3 class="text-white font-bold text-xl">Kiteline launch updates</h3>
+        <p class="mt-2 text-sm">Pilot openings, pricing news, and food-safety tips — no spam.</p>
+      </div>
+      <form class="flex gap-2" onsubmit="event.preventDefault(); this.querySelector('input').value=''; alert('Subscribed!');">
+        <input type="email" required placeholder="you@restaurant.com" class="flex-1 px-4 py-3 rounded-lg bg-white/10 text-white placeholder-white/40 outline-none">
+        <button class="px-5 py-3 rounded-lg bg-brand-500 text-ink-950 font-bold">Subscribe</button>
+      </form>
+    </div>
+    <div class="max-w-7xl mx-auto px-5 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
+      <div class="brand-lockup"><img src="/kiteline-logo.png?v=mark3" alt="" class="brand-mark" width="24" height="24"><span class="brand-name">Kit<em>eline</em></span></div>
+      <div class="flex flex-wrap justify-center gap-x-4 gap-y-1">
+        <a href="contact.html" class="hover:text-white">Contact</a>
+        <a href="terms.html" class="hover:text-white">Terms</a>
+        <a href="privacy.html" class="hover:text-white">Privacy</a>
+        <a href="faq.html" class="hover:text-white">FAQ</a>
+        <a href="security.html" class="hover:text-white">Security</a>
+        <a href="refunds.html" class="hover:text-white">Refunds</a>
+        <a href="cookies.html" class="hover:text-white">Cookies</a>
+        <a href="dpa.html" class="hover:text-white">DPA</a>
+        <a href="/app" class="hover:text-white">App</a>
+        <a href="mailto:contact@kiteline.uk" class="hover:text-white">contact@kiteline.uk</a>
+        <span class="text-ink-600">·</span>
+        <a href="/chatgpt.html" class="hover:text-white text-ink-500">Add to ChatGPT</a>
+        <a href="/academy/" class="hover:text-white text-ink-500">Kiteline Academy</a>
+      </div>
+      <div class="text-center sm:text-right">© 2026 Kiteline · All rights reserved</div>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      const panel = document.getElementById('siteNavPanel');
+      const overlay = document.getElementById('siteNavOverlay');
+      const open = () => { panel.classList.add('open'); overlay.classList.add('open'); };
+      const close = () => { panel.classList.remove('open'); overlay.classList.remove('open'); };
+      document.getElementById('siteMenuBtn').onclick = open;
+      document.getElementById('siteNavClose').onclick = close;
+      overlay.onclick = close;
+      panel.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+    })();
+  </script>
+</body>
+</html>

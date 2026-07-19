@@ -1,0 +1,1510 @@
+From 0a983a2cad6aa334a4d1c78371b405a1a221939c Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 19 Jul 2026 09:01:46 +0000
+Subject: [PATCH] Add multipurpose ChatGPT / MCP connector for company
+ workspaces
+
+Fix missing aiConnector require (live /api/ai was broken). Expand GPT Actions
+and MCP tools for recipes, menus, stock, shopping lists, temperatures,
+allergen/nutrition reports, rota and business reports. Dietary rules are
+configurable per company and never forced platform-wide.
+---
+ CHATGPT.md             |  58 ++++
+ js/register-form.js    |   5 +-
+ js/views.js            |  59 +++-
+ server/ai-connector.js | 618 +++++++++++++++++++++++++++++++++++++----
+ server/ai-openapi.js   | 286 ++++++++++++++-----
+ server/server.js       |  16 +-
+ server/starter-pack.js |   5 +
+ site/chatgpt.html      |  88 ++++++
+ site/index.html        |   1 +
+ 9 files changed, 1014 insertions(+), 122 deletions(-)
+ create mode 100644 CHATGPT.md
+ create mode 100644 site/chatgpt.html
+
+diff --git a/CHATGPT.md b/CHATGPT.md
+new file mode 100644
+index 0000000..d7ba529
+--- /dev/null
++++ b/CHATGPT.md
+@@ -0,0 +1,58 @@
++# Add Kiteline to ChatGPT
++
++Kiteline is a **multipurpose** business and hospitality-management platform. It is not limited to vegetarian businesses or any single cuisine, religion, diet or venue type.
++
++Supported organisations include hotels, restaurants, catering companies, commercial kitchens, schools and colleges, care homes, retreat centres, cafés, bakeries, event venues and other food businesses.
++
++## Security model
++
++- Each company has its own workspace (tenant).
++- ChatGPT authenticates with a **company-bound** AI token (`kl_ai_…`) or OAuth grant.
++- Tools only return data for that company (and sites allowed on the token).
++- Dietary rules (vegetarian, vegan, Jain, Ekadashi, halal, kosher, gluten-free, …) are **per-company settings**. They are never forced on every Kiteline customer.
++
++## Endpoints
++
++| Purpose | URL |
++|---------|-----|
++| OpenAPI (GPT Actions) | `https://kiteline.uk/api/ai/openapi.json` |
++| Health | `https://kiteline.uk/api/ai/health` |
++| MCP discovery / JSON-RPC | `https://kiteline.uk/mcp` |
++| Setup page | `https://kiteline.uk/chatgpt.html` |
++
++## First tools
++
++1. Search recipes, products and dishes — `GET /api/ai/recipes?q=`
++2. Create and manage menus — `GET/POST /api/ai/menus`
++3. Search stock and suppliers — `GET /api/ai/stock`, `GET /api/ai/suppliers`
++4. Generate shopping / ordering lists — `GET/POST /api/ai/shopping-list`
++5. Read and add temperature records — `GET/POST /api/ai/temperature-logs`
++6. Allergen and nutrition reports — `GET /api/ai/allergens`, `GET /api/ai/nutrition`
++7. Staff rotas and operational records — `GET /api/ai/rota`
++8. Business, cost and compliance reports — `GET /api/ai/reports?type=compliance|cost|full`
++9. Business / dietary settings — `GET/PUT /api/ai/business`
++
++## Admin setup (in app)
++
++1. Sign in as Admin → **Settings → Connect ChatGPT**
++2. Optionally configure **Dietary rules (this company only)**
++3. Create an AI token with the permissions you want
++4. Import the OpenAPI schema into a Custom GPT Actions panel
++5. Authenticate with the token (Bearer) or OAuth
++
++## Env (Render)
++
++| Variable | Purpose |
++|----------|---------|
++| `AI_OAUTH_CLIENT_ID` | Defaults to `kiteline-chatgpt` |
++| `AI_OAUTH_CLIENT_SECRET` | Required to enable OAuth for customers |
++| `APP_URL` | `https://kiteline.uk` |
++
++## Local smoke test
++
++```bash
++npm start
++curl -s http://localhost:4000/api/ai/health
++curl -s http://localhost:4000/mcp
++curl -s http://localhost:4000/api/ai/openapi.json | head
++```
+diff --git a/js/register-form.js b/js/register-form.js
+index 0b0cb58..9ab7aa4 100644
+--- a/js/register-form.js
++++ b/js/register-form.js
+@@ -3,8 +3,9 @@
+   const STORAGE_KEY = 'kiteline.regdraft';
+ 
+   const BUSINESS_TYPES = [
+-    'Restaurant', 'Hotel', 'Café', 'Pub', 'Care Home', 'Catering', 'Takeaway',
+-    'Ghost Kitchen', 'Education', 'Food Court', 'Steakhouse', 'Other',
++    'Restaurant', 'Hotel', 'Café', 'Bakery', 'Pub', 'Care Home', 'Catering',
++    'Commercial Kitchen', 'School / College', 'Retreat Centre', 'Event Venue',
++    'Takeaway', 'Ghost Kitchen', 'Food Court', 'Education', 'Other',
+   ];
+ 
+   const JOB_ROLES = [
+diff --git a/js/views.js b/js/views.js
+index 9f648d0..b81b561 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -3347,13 +3347,23 @@
+             </div>
+           </div>
+         </div>
++        <div class="card card-pad lg:col-span-2" id="dietarySettingsCard">
++          <h3 class="font-bold mb-1">Dietary rules (this company only)</h3>
++          <p class="text-sm text-ink-500 mb-3">Optional filters for <b>your</b> menus and ChatGPT tools — vegetarian, vegan, Jain, Ekadashi, halal, kosher, gluten-free, and more. Nothing is forced on other Kiteline customers.</p>
++          <div class="grid sm:grid-cols-2 gap-2 mb-3 text-sm" id="dietaryRulesGrid"></div>
++          <label class="label">Notes for your team / ChatGPT</label>
++          <textarea id="dietaryNotes" class="input mb-3 min-h-[72px]" placeholder="e.g. Friday fish specials; no cross-contamination notes for nut-free room"></textarea>
++          <button type="button" class="btn btn-primary btn-sm" id="dietarySaveBtn">Save dietary settings</button>
++          <p class="text-xs text-ink-400 mt-2" id="dietarySaveStatus"></p>
++        </div>
+         <div class="card card-pad lg:col-span-2" id="chatgptAiCard">
+           <h3 class="font-bold mb-1">Connect ChatGPT</h3>
+-          <p class="text-sm text-ink-500 mb-3">Link Kiteline to a <b>Custom GPT</b> using GPT Actions. Never share your Kiteline password with ChatGPT ? use an AI token or OAuth.</p>
++          <p class="text-sm text-ink-500 mb-3">Link <b>this company’s</b> Kiteline workspace to a Custom GPT (GPT Actions) or MCP. Hotels, restaurants, catering, schools, care homes, cafés and other hospitality sites each keep their own secure data. Never share your Kiteline password — use an AI token or OAuth.</p>
+           <div class="rounded-xl border border-brand-200 bg-brand-50/40 p-4 mb-4">
+             <p class="text-xs font-bold text-brand-800 uppercase tracking-wide mb-2">Schema URL (paste in ChatGPT Actions)</p>
+             <code class="text-xs break-all block mb-2" id="chatgptSchemaUrl">https://kiteline.uk/api/ai/openapi.json</code>
+             <button type="button" class="btn btn-ghost btn-sm" id="chatgptCopySchema">Copy schema URL</button>
++            <p class="text-xs text-ink-500 mt-2">MCP discovery: <code>https://kiteline.uk/mcp</code> · Setup guide: <a href="/chatgpt.html" class="text-brand-700 font-semibold" target="_blank" rel="noopener">kiteline.uk/chatgpt</a></p>
+           </div>
+           <div id="chatgptOAuthBox" class="rounded-xl border border-ink-200 bg-ink-50 p-4 mb-4 text-sm hidden">
+             <p class="font-semibold mb-2">OAuth (recommended for customers)</p>
+@@ -3806,6 +3816,53 @@
+           };
+         });
+       };
++      const DIET_OPTIONS = [
++        { id: 'vegetarian', label: 'Vegetarian' },
++        { id: 'vegan', label: 'Vegan' },
++        { id: 'jain', label: 'Jain' },
++        { id: 'ekadashi', label: 'Ekadashi' },
++        { id: 'halal', label: 'Halal' },
++        { id: 'kosher', label: 'Kosher' },
++        { id: 'gluten-free', label: 'Gluten-free' },
++        { id: 'dairy-free', label: 'Dairy-free' },
++        { id: 'nut-free', label: 'Nut-free' },
++        { id: 'other', label: 'Other (see notes)' },
++      ];
++      const dietCard = document.getElementById('dietarySettingsCard');
++      if (dietCard) {
++        S.db.org = S.db.org || {};
++        S.db.org.dietary = S.db.org.dietary || { enabledRules: [], notes: '' };
++        const enabled = new Set((S.db.org.dietary.enabledRules || []).map((x) => String(x).toLowerCase()));
++        const grid = document.getElementById('dietaryRulesGrid');
++        if (grid) {
++          grid.innerHTML = DIET_OPTIONS.map((d) =>
++            `<label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" data-diet-rule="${d.id}" ${enabled.has(d.id) ? 'checked' : ''} class="mt-1 accent-brand-600"><span>${escapeHtml(d.label)}</span></label>`
++          ).join('');
++        }
++        const notesEl = document.getElementById('dietaryNotes');
++        if (notesEl) notesEl.value = S.db.org.dietary.notes || '';
++        const saveDiet = document.getElementById('dietarySaveBtn');
++        if (saveDiet) saveDiet.onclick = async () => {
++          const rules = [];
++          document.querySelectorAll('[data-diet-rule]').forEach((c) => { if (c.checked) rules.push(c.dataset.dietRule); });
++          S.db.org.dietary = {
++            enabledRules: rules,
++            notes: (document.getElementById('dietaryNotes')?.value || '').trim(),
++            updatedAt: new Date().toISOString(),
++          };
++          try {
++            if (S.persist) S.persist();
++            if (window.Api && S.remote && window.Api.putState) await window.Api.putState(S.db);
++            const st = document.getElementById('dietarySaveStatus');
++            if (st) st.textContent = rules.length
++              ? `Saved — ${rules.length} rule(s) enabled for this company only.`
++              : 'Saved — no dietary rules enabled (open menus; ChatGPT will not assume a diet).';
++            toast('Dietary settings saved for this company');
++          } catch (e) {
++            toast(e.message || 'Could not save dietary settings', 'error');
++          }
++        };
++      }
+       const chatgptCard = document.getElementById('chatgptAiCard');
+       if (chatgptCard && window.Api && S.remote) {
+         const me = window.App.currentUser ? window.App.currentUser() : { role: 'Staff', rank: 1 };
+diff --git a/server/ai-connector.js b/server/ai-connector.js
+index baf4b7e..81c24a3 100644
+--- a/server/ai-connector.js
++++ b/server/ai-connector.js
+@@ -1,5 +1,12 @@
+ 'use strict';
+ 
++/**
++ * Kiteline AI / ChatGPT connector
++ * — Company-scoped tokens & OAuth
++ * — REST GPT Actions (/api/ai/*) + MCP (/mcp)
++ * — Multipurpose hospitality (not locked to one diet or business type)
++ */
++
+ const crypto = require('crypto');
+ const tenants = require('./tenants');
+ const security = require('./security');
+@@ -7,6 +14,21 @@ const aiAuth = require('./ai-auth');
+ const { buildOpenApi } = require('./ai-openapi');
+ const aiOauth = require('./ai-oauth');
+ 
++const AI_VERSION = '1.1.0';
++
++const DIET_CATALOG = [
++  { id: 'vegetarian', label: 'Vegetarian' },
++  { id: 'vegan', label: 'Vegan' },
++  { id: 'jain', label: 'Jain' },
++  { id: 'ekadashi', label: 'Ekadashi' },
++  { id: 'halal', label: 'Halal' },
++  { id: 'kosher', label: 'Kosher' },
++  { id: 'gluten-free', label: 'Gluten-free' },
++  { id: 'dairy-free', label: 'Dairy-free' },
++  { id: 'nut-free', label: 'Nut-free' },
++  { id: 'other', label: 'Other (see notes)' },
++];
++
+ function uid(prefix) {
+   return `${prefix}_${crypto.randomBytes(4).toString('hex')}`;
+ }
+@@ -32,6 +54,51 @@ function filterSite(arr, siteId) {
+   return arr.filter((r) => inSite(r, siteId));
+ }
+ 
++function norm(s) {
++  return String(s || '').toLowerCase().trim();
++}
++
++function matchesQuery(row, q) {
++  if (!q) return true;
++  const needle = norm(q);
++  const hay = [
++    row.name, row.title, row.label, row.sku, row.code, row.ref, row.category,
++    row.type, row.supplier, row.role, row.email, row.notes, row.description,
++    ...(row.tags || []), ...(row.allergens || []), ...(row.diet || []), ...(row.diets || []),
++  ].map(norm).join(' ');
++  return hay.includes(needle);
++}
++
++function dietTags(row) {
++  const raw = [].concat(row.diet || [], row.diets || [], row.dietary || [], row.tags || []);
++  return raw.map((d) => norm(d).replace(/\s+/g, '-'));
++}
++
++function matchesDiet(row, diet, enabledRules) {
++  if (!diet) return true;
++  const want = norm(diet).replace(/\s+/g, '-');
++  if (Array.isArray(enabledRules) && enabledRules.length && !enabledRules.map(norm).includes(want)) {
++    return false; // company has not enabled this rule
++  }
++  return dietTags(row).some((d) => d === want || d.includes(want));
++}
++
++function resolveDietary(state) {
++  const org = state.org || {};
++  const dietary = org.dietary && typeof org.dietary === 'object' ? org.dietary : {};
++  const enabled = Array.isArray(dietary.enabledRules)
++    ? dietary.enabledRules.map(norm).filter(Boolean)
++    : [];
++  return {
++    catalog: DIET_CATALOG,
++    enabledRules: enabled,
++    notes: dietary.notes || '',
++    message: enabled.length
++      ? 'Dietary filters apply only for rules this company has enabled.'
++      : 'No dietary rules enabled for this company — menus are not filtered by diet. Admins can enable rules in business settings.',
++  };
++}
++
+ function resolveSiteId(ctx, query, body) {
+   const requested = (query.site || (body && body.site) || '').trim();
+   const allowed = ctx.siteIds;
+@@ -65,6 +132,9 @@ function auditAi(db, ip, ctx, action, detail) {
+ function buildContext(db, auth) {
+   const state = tenants.getStateForUser(db, auth.user.email);
+   if (!state) return { error: 'No workspace for this account', status: 409 };
++  if (auth.entry.tenantId && auth.user.tenantId !== auth.entry.tenantId) {
++    return { error: 'AI token is not valid for this company', status: 403 };
++  }
+   const siteIds = aiAuth.accessibleSiteIds(state, auth.user.email, auth.entry.siteIds);
+   return {
+     entry: auth.entry,
+@@ -84,7 +154,8 @@ function saveState(db, ctx, nextState) {
+ }
+ 
+ function temperatureLogs(state, siteId) {
+-  const records = filterSite(state.records || [], siteId);
++  const records = filterSite(state.records || [], siteId).filter((r) =>
++    !r.type || /temp|fridge|freezer|probe/i.test(r.type || r.equipment || ''));
+   const sensors = filterSite(state.sensors || [], siteId).map((s) => ({
+     id: s.id,
+     name: s.name,
+@@ -94,7 +165,7 @@ function temperatureLogs(state, siteId) {
+     max: s.max,
+     unit: s.unit || '°C',
+     lastReading: s.lastReading || s.updatedAt,
+-    site: s.site,
++    site: s.site || s.siteId,
+   }));
+   return { records, sensors, missingToday: missingFridgeLogs(state, siteId) };
+ }
+@@ -109,7 +180,7 @@ function missingFridgeLogs(state, siteId) {
+       return d === today && (r.sensor === s.id || (r.equipment || '').toLowerCase().includes((s.name || '').toLowerCase()));
+     });
+     return !logged;
+-  }).map((s) => ({ id: s.id, name: s.name, site: s.site }));
++  }).map((s) => ({ id: s.id, name: s.name, site: s.site || s.siteId }));
+ }
+ 
+ function haccpLogs(state, siteId) {
+@@ -128,8 +199,8 @@ function cleaningChecks(state, siteId) {
+     /clean|hygiene|sanit/i.test(c.name || c.title || ''));
+ }
+ 
+-function allergenReport(state, siteId) {
+-  const recipes = filterSite(state.recipes || [], siteId);
++function allergenReport(state, siteId, q) {
++  const recipes = filterSite(state.recipes || [], siteId).filter((r) => matchesQuery(r, q));
+   const statutory = state.allergens || [];
+   const dishes = recipes.map((r) => ({
+     id: r.id,
+@@ -137,21 +208,87 @@ function allergenReport(state, siteId) {
+     allergens: r.allergens || [],
+     status: r.status || 'draft',
+     site: r.site,
++    diet: dietTags(r),
+   }));
+-  return { statutory, dishes };
++  return { statutory, dishes, companyDietary: resolveDietary(state) };
++}
++
++function estimateNutrition(recipe) {
++  if (recipe.nutrition && typeof recipe.nutrition === 'object') {
++    return { source: 'stored', perServing: recipe.nutrition };
++  }
++  const ingredients = recipe.ingredients || [];
++  if (!ingredients.length) return { source: 'unavailable', perServing: null };
++  // Lightweight aggregate when recipes store kcal/protein on ingredients
++  const totals = { kcal: 0, protein: 0, carbs: 0, fat: 0, fibre: 0, salt: 0 };
++  let any = false;
++  ingredients.forEach((ing) => {
++    const n = ing.nutrition || ing.per100g;
++    if (!n) return;
++    any = true;
++    Object.keys(totals).forEach((k) => {
++      if (typeof n[k] === 'number') totals[k] += n[k];
++    });
++  });
++  if (!any) {
++    return {
++      source: 'estimate_unavailable',
++      note: 'No nutrition figures on this recipe yet — open Kiteline Recipe AI / nutrition tools to calculate.',
++      perServing: null,
++    };
++  }
++  const portions = Number(recipe.portions || recipe.serves || 1) || 1;
++  const perServing = {};
++  Object.keys(totals).forEach((k) => {
++    perServing[k] = Math.round((totals[k] / portions) * 10) / 10;
++  });
++  return { source: 'ingredient_aggregate', perServing, portions };
++}
++
++function nutritionReport(state, siteId, q) {
++  const recipes = filterSite(state.recipes || [], siteId).filter((r) => matchesQuery(r, q));
++  return {
++    dishes: recipes.map((r) => ({
++      id: r.id,
++      name: r.name,
++      allergens: r.allergens || [],
++      diet: dietTags(r),
++      nutrition: estimateNutrition(r),
++    })),
++    companyDietary: resolveDietary(state),
++  };
+ }
+ 
+-function buildReport(state, siteId) {
++function costSignals(state, siteId) {
++  const waste = filterSite(state.waste || [], siteId);
++  const deliveries = filterSite(state.deliveries || [], siteId);
++  const wasteCost = waste.reduce((sum, w) => sum + (Number(w.cost || w.value || 0) || 0), 0);
++  const orderCost = deliveries.reduce((sum, d) => sum + (Number(d.total || d.cost || d.value || 0) || 0), 0);
++  return {
++    wasteEntries: waste.length,
++    wasteCostApprox: Math.round(wasteCost * 100) / 100,
++    deliveries: deliveries.length,
++    orderCostApprox: Math.round(orderCost * 100) / 100,
++    currency: (state.org && state.org.currency) || 'GBP',
++  };
++}
++
++function buildReport(state, siteId, type) {
+   const temps = temperatureLogs(state, siteId);
+   const haccp = haccpLogs(state, siteId);
+   const waste = filterSite(state.waste || [], siteId);
+   const labels = filterSite(state.labels || [], siteId);
+-  return {
++  const cost = costSignals(state, siteId);
++  const base = {
+     generatedAt: new Date().toISOString(),
+     site: siteId,
++    company: state.org && state.org.name,
++    businessType: (state.sites || []).find((s) => s.id === siteId)?.type || null,
++    dietary: resolveDietary(state),
+     summary: {
+       recipes: filterSite(state.recipes || [], siteId).length,
+       menus: filterSite(state.menus || [], siteId).length,
++      suppliers: filterSite(state.suppliers || [], siteId).length,
+       temperatureCompliance: temps.sensors.length
+         ? Math.round((temps.sensors.filter((s) => s.temp >= s.min && s.temp <= s.max).length / temps.sensors.length) * 100)
+         : 100,
+@@ -160,11 +297,145 @@ function buildReport(state, siteId) {
+       wasteEntries7d: waste.length,
+       labelsActive: labels.filter((l) => !l.used).length,
+       haccpChecks: haccp.complianceChecks.length,
++      cost,
+     },
+-    temperature: temps,
+-    haccp,
+-    waste,
+-    labels,
++  };
++  if (type === 'cost') return Object.assign(base, { cost, waste, orders: filterSite(state.deliveries || [], siteId) });
++  if (type === 'compliance') return Object.assign(base, { temperature: temps, haccp, waste, labels });
++  return Object.assign(base, { temperature: temps, haccp, waste, labels, cost });
++}
++
++function parseIngredientLine(ing) {
++  if (ing == null) return null;
++  if (typeof ing === 'string') {
++    const raw = ing.trim();
++    if (!raw) return null;
++    const m = raw.match(/^([\d./]+)\s*([a-zA-Z]+)?\s+(.+)$/);
++    if (m) {
++      const qty = Number(m[1].includes('/') ? (Number(m[1].split('/')[0]) / Number(m[1].split('/')[1] || 1)) : m[1]);
++      return {
++        name: m[3].replace(/,.*$/, '').trim(),
++        qty: Number.isFinite(qty) ? qty : 0,
++        unit: (m[2] || '').trim(),
++        raw,
++      };
++    }
++    return { name: raw.replace(/,.*$/, '').trim(), qty: 0, unit: '', raw };
++  }
++  const name = String(ing.name || ing.item || '').trim();
++  if (!name) return null;
++  return {
++    name,
++    qty: Number(ing.qty || ing.quantity || 0) || 0,
++    unit: ing.unit || '',
++    raw: name,
++    nutrition: ing.nutrition || ing.per100g,
++  };
++}
++
++function collectIngredients(recipes) {
++  const map = new Map();
++  recipes.forEach((r) => {
++    (r.ingredients || []).forEach((ing) => {
++      const parsed = parseIngredientLine(ing);
++      if (!parsed) return;
++      const key = norm(parsed.name);
++      const prev = map.get(key) || {
++        name: parsed.name,
++        qty: 0,
++        unit: parsed.unit || '',
++        recipes: [],
++        notes: [],
++      };
++      if (parsed.qty) prev.qty += parsed.qty;
++      if (parsed.unit && !prev.unit) prev.unit = parsed.unit;
++      prev.recipes.push(r.name);
++      map.set(key, prev);
++    });
++  });
++  return Array.from(map.values());
++}
++
++function generateShoppingList(state, siteId, query) {
++  let recipes = filterSite(state.recipes || [], siteId);
++  const menuId = (query.menuId || '').trim();
++  const recipeIds = String(query.recipeIds || '')
++    .split(',')
++    .map((s) => s.trim())
++    .filter(Boolean);
++
++  if (menuId) {
++    const menu = filterSite(state.menus || [], siteId).find((m) => m.id === menuId);
++    if (menu) {
++      const itemIds = new Set((menu.items || []).map((i) => i.recipeId || i.id || i.recipe).filter(Boolean));
++      const names = new Set((menu.items || []).map((i) => norm(i.name || i.title)).filter(Boolean));
++      recipes = recipes.filter((r) => itemIds.has(r.id) || names.has(norm(r.name)));
++      if (!recipes.length && (menu.items || []).length) {
++        // Menu items without linked recipes — still list dish names for ordering notes
++        return {
++          source: 'menu_items_only',
++          menu: { id: menu.id, name: menu.name },
++          lines: (menu.items || []).map((i) => ({
++            name: i.name || i.title,
++            note: 'No linked recipe ingredients — check supplier catalogue manually',
++          })),
++          stockGaps: [],
++        };
++      }
++    }
++  }
++  if (recipeIds.length) {
++    recipes = recipes.filter((r) => recipeIds.includes(r.id));
++  } else if (query.q) {
++    recipes = recipes.filter((r) => matchesQuery(r, query.q));
++  }
++
++  const lines = collectIngredients(recipes);
++  const batches = filterSite(state.batches || [], siteId);
++  const assets = filterSite(state.assets || [], siteId);
++  const stockHay = batches.concat(assets);
++
++  const stockGaps = lines.filter((line) => {
++    const key = norm(line.name);
++    return !stockHay.some((s) => norm(s.name || s.product || s.sku).includes(key) || key.includes(norm(s.name || s.product || '')));
++  });
++
++  return {
++    source: 'recipes',
++    recipeCount: recipes.length,
++    recipes: recipes.map((r) => ({ id: r.id, name: r.name })),
++    lines,
++    stockGaps,
++    suppliers: filterSite(state.suppliers || [], siteId).map((s) => ({
++      id: s.id,
++      name: s.name,
++      category: s.category,
++    })),
++  };
++}
++
++function businessPayload(ctx, siteId) {
++  const state = ctx.state;
++  const sites = (state.sites || []).filter((s) => ctx.siteIds.includes(s.id));
++  const site = sites.find((s) => s.id === siteId) || sites[0] || null;
++  return {
++    tenant: {
++      id: ctx.user.tenantId,
++      orgName: state.org && state.org.name,
++      isPrivate: true,
++    },
++    company: {
++      id: ctx.user.tenantId,
++      name: state.org && state.org.name,
++      legalName: state.org && state.org.legalName,
++      plan: state.org && state.org.plan,
++      currency: (state.org && state.org.currency) || 'GBP',
++      businessType: site && site.type,
++    },
++    site,
++    sites,
++    dietary: resolveDietary(state),
++    note: 'Kiteline is multipurpose hospitality software. Dietary rules are per-company settings, not global platform defaults.',
+   };
+ }
+ 
+@@ -174,6 +445,7 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
+ 
+   const siteId = siteRes.siteId;
+   const meta = { site: siteId, resource: name, method };
++  const dietary = resolveDietary(ctx.state);
+ 
+   if (name === 'me') {
+     auditAi(db, ip, ctx, 'me', meta);
+@@ -184,10 +456,62 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
+       role: aiAuth.resolveRole(ctx.state, ctx.user.email),
+       permissions: ctx.permissions,
+       sites: (ctx.state.sites || []).filter((s) => ctx.siteIds.includes(s.id)),
++      dietary,
++      platform: {
++        name: 'Kiteline',
++        scope: 'company_workspace',
++        multipurpose: true,
++        version: AI_VERSION,
++      },
+       token: { id: ctx.entry.id, label: ctx.entry.label },
+     });
+   }
+ 
++  if (name === 'business' || name === 'settings') {
++    if (method === 'GET') {
++      const perm = aiAuth.requirePermission(ctx, 'read_recipes');
++      if (!perm.ok) return apiSend(403, { error: perm.error });
++      auditAi(db, ip, ctx, 'business_read', meta);
++      return apiSend(200, businessPayload(ctx, siteId));
++    }
++    if (method === 'PUT' || method === 'POST') {
++      const role = aiAuth.resolveRole(ctx.state, ctx.user.email);
++      if (!aiAuth.roleAtLeast(role, 'Admin')) {
++        return apiSend(403, { error: 'Only Admins can update business / dietary settings' });
++      }
++      const conf = aiAuth.requireConfirm(method === 'PUT' ? 'PUT' : 'POST', body);
++      if (!conf.ok) return apiSend(409, conf);
++      const data = body.data || body;
++      const next = JSON.parse(JSON.stringify(ctx.state));
++      next.org = next.org || {};
++      if (data.name) next.org.name = String(data.name).slice(0, 120);
++      if (data.legalName) next.org.legalName = String(data.legalName).slice(0, 160);
++      if (data.currency) next.org.currency = String(data.currency).slice(0, 8);
++      if (data.businessType && siteId) {
++        next.sites = (next.sites || []).map((s) => (
++          s.id === siteId ? Object.assign({}, s, { type: String(data.businessType).slice(0, 80) }) : s
++        ));
++      }
++      if (data.dietary && typeof data.dietary === 'object') {
++        const allowed = new Set(DIET_CATALOG.map((d) => d.id));
++        const enabled = Array.isArray(data.dietary.enabledRules)
++          ? data.dietary.enabledRules.map(norm).filter((id) => allowed.has(id) || id === 'other')
++          : (next.org.dietary && next.org.dietary.enabledRules) || [];
++        next.org.dietary = {
++          enabledRules: enabled,
++          notes: String(data.dietary.notes || '').slice(0, 2000),
++          updatedAt: new Date().toISOString(),
++          updatedBy: ctx.user.email,
++        };
++      }
++      saveState(db, ctx, next);
++      writeDb(db);
++      auditAi(db, ip, ctx, 'business_update', meta);
++      ctx.state = next;
++      return apiSend(200, { ok: true, business: businessPayload(ctx, siteId) });
++    }
++  }
++
+   if (name === 'sites') {
+     const perm = aiAuth.requirePermission(ctx, 'read_recipes');
+     if (!perm.ok) return apiSend(403, { error: perm.error });
+@@ -198,14 +522,22 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
+     });
+   }
+ 
+-  if (name === 'recipes') {
++  if (name === 'recipes' || name === 'products' || name === 'dishes') {
+     if (method === 'GET') {
+       const perm = aiAuth.requirePermission(ctx, 'read_recipes');
+       if (!perm.ok) return apiSend(403, { error: perm.error });
+-      auditAi(db, ip, ctx, 'recipes_read', meta);
+-      return apiSend(200, { recipes: filterSite(ctx.state.recipes || [], siteId), warning: siteRes.warning });
++      let recipes = filterSite(ctx.state.recipes || [], siteId)
++        .filter((r) => matchesQuery(r, query.q))
++        .filter((r) => matchesDiet(r, query.diet, dietary.enabledRules));
++      auditAi(db, ip, ctx, 'recipes_search', meta);
++      return apiSend(200, {
++        recipes,
++        count: recipes.length,
++        dietary,
++        warning: siteRes.warning,
++      });
+     }
+-    if (method === 'POST') {
++    if (method === 'POST' && name === 'recipes') {
+       const perm = aiAuth.requirePermission(ctx, 'create_draft_recipes', 'Staff');
+       if (!perm.ok) return apiSend(403, { error: perm.error });
+       const conf = aiAuth.requireConfirm(method, body);
+@@ -220,6 +552,7 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
+         allergens: [],
+         ingredients: [],
+         steps: [],
++        diet: [],
+       }, data);
+       recipe.status = 'draft';
+       const next = JSON.parse(JSON.stringify(ctx.state));
+@@ -236,8 +569,9 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
+     if (method === 'GET') {
+       const perm = aiAuth.requirePermission(ctx, 'read_recipes');
+       if (!perm.ok) return apiSend(403, { error: perm.error });
++      const menus = filterSite(ctx.state.menus || [], siteId).filter((m) => matchesQuery(m, query.q));
+       auditAi(db, ip, ctx, 'menus_read', meta);
+-      return apiSend(200, { menus: filterSite(ctx.state.menus || [], siteId) });
++      return apiSend(200, { menus, count: menus.length });
+     }
+     if (method === 'POST') {
+       const permKey = body.publish ? 'publish_menus' : 'create_menu_drafts';
+@@ -269,7 +603,14 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
+     const perm = aiAuth.requirePermission(ctx, 'read_allergen_data');
+     if (!perm.ok) return apiSend(403, { error: perm.error });
+     auditAi(db, ip, ctx, 'allergens_read', meta);
+-    return apiSend(200, allergenReport(ctx.state, siteId));
++    return apiSend(200, allergenReport(ctx.state, siteId, query.q));
++  }
++
++  if (name === 'nutrition') {
++    const perm = aiAuth.requirePermission(ctx, 'read_allergen_data');
++    if (!perm.ok) return apiSend(403, { error: perm.error });
++    auditAi(db, ip, ctx, 'nutrition_read', meta);
++    return apiSend(200, nutritionReport(ctx.state, siteId, query.q));
+   }
+ 
+   if (name === 'temperature-logs') {
+@@ -353,7 +694,7 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
+         min: s.min,
+         max: s.max,
+         temp: s.temp,
+-        site: s.site,
++        site: s.site || s.siteId,
+       })),
+     });
+   }
+@@ -364,7 +705,7 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
+         return apiSend(403, { error: 'AI permission denied: read_recipes or manage_labels' });
+       }
+       auditAi(db, ip, ctx, 'labels_read', meta);
+-      return apiSend(200, { labels: filterSite(ctx.state.labels || [], siteId) });
++      return apiSend(200, { labels: filterSite(ctx.state.labels || [], siteId).filter((l) => matchesQuery(l, query.q)) });
+     }
+     if (method === 'POST') {
+       const perm = aiAuth.requirePermission(ctx, 'manage_labels', 'Staff');
+@@ -393,11 +734,10 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
+       if (!aiAuth.hasPermission(ctx, 'read_recipes') && !aiAuth.hasPermission(ctx, 'manage_stock')) {
+         return apiSend(403, { error: 'AI permission denied: read_recipes or manage_stock' });
+       }
+-      auditAi(db, ip, ctx, 'stock_read', meta);
+-      return apiSend(200, {
+-        batches: filterSite(ctx.state.batches || [], siteId),
+-        assets: filterSite(ctx.state.assets || [], siteId),
+-      });
++      const batches = filterSite(ctx.state.batches || [], siteId).filter((r) => matchesQuery(r, query.q));
++      const assets = filterSite(ctx.state.assets || [], siteId).filter((r) => matchesQuery(r, query.q));
++      auditAi(db, ip, ctx, 'stock_search', meta);
++      return apiSend(200, { batches, assets, count: batches.length + assets.length });
+     }
+   }
+ 
+@@ -405,38 +745,89 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
+     if (!aiAuth.hasPermission(ctx, 'read_recipes') && !aiAuth.hasPermission(ctx, 'manage_suppliers')) {
+       return apiSend(403, { error: 'AI permission denied: read_recipes or manage_suppliers' });
+     }
+-    auditAi(db, ip, ctx, 'suppliers_read', meta);
+-    return apiSend(200, { suppliers: filterSite(ctx.state.suppliers || [], siteId) });
++    const suppliers = filterSite(ctx.state.suppliers || [], siteId).filter((r) => matchesQuery(r, query.q));
++    auditAi(db, ip, ctx, 'suppliers_search', meta);
++    return apiSend(200, { suppliers, count: suppliers.length });
+   }
+ 
+   if (name === 'orders') {
+     if (!aiAuth.hasPermission(ctx, 'read_recipes') && !aiAuth.hasPermission(ctx, 'manage_suppliers')) {
+       return apiSend(403, { error: 'AI permission denied: read_recipes or manage_suppliers' });
+     }
++    const orders = filterSite(ctx.state.deliveries || [], siteId).filter((r) => matchesQuery(r, query.q));
+     auditAi(db, ip, ctx, 'orders_read', meta);
+-    return apiSend(200, { orders: filterSite(ctx.state.deliveries || [], siteId) });
++    return apiSend(200, { orders, count: orders.length });
++  }
++
++  if (name === 'shopping-list' || name === 'ordering-list') {
++    if (method === 'GET') {
++      if (!aiAuth.hasPermission(ctx, 'read_recipes') && !aiAuth.hasPermission(ctx, 'manage_stock')) {
++        return apiSend(403, { error: 'AI permission denied: read_recipes or manage_stock' });
++      }
++      auditAi(db, ip, ctx, 'shopping_list_generate', meta);
++      return apiSend(200, generateShoppingList(ctx.state, siteId, query));
++    }
++    if (method === 'POST') {
++      const perm = aiAuth.requirePermission(ctx, 'manage_stock', 'Staff');
++      if (!perm.ok) return apiSend(403, { error: perm.error });
++      const conf = aiAuth.requireConfirm(method, body);
++      if (!conf.ok) return apiSend(409, conf);
++      const generated = generateShoppingList(ctx.state, siteId, Object.assign({}, query, body.data || body));
++      const list = Object.assign({
++        id: uid('shop'),
++        site: siteId,
++        createdAt: new Date().toISOString(),
++        createdBy: ctx.user.email,
++        type: 'shopping-list',
++      }, generated, body.data || {});
++      const next = JSON.parse(JSON.stringify(ctx.state));
++      next.workflows = next.workflows || [];
++      next.workflows.push({
++        id: list.id,
++        label: 'Shopping / ordering list',
++        site: siteId,
++        at: list.createdAt,
++        by: ctx.user.email,
++        payload: list,
++      });
++      saveState(db, ctx, next);
++      writeDb(db);
++      auditAi(db, ip, ctx, 'shopping_list_save', meta);
++      return apiSend(201, { ok: true, list });
++    }
+   }
+ 
+   if (name === 'waste') {
+     const perm = aiAuth.requirePermission(ctx, 'read_haccp_records');
+     if (!perm.ok) return apiSend(403, { error: perm.error });
+     auditAi(db, ip, ctx, 'waste_read', meta);
+-    return apiSend(200, { waste: filterSite(ctx.state.waste || [], siteId) });
++    return apiSend(200, {
++      waste: filterSite(ctx.state.waste || [], siteId).filter((r) => matchesQuery(r, query.q)),
++      cost: costSignals(ctx.state, siteId),
++    });
+   }
+ 
+   if (name === 'rota') {
+     if (!aiAuth.hasPermission(ctx, 'read_recipes') && !aiAuth.hasPermission(ctx, 'manage_rota')) {
+       return apiSend(403, { error: 'AI permission denied: read_recipes or manage_rota' });
+     }
+-    auditAi(db, ip, ctx, 'rota_read', meta);
++    const team = filterSite(ctx.state.team || [], siteId).filter((r) => matchesQuery(r, query.q));
++    const workflows = filterSite(ctx.state.workflows || [], siteId).filter((w) =>
++      /rota|shift|schedule|ops|operational/i.test(w.label || w.type || '') || matchesQuery(w, query.q));
++    const records = filterSite(ctx.state.records || [], siteId)
++      .filter((r) => /rota|shift|ops|incident|training/i.test(r.type || r.category || '') || matchesQuery(r, query.q))
++      .slice(0, 100);
++    auditAi(db, ip, ctx, 'rota_search', meta);
+     return apiSend(200, {
+-      team: filterSite(ctx.state.team || [], siteId),
+-      workflows: filterSite(ctx.state.workflows || [], siteId).filter((w) => /rota|shift|schedule/i.test(w.label || '')),
+-      note: 'Full staff rota may be on a separate Kiteline rota module if enabled for your organisation.',
++      team,
++      workflows,
++      operationalRecords: records,
++      note: 'Staff rota detail may also live in the Kiteline rota module when enabled for your organisation.',
+     });
+   }
+ 
+   if (name === 'reports') {
++    const type = norm(query.type || 'full') || 'full';
+     const perm = aiAuth.requirePermission(ctx, 'export_reports', 'Manager');
+     if (!perm.ok) {
+       const readPerm = aiAuth.requirePermission(ctx, 'read_haccp_records');
+@@ -445,16 +836,135 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
+       return apiSend(200, {
+         summaryOnly: true,
+         message: 'Enable export_reports permission on the AI token for full inspection export.',
+-        report: buildReport(ctx.state, siteId),
++        report: buildReport(ctx.state, siteId, type === 'full' ? 'summary' : type),
+       });
+     }
+     auditAi(db, ip, ctx, 'reports_export', meta);
+-    return apiSend(200, { export: true, report: buildReport(ctx.state, siteId) });
++    return apiSend(200, { export: true, report: buildReport(ctx.state, siteId, type) });
+   }
+ 
+   return apiSend(404, { error: 'Unknown AI resource' });
+ }
+ 
++const MCP_TOOLS = [
++  { name: 'search_recipes', description: 'Search recipes, products and dishes for the logged-in company', path: 'recipes', method: 'GET' },
++  { name: 'manage_menus', description: 'List or create menus for the company', path: 'menus', method: 'GET' },
++  { name: 'search_stock', description: 'Search stock batches and assets', path: 'stock', method: 'GET' },
++  { name: 'search_suppliers', description: 'Search suppliers', path: 'suppliers', method: 'GET' },
++  { name: 'generate_shopping_list', description: 'Generate shopping / ordering lists from menus or recipes', path: 'shopping-list', method: 'GET' },
++  { name: 'temperature_logs', description: 'Read temperature records and sensors', path: 'temperature-logs', method: 'GET' },
++  { name: 'add_temperature_log', description: 'Add a temperature record (requires confirm:true)', path: 'temperature-logs', method: 'POST' },
++  { name: 'allergen_report', description: 'Allergen report for dishes', path: 'allergens', method: 'GET' },
++  { name: 'nutrition_report', description: 'Nutrition report for dishes', path: 'nutrition', method: 'GET' },
++  { name: 'search_rota', description: 'Search staff rotas and operational records', path: 'rota', method: 'GET' },
++  { name: 'business_reports', description: 'Business, cost and compliance reports', path: 'reports', method: 'GET' },
++  { name: 'business_settings', description: 'Read company settings and configurable dietary rules', path: 'business', method: 'GET' },
++];
++
++function mcpInfo() {
++  return {
++    name: 'kiteline',
++    version: AI_VERSION,
++    status: 'ready',
++    description:
++      'Kiteline MCP / AI connector for multipurpose hospitality businesses. '
++      + 'Company-scoped only. Use POST /mcp (JSON-RPC) or REST /api/ai with a kl_ai_ token / OAuth.',
++    openapi: '/api/ai/openapi.json',
++    health: '/api/ai/health',
++    docs: 'https://kiteline.uk/chatgpt.html',
++    tools: MCP_TOOLS.map((t) => t.name),
++    multipurpose: true,
++  };
++}
++
++async function handleMcp(opts) {
++  const { db, req, body, ip, writeDb } = opts;
++  const msg = body || {};
++  const id = msg.id != null ? msg.id : null;
++
++  function ok(result) {
++    return { status: 200, body: { jsonrpc: '2.0', id, result } };
++  }
++  function err(code, message) {
++    return { status: 200, body: { jsonrpc: '2.0', id, error: { code, message } } };
++  }
++
++  if (msg.method === 'initialize' || msg.method === 'notifications/initialized') {
++    return ok({
++      protocolVersion: '2024-11-05',
++      serverInfo: { name: 'kiteline', version: AI_VERSION },
++      capabilities: { tools: {} },
++      instructions:
++        'Kiteline is a multipurpose hospitality platform. All tools are scoped to the company that authorised this connection. '
++        + 'Dietary rules are per-company settings — never assume vegetarian or any other diet unless business_settings says so.',
++    });
++  }
++
++  if (msg.method === 'tools/list') {
++    return ok({
++      tools: MCP_TOOLS.map((t) => ({
++        name: t.name,
++        description: t.description,
++        inputSchema: {
++          type: 'object',
++          properties: {
++            site: { type: 'string' },
++            q: { type: 'string' },
++            diet: { type: 'string' },
++            menuId: { type: 'string' },
++            recipeIds: { type: 'string' },
++            type: { type: 'string' },
++            confirm: { type: 'boolean' },
++            data: { type: 'object' },
++          },
++        },
++      })),
++    });
++  }
++
++  if (msg.method === 'tools/call') {
++    const auth = aiAuth.resolveAiAuth(db, req);
++    if (!auth) return err(-32001, 'Invalid or missing Kiteline AI token');
++    const ctx = buildContext(db, auth);
++    if (ctx.error) return err(-32003, ctx.error);
++
++    const toolName = msg.params && msg.params.name;
++    const args = (msg.params && msg.params.arguments) || {};
++    const tool = MCP_TOOLS.find((t) => t.name === toolName);
++    if (!tool) return err(-32601, 'Unknown tool: ' + toolName);
++
++    let statusCode = 200;
++    let payload = null;
++    const apiSend = async (code, obj) => {
++      statusCode = code;
++      payload = obj;
++    };
++    await handleResource(
++      tool.method,
++      tool.path,
++      ctx,
++      db,
++      ip,
++      args,
++      Object.assign({ confirm: args.confirm, data: args.data, site: args.site }, args),
++      apiSend,
++      writeDb
++    );
++    if (statusCode >= 400) {
++      return err(-32000, (payload && payload.error) || 'Tool failed');
++    }
++    return ok({
++      content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
++      structuredContent: payload,
++    });
++  }
++
++  if (!msg.method) {
++    return { status: 200, body: mcpInfo() };
++  }
++  return err(-32601, 'Method not found: ' + msg.method);
++}
++
+ async function handleApi(opts) {
+   const {
+     db, req, route, method, body, ip, apiSend, userFromReq, writeDb, query,
+@@ -470,8 +980,10 @@ async function handleApi(opts) {
+     await apiSend(200, {
+       ok: true,
+       service: 'kiteline-ai',
+-      version: '1.0.0',
+-      auth: 'AI token (kl_ai_…) via Bearer or x-api-key — not user passwords',
++      version: AI_VERSION,
++      multipurpose: true,
++      auth: 'AI token (kl_ai_…) via Bearer or x-api-key, or OAuth — not user passwords',
++      scope: 'Each token is bound to one company workspace only',
+     });
+     return true;
+   }
+@@ -499,10 +1011,13 @@ async function handleApi(opts) {
+         tokens: aiAuth.listTokensForUser(db, sessionUser.email),
+         permissionKeys: aiAuth.PERMISSION_KEYS,
+         defaults: aiAuth.defaultPermissions(),
++        dietCatalog: DIET_CATALOG,
+         howToConnect: {
+-          step1: 'Create a token here (POST) while signed in with your normal Kiteline session',
+-          step2: 'In ChatGPT → GPT Actions, import schema from /api/ai/openapi.json',
+-          step3: 'Set Authentication to API key or Bearer with your kl_ai_… token',
++          step1: 'Create a token here (POST) while signed in as a company Admin',
++          step2: 'In ChatGPT → Create a GPT → Actions, import https://kiteline.uk/api/ai/openapi.json',
++          step3: 'Authenticate with Bearer / API key (kl_ai_…) or OAuth',
++          step4: 'ChatGPT only accesses this company’s workspace data',
++          docs: '/chatgpt.html',
+         },
+       });
+       return true;
+@@ -563,10 +1078,13 @@ async function handleApi(opts) {
+   if (!resource) {
+     await apiSend(200, {
+       service: 'kiteline-ai',
++      version: AI_VERSION,
++      multipurpose: true,
++      company: tenants.tenantInfo(db, ctx.user.email),
+       endpoints: [
+-        'me', 'sites', 'recipes', 'menus', 'allergens', 'temperature-logs', 'haccp-logs',
+-        'cleaning-checks', 'fridge-freezer-units', 'labels', 'stock', 'suppliers',
+-        'orders', 'waste', 'rota', 'reports',
++        'me', 'business', 'sites', 'recipes', 'menus', 'allergens', 'nutrition',
++        'temperature-logs', 'haccp-logs', 'cleaning-checks', 'fridge-freezer-units',
++        'labels', 'stock', 'suppliers', 'orders', 'shopping-list', 'waste', 'rota', 'reports',
+       ],
+     });
+     return true;
+@@ -576,16 +1094,4 @@ async function handleApi(opts) {
+   return true;
+ }
+ 
+-function mcpInfo() {
+-  return {
+-    name: 'kiteline',
+-    version: '1.0.0',
+-    status: 'stub',
+-    description: 'Kiteline MCP connector — use REST /api/ai for GPT Actions today.',
+-    openapi: '/api/ai/openapi.json',
+-    health: '/api/ai/health',
+-    docs: 'https://kiteline.uk',
+-  };
+-}
+-
+-module.exports = { handleApi, mcpInfo };
++module.exports = { handleApi, mcpInfo, handleMcp, DIET_CATALOG };
+diff --git a/server/ai-openapi.js b/server/ai-openapi.js
+index 9d8615e..5c49e11 100644
+--- a/server/ai-openapi.js
++++ b/server/ai-openapi.js
+@@ -1,77 +1,239 @@
+ 'use strict';
+ 
++/**
++ * OpenAPI 3.1 schema for ChatGPT GPT Actions / other AI assistants.
++ * Kiteline is a multipurpose hospitality platform — company-scoped only.
++ */
+ function buildOpenApi(baseUrl) {
+   const origin = (baseUrl || 'https://kiteline.uk').replace(/\/$/, '');
+-  const paths = {};
+-  const resources = [
+-    ['health', 'get', false],
+-    ['me', 'get', true],
+-    ['sites', 'get', true],
+-    ['recipes', 'get', true],
+-    ['recipes', 'post', true],
+-    ['menus', 'get', true],
+-    ['menus', 'post', true],
+-    ['allergens', 'get', true],
+-    ['temperature-logs', 'get', true],
+-    ['temperature-logs', 'post', true],
+-    ['haccp-logs', 'get', true],
+-    ['haccp-logs', 'post', true],
+-    ['cleaning-checks', 'get', true],
+-    ['fridge-freezer-units', 'get', true],
+-    ['labels', 'get', true],
+-    ['labels', 'post', true],
+-    ['stock', 'get', true],
+-    ['suppliers', 'get', true],
+-    ['orders', 'get', true],
+-    ['waste', 'get', true],
+-    ['rota', 'get', true],
+-    ['reports', 'get', true],
+-  ];
+ 
+-  resources.forEach(([name, method, auth]) => {
+-    const p = `/api/ai/${name}`;
+-    paths[p] = paths[p] || {};
+-    paths[p][method] = {
+-      operationId: `${method}_${name.replace(/-/g, '_')}`,
+-      summary: `${method.toUpperCase()} ${name}`,
+-      ...(auth ? { security: [{ AiBearer: [] }, { AiApiKey: [] }] } : {}),
+-      parameters: method === 'get' ? [{
+-        name: 'site',
+-        in: 'query',
+-        schema: { type: 'string' },
+-        description: 'Kitchen site id (e.g. site_grove)',
+-      }] : [],
+-      requestBody: method !== 'get' ? {
+-        required: true,
+-        content: {
+-          'application/json': {
+-            schema: {
+-              type: 'object',
+-              properties: {
+-                confirm: { type: 'boolean', description: 'Must be true for create/update/delete' },
+-                site: { type: 'string' },
+-                data: { type: 'object' },
+-              },
++  const siteParam = {
++    name: 'site',
++    in: 'query',
++    schema: { type: 'string' },
++    description: 'Site / kitchen id within the logged-in company workspace',
++  };
++  const qParam = {
++    name: 'q',
++    in: 'query',
++    schema: { type: 'string' },
++    description: 'Search text (name, category, tags, SKU, etc.)',
++  };
++  const dietParam = {
++    name: 'diet',
++    in: 'query',
++    schema: { type: 'string' },
++    description:
++      'Optional filter using a diet tag enabled for THIS company '
++      + '(e.g. vegetarian, vegan, jain, ekadashi, halal, kosher, gluten-free). '
++      + 'Ignored unless the company has configured that rule.',
++  };
++
++  const bearer = { security: [{ AiBearer: [] }, { AiApiKey: [] }, { OAuth2: [] }] };
++  const writeBody = {
++    required: true,
++    content: {
++      'application/json': {
++        schema: {
++          type: 'object',
++          properties: {
++            confirm: {
++              type: 'boolean',
++              description: 'Must be true for create/update/delete after user approval',
+             },
++            site: { type: 'string' },
++            data: { type: 'object' },
++            publish: { type: 'boolean', description: 'Menus only — publish when true' },
+           },
+         },
+-      } : undefined,
+-      responses: {
+-        200: { description: 'OK' },
+-        401: { description: 'Invalid or missing AI token' },
+-        403: { description: 'Permission denied' },
+       },
++    },
++  };
++  const ok = {
++    200: { description: 'OK — data for the authenticated company only' },
++    401: { description: 'Invalid or missing AI token / OAuth session' },
++    403: { description: 'Permission denied or site not allowed' },
++    409: { description: 'Confirmation required' },
++  };
++
++  function getOp(operationId, summary, description, extraParams) {
++    return {
++      operationId,
++      summary,
++      description,
++      ...bearer,
++      parameters: [siteParam].concat(extraParams || []),
++      responses: ok,
+     };
+-  });
++  }
++
++  function postOp(operationId, summary, description) {
++    return {
++      operationId,
++      summary,
++      description,
++      ...bearer,
++      requestBody: writeBody,
++      responses: Object.assign({}, ok, { 201: { description: 'Created' } }),
++    };
++  }
++
++  const paths = {
++    '/api/ai/health': {
++      get: {
++        operationId: 'get_health',
++        summary: 'Health check',
++        description: 'Public health check for the Kiteline AI connector.',
++        responses: { 200: { description: 'OK' } },
++      },
++    },
++    '/api/ai/me': {
++      get: getOp(
++        'get_me',
++        'Current company workspace',
++        'Returns the authenticated company, role, sites and token permissions. Never returns other companies.'
++      ),
++    },
++    '/api/ai/business': {
++      get: getOp(
++        'get_business',
++        'Business settings',
++        'Company profile, business type, sites and configurable dietary rules for this workspace only.'
++      ),
++      put: {
++        operationId: 'put_business',
++        summary: 'Update business / dietary settings',
++        description:
++          'Update company settings including which dietary rules are enabled for THIS business. '
++          + 'Dietary rules are never applied globally across Kiteline customers.',
++        ...bearer,
++        requestBody: writeBody,
++        responses: ok,
++      },
++    },
++    '/api/ai/sites': {
++      get: getOp('get_sites', 'List sites', 'Sites / kitchens the AI token may access within this company.'),
++    },
++    '/api/ai/recipes': {
++      get: getOp(
++        'search_recipes',
++        'Search recipes, products and dishes',
++        'Search and list recipes/dishes for the company. Supports q and optional diet filters.',
++        [qParam, dietParam]
++      ),
++      post: postOp('create_recipe', 'Create draft recipe', 'Creates a draft recipe in this company workspace.'),
++    },
++    '/api/ai/menus': {
++      get: getOp('get_menus', 'List / search menus', 'Menus for the company site.', [qParam]),
++      post: postOp('create_menu', 'Create or publish menu', 'Create a menu draft or publish (requires permission).'),
++    },
++    '/api/ai/allergens': {
++      get: getOp(
++        'get_allergen_report',
++        'Allergen report',
++        'Statutory allergens and dish allergen declarations for this company.'
++      ),
++    },
++    '/api/ai/nutrition': {
++      get: getOp(
++        'get_nutrition_report',
++        'Nutrition report',
++        'Nutrition summary for recipes/dishes (stored values and/or ingredient estimates).',
++        [qParam]
++      ),
++    },
++    '/api/ai/temperature-logs': {
++      get: getOp('get_temperature_logs', 'Read temperature records', 'Fridge/freezer sensors and temperature records.'),
++      post: postOp('add_temperature_log', 'Add temperature record', 'Add a temperature log entry (confirm required).'),
++    },
++    '/api/ai/haccp-logs': {
++      get: getOp('get_haccp_logs', 'HACCP / compliance logs', 'HACCP plans, checks and related records.'),
++      post: postOp('add_haccp_log', 'Add HACCP / compliance entry', 'Add a compliance check entry.'),
++    },
++    '/api/ai/cleaning-checks': {
++      get: getOp('get_cleaning_checks', 'Cleaning checks', 'Hygiene and cleaning checklists.'),
++    },
++    '/api/ai/fridge-freezer-units': {
++      get: getOp('get_fridge_freezer_units', 'Fridge / freezer units', 'Registered temperature units at the site.'),
++    },
++    '/api/ai/labels': {
++      get: getOp('get_labels', 'Food labels', 'Label records for the company.'),
++      post: postOp('create_label', 'Create label', 'Create a food label record.'),
++    },
++    '/api/ai/stock': {
++      get: getOp('search_stock', 'Search stock', 'Batches and assets / stock items.', [qParam]),
++    },
++    '/api/ai/suppliers': {
++      get: getOp('search_suppliers', 'Search suppliers', 'Approved suppliers for the company.', [qParam]),
++    },
++    '/api/ai/orders': {
++      get: getOp('get_orders', 'Orders / deliveries', 'Delivery and order records.', [qParam]),
++    },
++    '/api/ai/shopping-list': {
++      get: getOp(
++        'generate_shopping_list',
++        'Generate shopping / ordering list',
++        'Aggregates ingredients from selected menus/recipes and highlights gaps vs current stock.',
++        [
++          qParam,
++          {
++            name: 'menuId',
++            in: 'query',
++            schema: { type: 'string' },
++            description: 'Optional menu id to build the list from',
++          },
++          {
++            name: 'recipeIds',
++            in: 'query',
++            schema: { type: 'string' },
++            description: 'Comma-separated recipe ids',
++          },
++        ]
++      ),
++      post: postOp(
++        'create_shopping_list',
++        'Save shopping / ordering list',
++        'Persist a generated shopping/ordering list for the company (confirm required).'
++      ),
++    },
++    '/api/ai/waste': {
++      get: getOp('get_waste', 'Waste records', 'Waste log entries for cost and compliance.'),
++    },
++    '/api/ai/rota': {
++      get: getOp(
++        'search_rota',
++        'Staff rota and operational records',
++        'Team members, rota/shift workflows and related operational records.',
++        [qParam]
++      ),
++    },
++    '/api/ai/reports': {
++      get: getOp(
++        'get_business_reports',
++        'Business, cost and compliance reports',
++        'Summary and exportable report covering temps, HACCP, waste, recipes, menus and cost signals.',
++        [{
++          name: 'type',
++          in: 'query',
++          schema: { type: 'string', enum: ['summary', 'compliance', 'cost', 'full'] },
++          description: 'Report flavour (default summary/full based on token permissions)',
++        }]
++      ),
++    },
++  };
+ 
+   return {
+     openapi: '3.1.0',
+     info: {
+-      title: 'Kiteline AI Connector',
+-      version: '1.0.0',
+-      description:
+-        'Secure Kiteline API for authorised AI assistants (ChatGPT GPT Actions). '
+-        + 'Use a Kiteline AI token — never a user password. Create tokens in the Kiteline app while signed in: POST /api/ai/tokens',
++      title: 'Kiteline — ChatGPT / AI Connector',
++      version: '1.1.0',
++      description: [
++        'Secure company-scoped API for Kiteline, a multipurpose business and hospitality-management platform.',
++        'Works for hotels, restaurants, catering, commercial kitchens, schools, care homes, retreat centres, cafés, bakeries, event venues and other food businesses.',
++        'Each AI token or OAuth grant is bound to one company workspace — ChatGPT only sees that company’s data.',
++        'Dietary rules (vegetarian, vegan, Jain, Ekadashi, halal, kosher, gluten-free, etc.) are configurable per business and are never forced on every Kiteline customer.',
++        'Create tokens in the Kiteline app (Settings → Connect ChatGPT) or use OAuth. Never send user passwords.',
++      ].join(' '),
+     },
+     servers: [{ url: origin }],
+     components: {
+@@ -94,8 +256,8 @@ function buildOpenApi(baseUrl) {
+               authorizationUrl: `${origin}/api/ai/oauth/authorize`,
+               tokenUrl: `${origin}/api/ai/oauth/token`,
+               scopes: {
+-                'kiteline.read': 'Read recipes, allergens, logs, and reports',
+-                'kiteline.write': 'Create and update records (with user confirmation)',
++                'kiteline.read': 'Read company recipes, stock, logs and reports',
++                'kiteline.write': 'Create and update company records (with user confirmation)',
+               },
+             },
+           },
+diff --git a/server/server.js b/server/server.js
+index fe82ccd..942d812 100644
+--- a/server/server.js
++++ b/server/server.js
+@@ -39,6 +39,7 @@ const security = require('./security');
+ const recipeAi = require('./recipe-ai');
+ const recipeAiAccess = require('./recipe-ai-access');
+ const tenants = require('./tenants');
++const aiConnector = require('./ai-connector');
+ const academyStore = require('./academy/store');
+ const academyHandlers = require('./academy/handlers');
+ const vedantaOrdering = require('./vedanta-ordering');
+@@ -1384,7 +1385,20 @@ const server = http.createServer(async (req, res) => {
+     if (url.pathname.startsWith('/api/')) return await handleApi(req, res, url);
+ 
+     if (url.pathname === '/mcp') {
+-      return send(res, 200, aiConnector.mcpInfo(), null, req);
++      if (req.method === 'GET' || req.method === 'HEAD') {
++        return send(res, 200, aiConnector.mcpInfo(), null, req);
++      }
++      if (req.method === 'POST') {
++        const body = await readBody(req);
++        const db = readDb();
++        const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString().split(',')[0].trim();
++        const result = await aiConnector.handleMcp({
++          db, req, body, ip, writeDb,
++          userFromReq,
++        });
++        return send(res, result.status || 200, result.body, null, req);
++      }
++      return send(res, 405, { error: 'Method not allowed' }, null, req);
+     }
+ 
+     // Kiteline marketing site at "/"
+diff --git a/server/starter-pack.js b/server/starter-pack.js
+index ee666d2..f0a8d5b 100644
+--- a/server/starter-pack.js
++++ b/server/starter-pack.js
+@@ -218,6 +218,11 @@ function buildStarterPack(user, email, profile) {
+       products,
+       channels: { sms: true, email: true, push: true },
+       maxUsers: 5,
++      // Dietary rules are optional and per-company — never forced platform-wide
++      dietary: {
++        enabledRules: Array.isArray(profile.dietaryRules) ? profile.dietaryRules : [],
++        notes: profile.dietaryNotes || '',
++      },
+     },
+     sites: [site],
+     team,
+diff --git a/site/chatgpt.html b/site/chatgpt.html
+new file mode 100644
+index 0000000..1257943
+--- /dev/null
++++ b/site/chatgpt.html
+@@ -0,0 +1,88 @@
++<!DOCTYPE html>
++<html lang="en">
++<head>
++  <meta charset="UTF-8" />
++  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++  <title>Add Kiteline to ChatGPT — Kiteline</title>
++  <meta name="description" content="Connect ChatGPT to your Kiteline company workspace — recipes, menus, stock, temps, allergens, rotas and reports. Secure, company-scoped MCP/API." />
++  <script src="https://cdn.tailwindcss.com"></script>
++  <script>tailwind.config={theme:{extend:{colors:{brand:{500:'#14b8a6',600:'#0d9488',700:'#0f766e'},ink:{50:'#f8fafc',100:'#f1f5f9',400:'#94a3b8',500:'#64748b',700:'#334155',900:'#0f172a'}},fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
++  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
++  <link rel="stylesheet" href="/css/styles.css" />
++  <link rel="icon" type="image/png" href="/kiteline-logo.png?v=mark3" />
++</head>
++<body class="text-ink-900 antialiased bg-white">
++  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-ink-100">
++    <div class="max-w-4xl mx-auto px-5 h-16 flex items-center justify-between">
++      <a href="/" class="brand-lockup brand-lockup--light"><img src="/kiteline-logo.png?v=mark3" alt="" class="brand-mark" width="32" height="32"><span class="brand-name">Kit<em>eline</em></span></a>
++      <a href="/app#settings" class="px-4 py-2 text-sm font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700">Open app settings</a>
++    </div>
++  </header>
++  <main class="max-w-3xl mx-auto px-5 py-12">
++    <p class="text-sm font-semibold text-brand-700 mb-2">ChatGPT + Kiteline</p>
++    <h1 class="text-3xl md:text-4xl font-black tracking-tight mb-4">Add Kiteline to ChatGPT</h1>
++    <p class="text-lg text-ink-500 leading-relaxed mb-8">
++      Kiteline is a multipurpose business and hospitality platform for hotels, restaurants, catering companies,
++      commercial kitchens, schools and colleges, care homes, retreat centres, cafés, bakeries, event venues and
++      other food businesses. ChatGPT connects to <b>your company only</b> — never another customer’s data.
++    </p>
++
++    <section class="rounded-2xl border border-ink-100 bg-ink-50 p-6 mb-8">
++      <h2 class="text-xl font-bold mb-3">What ChatGPT can do</h2>
++      <ul class="space-y-2 text-ink-700 text-sm leading-relaxed list-disc pl-5">
++        <li>Search recipes, products and dishes</li>
++        <li>Create and manage menus</li>
++        <li>Search stock and suppliers</li>
++        <li>Generate shopping and ordering lists</li>
++        <li>Read and add temperature records</li>
++        <li>Generate allergen and nutrition reports</li>
++        <li>Search staff rotas and operational records</li>
++        <li>Produce business, cost and compliance reports</li>
++      </ul>
++    </section>
++
++    <section class="mb-8">
++      <h2 class="text-xl font-bold mb-3">Dietary rules stay yours</h2>
++      <p class="text-ink-600 text-sm leading-relaxed">
++        Vegetarian, vegan, Jain, Ekadashi, halal, kosher, gluten-free and similar rules are
++        <b>configurable per business</b> in Settings. They are not permanently applied to every Kiteline customer.
++        If your company has not enabled a diet rule, ChatGPT will not assume one.
++      </p>
++    </section>
++
++    <section class="mb-8">
++      <h2 class="text-xl font-bold mb-3">Connect in 4 steps</h2>
++      <ol class="space-y-4 text-sm text-ink-700 list-decimal pl-5">
++        <li>Sign in to Kiteline as a company <b>Admin</b> → <b>Settings → Connect ChatGPT</b>.</li>
++        <li>Create an AI token (or use OAuth when enabled). Never share your login password.</li>
++        <li>In ChatGPT, create a Custom GPT → <b>Actions</b> → import schema:<br>
++          <code class="block mt-2 p-3 rounded-lg bg-ink-900 text-ink-100 text-xs break-all">https://kiteline.uk/api/ai/openapi.json</code>
++        </li>
++        <li>Set authentication to Bearer / API Key with your <code>kl_ai_…</code> token, or OAuth from the same Settings panel.</li>
++      </ol>
++      <p class="text-sm text-ink-500 mt-4">MCP discovery endpoint: <code class="text-xs">https://kiteline.uk/mcp</code> (JSON-RPC tools for compatible clients).</p>
++    </section>
++
++    <section class="mb-8">
++      <h2 class="text-xl font-bold mb-3">Security</h2>
++      <ul class="space-y-2 text-sm text-ink-600 list-disc pl-5">
++        <li>Each AI token is bound to one company workspace and optional site list</li>
++        <li>Fine-grained permissions (recipes, temps, stock, reports, etc.)</li>
++        <li>Write actions require explicit <code>confirm: true</code> after you approve the change</li>
++        <li>Audit log of AI actions in your Kiteline workspace</li>
++      </ul>
++    </section>
++
++    <div class="flex flex-wrap gap-3">
++      <a href="/app#settings" class="px-5 py-3 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-700">Connect in Settings</a>
++      <a href="/api/ai/openapi.json" class="px-5 py-3 rounded-xl border border-ink-200 font-semibold hover:bg-ink-50">Open API schema</a>
++      <a href="/" class="px-5 py-3 rounded-xl border border-ink-200 font-semibold hover:bg-ink-50">Back to Kiteline</a>
++    </div>
++  </main>
++  <footer class="border-t border-ink-100 py-8 text-center text-sm text-ink-400">
++    © 2026 Kiteline · <a href="/privacy.html" class="text-brand-700 font-semibold">Privacy</a> ·
++    <a href="/security.html" class="text-brand-700 font-semibold">Security</a> ·
++    <a href="mailto:contact@kiteline.uk" class="text-brand-700 font-semibold">contact@kiteline.uk</a>
++  </footer>
++</body>
++</html>
+diff --git a/site/index.html b/site/index.html
+index e65b2d5..b4f4ee5 100644
+--- a/site/index.html
++++ b/site/index.html
+@@ -328,6 +328,7 @@
+         <a href="/app" class="hover:text-white">App</a>
+         <a href="mailto:contact@kiteline.uk" class="hover:text-white">contact@kiteline.uk</a>
+         <span class="text-ink-600">·</span>
++        <a href="/chatgpt.html" class="hover:text-white text-ink-500">Add to ChatGPT</a>
+         <a href="/academy/" class="hover:text-white text-ink-500">Kiteline Academy</a>
+       </div>
+       <div class="text-center sm:text-right">© 2026 Kiteline · All rights reserved</div>
+-- 
+2.43.0
+
