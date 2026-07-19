@@ -22,10 +22,8 @@ cd kitline1
 git checkout main
 git pull
 git checkout -b cursor/kiteline-chatgpt-mcp-32ab
-git apply /path/to/kiteline-chatgpt-mcp/kiteline-chatgpt-mcp.patch
-# or copy server/, js/, site/ files from this folder over the repo
-git add -A
-git commit -m "Add multipurpose ChatGPT / MCP connector for company workspaces"
+git am /path/to/kiteline-chatgpt-mcp/kiteline-chatgpt-mcp.patch
+# or copy server/, js/, site/, CHATGPT.md from this folder over the repo, then commit
 git push -u origin cursor/kiteline-chatgpt-mcp-32ab
 # merge to main → Render redeploys kiteline.uk
 ```
