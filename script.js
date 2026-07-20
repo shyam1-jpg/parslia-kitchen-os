@@ -100,10 +100,9 @@
         encodeURIComponent(body);
 
       window.location.href = mailto;
-      setNote(
-        "Your email app should open with the request ready. Send it to complete early access. We will reply from hello@parslia.app.",
-        "ok"
-      );
+      setNote("", "");
+      var success = document.getElementById("formSuccess");
+      if (success) success.hidden = false;
       form.reset();
     });
   }
@@ -112,5 +111,9 @@
     if (!note) return;
     note.textContent = text;
     note.className = "form-note " + (kind || "");
+    if (kind === "err") {
+      var success = document.getElementById("formSuccess");
+      if (success) success.hidden = true;
+    }
   }
 })();
