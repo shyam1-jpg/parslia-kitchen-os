@@ -279,9 +279,11 @@ h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.12;
   font: inherit; color: var(--text); background: var(--warm-white);
 }
 .field select:focus { outline: none; border-color: var(--green-2); box-shadow: 0 0 0 3px rgba(15,107,79,.18); }
-.modules-field { border: 1px solid rgba(6,63,50,.15); border-radius: 12px; padding: 14px 16px; margin: 0 0 16px; }
+.modules-field {
+  border: 1px solid rgba(6,63,50,.15); border-radius: 12px; padding: 14px 16px; margin: 0 0 16px;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+}
 .modules-field legend { font-weight: 600; font-size: .9rem; color: var(--green-deep); padding: 0 6px; }
-.modules-field { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .check { display: flex; align-items: flex-start; gap: 8px; font-size: .9rem; color: var(--text); font-weight: 500; }
 .check input { margin-top: 3px; accent-color: var(--green-2); }
 .check.consent { margin-bottom: 10px; color: var(--muted); }
