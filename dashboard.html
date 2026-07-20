@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard · Parslia Kitchen OS</title>
+  <meta name="description" content="Parslia Kitchen OS dashboard preview — today's kitchen at a glance: menus, stock alerts, allergens, rota, and getting started." />
+  <meta name="theme-color" content="#063F32" />
+  <meta name="robots" content="noindex" />
+  <link rel="canonical" href="https://parslia.app/dashboard.html" />
+  <link rel="icon" href="assets/USE_THIS_parslia_app_icon_1024.png" />
+  <link rel="apple-touch-icon" href="assets/USE_THIS_parslia_app_icon_1024.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+  <a class="skip-link" href="#dashboard-main">Skip to dashboard</a>
+
+  <div class="app-shell">
+    <aside class="app-sidebar" id="appSidebar" aria-label="Kitchen navigation">
+      <div class="sidebar-brand">
+        <img src="assets/USE_THIS_parslia_header_logo_clean.png" alt="Parslia Kitchen OS" class="sidebar-logo" />
+        <p class="sidebar-product">Kitchen OS</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <p class="nav-section-label">Dashboard</p>
+        <a class="nav-item active" href="#overview" aria-current="page">
+          <span class="nav-ico" aria-hidden="true">◈</span> Overview
+        </a>
+        <a class="nav-item" href="#getting-started">
+          <span class="nav-ico" aria-hidden="true">✓</span> Getting started
+        </a>
+
+        <p class="nav-section-label">Kitchen</p>
+        <a class="nav-item" href="#kitchen-today">
+          <span class="nav-ico" aria-hidden="true">◎</span> Today
+        </a>
+        <a class="nav-item" href="#modules">
+          <span class="nav-ico" aria-hidden="true">▣</span> Recipes
+        </a>
+        <a class="nav-item" href="#modules">
+          <span class="nav-ico" aria-hidden="true">▤</span> Menu planner
+        </a>
+        <a class="nav-item" href="#modules">
+          <span class="nav-ico" aria-hidden="true">◻</span> Stock
+        </a>
+        <a class="nav-item" href="#modules">
+          <span class="nav-ico" aria-hidden="true">◷</span> Rota
+        </a>
+        <a class="nav-item" href="#modules">
+          <span class="nav-ico" aria-hidden="true">▣</span> Logs
+        </a>
+        <a class="nav-item" href="#modules">
+          <span class="nav-ico" aria-hidden="true">◉</span> AI Image
+        </a>
+        <a class="nav-item" href="#modules">
+          <span class="nav-ico" aria-hidden="true">◎</span> AI Voice Finder
+        </a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <a class="sidebar-marketing" href="index.html">← Marketing site</a>
+        <p class="sidebar-note">Demo preview · sample data</p>
+      </div>
+    </aside>
+
+    <div class="app-main-wrap">
+      <header class="app-topbar">
+        <button type="button" class="menu-btn" id="menuBtn" aria-label="Open navigation" aria-controls="appSidebar" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="topbar-copy">
+          <p class="topbar-eyebrow">Logged-in preview</p>
+          <h1>Today’s kitchen</h1>
+        </div>
+        <div class="topbar-actions">
+          <a class="btn btn-ghost" href="index.html#early-access">Request access</a>
+          <span class="user-chip" title="Demo chef">SC · Demo kitchen</span>
+        </div>
+      </header>
+
+      <main id="dashboard-main" class="app-main">
+        <p class="preview-banner" role="status">
+          This is the <strong>logged-in Kitchen OS</strong> view chefs see after sign-in.
+          Visitors to <a href="index.html">parslia.app</a> land on the public marketing page first.
+        </p>
+
+        <section id="overview" class="dash-section">
+          <div class="kpi-grid" aria-label="Kitchen KPIs">
+            <article class="kpi-card kpi-ok">
+              <p class="kpi-label">Menus today</p>
+              <p class="kpi-value">18</p>
+              <p class="kpi-meta">dishes ready for service</p>
+            </article>
+            <article class="kpi-card kpi-warn">
+              <p class="kpi-label">Stock alerts</p>
+              <p class="kpi-value">3</p>
+              <p class="kpi-meta">items below reorder point</p>
+            </article>
+            <article class="kpi-card kpi-alert">
+              <p class="kpi-label">Allergen flags</p>
+              <p class="kpi-value">4</p>
+              <p class="kpi-meta">need chef confirmation</p>
+            </article>
+            <article class="kpi-card kpi-ok">
+              <p class="kpi-label">On shift</p>
+              <p class="kpi-value">7</p>
+              <p class="kpi-meta">rota confirmed</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="philosophy" aria-label="Parslia philosophy">
+          <p class="philosophy-brand">Parslia</p>
+          <p class="philosophy-line">Smarter kitchens. Calmer chefs.</p>
+          <p class="philosophy-sub">One calm system for recipes, menus, allergens, stock, rota, and logs — so service stays clear when the pass is busy.</p>
+        </section>
+
+        <section id="getting-started" class="dash-section">
+          <div class="section-head-row">
+            <div>
+              <h2>Getting started</h2>
+              <p class="section-lede">A short checklist for new kitchens — finish these once, then the daily dashboard takes over.</p>
+            </div>
+            <span class="progress-pill" id="checklistProgress">2 of 5 done</span>
+          </div>
+          <ul class="checklist" id="onboardingChecklist">
+            <li>
+              <label>
+                <input type="checkbox" checked data-step />
+                <span>
+                  <strong>Confirm kitchen profile</strong>
+                  <em>Name, site, service times</em>
+                </span>
+              </label>
+            </li>
+            <li>
+              <label>
+                <input type="checkbox" checked data-step />
+                <span>
+                  <strong>Add your first recipe</strong>
+                  <em>Or import from the sample library</em>
+                </span>
+              </label>
+            </li>
+            <li>
+              <label>
+                <input type="checkbox" data-step />
+                <span>
+                  <strong>Set allergen defaults</strong>
+                  <em>14 UK allergens ready to flag</em>
+                </span>
+              </label>
+            </li>
+            <li>
+              <label>
+                <input type="checkbox" data-step />
+                <span>
+                  <strong>Invite one team member</strong>
+                  <em>Chef, KP, or manager</em>
+                </span>
+              </label>
+            </li>
+            <li>
+              <label>
+                <input type="checkbox" data-step />
+                <span>
+                  <strong>Try AI Voice Finder</strong>
+                  <em>Hands-free recipe search on the pass</em>
+                </span>
+              </label>
+            </li>
+          </ul>
+        </section>
+
+        <section id="kitchen-today" class="dash-section">
+          <div class="section-head-row">
+            <div>
+              <h2>Kitchen today</h2>
+              <p class="section-lede">What needs attention before service — not a second homepage of marketing content.</p>
+            </div>
+          </div>
+          <div class="today-grid">
+            <article class="panel">
+              <h3>Service board</h3>
+              <ul class="panel-list">
+                <li><span>Lunch · Garden retreat</span><em class="tag ok">Locked</em></li>
+                <li><span>Dinner · Main dining</span><em class="tag">Draft</em></li>
+                <li><span>Buffet · Evening tea</span><em class="tag warn">Allergens</em></li>
+              </ul>
+            </article>
+            <article class="panel">
+              <h3>Alerts</h3>
+              <ul class="panel-list">
+                <li><span>Oat milk · low stock</span><em class="tag warn">Reorder</em></li>
+                <li><span>Cashew cream · allergen check</span><em class="tag alert">Review</em></li>
+                <li><span>Walk-in fridge log · due 14:00</span><em class="tag">Pending</em></li>
+              </ul>
+            </article>
+            <article class="panel">
+              <h3>Team on shift</h3>
+              <ul class="panel-list">
+                <li><span>A. Patel · Head chef</span><em class="tag ok">In</em></li>
+                <li><span>M. Okonkwo · Sous</span><em class="tag ok">In</em></li>
+                <li><span>J. Reid · KP</span><em class="tag">14:00</em></li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="modules" class="dash-section">
+          <div class="section-head-row">
+            <div>
+              <h2>Modules at a glance</h2>
+              <p class="section-lede">Deep screens open from the Kitchen sidebar. This preview shows the shape of the product — not live kitchen data.</p>
+            </div>
+          </div>
+          <div class="module-strip">
+            <article class="module-tile">
+              <h3>AI Image</h3>
+              <p>Dish photos for menus, boards, and training.</p>
+            </article>
+            <article class="module-tile">
+              <h3>AI Voice Finder</h3>
+              <p>Speak to find recipes while your hands stay on the board.</p>
+            </article>
+            <article class="module-tile">
+              <h3>Recipe library</h3>
+              <p>Scale, print, and keep methods consistent across shifts.</p>
+            </article>
+            <article class="module-tile">
+              <h3>Stock &amp; suppliers</h3>
+              <p>Low-stock alerts linked to today’s menus.</p>
+            </article>
+            <article class="module-tile">
+              <h3>Logs &amp; checks</h3>
+              <p>Fridge, freezer, cleaning, opening and closing.</p>
+            </article>
+            <article class="module-tile">
+              <h3>Rota</h3>
+              <p>Who is on, who is late, who covers the pass.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="dash-section cta-section">
+          <h2>Ready for your kitchen?</h2>
+          <p>The public site explains Parslia. This dashboard is what signed-in teams use day to day.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="index.html#early-access">Request early access</a>
+            <a class="btn btn-outline" href="index.html">Back to marketing site</a>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+  <div class="cookie-banner" id="cookieBanner" role="dialog" aria-label="Cookie notice" hidden>
+    <div class="cookie-banner-copy">
+      <p>
+        Parslia uses essential cookies to keep you signed in on the Kitchen OS app.
+        We do not load advertising cookies.
+        <a href="index.html#privacy">Privacy</a>
+      </p>
+    </div>
+    <div class="cookie-banner-actions">
+      <button type="button" class="btn btn-ghost btn-sm" id="cookieEssential">Essential only</button>
+      <button type="button" class="btn btn-primary btn-sm" id="cookieAccept">Accept</button>
+    </div>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

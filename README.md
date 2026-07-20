@@ -7,8 +7,10 @@
 
 | File | Purpose |
 |------|---------|
-| `index.html` | Full landing page |
-| `styles.css` | Styling |
+| `index.html` | Public marketing landing (unauthenticated visitors) |
+| `dashboard.html` | Logged-in Kitchen OS dashboard preview |
+| `dashboard.css` / `dashboard.js` | Dashboard layout, checklist, cookie banner |
+| `styles.css` | Marketing styling |
 | `script.js` | Menu + early access form |
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
 | `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
