@@ -85,9 +85,18 @@ https://hercules.app/dashboard/app/01KRRZFRR3VVK2SZH1VB8KNXWH?threadId=01KWSDMG3
 
 ---
 
+## Launch + App Store (give to Cloud)
+
+**Full step-by-step for Hercules / Cursor Cloud:**  
+→ `CLOUD-LAUNCH-APP-STORE.md`
+
+Landing already has launch strips + App Store section (`#get-app`).  
+Apple submission still needs the owner’s Apple Developer account (Cloud cannot log in as you).
+
 ## Next steps
 
 1. Fix GoDaddy DNS → GitHub Pages (landing page goes live)
-2. Push fixed `assets/` folder to GitHub (logos were missing)
-3. Add `server/` backend for auth, payments, newsletter
-4. Build kitchen app separately (or extend backend + React app)
+2. Give `CLOUD-LAUNCH-APP-STORE.md` to Cloud / Hercules
+3. Create full privacy + terms pages before App Store submit
+4. Capacitor iOS wrap + TestFlight + App Store Connect
+5. Add `server/` backend for auth, payments, newsletter
