@@ -8,10 +8,13 @@
 | File | Purpose |
 |------|---------|
 | `index.html` | Public marketing landing (unauthenticated visitors) |
-| `dashboard.html` | Logged-in Kitchen OS dashboard preview |
+| `dashboard.html` | Logged-in Kitchen OS interactive preview |
 | `dashboard.css` / `dashboard.js` | Dashboard layout, checklist, cookie banner |
+| `privacy.html` · `terms.html` · `cookies.html` | Full legal pages |
+| `delete-account.html` | Account deletion instructions (store requirement) |
+| `support.html` | Support centre entry |
 | `styles.css` | Marketing styling |
-| `script.js` | Menu + early access form |
+| `script.js` | Menu + early access form (mailto) |
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
 | `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
 
