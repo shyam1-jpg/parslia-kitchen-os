@@ -13,6 +13,7 @@ This is the **full marketing page** from Hercules:
 - Hero: Smarter kitchens. Calmer chefs.
 - App preview mockup
 - Features, modules, early access form
+- **AI Image** and **AI Voice Finder** called out on the landing page
 - Correct Parslia logo files
 
 ---
