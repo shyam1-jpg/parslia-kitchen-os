@@ -56,12 +56,12 @@ const ASSISTANT_UI: Record<
   astrology: {
     emoji: "✨",
     title: "Astrology & Horoscope",
-    blurb: "Daily signs · birth charts · love & career · Vedic & Western",
+    blurb: "Deep advanced readings every time — charts, transits, love, career, Vedic & Western",
     suggestions: [
-      "What's my daily horoscope? I'm a Leo",
-      "Explain my birth chart — 14 July 1995, London, 3:20pm",
-      "Are Cancer and Scorpio compatible?",
-      "What does Mercury retrograde mean for me this month?",
+      "Give me a deep advanced daily horoscope — I'm a Leo rising Virgo",
+      "Full natal chart reading — 14 July 1995, London, 3:20pm (houses, aspects, career & love)",
+      "Deep compatibility reading: Cancer Sun / Scorpio Moon with Taurus Sun / Libra Rising",
+      "Advanced transit forecast for me this month — Saturn & Jupiter focus",
     ],
   },
   writing: {
@@ -510,7 +510,13 @@ export function AppPage() {
       return;
     }
 
-    if (routerMode !== "auto") {
+    // Capture before any local `assistantId` message UUID shadows the preset state
+    const presetId = assistantId;
+    const astrologyDeep = presetId === "astrology";
+    const effectiveRouterMode = astrologyDeep ? "advanced" : routerMode;
+    const effectiveTimeout = astrologyDeep ? 150_000 : 90_000;
+
+    if (effectiveRouterMode !== "auto") {
       const selected = models.find((m) => m.id === modelId);
       if (selected?.available === false) {
         setError(selected.unavailableReason ?? "This model is not available yet.");
@@ -651,15 +657,15 @@ export function AppPage() {
         for await (const chunk of advancedApi.streamRespond(
           {
             message: content,
-            modelId: routerMode === "auto" ? undefined : modelId,
-            routerMode,
+            modelId: effectiveRouterMode === "auto" ? undefined : modelId,
+            routerMode: effectiveRouterMode,
             history,
             systemPrompt,
             projectId: activeProjectId ?? undefined,
             conversationId: convId,
             preferredLanguage: preferredLanguagePayload,
           },
-          { signal: abortCtrlRef.current?.signal, timeoutMs: 90_000 }
+          { signal: abortCtrlRef.current?.signal, timeoutMs: effectiveTimeout }
         )) {
           if (abortRef.current) {
             abortedByUser = true;
@@ -713,8 +719,8 @@ export function AppPage() {
       if (!fullContent.trim()) {
         const result = await chatApi.respond({
           message: content,
-          modelId: routerMode === "auto" ? undefined : modelId,
-          routerMode,
+          modelId: effectiveRouterMode === "auto" ? undefined : modelId,
+          routerMode: effectiveRouterMode,
           history,
           systemPrompt,
           projectId: activeProjectId ?? undefined,
@@ -1123,12 +1129,23 @@ export function AppPage() {
               ))}
             </select>
             {(assistants.length > 0 || customAssistants.length > 0) && (
-              <select className="model-select" value={assistantId} onChange={(e) => setAssistantId(e.target.value)} title="AI assistant preset">
+              <select
+                className="model-select"
+                value={assistantId}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setAssistantId(next);
+                  // Astrology readings always run in Advanced depth/quality
+                  if (next === "astrology") setRouterMode("advanced");
+                }}
+                title="AI assistant preset"
+              >
                 <option value="">General assistant</option>
                 {assistants.map((a) => (
                   <option key={a.id} value={a.id}>
                     {ASSISTANT_UI[a.id]?.emoji ? `${ASSISTANT_UI[a.id].emoji} ` : ""}
                     {a.name}
+                    {a.id === "astrology" ? " · Deep" : ""}
                   </option>
                 ))}
                 {customAssistants.map((a) => (

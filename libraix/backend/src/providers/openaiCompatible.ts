@@ -21,11 +21,16 @@ function buildBody(request: ProviderRequest, stream: boolean) {
     stream,
   };
 
+  const deepAstrology = request.messages.some(
+    (m) => m.role === "system" && typeof m.content === "string" && /Libraix Astrology|DEEP, ADVANCED readings/i.test(m.content)
+  );
+  const tokenCap = Number(process.env.OPENAI_MAX_TOKENS ?? (deepAstrology ? 8192 : 4096));
+
   if (isReasoning) {
-    body.max_completion_tokens = Number(process.env.OPENAI_MAX_TOKENS ?? 4096);
+    body.max_completion_tokens = tokenCap;
   } else {
-    body.max_tokens = Number(process.env.OPENAI_MAX_TOKENS ?? 4096);
-    body.temperature = Number(process.env.OPENAI_TEMPERATURE ?? 0.7);
+    body.max_tokens = tokenCap;
+    body.temperature = Number(process.env.OPENAI_TEMPERATURE ?? (deepAstrology ? 0.85 : 0.7));
   }
 
   return body;
