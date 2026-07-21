@@ -1,5 +1,9 @@
 # Parslia Kitchen OS — where everything is
 
+> **Keep products separate.** See `PRODUCTS.md`.  
+> Kiteline = `shyam1-jpg/kitline1` + kiteline.uk only.  
+> Do not mix Kiteline / Academy / ChatGPT code into this Parslia repo.
+
 ## The real landing page (Hercules / GitHub)
 
 | Item | Location |
