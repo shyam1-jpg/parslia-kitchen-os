@@ -50,6 +50,9 @@ app.use(
           },
         }
       : false,
+    // Allow Netlify (libraix.ai) to read API responses when not same-origin proxied
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
   })
 );
 

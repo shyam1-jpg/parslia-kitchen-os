@@ -27,7 +27,13 @@ import "./styles/global.css";
 initTheme();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((reg) => {
+        // Pick up the fixed worker ASAP after deploy
+        reg.update().catch(() => {});
+      })
+      .catch(() => {});
   });
 }
 

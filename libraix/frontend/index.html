@@ -35,6 +35,64 @@
         document.documentElement.setAttribute("data-theme", "dark");
       }
     </script>
+    <script>
+      /* Recover from a stale PWA cache that served HTML as JS after a deploy (blank screen). */
+      (function () {
+        var KEY = "libraix_sw_recover_v3";
+        function recover() {
+          try {
+            if (sessionStorage.getItem(KEY)) return;
+            sessionStorage.setItem(KEY, "1");
+          } catch (e) {}
+          var done = function () {
+            try {
+              location.reload();
+            } catch (e) {}
+          };
+          if (!("serviceWorker" in navigator)) return;
+          navigator.serviceWorker
+            .getRegistrations()
+            .then(function (regs) {
+              return Promise.all(
+                regs.map(function (r) {
+                  return r.unregister();
+                })
+              );
+            })
+            .then(function () {
+              if (!("caches" in window)) return;
+              return caches.keys().then(function (keys) {
+                return Promise.all(
+                  keys.map(function (k) {
+                    return caches.delete(k);
+                  })
+                );
+              });
+            })
+            .then(done)
+            .catch(done);
+        }
+        window.addEventListener("error", function (ev) {
+          var msg = String((ev && ev.message) || "");
+          var src = String((ev && ev.filename) || "");
+          if (/Loading module|Failed to fetch dynamically imported module|error loading dynamically imported module|Unexpected token &lt;|Unexpected token '<'/i.test(msg) || /\/assets\/.+\.js/i.test(src)) {
+            recover();
+          }
+        });
+        window.addEventListener("unhandledrejection", function (ev) {
+          var reason = ev && ev.reason;
+          var msg = String((reason && reason.message) || reason || "");
+          if (/Failed to fetch|Loading chunk|dynamically imported module|Unexpected token/i.test(msg)) {
+            recover();
+          }
+        });
+        // If React never mounts within 12s, force a one-time SW clear (stuck blank shell)
+        window.setTimeout(function () {
+          var root = document.getElementById("root");
+          if (root && root.childElementCount === 0) recover();
+        }, 12000);
+      })();
+    </script>
   </head>
   <body>
     <div id="root">

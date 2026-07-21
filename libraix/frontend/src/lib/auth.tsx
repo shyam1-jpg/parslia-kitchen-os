@@ -19,14 +19,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
+    const ctrl = new AbortController();
+    const timer = window.setTimeout(() => ctrl.abort(), 12_000);
     try {
-      const data = await authApi.me();
+      const data = await authApi.me(ctrl.signal);
       setUser(data.user);
       setUsage(data.usage);
     } catch {
       setUser(null);
       setUsage(null);
     } finally {
+      window.clearTimeout(timer);
       setLoading(false);
     }
   }, []);
