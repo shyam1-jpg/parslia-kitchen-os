@@ -13,7 +13,7 @@
 | `styles.css` | Marketing styling |
 | `script.js` | Menu + early access form |
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
-| `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
+| `assets/parslia-60-second-demo.mp4` | Product demo video (Watch Demo) |
 
 ## Preview locally (Windows)
 
