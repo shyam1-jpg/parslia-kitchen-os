@@ -117,7 +117,7 @@ export const authApi = {
       email: boolean;
       providers: string[];
     }>("/api/auth/config"),
-  me: () => api<{ user: User; usage: Usage }>("/api/auth/me"),
+  me: (signal?: AbortSignal) => api<{ user: User; usage: Usage }>("/api/auth/me", signal ? { signal } : undefined),
   login: (email: string, password: string) =>
     api<{ user: User; usage: Usage }>("/api/auth/login", {
       method: "POST",
