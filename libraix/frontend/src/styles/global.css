@@ -973,11 +973,175 @@ button, input, textarea, select {
   font-size: 12px;
   color: var(--muted);
 }
+.horoscope-meta-line {
+  font-size: 12px;
+  margin: 4px 0 0;
+}
+.horoscope-balance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: baseline;
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.horoscope-balance strong {
+  color: var(--text);
+}
+.horoscope-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 16px;
+}
+.horoscope-topics-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-right: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.horoscope-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 18px;
+}
+.horoscope-tab {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.horoscope-tab.active,
+.horoscope-tab[aria-selected="true"] {
+  color: var(--text);
+  border-color: rgba(212, 175, 120, 0.55);
+  background: rgba(212, 175, 120, 0.12);
+}
+.horoscope-theme-cell {
+  white-space: normal !important;
+  min-width: 140px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.dignity {
+  font-size: 12px;
+}
+.dignity-exalted { color: #86efac; }
+.dignity-own-sign { color: #93c5fd; }
+.dignity-debilitated { color: #fca5a5; }
+.horoscope-yoga-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0 20px;
+}
+.horoscope-yoga-card {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.horoscope-yoga-card.present.severity-caution {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(248, 113, 113, 0.06);
+}
+.horoscope-yoga-card.present.severity-notable {
+  border-color: rgba(212, 175, 120, 0.45);
+  background: rgba(212, 175, 120, 0.08);
+}
+.horoscope-yoga-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.horoscope-yoga-card p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.dasha-current strong {
+  color: #e8c99a;
+}
+.horoscope-print-only {
+  display: none;
+}
 @media (max-width: 640px) {
   .horoscope-form-grid,
   .horoscope-core-grid,
-  .horoscope-sign-grid {
+  .horoscope-sign-grid,
+  .horoscope-yoga-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .horoscope-page,
+  .horoscope-page .horoscope-result,
+  .horoscope-page .horoscope-print-only,
+  .horoscope-page .horoscope-print-only * {
+    visibility: visible !important;
+  }
+  .horoscope-no-print {
+    display: none !important;
+  }
+  .horoscope-print-only {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 16px 20px;
+    color: #111 !important;
+    background: #fff !important;
+  }
+  .horoscope-print-only h2,
+  .horoscope-print-only h3,
+  .horoscope-print-only strong,
+  .horoscope-print-only td,
+  .horoscope-print-only th,
+  .horoscope-print-only li,
+  .horoscope-print-only p {
+    color: #111 !important;
+  }
+  .horoscope-print-only .kundli-frame {
+    fill: #fff;
+    stroke: #333;
+  }
+  .horoscope-print-only .kundli-line,
+  .horoscope-print-only .kundli-diamond,
+  .horoscope-print-only .kundli-inner {
+    stroke: #444;
+  }
+  .horoscope-print-only .kundli-house-num,
+  .horoscope-print-only .kundli-sign,
+  .horoscope-print-only .kundli-planets {
+    fill: #111;
+  }
+  .horoscope-print-only .horoscope-table-wrap,
+  .horoscope-print-only .horoscope-table {
+    border-color: #ccc !important;
+  }
+  .horoscope-print-only .horoscope-table th,
+  .horoscope-print-only .horoscope-table td {
+    border-color: #ddd !important;
+  }
+  @page {
+    margin: 12mm;
   }
 }
 
