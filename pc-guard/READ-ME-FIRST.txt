@@ -1,12 +1,10 @@
-IMPORTANT — READ THIS
+Guard is a WEBPAGE now (not a PC desktop app).
 
-PC Guard now opens its OWN WINDOW.
-You do NOT need Chrome.
+Open the folder named:  guard
+Then open:  index.html
 
-1. Open folder: pc-guard
-2. Double-click: DOUBLE-CLICK-ME
-3. A PC Guard window should appear
-4. Click "Create test event" in that window
+Or after publish, open:  your-site/guard/
 
-Ignore Chrome internet errors.
-Do not open http://127.0.0.1
+No START.bat needed.
+No Python needed.
+No Chrome localhost needed.
