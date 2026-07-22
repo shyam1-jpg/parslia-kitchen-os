@@ -58,6 +58,10 @@ interface ChatComposerProps {
   onToggleImageMode?: () => void;
   onFileSelect?: (file: File) => void;
   onDeepResearch?: () => void;
+  onSuperMode?: () => void;
+  onAgentMode?: () => void;
+  /** Current router mode — highlights active power action */
+  activeRouterMode?: string;
   onCamera?: () => void;
   /** BCP-47 locale for speech recognition (hi-IN, ta-IN, …). */
   speechLocale?: string;
@@ -86,6 +90,9 @@ export function ChatComposer({
   onToggleImageMode,
   onFileSelect,
   onDeepResearch,
+  onSuperMode,
+  onAgentMode,
+  activeRouterMode,
   onCamera,
   speechLocale,
   liveVoiceId,
@@ -150,9 +157,48 @@ export function ChatComposer({
     }
   };
 
+  const powerBusy = loading || streaming || live.active;
+
   return (
     <div className="composer-wrap">
       {extraAbove}
+      {(onSuperMode || onAgentMode || onDeepResearch) && (
+        <div className="composer-power-row" role="group" aria-label="Advanced AI modes">
+          {onSuperMode && (
+            <button
+              type="button"
+              className={`composer-power-btn ${activeRouterMode === "super" ? "active" : ""}`}
+              disabled={powerBusy}
+              onClick={onSuperMode}
+              title="Super — strongest model + agent tools + live sources"
+            >
+              ✦ Super
+            </button>
+          )}
+          {onAgentMode && (
+            <button
+              type="button"
+              className={`composer-power-btn ${activeRouterMode === "agent" ? "active" : ""}`}
+              disabled={powerBusy}
+              onClick={onAgentMode}
+              title="Agent — plan → tools → answer"
+            >
+              ⚙ Agent
+            </button>
+          )}
+          {onDeepResearch && (
+            <button
+              type="button"
+              className={`composer-power-btn ${activeRouterMode === "deep-research" ? "active" : ""}`}
+              disabled={powerBusy}
+              onClick={onDeepResearch}
+              title="Deep Research — live web search with citations (Pro)"
+            >
+              🔍 Research
+            </button>
+          )}
+        </div>
+      )}
       {(speech.error || live.error || visionShareError) && (
         <div
           className={`composer-banner ${/Mic blocked|lock icon|Settings →|Aa →|Camera/i.test(speech.error || live.error || visionShareError) ? "info-banner" : "error-banner"}`}

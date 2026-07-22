@@ -3,7 +3,12 @@ export type LaunchStatus = "live" | "beta" | "coming_soon" | "disabled";
 
 export const TOOL_LAUNCH_STATUS: Record<string, LaunchStatus> = {
   chat: "live",
+  "super-mode": "beta",
+  "agent-mode": "beta",
+  "deep-research": "beta",
   "web-search": "beta",
+  "live-vision": "beta",
+  "model-compare": "beta",
   "pdf-chat": "beta",
   youtube: "beta",
   "link-analyser": "beta",

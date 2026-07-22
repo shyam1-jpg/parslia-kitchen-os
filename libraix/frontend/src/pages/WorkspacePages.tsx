@@ -1,20 +1,24 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { toolsApi, type SourceHit } from "../lib/tools";
+import { toolsApi, type ResearchResult, type SourceHit } from "../lib/tools";
 import { workspaceApi, type CustomAssistant, type PromptItem } from "../lib/workspaceApi";
 import { friendlyError } from "../lib/errors";
 
 export function SearchWorkspace() {
+  const [tab, setTab] = useState<"search" | "research">("search");
   const [query, setQuery] = useState("");
   const [provider, setProvider] = useState<"all" | "wikipedia" | "web">("all");
+  const [depth, setDepth] = useState<"quick" | "standard" | "deep">("standard");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [hits, setHits] = useState<SourceHit[]>([]);
+  const [research, setResearch] = useState<ResearchResult | null>(null);
 
-  const run = async () => {
+  const runSearch = async () => {
     if (!query.trim() || loading) return;
     setLoading(true);
     setError("");
+    setResearch(null);
     try {
       const data = await toolsApi.search(query.trim(), provider);
       setHits(data.sources?.length ? data.sources : [...(data.wikipedia ?? []), ...(data.web ?? [])]);
@@ -26,6 +30,33 @@ export function SearchWorkspace() {
     }
   };
 
+  const runResearch = async () => {
+    if (!query.trim() || loading) return;
+    setLoading(true);
+    setError("");
+    setHits([]);
+    setResearch(null);
+    try {
+      const data = await toolsApi.research(query.trim(), depth);
+      setResearch(data);
+    } catch (e) {
+      setResearch(null);
+      setError(
+        friendlyError(
+          e instanceof Error ? e.message : "FEATURE_DISABLED",
+          "Deep Research needs Pro — or try again in a moment.",
+        ),
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const run = () => {
+    if (tab === "research") void runResearch();
+    else void runSearch();
+  };
+
   return (
     <div className="search-workspace">
       <Link to="/app" className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }}>
@@ -33,13 +64,30 @@ export function SearchWorkspace() {
       </Link>
       <h1>Libraix Search</h1>
       <p className="tagline">
-        Fast Wikipedia + web sources, cached for repeat lookups. Open any result — Wikipedia links go straight to the article.
+        Fast Wikipedia + web lookup, or Deep Research for a cited multi-step report. Open any source link directly.
       </p>
+
+      <div className="search-provider" style={{ marginBottom: 16 }}>
+        <button
+          type="button"
+          className={`btn btn-ghost btn-sm ${tab === "search" ? "active" : ""}`}
+          onClick={() => setTab("search")}
+        >
+          Quick search
+        </button>
+        <button
+          type="button"
+          className={`btn btn-ghost btn-sm ${tab === "research" ? "active" : ""}`}
+          onClick={() => setTab("research")}
+        >
+          Deep Research
+        </button>
+      </div>
 
       <div className="search-bar-row">
         <input
           className="input"
-          placeholder="Search people, topics, facts…"
+          placeholder={tab === "research" ? "Research question…" : "Search people, topics, facts…"}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
@@ -47,47 +95,113 @@ export function SearchWorkspace() {
           }}
         />
         <button className="btn btn-primary" disabled={loading || !query.trim()} onClick={run}>
-          {loading ? "Searching…" : "Search"}
+          {loading ? (tab === "research" ? "Researching…" : "Searching…") : tab === "research" ? "Research" : "Search"}
         </button>
       </div>
 
-      <div className="search-provider">
-        {(
-          [
-            ["all", "All sources"],
-            ["wikipedia", "Wikipedia"],
-            ["web", "Web"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            className={`btn btn-ghost btn-sm ${provider === id ? "active" : ""}`}
-            onClick={() => setProvider(id)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {tab === "search" ? (
+        <div className="search-provider">
+          {(
+            [
+              ["all", "All sources"],
+              ["wikipedia", "Wikipedia"],
+              ["web", "Web"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className={`btn btn-ghost btn-sm ${provider === id ? "active" : ""}`}
+              onClick={() => setProvider(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="search-provider">
+          {(
+            [
+              ["quick", "Quick"],
+              ["standard", "Standard"],
+              ["deep", "Deep"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className={`btn btn-ghost btn-sm ${depth === id ? "active" : ""}`}
+              onClick={() => setDepth(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {error && <div className="error-banner">{error}</div>}
 
-      <div>
-        {hits.map((h, i) => (
-          <div key={`${h.url}-${i}`} className="search-hit">
-            <a href={h.url} target="_blank" rel="noopener noreferrer">
-              {h.title}
-            </a>
-            <span className="badge">
-              {h.kind ?? (/wikipedia\.org/i.test(h.url) ? "wikipedia" : "web")}
-            </span>
-            {h.snippet && <p>{h.snippet}</p>}
+      {tab === "search" && (
+        <div>
+          {hits.map((h, i) => (
+            <div key={`${h.url}-${i}`} className="search-hit">
+              <a href={h.url} target="_blank" rel="noopener noreferrer">
+                {h.title}
+              </a>
+              <span className="badge">
+                {h.kind ?? (/wikipedia\.org/i.test(h.url) ? "wikipedia" : "web")}
+              </span>
+              {h.snippet && <p>{h.snippet}</p>}
+            </div>
+          ))}
+          {!loading && !error && hits.length === 0 && query && (
+            <p style={{ color: "var(--dim)" }}>No results yet — try another query.</p>
+          )}
+        </div>
+      )}
+
+      {tab === "research" && research && (
+        <div className="research-report">
+          <div className="research-meta">
+            <span className="badge badge-beta">Deep Research</span>
+            <span className="badge">Confidence: {research.confidence}</span>
           </div>
-        ))}
-        {!loading && !error && hits.length === 0 && query && (
-          <p style={{ color: "var(--dim)" }}>No results yet — try another query.</p>
-        )}
-      </div>
+          <h2>Summary</h2>
+          <p>{research.summary}</p>
+          {research.keyFindings?.length > 0 && (
+            <>
+              <h3>Key findings</h3>
+              <ul>
+                {research.keyFindings.map((f, i) => (
+                  <li key={i}>{f}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {research.methodology && (
+            <>
+              <h3>Methodology</h3>
+              <p className="dim">{research.methodology}</p>
+            </>
+          )}
+          {research.sources?.length > 0 && (
+            <>
+              <h3>Sources</h3>
+              <div>
+                {research.sources.map((s, i) => (
+                  <div key={`${s.url}-${i}`} className="search-hit">
+                    <a href={s.url} target="_blank" rel="noopener noreferrer">
+                      {s.title || s.url}
+                    </a>
+                    {s.snippet && <p>{s.snippet}</p>}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          {research.disclaimer && <p className="dim research-disclaimer">{research.disclaimer}</p>}
+        </div>
+      )}
     </div>
   );
 }

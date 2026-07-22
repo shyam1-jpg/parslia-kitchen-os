@@ -37,7 +37,7 @@ export function LandingPage() {
           <p className="luxury-brand">{BRAND.name}</p>
           <h1 className="luxury-headline">{BRAND.tagline}</h1>
           <p className="luxury-lede">
-            {BRAND.slogan} A private workspace for chat, Live Voice, vision, and tools — honestly labelled as live or beta.
+            {BRAND.slogan} Super mode, Agent tools, Live Voice, Live Vision, and Deep Research — honestly labelled as live or beta.
           </p>
           <div className="hero-actions luxury-hero-actions">
             <Link to="/login?mode=signup" className="btn btn-primary">
@@ -52,7 +52,7 @@ export function LandingPage() {
 
       <section className="section luxury-section" id="features">
         <div className="section-label">Capabilities</div>
-        <h2 className="section-title">Essentials live now. More arriving with care.</h2>
+        <h2 className="section-title">Advanced AI, shipped with care.</h2>
         <p className="section-sub">Only tools that are live or in beta appear here — labelled honestly.</p>
         <div className="luxury-list">
           {(catalog?.tools ?? []).map((tool) => (

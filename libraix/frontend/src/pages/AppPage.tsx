@@ -200,6 +200,33 @@ export function AppPage() {
     setTtsLocale(speechLocale);
   }, [speechLocale, setTtsLocale]);
 
+  // Private mode ↔ memory prefs: temporary privacy skips memory read/write until you leave Private.
+  const privacyBeforePrivate = useRef<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        if (routerMode === "private") {
+          if (privacyBeforePrivate.current == null) {
+            const prefs = await advancedApi.memoryPreferences();
+            if (cancelled) return;
+            privacyBeforePrivate.current = prefs.privacyMode || "standard";
+          }
+          await advancedApi.updateMemoryPreferences({ privacyMode: "temporary", routerMode: "private" });
+        } else if (privacyBeforePrivate.current != null) {
+          const restore = privacyBeforePrivate.current === "temporary" ? "standard" : privacyBeforePrivate.current;
+          privacyBeforePrivate.current = null;
+          await advancedApi.updateMemoryPreferences({ privacyMode: restore, routerMode });
+        }
+      } catch {
+        /* prefs are best-effort */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [routerMode]);
+
   const resolveLangForTurn = (text: string) => {
     if (preferredLanguage && preferredLanguage !== "auto") {
       const opt = SPEECH_LANGUAGE_OPTIONS.find((o) => o.code === preferredLanguage);
@@ -502,7 +529,7 @@ export function AppPage() {
     }
   };
 
-  const sendMessage = async (text?: string, resendOnly = false) => {
+  const sendMessage = async (text?: string, resendOnly = false, modeOverride?: string) => {
     const content = (text ?? input).trim();
     if (!content || loading || streaming) return;
     if (usage?.limitReached) {
@@ -513,8 +540,10 @@ export function AppPage() {
     // Capture before any local `assistantId` message UUID shadows the preset state
     const presetId = assistantId;
     const astrologyDeep = presetId === "astrology";
-    const effectiveRouterMode = astrologyDeep ? "advanced" : routerMode;
-    const effectiveTimeout = astrologyDeep ? 150_000 : 90_000;
+    const effectiveRouterMode = astrologyDeep ? "advanced" : modeOverride ?? routerMode;
+    const effectiveTimeout = astrologyDeep || effectiveRouterMode === "super" || effectiveRouterMode === "deep-research"
+      ? 150_000
+      : 90_000;
 
     if (effectiveRouterMode !== "auto") {
       const selected = models.find((m) => m.id === modelId);
@@ -1268,21 +1297,34 @@ export function AppPage() {
               <p>
                 {ASSISTANT_UI[assistantId]?.blurb ?? (
                   <>
-                    {BRAND.tagline} Type <strong>/i</strong> or tap 🎨 for images · 📷 Live Vision · 🔍 web search.
+                    {BRAND.tagline} ✦ Super · ⚙ Agent · 🔍 Research · 📷 Live Vision · 🎨 images.
                   </>
                 )}
               </p>
               <div className="suggestion-row">
                 {(
                   ASSISTANT_UI[assistantId]?.suggestions ?? [
+                    "Super: research top AI workspace competitors and cite sources",
+                    "Agent: plan a product launch checklist with tools",
+                    "Deep research: latest AI safety regulations this year",
                     // Location stays server-side for weather; do not show city/area on the page.
                     hasHomeLocation ? "What's the weather near me?" : "What's the weather today?",
-                    "Create an image of a sunset",
-                    "Write an email",
-                    "Explain a concept",
                   ]
                 ).map((s) => (
-                  <button key={s} className="suggestion-chip" onClick={() => sendMessage(s)}>{s}</button>
+                  <button
+                    key={s}
+                    className="suggestion-chip"
+                    onClick={() => {
+                      let mode: string | undefined;
+                      if (/^super:/i.test(s)) mode = "super";
+                      else if (/^agent:/i.test(s)) mode = "agent";
+                      else if (/^deep research:/i.test(s)) mode = "deep-research";
+                      if (mode) setRouterMode(mode);
+                      void sendMessage(s, false, mode);
+                    }}
+                  >
+                    {s}
+                  </button>
                 ))}
               </div>
             </div>
@@ -1396,7 +1438,10 @@ export function AppPage() {
           imageMode={imageMode}
           onToggleImageMode={() => setImageMode((v) => !v)}
           onFileSelect={handleFileAttach}
+          onSuperMode={() => setRouterMode("super")}
+          onAgentMode={() => setRouterMode("agent")}
           onDeepResearch={() => setRouterMode("deep-research")}
+          activeRouterMode={routerMode}
           onCamera={() => void openLiveVision()}
           speechLocale={speechLocale}
           liveVoiceId={speechOut.voice}
