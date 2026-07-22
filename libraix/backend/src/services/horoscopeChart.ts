@@ -66,6 +66,17 @@ export interface HoroscopeChartResult {
   readingContext: string;
 }
 
+function asIsoDate(value: unknown): string {
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === "string") return value;
+  if (value == null) return "";
+  try {
+    return new Date(value as string | number).toISOString();
+  } catch {
+    return String(value);
+  }
+}
+
 const PLANET_META: Record<string, { name: string; short: string }> = {
   sun: { name: "Sun", short: "Su" },
   moon: { name: "Moon", short: "Mo" },
@@ -317,15 +328,15 @@ export async function buildHoroscopeChart(input: BirthDetailsInput): Promise<Hor
     currentDasha: raw.dasha.current
       ? {
           lord: raw.dasha.current.lord,
-          startDate: raw.dasha.current.startDate,
-          endDate: raw.dasha.current.endDate,
+          startDate: asIsoDate(raw.dasha.current.startDate),
+          endDate: asIsoDate(raw.dasha.current.endDate),
           years: raw.dasha.current.years,
         }
       : null,
     dashas: (raw.dasha.dashas ?? []).slice(0, 9).map((d) => ({
       lord: d.lord,
-      startDate: d.startDate,
-      endDate: d.endDate,
+      startDate: asIsoDate(d.startDate),
+      endDate: asIsoDate(d.endDate),
       years: d.years,
     })),
     planets,
