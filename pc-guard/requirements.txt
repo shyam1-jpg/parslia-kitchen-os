@@ -1,5 +1,6 @@
 flask>=3.0.0
 watchdog>=4.0.0
 psutil>=5.9.0
-# Optional: webcam snapshots when someone starts using the PC
+mss>=9.0.0
+# Optional: webcam face photo when a file is used / activity resumes
 # opencv-python-headless>=4.8.0

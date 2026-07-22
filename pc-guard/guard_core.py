@@ -48,6 +48,9 @@ def load_config() -> dict[str, Any]:
         "watch_folders": [],
         "idle_seconds": 120,
         "webcam_on_activity": True,
+        "screenshot_on_file_use": True,
+        "webcam_on_file_use": True,
+        "screenshot_min_interval_seconds": 1.5,
         "dashboard_port": 8787,
         "log_active_window": True,
         "window_poll_seconds": 5,
@@ -121,7 +124,9 @@ class Store:
                         action TEXT NOT NULL,
                         path TEXT NOT NULL,
                         username TEXT,
-                        session_id INTEGER
+                        session_id INTEGER,
+                        screenshot_path TEXT,
+                        webcam_path TEXT
                     );
                     CREATE TABLE IF NOT EXISTS window_events (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -141,6 +146,15 @@ class Store:
                     );
                     """
                 )
+                # Older DBs created before screenshot columns
+                cols = {
+                    row[1]
+                    for row in conn.execute("PRAGMA table_info(file_events)").fetchall()
+                }
+                if "screenshot_path" not in cols:
+                    conn.execute("ALTER TABLE file_events ADD COLUMN screenshot_path TEXT")
+                if "webcam_path" not in cols:
+                    conn.execute("ALTER TABLE file_events ADD COLUMN webcam_path TEXT")
                 conn.commit()
             finally:
                 conn.close()
@@ -180,16 +194,33 @@ class Store:
             finally:
                 conn.close()
 
-    def add_file_event(self, action: str, path: str, username: str, session_id: int | None) -> None:
+    def add_file_event(
+        self,
+        action: str,
+        path: str,
+        username: str,
+        session_id: int | None,
+        screenshot_path: str | None = None,
+        webcam_path: str | None = None,
+    ) -> None:
         with self._lock:
             conn = self._connect()
             try:
                 conn.execute(
                     """
-                    INSERT INTO file_events (created_at, action, path, username, session_id)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO file_events
+                      (created_at, action, path, username, session_id, screenshot_path, webcam_path)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (utc_now(), action, path, username, session_id),
+                    (
+                        utc_now(),
+                        action,
+                        path,
+                        username,
+                        session_id,
+                        screenshot_path,
+                        webcam_path,
+                    ),
                 )
                 conn.commit()
             finally:
@@ -286,11 +317,74 @@ def try_webcam_snapshot(label: str = "activity") -> str | None:
     if not ok or frame is None:
         return None
 
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     filename = f"{label}_{stamp}.jpg"
     out = SNAPSHOTS / filename
     cv2.imwrite(str(out), frame)
     return f"snapshots/{filename}"
+
+
+_last_capture_error_logged = False
+_screenshot_lock = threading.Lock()
+_last_screenshot_at = 0.0
+_last_screenshot_path: str | None = None
+
+
+def capture_screen(label: str = "file", min_interval: float = 0.4) -> str | None:
+    """
+    Capture the full screen at this exact moment.
+    Returns relative path under data/ (e.g. snapshots/screen_....png) or None.
+    Very rapid bursts reuse the previous shot so one save does not flood disk.
+    """
+    global _last_screenshot_at, _last_screenshot_path, _last_capture_error_logged
+    SNAPSHOTS.mkdir(parents=True, exist_ok=True)
+
+    with _screenshot_lock:
+        now = time.time()
+        if (
+            min_interval > 0
+            and _last_screenshot_path
+            and (now - _last_screenshot_at) < min_interval
+        ):
+            return _last_screenshot_path
+
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        filename = f"screen_{label}_{stamp}.png"
+        out = SNAPSHOTS / filename
+        errors: list[str] = []
+
+        # Prefer mss (fast, cross-platform)
+        try:
+            import mss  # type: ignore
+
+            MSS = getattr(mss, "MSS", None) or mss.mss
+            tools = mss.tools
+            with MSS() as sct:
+                monitor = sct.monitors[1] if len(sct.monitors) > 1 else sct.monitors[0]
+                shot = sct.grab(monitor)
+                tools.to_png(shot.rgb, shot.size, output=str(out))
+            _last_screenshot_at = now
+            _last_screenshot_path = f"snapshots/{filename}"
+            return _last_screenshot_path
+        except Exception as exc:
+            errors.append(f"mss: {exc}")
+
+        # Fallback: Pillow ImageGrab (Windows / macOS)
+        try:
+            from PIL import ImageGrab  # type: ignore
+
+            img = ImageGrab.grab(all_screens=True)
+            img.save(out, "PNG")
+            _last_screenshot_at = now
+            _last_screenshot_path = f"snapshots/{filename}"
+            return _last_screenshot_path
+        except Exception as exc:
+            errors.append(f"pillow: {exc}")
+
+        if not _last_capture_error_logged:
+            _last_capture_error_logged = True
+            print("PC Guard: screen capture failed —", " | ".join(errors))
+        return None
 
 
 def get_idle_seconds() -> float | None:
@@ -388,12 +482,20 @@ def get_active_window() -> tuple[str, str] | None:
 
 
 class FileHandler(FileSystemEventHandler):
-    def __init__(self, store: Store, username: str, session_ref: dict[str, int | None]) -> None:
+    def __init__(
+        self,
+        store: Store,
+        username: str,
+        session_ref: dict[str, int | None],
+        config: dict[str, Any] | None = None,
+    ) -> None:
         super().__init__()
         self.store = store
         self.username = username
         self.session_ref = session_ref
+        self.config = config or {}
         self._last: dict[str, float] = {}
+        self._data_root = str(DATA.resolve())
 
     def _should_skip(self, path: str) -> bool:
         name = Path(path).name
@@ -401,6 +503,12 @@ class FileHandler(FileSystemEventHandler):
             return True
         if Path(path).suffix.lower() in SKIP_SUFFIXES:
             return True
+        # Never log our own snapshot/database writes
+        try:
+            if str(Path(path).resolve()).startswith(self._data_root):
+                return True
+        except OSError:
+            pass
         # Debounce noisy rapid events on the same path
         now = time.time()
         prev = self._last.get(path, 0)
@@ -412,7 +520,28 @@ class FileHandler(FileSystemEventHandler):
     def _record(self, action: str, path: str) -> None:
         if self._should_skip(path):
             return
-        self.store.add_file_event(action, path, self.username, self.session_ref.get("id"))
+
+        screenshot_path = None
+        webcam_path = None
+        safe_label = Path(path).stem[:24] or "file"
+        safe_label = "".join(c if c.isalnum() or c in "-_" else "_" for c in safe_label)
+
+        if self.config.get("screenshot_on_file_use", True):
+            interval = float(self.config.get("screenshot_min_interval_seconds") or 0.4)
+            # Use a short burst window; config value is treated as min gap between new shots
+            screenshot_path = capture_screen(safe_label, min_interval=max(0.35, min(interval, 2.0)))
+
+        if self.config.get("webcam_on_file_use", True):
+            webcam_path = try_webcam_snapshot(f"face_{safe_label}")
+
+        self.store.add_file_event(
+            action,
+            path,
+            self.username,
+            self.session_ref.get("id"),
+            screenshot_path=screenshot_path,
+            webcam_path=webcam_path,
+        )
 
     def on_created(self, event):  # type: ignore[no-untyped-def]
         if getattr(event, "is_directory", False):
@@ -465,7 +594,15 @@ class GuardMonitor:
         else:
             self.store.add_log(
                 "webcam",
-                "No webcam snapshot (install opencv-python-headless to enable)",
+                "No webcam snapshot (install opencv-python-headless to enable face photos)",
+                self.identity["username"],
+                sid,
+            )
+
+        if self.config.get("screenshot_on_file_use", True):
+            self.store.add_log(
+                "screen",
+                "Screen shots will be taken at the exact time a watched file is used",
                 self.identity["username"],
                 sid,
             )
@@ -479,7 +616,9 @@ class GuardMonitor:
                 sid,
             )
         else:
-            handler = FileHandler(self.store, self.identity["username"], self.session_ref)
+            handler = FileHandler(
+                self.store, self.identity["username"], self.session_ref, self.config
+            )
             observer = Observer()
             watched = 0
             for folder in folders:

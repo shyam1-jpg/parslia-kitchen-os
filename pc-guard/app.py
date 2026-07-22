@@ -43,6 +43,8 @@ def api_status():
             "identity": monitor.identity,
             "port": cfg.get("dashboard_port", 8787),
             "webcam_on_activity": bool(cfg.get("webcam_on_activity")),
+            "screenshot_on_file_use": bool(cfg.get("screenshot_on_file_use", True)),
+            "webcam_on_file_use": bool(cfg.get("webcam_on_file_use", True)),
         }
     )
 

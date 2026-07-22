@@ -24,6 +24,7 @@ else
 fi
 
 echo "  Open http://127.0.0.1:8787"
-echo "  Optional webcam: $PYTHON -m pip install opencv-python-headless"
+echo "  Screen shots are taken automatically when a file is used."
+echo "  Optional face photos: $PYTHON -m pip install opencv-python-headless"
 echo ""
 exec "$PYTHON" app.py

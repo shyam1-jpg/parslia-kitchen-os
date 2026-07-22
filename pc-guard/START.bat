@@ -31,7 +31,8 @@ if errorlevel 1 (
 )
 
 echo.
-echo  Optional webcam photos: pip install opencv-python-headless
+echo  Screen shots are taken automatically when a file is used.
+echo  Optional face photos: pip install opencv-python-headless
 echo  Dashboard will open at http://127.0.0.1:8787
 echo.
 

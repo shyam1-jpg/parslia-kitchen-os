@@ -35,16 +35,37 @@ function fileRows(items) {
     return;
   }
   el.innerHTML = items
-    .map(
-      (f) => `
+    .map((f) => {
+      const shots = [];
+      if (f.screenshot_path) {
+        shots.push(
+          `<button type="button" class="shot-btn" data-src="/${esc(f.screenshot_path)}" title="Screen at that moment">
+            <img class="snap" src="/${esc(f.screenshot_path)}" alt="Screen shot at file use" />
+            <span>Screen</span>
+          </button>`
+        );
+      }
+      if (f.webcam_path) {
+        shots.push(
+          `<button type="button" class="shot-btn" data-src="/${esc(f.webcam_path)}" title="Webcam at that moment">
+            <img class="snap" src="/${esc(f.webcam_path)}" alt="Webcam at file use" />
+            <span>Face</span>
+          </button>`
+        );
+      }
+      const gallery = shots.length
+        ? `<div class="shot-row">${shots.join("")}</div>`
+        : `<p class="when">No screen shot for this event</p>`;
+      return `
     <article class="row">
       <span class="badge ${esc(f.action)}">${esc(f.action)}</span>
       <div class="body">
         <p class="path">${esc(shortPath(f.path))}</p>
         <p class="when">${esc(f.created_at)} · ${esc(f.username || "")}</p>
+        ${gallery}
       </div>
-    </article>`
-    )
+    </article>`;
+    })
     .join("");
 }
 
@@ -143,3 +164,28 @@ async function refresh() {
 
 refresh();
 setInterval(refresh, 4000);
+
+const lightbox = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightboxImg");
+const lightboxClose = document.getElementById("lightboxClose");
+
+document.body.addEventListener("click", (e) => {
+  const btn = e.target.closest(".shot-btn");
+  if (btn && btn.dataset.src) {
+    lightboxImg.src = btn.dataset.src;
+    lightbox.hidden = false;
+  }
+});
+
+function closeLightbox() {
+  lightbox.hidden = true;
+  lightboxImg.removeAttribute("src");
+}
+
+lightboxClose.addEventListener("click", closeLightbox);
+lightbox.addEventListener("click", (e) => {
+  if (e.target === lightbox) closeLightbox();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !lightbox.hidden) closeLightbox();
+});

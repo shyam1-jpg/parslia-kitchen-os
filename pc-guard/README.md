@@ -4,7 +4,9 @@ Simple local app for **your own computer**. It runs in the background and record
 
 1. **Who** — Windows/Mac/Linux username + machine name (optional webcam photo when someone starts using the PC again after idle)
 2. **What files** — create / modify / delete / move in Desktop, Documents, Downloads (and Recent on Windows)
-3. **What apps** — foreground window titles while the PC is in use
+3. **Screen shot at that exact time** — every file event saves a full-screen capture so you can see who was at the desk
+4. **Face photo (optional)** — webcam still at the same moment if OpenCV is installed
+5. **What apps** — foreground window titles while the PC is in use
 
 Everything stays in `pc-guard/data/` on this PC. Nothing is uploaded to the internet.
 
@@ -44,6 +46,8 @@ Open http://127.0.0.1:8787
 |------|------------|
 | See who was on the PC | Open dashboard → **Sessions** (username + optional photo) |
 | See which files they opened/changed | **Files touched** tab |
+| See the screen at that moment | Click the **Screen** thumbnail next to each file |
+| See their face (optional) | Install OpenCV, then click **Face** next to the file |
 | See which programs they used | **Apps / windows** tab |
 | Catch someone after you left | Leave PC Guard running; when the PC wakes from idle it logs “Someone is using the PC again” |
 
@@ -59,6 +63,9 @@ Edit `config.json`:
 |---------|---------|
 | `watch_folders` | Extra folders to watch (empty = auto Desktop/Documents/Downloads) |
 | `idle_seconds` | How long quiet before “idle” (default 120) |
+| `screenshot_on_file_use` | Take a full-screen shot when a file is used (default true) |
+| `webcam_on_file_use` | Take a webcam face photo at the same moment (needs OpenCV) |
+| `screenshot_min_interval_seconds` | Minimum gap between new screen shots (stops save floods) |
 | `webcam_on_activity` | Take a photo when session starts / returns from idle |
 | `dashboard_port` | Web UI port (default 8787) |
 | `log_active_window` | Record app window titles |

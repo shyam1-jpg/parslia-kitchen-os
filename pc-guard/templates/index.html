@@ -38,7 +38,7 @@
 
     <section class="panel active" id="panel-files">
       <h2>What files were used</h2>
-      <p class="hint">Created, changed, deleted, or moved in watched folders.</p>
+      <p class="hint">Each file event includes a screen shot (and face photo if webcam is enabled) taken at that exact time.</p>
       <div class="list" id="fileList"></div>
     </section>
 
@@ -64,6 +64,11 @@
   <footer>
     <p>Data is stored only in <code>pc-guard/data/</code> on this computer. Nothing is uploaded.</p>
   </footer>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Close">×</button>
+    <img id="lightboxImg" alt="Full screenshot" />
+  </div>
 
   <script src="/static/app.js"></script>
 </body>
