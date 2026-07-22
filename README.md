@@ -49,9 +49,12 @@ In **GoDaddy DNS**, point `@` to GitHub Pages A records:
 - `185.199.110.153`
 - `185.199.111.153`
 
-CNAME `www` → `shyam1-jpg.github.io`
+CNAME `www` → `shyam1-jpg.github.io` *(fix typo if it says hyam1-jpg)*
 
 Turn off GoDaddy Website Builder.
+
+**Email:** `hello@parslia.app` needs a GoDaddy mailbox + MX records.  
+See **`EMAIL-SETUP.md`** — without MX, mail to hello@ will not arrive.
 
 ## Not included yet (backend)
 
