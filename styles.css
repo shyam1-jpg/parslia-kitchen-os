@@ -306,6 +306,7 @@ h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.12;
 .form-success[hidden] { display: none !important; }
 .form-success h3 { margin: 0 0 6px; color: var(--green-deep); font-size: 1.1rem; }
 .form-success p { margin: 0; color: var(--muted); font-size: .92rem; }
+.form-success-alt { margin-top: 10px !important; }
 
 /* Sections */
 .section { padding: 92px 0; }
