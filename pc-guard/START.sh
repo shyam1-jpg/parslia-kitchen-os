@@ -23,7 +23,8 @@ else
   python3 -m pip install --user -r requirements.txt
 fi
 
-echo "  Open http://127.0.0.1:8787"
+echo "  Dashboard opens automatically when ready."
+echo "  If not, open: http://127.0.0.1:8787"
 echo "  Screen shots are taken automatically when a file is used."
 echo "  Optional face photos: $PYTHON -m pip install opencv-python-headless"
 echo ""

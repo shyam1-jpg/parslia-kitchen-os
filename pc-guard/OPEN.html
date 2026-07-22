@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Open PC Guard</title>
+  <style>
+    body {
+      font-family: Segoe UI, sans-serif;
+      max-width: 560px;
+      margin: 3rem auto;
+      padding: 0 1.25rem;
+      line-height: 1.5;
+      color: #122;
+      background: #f4f7f5;
+    }
+    a.btn {
+      display: inline-block;
+      margin: 0.4rem 0.4rem 0.4rem 0;
+      padding: 0.75rem 1.1rem;
+      background: #1a6b4a;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+    }
+    a.btn.secondary { background: #334; }
+    code { background: #e4ece7; padding: 0.1rem 0.35rem; border-radius: 0.25rem; }
+    .box { background: #fff; border: 1px solid #d5e0da; border-radius: 0.75rem; padding: 1.25rem; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Open PC Guard</h1>
+    <p>1. First double-click <code>START.bat</code> and keep that window open.</p>
+    <p>2. Then open the dashboard:</p>
+    <p>
+      <a class="btn" href="http://127.0.0.1:8787">Open http://127.0.0.1:8787</a>
+      <a class="btn secondary" href="http://localhost:8787">Try localhost</a>
+    </p>
+    <p>If it still fails, PC Guard is not running yet — run <code>START.bat</code> again and wait until it says “PC Guard is running”.</p>
+  </div>
+  <script>
+    // Try auto-open; if server is down the browser will show an error — that's OK.
+    setTimeout(function () {
+      window.location.href = "http://127.0.0.1:8787";
+    }, 600);
+  </script>
+</body>
+</html>

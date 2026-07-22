@@ -14,11 +14,18 @@ Everything stays in `pc-guard/data/` on this PC. Nothing is uploaded to the inte
 
 ## Quick start (Windows)
 
-1. Install [Python 3](https://www.python.org/downloads/) (tick **Add to PATH**)
-2. Double-click **`START.bat`**
-3. Browser opens **http://127.0.0.1:8787** — leave the black window open while you want monitoring on
+1. Install [Python 3](https://www.python.org/downloads/) — tick **Add python.exe to PATH**
+2. Open the `pc-guard` folder on your PC
+3. Double-click **`START.bat`** and **keep the black window open**
+4. Wait until it says **PC Guard is running** — the dashboard opens by itself
 
-Optional webcam photos when activity resumes:
+If the page does not open, try one of these:
+
+- Double-click **`OPEN-DASHBOARD.bat`**
+- Or double-click **`OPEN.html`**
+- Or type in Chrome/Edge: **http://127.0.0.1:8787**
+
+Optional webcam photos when a file is used:
 
 ```bat
 .venv\Scripts\pip install opencv-python-headless

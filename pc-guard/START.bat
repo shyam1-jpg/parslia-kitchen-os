@@ -10,19 +10,34 @@ echo.
 
 where python >nul 2>&1
 if errorlevel 1 (
-  echo  Python not found. Install from https://www.python.org/downloads/
-  echo  Tick "Add python.exe to PATH" during install.
-  pause
-  exit /b 1
+  where py >nul 2>&1
+  if errorlevel 1 (
+    echo  Python not found.
+    echo  Install from https://www.python.org/downloads/
+    echo  During install, TICK: "Add python.exe to PATH"
+    echo.
+    start https://www.python.org/downloads/
+    pause
+    exit /b 1
+  )
+  set "PY=py -3"
+) else (
+  set "PY=python"
 )
 
 if not exist ".venv\Scripts\python.exe" (
-  echo  Creating virtual environment...
-  python -m venv .venv
+  echo  First run: creating virtual environment...
+  %PY% -m venv .venv
+  if errorlevel 1 (
+    echo  Failed to create .venv
+    pause
+    exit /b 1
+  )
 )
 
 call .venv\Scripts\activate.bat
 python -m pip install --upgrade pip >nul
+echo  Installing packages (first run may take a minute)...
 pip install -r requirements.txt
 if errorlevel 1 (
   echo  Failed to install packages.
@@ -31,11 +46,16 @@ if errorlevel 1 (
 )
 
 echo.
-echo  Screen shots are taken automatically when a file is used.
-echo  Optional face photos: pip install opencv-python-headless
-echo  Dashboard will open at http://127.0.0.1:8787
+echo  Starting PC Guard...
+echo  The dashboard will open by itself when ready.
+echo  If it does not, open Chrome/Edge and go to:
+echo.
+echo      http://127.0.0.1:8787
+echo.
+echo  Keep this black window OPEN while monitoring.
 echo.
 
-start "" http://127.0.0.1:8787
 python app.py
+echo.
+echo  PC Guard stopped.
 pause
