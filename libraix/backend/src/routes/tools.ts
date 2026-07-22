@@ -619,6 +619,7 @@ router.post("/realtime/usage", (req, res) => {
 router.post("/horoscope-chart", async (req, res) => {
   const schema = z.object({
     name: z.string().max(120).optional(),
+    gender: z.enum(["female", "male", "other", "unspecified"]).optional(),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     time: z.string().regex(/^\d{1,2}:\d{2}$/),
     place: z.string().min(1).max(200),

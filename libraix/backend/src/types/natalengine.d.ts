@@ -13,7 +13,13 @@ declare module "natalengine" {
     timezone?: number,
     latitude?: number | null,
     longitude?: number | null,
-  ): unknown;
+  ): {
+    bigThree?: string;
+    rising?: { sign?: { name?: string }; degree?: string };
+    midheaven?: { sign?: { name?: string }; degree?: string };
+    aspects?: Array<Record<string, unknown>>;
+    balance?: Record<string, unknown>;
+  };
 
   export interface VedicRashi {
     name: string;
@@ -34,6 +40,8 @@ declare module "natalengine" {
     symbol: string;
     pada: number;
     degreeInNakshatra?: number;
+    startDegree?: number;
+    endDegree?: number;
   }
 
   export interface VedicPosition {

@@ -28,6 +28,7 @@ export interface ResearchResult {
 
 export interface HoroscopeChart {
   name: string | null;
+  gender: string;
   birth: {
     date: string;
     time: string;
@@ -40,9 +41,36 @@ export interface HoroscopeChart {
   system: string;
   note: string;
   ayanamsa: { value: number; formatted: string; system: string };
-  lagna: { rashi: string; rashiWestern: string; degree: string; nakshatra: string; pada: number } | null;
-  moonSign: { rashi: string; rashiWestern: string; nakshatra: string; pada: number; summary: string };
-  sunSign: { rashi: string; rashiWestern: string; nakshatra: string; pada: number };
+  lagna: {
+    rashi: string;
+    rashiWestern: string;
+    degree: string;
+    nakshatra: string;
+    nakshatraLord: string;
+    pada: number;
+    element: string;
+    quality: string;
+    ruler: string;
+  } | null;
+  moonSign: {
+    rashi: string;
+    rashiWestern: string;
+    nakshatra: string;
+    nakshatraLord: string;
+    pada: number;
+    summary: string;
+    element: string;
+    quality: string;
+  };
+  sunSign: {
+    rashi: string;
+    rashiWestern: string;
+    nakshatra: string;
+    nakshatraLord: string;
+    pada: number;
+    element: string;
+    quality: string;
+  };
   currentDasha: { lord: string; startDate: string; endDate: string; years: number } | null;
   dashas: Array<{ lord: string; startDate: string; endDate: string; years: number }>;
   planets: Array<{
@@ -52,18 +80,54 @@ export interface HoroscopeChart {
     degree: string;
     rashi: string;
     rashiWestern: string;
+    element: string;
+    quality: string;
+    ruler: string;
     nakshatra: string;
+    nakshatraLord: string;
     pada: number;
     house: number | null;
     longitude: number;
+    dignity: string;
   }>;
   houses: Array<{
     number: number;
     sign: string;
     signWestern: string;
     symbol: string;
+    lord: string;
+    meaning: string;
     planets: Array<{ id: string; name: string; short: string; degree: string; nakshatra: string }>;
   }>;
+  houseLords: Array<{ house: number; sign: string; lord: string; lordHouse: number | null; meaning: string }>;
+  yogas: Array<{
+    id: string;
+    name: string;
+    present: boolean;
+    severity: "info" | "notable" | "caution";
+    summary: string;
+    detail: string;
+  }>;
+  aspects: Array<{
+    planet1: string;
+    planet2: string;
+    aspect: string;
+    symbol: string;
+    orb: string;
+    meaning: string;
+    nature: string;
+  }>;
+  balance: {
+    elements: Record<string, number>;
+    modalities: Record<string, number>;
+    dominantElement: string | null;
+    dominantModality: string | null;
+  };
+  western: {
+    bigThree: string | null;
+    rising: string | null;
+    midheaven: string | null;
+  };
   readingContext: string;
 }
 
@@ -121,6 +185,7 @@ export const toolsApi = {
 
   horoscopeChart: (body: {
     name?: string;
+    gender?: "female" | "male" | "other" | "unspecified";
     date: string;
     time: string;
     place: string;
