@@ -8,6 +8,7 @@ export const TOOL_LAUNCH_STATUS: Record<string, LaunchStatus> = {
   "deep-research": "beta",
   "web-search": "beta",
   "live-vision": "beta",
+  "horoscope-chart": "beta",
   "model-compare": "beta",
   "pdf-chat": "beta",
   youtube: "beta",

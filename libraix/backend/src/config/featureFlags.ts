@@ -19,6 +19,7 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
   { id: "projects", name: "Projects", description: "Knowledge workspaces with files", state: "beta", minPlan: "free" },
   { id: "voice", name: "Voice Assistant", description: "Live Voice, speech input, and read-aloud", state: "beta", minPlan: "free" },
   { id: "live-vision", name: "Live Vision Assist", description: "Camera coaching for products and machinery", state: "beta", minPlan: "free" },
+  { id: "horoscope-chart", name: "Horoscope Chart", description: "Vedic birth chart (kundli) from date, time, and place", state: "beta", minPlan: "free" },
   { id: "image-studio", name: "Image Studio", description: "Creative image workspace", state: "beta", minPlan: "free" },
   { id: "code-sandbox", name: "Code Sandbox", description: "Isolated browser code runner", state: "beta", minPlan: "free" },
   { id: "custom-agents", name: "Custom Agent Builder", description: "Build your own assistants", state: "beta", minPlan: "free" },

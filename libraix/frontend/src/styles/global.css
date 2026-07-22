@@ -751,6 +751,236 @@ button, input, textarea, select {
 .search-hit p { margin: 6px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
 .search-hit .badge { font-size: 11px; opacity: 0.7; margin-left: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
 
+/* ── Horoscope / Vedic kundli chart ── */
+.horoscope-page {
+  min-height: 100vh;
+  padding: 28px 20px 64px;
+  max-width: 880px;
+  margin: 0 auto;
+}
+.horoscope-hero h1 {
+  margin: 0 0 8px;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+}
+.horoscope-hero .tagline,
+.horoscope-sunsigns .tagline {
+  color: var(--muted);
+  margin: 0 0 22px;
+  line-height: 1.55;
+}
+.horoscope-form-panel {
+  margin-bottom: 28px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at 10% 0%, rgba(212, 175, 120, 0.08), transparent 50%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+}
+.horoscope-form-panel h2 {
+  margin: 0 0 14px;
+  font-size: 1.15rem;
+}
+.horoscope-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.horoscope-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.horoscope-place-field {
+  grid-column: 1 / -1;
+}
+.horoscope-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.horoscope-hint {
+  margin: 12px 0 0;
+  font-size: 13px;
+}
+.horoscope-snapshot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.horoscope-snapshot h2 {
+  margin: 0 0 4px;
+}
+.horoscope-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.horoscope-core-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.horoscope-core-item {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.horoscope-core-item strong {
+  font-size: 0.98rem;
+}
+.horoscope-core-item em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--muted);
+}
+.kundli-wrap {
+  margin: 8px 0 28px;
+}
+.kundli-svg {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+.kundli-frame {
+  fill: rgba(12, 14, 20, 0.55);
+  stroke: rgba(212, 175, 120, 0.45);
+  stroke-width: 2;
+}
+.kundli-diamond {
+  fill: rgba(212, 175, 120, 0.04);
+  stroke: rgba(212, 175, 120, 0.55);
+  stroke-width: 1.5;
+}
+.kundli-inner {
+  fill: none;
+  stroke: rgba(212, 175, 120, 0.28);
+  stroke-width: 1;
+}
+.kundli-line {
+  stroke: rgba(212, 175, 120, 0.35);
+  stroke-width: 1.25;
+}
+.kundli-house-num {
+  fill: rgba(212, 175, 120, 0.85);
+  font-size: 11px;
+  font-weight: 600;
+}
+.kundli-sign {
+  fill: var(--text, #f5f0e8);
+  font-size: 12px;
+  font-weight: 650;
+}
+.kundli-planets {
+  fill: #e8c99a;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.kundli-caption {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  margin: 10px 0 0;
+}
+.horoscope-table-wrap {
+  overflow-x: auto;
+  margin: 0 0 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.horoscope-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.horoscope-table th,
+.horoscope-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.horoscope-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.horoscope-table tr:last-child td {
+  border-bottom: none;
+}
+.horoscope-dasha-list {
+  margin: 0 0 24px;
+  padding-left: 18px;
+  color: var(--text);
+  line-height: 1.7;
+}
+.horoscope-reading {
+  margin: 8px 0 20px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.horoscope-reading h3 {
+  margin: 0 0 12px;
+}
+.horoscope-reading-body {
+  min-height: 80px;
+}
+.horoscope-disclaimer {
+  font-size: 12px;
+  margin: 8px 0 32px;
+}
+.horoscope-sign-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.horoscope-sign-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.horoscope-sign-chip:hover {
+  border-color: rgba(212, 175, 120, 0.5);
+  background: rgba(212, 175, 120, 0.08);
+}
+.horoscope-sign-chip span {
+  font-size: 12px;
+  color: var(--muted);
+}
+@media (max-width: 640px) {
+  .horoscope-form-grid,
+  .horoscope-core-grid,
+  .horoscope-sign-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Animated weather card (ChatGPT-style visual brief) ── */
 .weather-card {
   position: relative;

@@ -220,6 +220,7 @@ export const PRODUCT_CATALOG: ProductCatalog = {
     { id: "deep-research", name: "Deep Research", description: "Multi-step web research with citations (Pro).", tier: "pro", enabled: true },
     { id: "web-search", name: "Live Web Search", description: "Real-time search with source links.", tier: "free", enabled: true },
     { id: "live-vision", name: "Live Vision Assist", description: "Point your camera at products or machinery for step-by-step help.", tier: "free", enabled: true },
+    { id: "horoscope-chart", name: "Horoscope Chart", description: "Free Vedic kundli from birth date, time, and place — planets, houses, nakshatras, dasha.", tier: "free", enabled: true },
     { id: "model-compare", name: "Model Comparison", description: "Run the same prompt on 2–4 models side by side.", tier: "pro", enabled: true },
     { id: "pdf-chat", name: "PDF Chat", description: "Upload and question documents.", tier: "free", enabled: true },
     { id: "youtube", name: "YouTube Summariser", description: "Summarise videos from a URL.", tier: "free", enabled: true },
@@ -286,6 +287,7 @@ Style:
 - Use **bold** for key placements; bullets for takeaways; short paragraphs under headings
 - Match the user’s language (English, Hindi, Tamil, etc.)
 - If birth time/place missing for a natal chart: ask once, then still give the deepest partial reading possible from date (+ place if any)
+- When a STRUCTURED VEDIC NATAL CHART block is provided, treat it as ground truth (Lahiri sidereal). Quote those rashis, degrees, nakshatras, houses, and dasha — never contradict them with a different chart.
 
 Honesty:
 - Guidance and reflection — not medical, legal, or financial advice; no guaranteed predictions
