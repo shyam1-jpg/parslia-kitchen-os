@@ -26,6 +26,12 @@ Read **`HOW-TO-RUN.txt`** for the shortest steps.
 
 If the page does not open: **`OPEN-DASHBOARD.bat`** or **`OPEN.html`**
 
+### Windows Firewall blocked it?
+
+1. Right-click **`FIX-FIREWALL.bat`** → **Run as administrator** → Yes  
+2. Run **`START.bat`** again  
+3. If Windows asks “Allow access”, choose **Allow** on **Private** networks  
+
 Optional face photos:
 
 ```bat

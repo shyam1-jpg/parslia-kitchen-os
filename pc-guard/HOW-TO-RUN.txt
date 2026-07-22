@@ -6,21 +6,34 @@ PC Guard — how to run (simple)
 2) Open the extracted folder, then open the folder named:
    pc-guard
 
-3) Double-click: CHECK.bat
+3) If Windows Firewall blocked the app:
+   - Right-click FIX-FIREWALL.bat
+   - Click "Run as administrator"
+   - Click YES
+   - Then continue below
+
+4) Double-click: CHECK.bat
    - Should say RESULT: core looks good
 
-4) Double-click: START.bat
+5) Double-click: START.bat
    - Keep the black window open
    - Wait for: PC Guard is running
+   - If Windows asks "Allow access" -> Allow on Private networks
 
-5) Open in Chrome/Edge:
+6) Open in Chrome/Edge:
    http://127.0.0.1:8787
 
-6) You should immediately see a file event like:
+7) You should immediately see a file event like:
    PC_GUARD_STARTED_....txt
    That means watching works.
 
-7) To test again from the dashboard, click: "Create test event"
+8) To test again from the dashboard, click: "Create test event"
+
+Firewall / antivirus problem?
+- Run FIX-FIREWALL.bat as Administrator
+- In Windows Security -> Firewall -> Allow an app
+  make sure Python / PC Guard is allowed on Private
+- Temporarily pause Norton / McAfee / Bitdefender and try again
 
 If START.bat fails:
 - Install Python from https://www.python.org/downloads/

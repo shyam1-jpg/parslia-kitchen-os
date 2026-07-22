@@ -148,6 +148,11 @@ def main() -> None:
             print(f"   ... and {len(folders) - 6} more")
     else:
         print("  WARNING: no folders watched — put files in pc-guard\\watched")
+    print("")
+    print("  If the browser page will not open / firewall blocked it:")
+    print("   1) Right-click FIX-FIREWALL.bat -> Run as administrator")
+    print("   2) Click Yes, then run START.bat again")
+    print("   3) When Windows asks Allow access -> Allow (Private)")
     print("  Press Ctrl+C to stop")
     print("")
 

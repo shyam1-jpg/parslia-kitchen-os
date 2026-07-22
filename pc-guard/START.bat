@@ -48,15 +48,22 @@ if errorlevel 1 (
 echo.
 echo  Starting PC Guard...
 echo  The dashboard will open by itself when ready.
-echo  If it does not, open Chrome/Edge and go to:
+echo  If the page is blocked, double-click FIX-FIREWALL.bat
+echo  then run START.bat again.
 echo.
+echo  Open in browser:
 echo      http://127.0.0.1:8787
 echo.
 echo  Keep this black window OPEN while monitoring.
-echo  Tip: run CHECK.bat first if something looks wrong.
 echo.
 
 python app.py
+set "ERR=%ERRORLEVEL%"
 echo.
-echo  PC Guard stopped.
+if not "%ERR%"=="0" (
+  echo  PC Guard stopped with an error.
+  echo  If firewall blocked it, run FIX-FIREWALL.bat as Administrator.
+) else (
+  echo  PC Guard stopped.
+)
 pause
