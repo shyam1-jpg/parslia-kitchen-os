@@ -7,7 +7,7 @@ export const BRAND = {
   slogan: "Balance meets intelligence.",
   /** Longer SEO / share description */
   description:
-    "Libraix is a private AI workspace — switch models, Live Voice, vision, and tools in one calm place. Free to start.",
+    "Libraix is a private AI workspace — Super mode, Agent tools, Live Voice, Live Vision, Deep Research, and model compare in one calm place. Free to start.",
   url: "https://libraix.ai/",
 } as const;
 

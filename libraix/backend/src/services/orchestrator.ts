@@ -24,6 +24,7 @@ import type { AiRequest, AiResponse } from "./ai.js";
 
 /** Persist durable facts from this turn for future chats (never blocks the reply path). */
 function scheduleMemoryLearn(user: SafeUser, req: AiRequest, assistantContent: string) {
+  if (req.routerMode === "private" || req.useMemory === false) return;
   setImmediate(() => {
     learnFromConversationTurn({
       userId: user.id,
@@ -71,8 +72,8 @@ export interface ResolvedTurn {
 
 /** Gather memory, project files, weather, and web search in parallel where possible. */
 export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promise<TurnContext> {
-  const memoryCtx =
-    req.useMemory !== false ? await getMemoryContext(user.id, req.projectId, req.message) : "";
+  const skipMemory = req.useMemory === false || req.routerMode === "private";
+  const memoryCtx = skipMemory ? "" : await getMemoryContext(user.id, req.projectId, req.message);
   const wantsWeather = isWeatherQuery(req.message);
   const wantsWeb = wantsLiveSources(req.message, req.routerMode);
 
@@ -178,13 +179,16 @@ export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promis
 }
 
 async function prepareContextForRequest(user: SafeUser, req: AiRequest): Promise<TurnContext & { agentStatus?: string }> {
-  const isAgent = req.routerMode === "agent" && isFeatureEnabled("multi-agent", user.plan);
+  const isAgent =
+    (req.routerMode === "agent" || req.routerMode === "super") &&
+    isFeatureEnabled("multi-agent", user.plan);
   if (!isAgent) {
     return prepareTurnContext(user, req);
   }
 
   const agentReq: AiRequest = { ...req, routerMode: "agent" };
-  const [base, agent] = await Promise.all([prepareTurnContext(user, agentReq), runAgentToolPass(user, agentReq)]);
+  // Keep original mode on turn context so Super still pulls live sources + strongest routing.
+  const [base, agent] = await Promise.all([prepareTurnContext(user, req), runAgentToolPass(user, agentReq)]);
 
   const systemMessages = [
     {

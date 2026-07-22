@@ -14,14 +14,16 @@ export interface FeatureFlag {
 export const FEATURE_FLAGS: FeatureFlag[] = [
   { id: "smart-router", name: "Smart Model Router", description: "Auto-select model by task", state: "enabled", minPlan: "free" },
   { id: "model-compare", name: "Model Comparison Lab", description: "Compare 2–4 models side by side", state: "beta", minPlan: "pro" },
-  { id: "deep-research", name: "Deep Research", description: "Multi-step web research workspace", state: "beta", minPlan: "pro" },
+  { id: "deep-research", name: "Deep Research", description: "Multi-step web research with citations", state: "beta", minPlan: "pro" },
   { id: "memory", name: "Personal Memory", description: "User-controlled memory system", state: "beta", minPlan: "free" },
   { id: "projects", name: "Projects", description: "Knowledge workspaces with files", state: "beta", minPlan: "free" },
-  { id: "voice", name: "Voice Assistant", description: "Read-aloud and speech input", state: "beta", minPlan: "free" },
+  { id: "voice", name: "Voice Assistant", description: "Live Voice, speech input, and read-aloud", state: "beta", minPlan: "free" },
+  { id: "live-vision", name: "Live Vision Assist", description: "Camera coaching for products and machinery", state: "beta", minPlan: "free" },
   { id: "image-studio", name: "Image Studio", description: "Creative image workspace", state: "beta", minPlan: "free" },
   { id: "code-sandbox", name: "Code Sandbox", description: "Isolated browser code runner", state: "beta", minPlan: "free" },
   { id: "custom-agents", name: "Custom Agent Builder", description: "Build your own assistants", state: "beta", minPlan: "free" },
   { id: "multi-agent", name: "Agent Mode", description: "Plan → tools → answer with connectors & RAG", state: "beta", minPlan: "free" },
+  { id: "super-mode", name: "Super Mode", description: "Strongest models + agent tools + live sources", state: "beta", minPlan: "free" },
   { id: "connectors", name: "App Connectors", description: "Google, GitHub, MCP-style tool adapters", state: "beta", minPlan: "free" },
   { id: "embeddings-rag", name: "Embeddings RAG", description: "Semantic search over project docs & memory", state: "enabled", minPlan: "free" },
   { id: "automations", name: "Automations", description: "Scheduled AI tasks", state: "beta", minPlan: "free" },
@@ -61,6 +63,7 @@ export type RouterMode =
   | "fast"
   | "balanced"
   | "advanced"
+  | "super"
   | "deep-research"
   | "agent"
   | "coding"
@@ -73,10 +76,11 @@ export const ROUTER_MODES: { id: RouterMode; label: string; description: string 
   { id: "fast", label: "Fast", description: "Lowest latency, cost-efficient" },
   { id: "balanced", label: "Balanced", description: "Quality and speed balanced" },
   { id: "advanced", label: "Advanced", description: "Highest quality reasoning" },
+  { id: "super", label: "Super", description: "Maximum capability — agent tools + strongest models + live sources" },
   { id: "agent", label: "Agent", description: "Plan → tools → answer (RAG, memory, connectors)" },
   { id: "coding", label: "Coding", description: "Optimised for code tasks" },
   { id: "creative", label: "Creative", description: "Optimised for creative writing" },
   { id: "lowest-cost", label: "Lowest Cost", description: "Minimise credit usage" },
   { id: "deep-research", label: "Deep Research", description: "Multi-step research (Pro)" },
-  { id: "private", label: "Private", description: "Temporary mode, limited retention" },
+  { id: "private", label: "Private", description: "Temporary mode — no memory read/write" },
 ];

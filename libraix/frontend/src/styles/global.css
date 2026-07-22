@@ -1186,6 +1186,66 @@ button, input, textarea, select {
   box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.35), 0 0 20px rgba(239, 68, 68, 0.08);
 }
 
+.composer-power-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 0 2px;
+}
+
+.composer-power-btn {
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 560;
+  letter-spacing: 0.01em;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.composer-power-btn:hover:not(:disabled) {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.composer-power-btn.active {
+  color: var(--text);
+  border-color: rgba(212, 175, 120, 0.55);
+  background: rgba(212, 175, 120, 0.12);
+}
+
+.composer-power-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.research-report {
+  margin-top: 24px;
+}
+
+.research-report h2,
+.research-report h3 {
+  margin: 18px 0 8px;
+  font-size: 1.05rem;
+}
+
+.research-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.research-disclaimer {
+  margin-top: 20px;
+  font-size: 13px;
+}
+
 .composer-toolbar {
   display: flex;
   align-items: center;

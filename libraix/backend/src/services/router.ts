@@ -8,6 +8,7 @@ export interface RouterInput {
   manualModelId?: string;
   needsCode?: boolean;
   needsResearch?: boolean;
+  needsAgent?: boolean;
   privacyMode?: boolean;
   /** Remaining premium-model messages today (Smart/Advanced). */
   premiumRemaining?: number;
@@ -40,11 +41,16 @@ function scoreModel(model: ModelDefinition, mode: RouterMode, input: RouterInput
     if (model.id === "libraix-claude-sonnet") score += 80;
     if (model.id === "libraix-fast") score += 60;
   }
-  if (mode === "advanced" || mode === "deep-research" || mode === "agent") {
+  if (mode === "advanced" || mode === "deep-research" || mode === "agent" || mode === "super") {
     if (model.id === "libraix-advanced") score += 100;
     if (model.id === "libraix-deepseek-r1") score += 95;
     if (model.id === "libraix-grok-pro") score += 92;
     if (model.id === "libraix-claude-sonnet") score += 90;
+  }
+  if (mode === "super") {
+    // Prefer the absolute strongest available model
+    if (model.id === "libraix-advanced") score += 25;
+    if (model.id === "libraix-claude-sonnet") score += 15;
   }
   if (mode === "coding" && model.capabilities.chat) {
     if (model.id === "libraix-deepseek-r1") score += 95;
@@ -71,7 +77,12 @@ function detectNeeds(message: string) {
   const lower = message.toLowerCase();
   return {
     needsCode: /\b(code|python|javascript|sql|debug|function|api)\b/.test(lower),
-    needsResearch: /\b(research|compare|analyze|sources|citation|market|competitor)\b/.test(lower),
+    needsResearch: /\b(research|compare|analyze|analyse|sources|citation|market|competitor|deep dive|investigate)\b/.test(
+      lower,
+    ),
+    needsAgent:
+      /\b(multi[- ]step|autonomous|use tools|plan then|orchestrat|step by step plan|agent mode)\b/.test(lower) ||
+      (/\b(then |after that |next |finally )\b/.test(lower) && lower.length > 120),
     needsWeather: /\b(weather|temperature|forecast|humidity)\b/.test(lower),
   };
 }
@@ -112,17 +123,19 @@ export function routeModel(input: RouterInput): RouterResult {
   if (!best) throw new Error("NO_MODEL_AVAILABLE");
 
   const reason = input.mode === "auto"
-    ? `Auto-selected for ${mode} task${needs.needsCode ? " (code detected)" : ""}${needs.needsResearch ? " (research detected)" : ""}${needs.needsWeather ? " (weather)" : ""}`
+    ? `Auto-selected for ${mode} task${needs.needsCode ? " (code detected)" : ""}${needs.needsResearch ? " (research detected)" : ""}${needs.needsAgent ? " (multi-step detected)" : ""}${needs.needsWeather ? " (weather)" : ""}`
     : `Selected for ${mode} mode`;
 
   return buildResult(best, mode, reason, true);
 }
 
 function inferAutoMode(
-  input: RouterInput & { needsCode: boolean; needsResearch: boolean; needsWeather?: boolean }
+  input: RouterInput & { needsCode: boolean; needsResearch: boolean; needsAgent?: boolean; needsWeather?: boolean }
 ): RouterMode {
   // Weather gets live Open-Meteo data — use balanced (Smart) for a ChatGPT-quality brief
   if (input.needsWeather) return "balanced";
+  if (input.needsAgent && input.needsResearch) return "super";
+  if (input.needsAgent) return "agent";
   if (input.needsResearch) return "deep-research";
   if (input.needsCode) return "coding";
   if (input.message.length > 2000) return "advanced";
@@ -133,8 +146,11 @@ function buildResult(model: ModelDefinition, mode: RouterMode, reason: string, w
   const tools: string[] = [];
   if (model.capabilities.webSearch) tools.push("web-search");
   if (model.capabilities.fileSearch) tools.push("file-search");
-  if (mode === "agent") {
+  if (mode === "agent" || mode === "super") {
     tools.push("agent-tools", "mcp-connectors", "memory-recall");
+  }
+  if (mode === "super" || mode === "deep-research") {
+    tools.push("live-sources");
   }
 
   return {
@@ -147,7 +163,7 @@ function buildResult(model: ModelDefinition, mode: RouterMode, reason: string, w
       : model.id === "libraix-advanced" || model.id === "libraix-deepseek-r1" || model.id === "libraix-grok-pro"
         ? "slow"
         : "medium",
-    estimatedCredits: model.tier === "free" ? 1 : model.id === "libraix-advanced" ? 5 : 3,
+    estimatedCredits: model.tier === "free" ? 1 : model.id === "libraix-advanced" || mode === "super" ? 5 : 3,
     enabledTools: tools,
     wasAutoSelected,
   };
