@@ -5,6 +5,7 @@ cd /d "%~dp0"
 echo.
 echo  ========================================
 echo   PC Guard - who used your PC + files
+echo   (NO FIREWALL MODE - local file page)
 echo  ========================================
 echo.
 
@@ -46,24 +47,14 @@ if errorlevel 1 (
 )
 
 echo.
-echo  Starting PC Guard...
-echo  The dashboard will open by itself when ready.
-echo  If the page is blocked, double-click FIX-FIREWALL.bat
-echo  then run START.bat again.
+echo  Starting PC Guard in NO-FIREWALL mode...
+echo  A local page will open: data\live.html
+echo  Keep this black window OPEN.
 echo.
-echo  Open in browser:
-echo      http://127.0.0.1:8787
-echo.
-echo  Keep this black window OPEN while monitoring.
+echo  To create a test event later: TEST-NOW.bat
 echo.
 
 python app.py
-set "ERR=%ERRORLEVEL%"
 echo.
-if not "%ERR%"=="0" (
-  echo  PC Guard stopped with an error.
-  echo  If firewall blocked it, run FIX-FIREWALL.bat as Administrator.
-) else (
-  echo  PC Guard stopped.
-)
+echo  PC Guard stopped.
 pause

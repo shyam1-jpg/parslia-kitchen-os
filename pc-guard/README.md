@@ -16,21 +16,19 @@ Everything stays in `pc-guard/data/` on this PC. Nothing is uploaded to the inte
 
 Read **`HOW-TO-RUN.txt`** for the shortest steps.
 
+**Default mode needs no firewall** — it opens a local file (`data/live.html`), not a network port.
+
 1. Download the branch zip (if you do not have `pc-guard` yet):  
    https://github.com/shyam1-jpg/parslia-kitchen-os/archive/refs/heads/cursor/pc-usage-guard-d44d.zip
 2. Extract → open folder **`pc-guard`**
-3. Double-click **`CHECK.bat`** (should say core looks good)
-4. Double-click **`START.bat`** and **keep the black window open**
-5. Open **http://127.0.0.1:8787**
-6. Click **Create test event** — you should see a file + screen shot
+3. Double-click **`START.bat`** and **keep the black window open**
+4. Browser opens `data/live.html` (auto-refreshes every 3 seconds)
+5. Double-click **`TEST-NOW.bat`** to create a test file event
 
-If the page does not open: **`OPEN-DASHBOARD.bat`** or **`OPEN.html`**
+If the page does not open: **`OPEN-DASHBOARD.bat`** or open `data/live.html` yourself.
 
-### Windows Firewall blocked it?
-
-1. Right-click **`FIX-FIREWALL.bat`** → **Run as administrator** → Yes  
-2. Run **`START.bat`** again  
-3. If Windows asks “Allow access”, choose **Allow** on **Private** networks  
+Optional web dashboard (may need firewall): **`START-WEB.bat`**  
+If that is blocked: **`FIX-FIREWALL.bat`** as Administrator.
 
 Optional face photos:
 

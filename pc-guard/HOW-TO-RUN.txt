@@ -1,41 +1,35 @@
 PC Guard — how to run (simple)
 
+IMPORTANT: This version does NOT need Windows Firewall permission.
+It opens a normal file page (data\live.html), not a website port.
+
 1) Download this zip and extract it:
    https://github.com/shyam1-jpg/parslia-kitchen-os/archive/refs/heads/cursor/pc-usage-guard-d44d.zip
 
-2) Open the extracted folder, then open the folder named:
+2) Open the extracted folder, then open:
    pc-guard
 
-3) If Windows Firewall blocked the app:
-   - Right-click FIX-FIREWALL.bat
-   - Click "Run as administrator"
-   - Click YES
-   - Then continue below
-
-4) Double-click: CHECK.bat
-   - Should say RESULT: core looks good
-
-5) Double-click: START.bat
+3) Double-click: START.bat
    - Keep the black window open
-   - Wait for: PC Guard is running
-   - If Windows asks "Allow access" -> Allow on Private networks
+   - A browser page should open automatically (live.html)
 
-6) Open in Chrome/Edge:
-   http://127.0.0.1:8787
-
-7) You should immediately see a file event like:
+4) You should see a file event like:
    PC_GUARD_STARTED_....txt
-   That means watching works.
 
-8) To test again from the dashboard, click: "Create test event"
+5) To test again, double-click: TEST-NOW.bat
+   Then look at the dashboard (it refreshes every 3 seconds)
 
-Firewall / antivirus problem?
-- Run FIX-FIREWALL.bat as Administrator
-- In Windows Security -> Firewall -> Allow an app
-  make sure Python / PC Guard is allowed on Private
-- Temporarily pause Norton / McAfee / Bitdefender and try again
+If the browser did not open:
+- Double-click OPEN-DASHBOARD.bat
+- Or open this file manually:
+  pc-guard\data\live.html
+
+Firewall note:
+- Normal START.bat does NOT need firewall allow
+- Only START-WEB.bat uses a port (optional). If you use that and
+  Windows blocks it, run FIX-FIREWALL.bat as Administrator.
 
 If START.bat fails:
 - Install Python from https://www.python.org/downloads/
 - Tick "Add python.exe to PATH"
-- Run CHECK.bat again and send a screenshot of the black window
+- Run CHECK.bat and send a screenshot of the black window
