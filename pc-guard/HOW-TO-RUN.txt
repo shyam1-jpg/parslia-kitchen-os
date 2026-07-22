@@ -1,30 +1,20 @@
-PC Guard — how to run (simple)
+PC Guard — how to run
 
-THE ERROR YOU SAW
-Chrome said "Check your Internet connection" because an OLD page
-tried to open http://127.0.0.1 — that needs network/firewall.
-
-THIS APP DOES NOT NEED INTERNET.
-Open the local file only:  data\live.html
-
-STEPS
-1) Download latest zip again and extract:
+1) Download latest zip:
    https://github.com/shyam1-jpg/parslia-kitchen-os/archive/refs/heads/cursor/pc-usage-guard-d44d.zip
 
-2) Open folder:  pc-guard
+2) Extract, then open folder: pc-guard
 
-3) Double-click:  DOUBLE-CLICK-ME
-   Keep the black window open.
+3) Double-click: DOUBLE-CLICK-ME
 
-4) If Chrome shows an internet error, CLOSE that tab.
+4) A desktop window named "PC Guard" should open.
+   - No Chrome needed
+   - No internet needed
+   - No firewall needed
 
-5) In the pc-guard folder, double-click:
-   DASHBOARD.html
-   or open:
-   data\live.html
+5) In that window click: Create test event
 
-6) To test: double-click TEST-NOW
-
-DO NOT OPEN these in Chrome:
-- http://127.0.0.1:8787
-- http://localhost:8787
+If no window appears:
+- Look behind other windows / on the taskbar for "PC Guard"
+- Make sure the black START window is still open
+- Send a photo of the black window text

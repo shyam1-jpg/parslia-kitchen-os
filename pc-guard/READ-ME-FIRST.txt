@@ -1,15 +1,12 @@
 IMPORTANT — READ THIS
 
-Chrome "Check your Internet connection" happens if you open:
-   http://127.0.0.1
-or
-   http://localhost
+PC Guard now opens its OWN WINDOW.
+You do NOT need Chrome.
 
-DO NOT open those.
+1. Open folder: pc-guard
+2. Double-click: DOUBLE-CLICK-ME
+3. A PC Guard window should appear
+4. Click "Create test event" in that window
 
-Instead:
-1. Double-click DOUBLE-CLICK-ME  (keep black window open)
-2. Double-click DASHBOARD.html
-   or open file:  data\live.html
-
-That is a normal file on your PC. No internet needed.
+Ignore Chrome internet errors.
+Do not open http://127.0.0.1
