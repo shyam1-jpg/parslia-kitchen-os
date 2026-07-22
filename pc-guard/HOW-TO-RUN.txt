@@ -1,35 +1,32 @@
 PC Guard — how to run (simple)
 
-IMPORTANT: This version does NOT need Windows Firewall permission.
-It opens a normal file page (data\live.html), not a website port.
+IMPORTANT:
+Windows may hide ".bat", so START.bat can look like just "START".
+Use DOUBLE-CLICK-ME if that is easier to find.
 
 1) Download this zip and extract it:
    https://github.com/shyam1-jpg/parslia-kitchen-os/archive/refs/heads/cursor/pc-usage-guard-d44d.zip
 
-2) Open the extracted folder, then open:
+2) Open the extracted folder, then open THIS folder:
    pc-guard
 
-3) Double-click: START.bat
+   You should see files like:
+   DOUBLE-CLICK-ME
+   START
+   CHECK
+   TEST-NOW
+   READ-ME-FIRST
+
+3) Double-click: DOUBLE-CLICK-ME
+   (or START / 1-START-HERE)
    - Keep the black window open
-   - A browser page should open automatically (live.html)
+   - A browser page should open (live.html)
 
-4) You should see a file event like:
-   PC_GUARD_STARTED_....txt
-
-5) To test again, double-click: TEST-NOW.bat
-   Then look at the dashboard (it refreshes every 3 seconds)
+4) To test, double-click: TEST-NOW
 
 If the browser did not open:
-- Double-click OPEN-DASHBOARD.bat
-- Or open this file manually:
-  pc-guard\data\live.html
+- Double-click OPEN-DASHBOARD
+- Or open: pc-guard\data\live.html
 
-Firewall note:
-- Normal START.bat does NOT need firewall allow
-- Only START-WEB.bat uses a port (optional). If you use that and
-  Windows blocks it, run FIX-FIREWALL.bat as Administrator.
-
-If START.bat fails:
-- Install Python from https://www.python.org/downloads/
-- Tick "Add python.exe to PATH"
-- Run CHECK.bat and send a screenshot of the black window
+To see .bat endings in Windows:
+File Explorer -> View -> tick "File name extensions"
