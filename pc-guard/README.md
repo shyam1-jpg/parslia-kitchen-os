@@ -16,22 +16,19 @@ Everything stays in `pc-guard/data/` on this PC. Nothing is uploaded to the inte
 
 Read **`HOW-TO-RUN.txt`** for the shortest steps.
 
-**Default mode needs no firewall** — it opens a local file (`data/live.html`), not a network port.
+**Default mode needs no internet** — open the local file `data/live.html` only.
 
-1. Download the branch zip (if you do not have `pc-guard` yet):  
+Do **not** open `http://127.0.0.1` or `localhost` in Chrome (that causes “Check your Internet connection”).
+
+1. Download the latest zip:  
    https://github.com/shyam1-jpg/parslia-kitchen-os/archive/refs/heads/cursor/pc-usage-guard-d44d.zip
 2. Extract → open folder **`pc-guard`**
-3. Open the **`pc-guard`** folder (not only the outer zip folder)
-4. Double-click **`DOUBLE-CLICK-ME`** (same as `START.bat` — Windows may hide `.bat`)
-5. Keep the black window open — browser opens `data/live.html`
-6. Double-click **`TEST-NOW`** to create a test file event
+3. Double-click **`DOUBLE-CLICK-ME`** and keep the black window open
+4. If Chrome shows an internet error, close that tab and double-click **`DASHBOARD.html`**  
+   or open **`data/live.html`**
+5. Double-click **`TEST-NOW`** to create a test file event
 
 If you only see `START` with no `.bat`, that **is** the start file.
-
-If the page does not open: **`OPEN-DASHBOARD`** or open `data/live.html` yourself.
-
-Optional web dashboard (may need firewall): **`START-WEB.bat`**  
-If that is blocked: **`FIX-FIREWALL.bat`** as Administrator.
 
 Optional face photos:
 
