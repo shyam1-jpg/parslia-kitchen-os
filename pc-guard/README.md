@@ -16,17 +16,16 @@ Everything stays in `pc-guard/data/` on this PC. Nothing is uploaded to the inte
 
 Read **`HOW-TO-RUN.txt`** for the shortest steps.
 
-**Default mode needs no internet** — open the local file `data/live.html` only.
-
-Do **not** open `http://127.0.0.1` or `localhost` in Chrome (that causes “Check your Internet connection”).
+**Default mode opens its own desktop window** — no Chrome, no internet, no firewall.
 
 1. Download the latest zip:  
    https://github.com/shyam1-jpg/parslia-kitchen-os/archive/refs/heads/cursor/pc-usage-guard-d44d.zip
 2. Extract → open folder **`pc-guard`**
-3. Double-click **`DOUBLE-CLICK-ME`** and keep the black window open
-4. If Chrome shows an internet error, close that tab and double-click **`DASHBOARD.html`**  
-   or open **`data/live.html`**
-5. Double-click **`TEST-NOW`** to create a test file event
+3. Double-click **`DOUBLE-CLICK-ME`**
+4. A window titled **PC Guard** opens — click **Create test event**
+5. Keep the black console window open while monitoring
+
+Do **not** open `http://127.0.0.1` in Chrome.
 
 If you only see `START` with no `.bat`, that **is** the start file.
 
