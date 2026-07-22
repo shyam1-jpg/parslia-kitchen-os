@@ -21,6 +21,7 @@ import {
   recordVoiceUsage,
 } from "../services/usage.js";
 import { createRealtimeCall, resolveRealtimeVoice, realtimeSafetyId } from "../services/realtime.js";
+import { buildHoroscopeChart } from "../services/horoscopeChart.js";
 import { db } from "../db/schema.js";
 
 const router = Router();
@@ -609,6 +610,39 @@ router.post("/realtime/usage", (req, res) => {
 
   recordVoiceUsage(user.id, parsed.data.seconds);
   res.json({ ok: true, usage: getUsage(user.id, user.plan) });
+});
+
+/**
+ * POST /api/tools/horoscope-chart
+ * Birth details → Vedic (Lahiri) natal chart with houses, nakshatras, dasha.
+ */
+router.post("/horoscope-chart", async (req, res) => {
+  const schema = z.object({
+    name: z.string().max(120).optional(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    time: z.string().regex(/^\d{1,2}:\d{2}$/),
+    place: z.string().min(1).max(200),
+    latitude: z.number().min(-90).max(90).optional(),
+    longitude: z.number().min(-180).max(180).optional(),
+    timezone: z.string().max(80).optional(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  try {
+    const chart = await buildHoroscopeChart(parsed.data);
+    res.json(chart);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "CHART_FAILED";
+    const status =
+      msg === "PLACE_NOT_FOUND" ||
+      msg === "PLACE_REQUIRED" ||
+      msg === "INVALID_BIRTH_DATE" ||
+      msg === "INVALID_BIRTH_TIME"
+        ? 400
+        : 502;
+    res.status(status).json({ error: msg });
+  }
 });
 
 export default router;

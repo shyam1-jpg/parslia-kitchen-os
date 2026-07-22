@@ -37,7 +37,7 @@ export function LandingPage() {
           <p className="luxury-brand">{BRAND.name}</p>
           <h1 className="luxury-headline">{BRAND.tagline}</h1>
           <p className="luxury-lede">
-            {BRAND.slogan} Super mode, Agent tools, Live Voice, Live Vision, and Deep Research — honestly labelled as live or beta.
+            {BRAND.slogan} Super mode, Vedic horoscope charts, Live Voice, Live Vision, and Deep Research — honestly labelled as live or beta.
           </p>
           <div className="hero-actions luxury-hero-actions">
             <Link to="/login?mode=signup" className="btn btn-primary">

@@ -23,6 +23,10 @@ const ERROR_LABELS: Record<string, string> = {
   LEGACY_DOC_UNSUPPORTED: "Legacy .doc isn’t supported — save as .docx or PDF and try again.",
   FILE_TYPE_NOT_SUPPORTED: "Unsupported file type. Use PDF, DOCX, RTF, or text.",
   NO_TEXT_EXTRACTED: "Could not extract text from that file.",
+  PLACE_NOT_FOUND: "Couldn’t find that birth city — try City, Country (e.g. Mumbai, India).",
+  PLACE_REQUIRED: "Enter a birth city or place.",
+  INVALID_BIRTH_DATE: "Use a valid birth date (YYYY-MM-DD).",
+  INVALID_BIRTH_TIME: "Use a valid birth time (HH:MM).",
 };
 
 export function friendlyError(code: string, fallback?: string): string {

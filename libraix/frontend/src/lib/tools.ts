@@ -26,6 +26,47 @@ export interface ResearchResult {
   disclaimer: string;
 }
 
+export interface HoroscopeChart {
+  name: string | null;
+  birth: {
+    date: string;
+    time: string;
+    place: string;
+    latitude: number;
+    longitude: number;
+    timezone: string;
+    utcOffsetHours: number;
+  };
+  system: string;
+  note: string;
+  ayanamsa: { value: number; formatted: string; system: string };
+  lagna: { rashi: string; rashiWestern: string; degree: string; nakshatra: string; pada: number } | null;
+  moonSign: { rashi: string; rashiWestern: string; nakshatra: string; pada: number; summary: string };
+  sunSign: { rashi: string; rashiWestern: string; nakshatra: string; pada: number };
+  currentDasha: { lord: string; startDate: string; endDate: string; years: number } | null;
+  dashas: Array<{ lord: string; startDate: string; endDate: string; years: number }>;
+  planets: Array<{
+    id: string;
+    name: string;
+    short: string;
+    degree: string;
+    rashi: string;
+    rashiWestern: string;
+    nakshatra: string;
+    pada: number;
+    house: number | null;
+    longitude: number;
+  }>;
+  houses: Array<{
+    number: number;
+    sign: string;
+    signWestern: string;
+    symbol: string;
+    planets: Array<{ id: string; name: string; short: string; degree: string; nakshatra: string }>;
+  }>;
+  readingContext: string;
+}
+
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     ...options,
@@ -76,6 +117,20 @@ export const toolsApi = {
     api<ResearchResult>("/api/tools/research", {
       method: "POST",
       body: JSON.stringify({ query, depth }),
+    }),
+
+  horoscopeChart: (body: {
+    name?: string;
+    date: string;
+    time: string;
+    place: string;
+    latitude?: number;
+    longitude?: number;
+    timezone?: string;
+  }) =>
+    api<HoroscopeChart>("/api/tools/horoscope-chart", {
+      method: "POST",
+      body: JSON.stringify(body),
     }),
 
   search: (query: string, provider: "all" | "wikipedia" | "web" = "all") =>

@@ -56,12 +56,12 @@ const ASSISTANT_UI: Record<
   astrology: {
     emoji: "✨",
     title: "Astrology & Horoscope",
-    blurb: "Deep advanced readings every time — charts, transits, love, career, Vedic & Western",
+    blurb: "Deep advanced readings — or open Horoscope for a free Vedic kundli chart from birth details",
     suggestions: [
+      "Open my kundli chart — take me to birth details",
       "Give me a deep advanced daily horoscope — I'm a Leo rising Virgo",
       "Full natal chart reading — 14 July 1995, London, 3:20pm (houses, aspects, career & love)",
       "Deep compatibility reading: Cancer Sun / Scorpio Moon with Taurus Sun / Libra Rising",
-      "Advanced transit forecast for me this month — Saturn & Jupiter focus",
     ],
   },
   writing: {
@@ -269,6 +269,12 @@ export function AppPage() {
       if (prefill) {
         setInput(prefill);
         sessionStorage.removeItem("libraix_prefill");
+      }
+      const assistantPref = sessionStorage.getItem("libraix_assistant");
+      if (assistantPref) {
+        setAssistantId(assistantPref);
+        if (assistantPref === "astrology") setRouterMode("advanced");
+        sessionStorage.removeItem("libraix_assistant");
       }
       const customId = sessionStorage.getItem("libraix_custom_assistant");
       if (customId) {
@@ -982,6 +988,7 @@ export function AppPage() {
 
           <div className="sidebar-nav-links">
             <Link to="/app/images" className="conv-item">🎨 Images</Link>
+            <Link to="/app/horoscope" className="conv-item">✨ Horoscope</Link>
             <Link to="/app/library" className="conv-item">📚 Library</Link>
             <Link to="/app/search" className="conv-item">🔍 Search</Link>
             <Link to="/app/code" className="conv-item">⟨/⟩ Code</Link>
@@ -1315,6 +1322,10 @@ export function AppPage() {
                     key={s}
                     className="suggestion-chip"
                     onClick={() => {
+                      if (/kundli chart|birth details/i.test(s)) {
+                        navigate("/app/horoscope");
+                        return;
+                      }
                       let mode: string | undefined;
                       if (/^super:/i.test(s)) mode = "super";
                       else if (/^agent:/i.test(s)) mode = "agent";
