@@ -14,24 +14,25 @@ Everything stays in `pc-guard/data/` on this PC. Nothing is uploaded to the inte
 
 ## Quick start (Windows)
 
-1. Install [Python 3](https://www.python.org/downloads/) — tick **Add python.exe to PATH**
-2. Open the `pc-guard` folder on your PC
-3. Double-click **`START.bat`** and **keep the black window open**
-4. Wait until it says **PC Guard is running** — the dashboard opens by itself
+Read **`HOW-TO-RUN.txt`** for the shortest steps.
 
-If the page does not open, try one of these:
+1. Download the branch zip (if you do not have `pc-guard` yet):  
+   https://github.com/shyam1-jpg/parslia-kitchen-os/archive/refs/heads/cursor/pc-usage-guard-d44d.zip
+2. Extract → open folder **`pc-guard`**
+3. Double-click **`CHECK.bat`** (should say core looks good)
+4. Double-click **`START.bat`** and **keep the black window open**
+5. Open **http://127.0.0.1:8787**
+6. Click **Create test event** — you should see a file + screen shot
 
-- Double-click **`OPEN-DASHBOARD.bat`**
-- Or double-click **`OPEN.html`**
-- Or type in Chrome/Edge: **http://127.0.0.1:8787**
+If the page does not open: **`OPEN-DASHBOARD.bat`** or **`OPEN.html`**
 
-Optional webcam photos when a file is used:
+Optional face photos:
 
 ```bat
 .venv\Scripts\pip install opencv-python-headless
 ```
 
-Then restart `START.bat`.
+Then set `webcam_on_file_use` to `true` in `config.json` and restart.
 
 ---
 

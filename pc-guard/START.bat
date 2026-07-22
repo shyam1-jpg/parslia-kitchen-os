@@ -53,6 +53,7 @@ echo.
 echo      http://127.0.0.1:8787
 echo.
 echo  Keep this black window OPEN while monitoring.
+echo  Tip: run CHECK.bat first if something looks wrong.
 echo.
 
 python app.py

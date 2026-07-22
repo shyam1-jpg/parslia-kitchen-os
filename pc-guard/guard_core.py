@@ -11,6 +11,7 @@ import os
 import platform
 import socket
 import sqlite3
+import subprocess
 import threading
 import time
 from datetime import datetime, timezone
@@ -33,10 +34,12 @@ ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
 DB_PATH = DATA / "activity.db"
 SNAPSHOTS = DATA / "snapshots"
+WATCH_FALLBACK = ROOT / "watched"
 CONFIG_PATH = ROOT / "config.json"
+DASHBOARD_URL_FILE = DATA / "dashboard.url"
 
 SKIP_NAMES = {".DS_Store", "Thumbs.db", "desktop.ini"}
-SKIP_SUFFIXES = {".tmp", ".temp", ".swp", ".crdownload", ".partial"}
+SKIP_SUFFIXES = {".tmp", ".temp", ".swp", ".crdownload", ".partial", ".download"}
 
 
 def utc_now() -> str:
@@ -47,13 +50,14 @@ def load_config() -> dict[str, Any]:
     defaults = {
         "watch_folders": [],
         "idle_seconds": 120,
-        "webcam_on_activity": True,
+        "webcam_on_activity": False,
         "screenshot_on_file_use": True,
-        "webcam_on_file_use": True,
-        "screenshot_min_interval_seconds": 1.5,
+        "webcam_on_file_use": False,
+        "screenshot_min_interval_seconds": 0.8,
         "dashboard_port": 8787,
         "log_active_window": True,
         "window_poll_seconds": 5,
+        "recent_poll_seconds": 3,
     }
     if CONFIG_PATH.exists():
         try:
@@ -64,20 +68,68 @@ def load_config() -> dict[str, Any]:
     return defaults
 
 
+def _unique_existing(paths: list[Path]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for p in paths:
+        try:
+            if not p.exists():
+                continue
+            key = str(p.resolve()).lower()
+        except OSError:
+            key = str(p).lower()
+            if not p.exists():
+                continue
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(str(p))
+    return out
+
+
 def default_watch_folders() -> list[str]:
+    """Find real user folders on Windows/Mac/Linux, including OneDrive paths."""
     home = Path.home()
-    candidates = [
+    userprofile = Path(os.environ.get("USERPROFILE") or home)
+    candidates: list[Path] = [
         home / "Desktop",
         home / "Documents",
         home / "Downloads",
-        home / "OneDrive",
         home / "Pictures",
+        home / "OneDrive" / "Desktop",
+        home / "OneDrive" / "Documents",
+        home / "OneDrive" / "Downloads",
+        userprofile / "Desktop",
+        userprofile / "Documents",
+        userprofile / "Downloads",
+        userprofile / "OneDrive" / "Desktop",
+        userprofile / "OneDrive" / "Documents",
     ]
-    # Windows recent shortcuts hint at opened files
+
+    # Known-folder env vars (Windows)
+    for key in ("OneDrive", "OneDriveConsumer", "OneDriveCommercial"):
+        val = os.environ.get(key)
+        if val:
+            base = Path(val)
+            candidates.extend([base / "Desktop", base / "Documents", base / "Downloads", base])
+
     appdata = os.environ.get("APPDATA")
     if appdata:
         candidates.append(Path(appdata) / "Microsoft" / "Windows" / "Recent")
-    return [str(p) for p in candidates if p.exists()]
+
+    # Always have a local fallback folder so the app can prove it works
+    WATCH_FALLBACK.mkdir(parents=True, exist_ok=True)
+    candidates.append(WATCH_FALLBACK)
+
+    return _unique_existing(candidates)
+
+
+def recent_folder() -> Path | None:
+    appdata = os.environ.get("APPDATA")
+    if not appdata:
+        return None
+    p = Path(appdata) / "Microsoft" / "Windows" / "Recent"
+    return p if p.exists() else None
 
 
 def get_identity() -> dict[str, str]:
@@ -87,6 +139,31 @@ def get_identity() -> dict[str, str]:
         "os": f"{platform.system()} {platform.release()}",
         "logged_at": utc_now(),
     }
+
+
+def resolve_windows_shortcut(lnk_path: str) -> str | None:
+    """Resolve a Windows .lnk shortcut to its target file path."""
+    if platform.system() != "Windows" or not lnk_path.lower().endswith(".lnk"):
+        return None
+    try:
+        completed = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-Command",
+                f"(New-Object -ComObject WScript.Shell).CreateShortcut('{lnk_path.replace(chr(39), chr(39)+chr(39))}').TargetPath",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=4,
+            check=False,
+        )
+        target = (completed.stdout or "").strip()
+        if target and Path(target).exists():
+            return target
+    except Exception:
+        return None
+    return None
 
 
 class Store:
@@ -146,7 +223,6 @@ class Store:
                     );
                     """
                 )
-                # Older DBs created before screenshot columns
                 cols = {
                     row[1]
                     for row in conn.execute("PRAGMA table_info(file_events)").fetchall()
@@ -297,21 +373,19 @@ class Store:
                 conn.close()
 
 
-def try_webcam_snapshot(label: str = "activity") -> str | None:
-    """Capture a webcam photo if OpenCV is installed. Returns relative path or None."""
+def _webcam_capture_blocking(label: str) -> str | None:
     try:
         import cv2  # type: ignore
     except ImportError:
         return None
 
-    cam = cv2.VideoCapture(0)
+    cam = cv2.VideoCapture(0, getattr(cv2, "CAP_DSHOW", 0)) if platform.system() == "Windows" else cv2.VideoCapture(0)
     if not cam.isOpened():
         cam.release()
         return None
-    # Warm up camera
-    for _ in range(5):
+    for _ in range(4):
         cam.read()
-        time.sleep(0.05)
+        time.sleep(0.04)
     ok, frame = cam.read()
     cam.release()
     if not ok or frame is None:
@@ -324,19 +398,107 @@ def try_webcam_snapshot(label: str = "activity") -> str | None:
     return f"snapshots/{filename}"
 
 
+def try_webcam_snapshot(label: str = "activity", timeout: float = 2.5) -> str | None:
+    """Capture a webcam photo with a hard timeout so startup never hangs."""
+    result: list[str | None] = [None]
+
+    def worker() -> None:
+        try:
+            result[0] = _webcam_capture_blocking(label)
+        except Exception:
+            result[0] = None
+
+    t = threading.Thread(target=worker, name="webcam", daemon=True)
+    t.start()
+    t.join(timeout)
+    return result[0]
+
+
 _last_capture_error_logged = False
 _screenshot_lock = threading.Lock()
 _last_screenshot_at = 0.0
 _last_screenshot_path: str | None = None
+_last_capture_error: str | None = None
+
+
+def _capture_screen_windows_gdi(out: Path) -> bool:
+    """BitBlt fallback for Windows when mss fails."""
+    if platform.system() != "Windows":
+        return False
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        user32 = ctypes.windll.user32
+        gdi32 = ctypes.windll.gdi32
+        user32.SetProcessDPIAware()
+        width = user32.GetSystemMetrics(0)
+        height = user32.GetSystemMetrics(1)
+        if width <= 0 or height <= 0:
+            return False
+
+        hdc = user32.GetDC(0)
+        memdc = gdi32.CreateCompatibleDC(hdc)
+        bmp = gdi32.CreateCompatibleBitmap(hdc, width, height)
+        gdi32.SelectObject(memdc, bmp)
+        gdi32.BitBlt(memdc, 0, 0, width, height, hdc, 0, 0, 0x00CC0020)
+
+        class BITMAPINFOHEADER(ctypes.Structure):
+            _fields_ = [
+                ("biSize", wintypes.DWORD),
+                ("biWidth", wintypes.LONG),
+                ("biHeight", wintypes.LONG),
+                ("biPlanes", wintypes.WORD),
+                ("biBitCount", wintypes.WORD),
+                ("biCompression", wintypes.DWORD),
+                ("biSizeImage", wintypes.DWORD),
+                ("biXPelsPerMeter", wintypes.LONG),
+                ("biYPelsPerMeter", wintypes.LONG),
+                ("biClrUsed", wintypes.DWORD),
+                ("biClrImportant", wintypes.DWORD),
+            ]
+
+        bmi = BITMAPINFOHEADER()
+        bmi.biSize = ctypes.sizeof(BITMAPINFOHEADER)
+        bmi.biWidth = width
+        bmi.biHeight = -height
+        bmi.biPlanes = 1
+        bmi.biBitCount = 24
+        bmi.biCompression = 0
+
+        row_stride = ((width * 3 + 3) & ~3)
+        buf_size = row_stride * height
+        buf = (ctypes.c_char * buf_size)()
+        gdi32.GetDIBits(memdc, bmp, 0, height, buf, ctypes.byref(bmi), 0)
+
+        # Minimal BMP writer
+        file_size = 54 + buf_size
+        with open(out, "wb") as f:
+            f.write(b"BM")
+            f.write(file_size.to_bytes(4, "little"))
+            f.write((0).to_bytes(4, "little"))
+            f.write((54).to_bytes(4, "little"))
+            f.write((40).to_bytes(4, "little"))
+            f.write(int(width).to_bytes(4, "little", signed=True))
+            f.write(int(height).to_bytes(4, "little", signed=True))
+            f.write((1).to_bytes(2, "little"))
+            f.write((24).to_bytes(2, "little"))
+            f.write((0).to_bytes(4, "little"))
+            f.write(int(buf_size).to_bytes(4, "little"))
+            f.write((0).to_bytes(16, "little"))
+            f.write(bytes(buf))
+
+        gdi32.DeleteObject(bmp)
+        gdi32.DeleteDC(memdc)
+        user32.ReleaseDC(0, hdc)
+        return out.exists() and out.stat().st_size > 0
+    except Exception:
+        return False
 
 
 def capture_screen(label: str = "file", min_interval: float = 0.4) -> str | None:
-    """
-    Capture the full screen at this exact moment.
-    Returns relative path under data/ (e.g. snapshots/screen_....png) or None.
-    Very rapid bursts reuse the previous shot so one save does not flood disk.
-    """
-    global _last_screenshot_at, _last_screenshot_path, _last_capture_error_logged
+    """Capture the full screen at this exact moment."""
+    global _last_screenshot_at, _last_screenshot_path, _last_capture_error_logged, _last_capture_error
     SNAPSHOTS.mkdir(parents=True, exist_ok=True)
 
     with _screenshot_lock:
@@ -353,7 +515,6 @@ def capture_screen(label: str = "file", min_interval: float = 0.4) -> str | None
         out = SNAPSHOTS / filename
         errors: list[str] = []
 
-        # Prefer mss (fast, cross-platform)
         try:
             import mss  # type: ignore
 
@@ -369,7 +530,6 @@ def capture_screen(label: str = "file", min_interval: float = 0.4) -> str | None
         except Exception as exc:
             errors.append(f"mss: {exc}")
 
-        # Fallback: Pillow ImageGrab (Windows / macOS)
         try:
             from PIL import ImageGrab  # type: ignore
 
@@ -381,14 +541,23 @@ def capture_screen(label: str = "file", min_interval: float = 0.4) -> str | None
         except Exception as exc:
             errors.append(f"pillow: {exc}")
 
+        # Windows GDI fallback writes BMP; rename extension for clarity
+        bmp_name = f"screen_{label}_{stamp}.bmp"
+        bmp_out = SNAPSHOTS / bmp_name
+        if _capture_screen_windows_gdi(bmp_out):
+            _last_screenshot_at = now
+            _last_screenshot_path = f"snapshots/{bmp_name}"
+            return _last_screenshot_path
+        errors.append("gdi: failed")
+
+        _last_capture_error = " | ".join(errors)
         if not _last_capture_error_logged:
             _last_capture_error_logged = True
-            print("PC Guard: screen capture failed —", " | ".join(errors))
+            print("PC Guard: screen capture failed —", _last_capture_error)
         return None
 
 
 def get_idle_seconds() -> float | None:
-    """Best-effort idle time (Windows / Linux / macOS)."""
     system = platform.system()
     try:
         if system == "Windows":
@@ -404,27 +573,13 @@ def get_idle_seconds() -> float | None:
                 millis = ctypes.windll.kernel32.GetTickCount() - lii.dwTime
                 return max(0.0, millis / 1000.0)
         elif system == "Darwin":
-            # Quartz idle time
-            import subprocess
-
-            out = subprocess.check_output(
-                [
-                    "ioreg",
-                    "-c",
-                    "IOHIDSystem",
-                ],
-                text=True,
-            )
+            out = subprocess.check_output(["ioreg", "-c", "IOHIDSystem"], text=True)
             for line in out.splitlines():
                 if "HIDIdleTime" in line:
-                    # nanoseconds
                     ns = int(line.split("=")[-1].strip())
                     return ns / 1_000_000_000
         else:
-            # Linux: /proc/uptime + X11 idle is hard; use psutil cpu as weak signal
-            # Prefer xssstate if present
             import shutil
-            import subprocess
 
             if shutil.which("xssstate"):
                 out = subprocess.check_output(["xssstate", "-i"], text=True).strip()
@@ -435,7 +590,6 @@ def get_idle_seconds() -> float | None:
 
 
 def get_active_window() -> tuple[str, str] | None:
-    """Return (title, process_name) for the foreground window when possible."""
     system = platform.system()
     try:
         if system == "Windows":
@@ -462,7 +616,6 @@ def get_active_window() -> tuple[str, str] | None:
             return title, name
         if system == "Linux":
             import shutil
-            import subprocess
 
             if shutil.which("xdotool"):
                 wid = subprocess.check_output(
@@ -503,13 +656,12 @@ class FileHandler(FileSystemEventHandler):
             return True
         if Path(path).suffix.lower() in SKIP_SUFFIXES:
             return True
-        # Never log our own snapshot/database writes
         try:
-            if str(Path(path).resolve()).startswith(self._data_root):
+            resolved = str(Path(path).resolve())
+            if resolved.startswith(self._data_root):
                 return True
         except OSError:
             pass
-        # Debounce noisy rapid events on the same path
         now = time.time()
         prev = self._last.get(path, 0)
         if now - prev < 1.0:
@@ -517,7 +669,17 @@ class FileHandler(FileSystemEventHandler):
         self._last[path] = now
         return False
 
+    def record(self, action: str, path: str) -> None:
+        self._record(action, path)
+
     def _record(self, action: str, path: str) -> None:
+        # Windows Recent shortcuts → real opened file
+        if path.lower().endswith(".lnk"):
+            target = resolve_windows_shortcut(path)
+            if target:
+                action = "opened"
+                path = target
+
         if self._should_skip(path):
             return
 
@@ -527,12 +689,13 @@ class FileHandler(FileSystemEventHandler):
         safe_label = "".join(c if c.isalnum() or c in "-_" else "_" for c in safe_label)
 
         if self.config.get("screenshot_on_file_use", True):
-            interval = float(self.config.get("screenshot_min_interval_seconds") or 0.4)
-            # Use a short burst window; config value is treated as min gap between new shots
-            screenshot_path = capture_screen(safe_label, min_interval=max(0.35, min(interval, 2.0)))
+            interval = float(self.config.get("screenshot_min_interval_seconds") or 0.8)
+            screenshot_path = capture_screen(
+                safe_label, min_interval=max(0.35, min(interval, 2.0))
+            )
 
-        if self.config.get("webcam_on_file_use", True):
-            webcam_path = try_webcam_snapshot(f"face_{safe_label}")
+        if self.config.get("webcam_on_file_use", False):
+            webcam_path = try_webcam_snapshot(f"face_{safe_label}", timeout=2.0)
 
         self.store.add_file_event(
             action,
@@ -576,12 +739,27 @@ class GuardMonitor:
         self._threads: list[threading.Thread] = []
         self._last_window = ""
         self._was_idle = False
+        self.watched_folders: list[str] = []
+        self.handler: FileHandler | None = None
+        self.last_screen_error = None
+
+    def status(self) -> dict[str, Any]:
+        return {
+            "running": self.session_ref.get("id") is not None,
+            "session_id": self.session_ref.get("id"),
+            "identity": self.identity,
+            "watched_folders": self.watched_folders,
+            "watch_count": len(self.watched_folders),
+            "screenshot_on_file_use": bool(self.config.get("screenshot_on_file_use", True)),
+            "webcam_on_file_use": bool(self.config.get("webcam_on_file_use", False)),
+            "webcam_on_activity": bool(self.config.get("webcam_on_activity", False)),
+            "fallback_folder": str(WATCH_FALLBACK),
+            "last_screen_error": _last_capture_error,
+            "dashboard_url_file": str(DASHBOARD_URL_FILE),
+        }
 
     def start(self) -> None:
-        snap = None
-        if self.config.get("webcam_on_activity"):
-            snap = try_webcam_snapshot("session_start")
-        sid = self.store.start_session(self.identity, snap)
+        sid = self.store.start_session(self.identity, None)
         self.session_ref["id"] = sid
         self.store.add_log(
             "session",
@@ -589,29 +767,40 @@ class GuardMonitor:
             self.identity["username"],
             sid,
         )
-        if snap:
-            self.store.add_log("webcam", f"Snapshot saved: {snap}", self.identity["username"], sid)
-        else:
-            self.store.add_log(
-                "webcam",
-                "No webcam snapshot (install opencv-python-headless to enable face photos)",
-                self.identity["username"],
-                sid,
-            )
+
+        # Webcam in background so startup never freezes
+        if self.config.get("webcam_on_activity"):
+            def _cam() -> None:
+                snap = try_webcam_snapshot("session_start", timeout=3.0)
+                if snap:
+                    self.store.add_log(
+                        "webcam", f"Snapshot saved: {snap}", self.identity["username"], sid
+                    )
+                else:
+                    self.store.add_log(
+                        "webcam",
+                        "No webcam photo (optional). Install opencv-python-headless to enable.",
+                        self.identity["username"],
+                        sid,
+                    )
+
+            threading.Thread(target=_cam, name="session-webcam", daemon=True).start()
 
         if self.config.get("screenshot_on_file_use", True):
             self.store.add_log(
                 "screen",
-                "Screen shots will be taken at the exact time a watched file is used",
+                "Screen shots will be taken when a watched file is used",
                 self.identity["username"],
                 sid,
             )
 
         folders = self.config.get("watch_folders") or default_watch_folders()
+        self.watched_folders = list(folders)
+
         if Observer is None:
             self.store.add_log(
                 "error",
-                "watchdog not installed — file watching disabled",
+                "watchdog not installed — file watching disabled. Run START.bat again.",
                 self.identity["username"],
                 sid,
             )
@@ -619,6 +808,7 @@ class GuardMonitor:
             handler = FileHandler(
                 self.store, self.identity["username"], self.session_ref, self.config
             )
+            self.handler = handler
             observer = Observer()
             watched = 0
             for folder in folders:
@@ -643,6 +833,13 @@ class GuardMonitor:
             if watched:
                 observer.start()
                 self._observer = observer
+            else:
+                self.store.add_log(
+                    "error",
+                    "No folders could be watched. Put a test file in pc-guard/watched/",
+                    self.identity["username"],
+                    sid,
+                )
 
         if self.config.get("log_active_window"):
             t = threading.Thread(target=self._window_loop, name="window-poll", daemon=True)
@@ -652,6 +849,71 @@ class GuardMonitor:
         t2 = threading.Thread(target=self._idle_loop, name="idle-poll", daemon=True)
         t2.start()
         self._threads.append(t2)
+
+        if platform.system() == "Windows" and recent_folder() is not None:
+            t3 = threading.Thread(target=self._recent_loop, name="recent-poll", daemon=True)
+            t3.start()
+            self._threads.append(t3)
+
+        # Prove the pipeline works immediately
+        self._write_startup_probe()
+
+    def _write_startup_probe(self) -> None:
+        """Create a tiny file in the fallback watch folder so the UI shows a first event."""
+        try:
+            WATCH_FALLBACK.mkdir(parents=True, exist_ok=True)
+            probe = WATCH_FALLBACK / f"PC_GUARD_STARTED_{datetime.now().strftime('%H%M%S')}.txt"
+            probe.write_text(
+                "PC Guard is watching this folder.\n"
+                "If you see this event in the dashboard, file watching works.\n",
+                encoding="utf-8",
+            )
+            # Also record directly in case observer is still warming up
+            if self.handler is not None:
+                time.sleep(0.4)
+                self.handler.record("created", str(probe))
+        except OSError as exc:
+            self.store.add_log(
+                "error",
+                f"Could not write startup probe: {exc}",
+                self.identity["username"],
+                self.session_ref.get("id"),
+            )
+
+    def _recent_loop(self) -> None:
+        """Poll Windows Recent folder for newly opened files (.lnk shortcuts)."""
+        folder = recent_folder()
+        if folder is None or self.handler is None:
+            return
+        interval = float(self.config.get("recent_poll_seconds") or 3)
+        seen: dict[str, float] = {}
+        try:
+            for p in folder.glob("*.lnk"):
+                try:
+                    seen[str(p)] = p.stat().st_mtime
+                except OSError:
+                    pass
+        except OSError:
+            pass
+
+        while not self._stop.wait(interval):
+            try:
+                for p in folder.glob("*.lnk"):
+                    try:
+                        mtime = p.stat().st_mtime
+                    except OSError:
+                        continue
+                    key = str(p)
+                    prev = seen.get(key)
+                    if prev is not None and mtime <= prev:
+                        continue
+                    seen[key] = mtime
+                    # Only treat as open if shortcut is fresh (last few minutes)
+                    if time.time() - mtime > 180:
+                        continue
+                    self.handler.record("opened", key)
+            except OSError:
+                continue
 
     def _window_loop(self) -> None:
         interval = float(self.config.get("window_poll_seconds") or 5)
@@ -687,10 +949,14 @@ class GuardMonitor:
                 self._was_idle = False
                 snap = None
                 if self.config.get("webcam_on_activity"):
-                    snap = try_webcam_snapshot("return_from_idle")
+                    snap = try_webcam_snapshot("return_from_idle", timeout=2.5)
                 msg = "Someone is using the PC again (returned from idle)"
                 if snap:
                     msg += f" — photo: {snap}"
+                # Always take a screen shot when someone returns
+                screen = capture_screen("return_idle", min_interval=0)
+                if screen:
+                    msg += f" — screen: {screen}"
                 self.store.add_log(
                     "activity",
                     msg,

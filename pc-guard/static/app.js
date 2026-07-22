@@ -31,7 +31,7 @@ function shortPath(p) {
 function fileRows(items) {
   const el = document.getElementById("fileList");
   if (!items.length) {
-    el.innerHTML = `<p class="empty">No file activity yet. Open, save, or move a file in Desktop / Documents / Downloads.</p>`;
+    el.innerHTML = `<p class="empty">No file activity yet. Click <strong>Create test event</strong> above, or save a file in Desktop / Documents / Downloads.</p>`;
     return;
   }
   el.innerHTML = items
@@ -55,7 +55,7 @@ function fileRows(items) {
       }
       const gallery = shots.length
         ? `<div class="shot-row">${shots.join("")}</div>`
-        : `<p class="when">No screen shot for this event</p>`;
+        : `<p class="when">No screen shot for this event (on a normal Windows desktop it should appear)</p>`;
       return `
     <article class="row">
       <span class="badge ${esc(f.action)}">${esc(f.action)}</span>
@@ -147,10 +147,22 @@ async function refresh() {
     document.getElementById("whoLine").textContent =
       `${id.username || "?"} on ${id.hostname || "?"}`;
     document.getElementById("metaLine").textContent =
-      `${id.os || ""} · session #${status.session_id ?? "—"} · last check ${id.logged_at || ""}`;
+      `${id.os || ""} · session #${status.session_id ?? "—"}`;
 
-    chip.textContent = "Watching · live";
-    chip.classList.remove("warn");
+    const count = status.watch_count ?? (status.watched_folders || []).length;
+    const fallback = status.fallback_folder || "pc-guard/watched";
+    document.getElementById("watchLine").textContent =
+      count > 0
+        ? `Watching ${count} folder(s). Test folder: ${fallback}`
+        : `Not watching folders yet — use test folder: ${fallback}`;
+
+    if (status.last_screen_error) {
+      document.getElementById("helpLine").textContent =
+        "Screen capture had an error on this machine. Try running on your Windows desktop (not remote).";
+    }
+
+    chip.textContent = count > 0 ? "Watching · live" : "Running · no folders";
+    chip.classList.toggle("warn", count === 0);
 
     fileRows(data.files || []);
     windowRows(data.windows || []);
@@ -162,8 +174,25 @@ async function refresh() {
   }
 }
 
+document.getElementById("testBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("testBtn");
+  btn.disabled = true;
+  btn.textContent = "Creating…";
+  try {
+    await fetch("/api/test-event", { method: "POST" });
+    await refresh();
+    btn.textContent = "Test created ✓";
+  } catch (e) {
+    btn.textContent = "Failed — is Guard running?";
+  }
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = "Create test event";
+  }, 2000);
+});
+
 refresh();
-setInterval(refresh, 4000);
+setInterval(refresh, 3000);
 
 const lightbox = document.getElementById("lightbox");
 const lightboxImg = document.getElementById("lightboxImg");

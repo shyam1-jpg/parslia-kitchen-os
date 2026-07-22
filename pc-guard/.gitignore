@@ -3,6 +3,12 @@ __pycache__/
 *.pyc
 data/activity.db
 data/activity.db-*
-data/snapshots/*.jpg
-data/snapshots/*.png
+data/selftest.db
+data/dashboard.url
+data/snapshots/*
+!data/snapshots/.gitkeep
+watched/*
+!watched/.gitkeep
 *.log
+data/*.db
+data/test_activity.db

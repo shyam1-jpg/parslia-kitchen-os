@@ -1,0 +1,28 @@
+PC Guard — how to run (simple)
+
+1) Download this zip and extract it:
+   https://github.com/shyam1-jpg/parslia-kitchen-os/archive/refs/heads/cursor/pc-usage-guard-d44d.zip
+
+2) Open the extracted folder, then open the folder named:
+   pc-guard
+
+3) Double-click: CHECK.bat
+   - Should say RESULT: core looks good
+
+4) Double-click: START.bat
+   - Keep the black window open
+   - Wait for: PC Guard is running
+
+5) Open in Chrome/Edge:
+   http://127.0.0.1:8787
+
+6) You should immediately see a file event like:
+   PC_GUARD_STARTED_....txt
+   That means watching works.
+
+7) To test again from the dashboard, click: "Create test event"
+
+If START.bat fails:
+- Install Python from https://www.python.org/downloads/
+- Tick "Add python.exe to PATH"
+- Run CHECK.bat again and send a screenshot of the black window

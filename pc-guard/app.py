@@ -21,7 +21,12 @@ from flask import Flask, jsonify, render_template, send_from_directory
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from guard_core import SNAPSHOTS, GuardMonitor, load_config  # noqa: E402
+from guard_core import (  # noqa: E402
+    DASHBOARD_URL_FILE,
+    SNAPSHOTS,
+    GuardMonitor,
+    load_config,
+)
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 monitor = GuardMonitor()
@@ -40,17 +45,31 @@ def api_activity():
 @app.route("/api/status")
 def api_status():
     cfg = load_config()
-    return jsonify(
+    st = monitor.status()
+    st.update(
         {
-            "running": True,
-            "session_id": monitor.session_ref.get("id"),
-            "identity": monitor.identity,
             "port": cfg.get("dashboard_port", 8787),
-            "webcam_on_activity": bool(cfg.get("webcam_on_activity")),
-            "screenshot_on_file_use": bool(cfg.get("screenshot_on_file_use", True)),
-            "webcam_on_file_use": bool(cfg.get("webcam_on_file_use", True)),
+            "url": DASHBOARD_URL_FILE.read_text(encoding="utf-8").strip()
+            if DASHBOARD_URL_FILE.exists()
+            else None,
         }
     )
+    return jsonify(st)
+
+
+@app.route("/api/test-event", methods=["POST", "GET"])
+def api_test_event():
+    """Create a test file so you can confirm watching + screenshots work."""
+    from datetime import datetime
+
+    from guard_core import WATCH_FALLBACK
+
+    WATCH_FALLBACK.mkdir(parents=True, exist_ok=True)
+    path = WATCH_FALLBACK / f"TEST_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    path.write_text("PC Guard test file — safe to delete.\n", encoding="utf-8")
+    if monitor.handler is not None:
+        monitor.handler.record("created", str(path))
+    return jsonify({"ok": True, "path": str(path)})
 
 
 @app.route("/snapshots/<path:filename>")
@@ -69,7 +88,6 @@ def port_is_free(host: str, port: int) -> bool:
 
 
 def wait_and_open_browser(url: str, host: str, port: int, timeout: float = 20.0) -> None:
-    """Open the dashboard only after the server accepts connections."""
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
@@ -80,7 +98,7 @@ def wait_and_open_browser(url: str, host: str, port: int, timeout: float = 20.0)
     else:
         print(f"  Could not auto-open browser. Type this in Chrome/Edge:\n  {url}")
         return
-    time.sleep(0.3)
+    time.sleep(0.35)
     try:
         webbrowser.open(url, new=2)
         print(f"  Browser opened: {url}")
@@ -109,13 +127,27 @@ def main() -> None:
     atexit.register(monitor.stop)
 
     url = f"http://{host}:{port}"
+    try:
+        DASHBOARD_URL_FILE.parent.mkdir(parents=True, exist_ok=True)
+        DASHBOARD_URL_FILE.write_text(url + "\n", encoding="utf-8")
+    except OSError:
+        pass
+
     print("")
     print("  ========================================")
     print("   PC Guard is running")
     print(f"   Dashboard: {url}")
     print("   Keep this window OPEN")
     print("  ========================================")
-    print("  Watching Desktop, Documents, Downloads")
+    folders = monitor.watched_folders
+    if folders:
+        print(f"  Watching {len(folders)} folder(s), including:")
+        for f in folders[:6]:
+            print(f"   - {f}")
+        if len(folders) > 6:
+            print(f"   ... and {len(folders) - 6} more")
+    else:
+        print("  WARNING: no folders watched — put files in pc-guard\\watched")
     print("  Press Ctrl+C to stop")
     print("")
 

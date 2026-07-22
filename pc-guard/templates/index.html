@@ -27,6 +27,11 @@
       <p class="label">Who is on this PC</p>
       <p class="who" id="whoLine">Loading…</p>
       <p class="meta" id="metaLine"></p>
+      <p class="meta" id="watchLine"></p>
+      <div class="actions">
+        <button type="button" class="action-btn" id="testBtn">Create test event</button>
+      </div>
+      <p class="hint-inline" id="helpLine">If nothing appears below, click Create test event. You should see a new file + screen shot.</p>
     </section>
 
     <nav class="tabs" role="tablist">
@@ -38,7 +43,7 @@
 
     <section class="panel active" id="panel-files">
       <h2>What files were used</h2>
-      <p class="hint">Each file event includes a screen shot (and face photo if webcam is enabled) taken at that exact time.</p>
+      <p class="hint">Each file event can include a screen shot taken at that exact time.</p>
       <div class="list" id="fileList"></div>
     </section>
 
@@ -50,7 +55,7 @@
 
     <section class="panel" id="panel-sessions">
       <h2>Login sessions</h2>
-      <p class="hint">Each time PC Guard started — username, machine, optional webcam photo.</p>
+      <p class="hint">Each time PC Guard started — username and machine.</p>
       <div class="list" id="sessionList"></div>
     </section>
 
