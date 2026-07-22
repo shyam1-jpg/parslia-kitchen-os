@@ -1,17 +1,10 @@
 @echo off
 cd /d "%~dp0"
-if exist "data\live.html" (
-  start "" "%~dp0data\live.html"
-  echo Opened data\live.html
-) else if exist "data\dashboard.url" (
-  for /f "usebackq delims=" %%A in ("data\dashboard.url") do (
-    start "" "%%A"
-    echo Opening %%A
-    goto :done
-  )
-) else (
-  echo Dashboard not found yet.
-  echo Run START.bat first and keep it open.
+if not exist "data" mkdir data
+if not exist "data\live.html" (
+  echo ^<!DOCTYPE html^>^<html^>^<body style="font-family:Segoe UI;padding:2rem"^>^<h1^>Run DOUBLE-CLICK-ME first^</h1^>^<p^>Then open this file again.^</p^>^</body^>^</html^> > "data\live.html"
 )
-:done
-timeout /t 3 >nul
+echo Opening LOCAL file (not internet):
+echo %~dp0data\live.html
+start "" "%~dp0data\live.html"
+timeout /t 2 >nul

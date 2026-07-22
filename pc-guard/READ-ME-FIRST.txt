@@ -1,34 +1,15 @@
-WHERE IS THE START FILE?
-========================
+IMPORTANT — READ THIS
 
-Windows often HIDES the ".bat" ending.
+Chrome "Check your Internet connection" happens if you open:
+   http://127.0.0.1
+or
+   http://localhost
 
-So the file may look like this in the folder:
+DO NOT open those.
 
-   START
-   DOUBLE-CLICK-ME
-   1-START-HERE
-   CHECK
-   TEST-NOW
+Instead:
+1. Double-click DOUBLE-CLICK-ME  (keep black window open)
+2. Double-click DASHBOARD.html
+   or open file:  data\live.html
 
-Those ARE the starter files.
-
-What to do:
-1. Make sure you are inside the folder named:  pc-guard
-   (not only the outer zip folder)
-
-2. Double-click one of these:
-   - DOUBLE-CLICK-ME
-   - 1-START-HERE
-   - START
-
-3. Keep the black window open.
-
-4. If a browser page does not open, double-click:
-   OPEN-DASHBOARD
-
-To show the full names in Windows:
-- Open File Explorer
-- Click View
-- Tick "File name extensions"
-Then you will see START.bat
+That is a normal file on your PC. No internet needed.

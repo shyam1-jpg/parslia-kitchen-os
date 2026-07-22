@@ -1,32 +1,30 @@
 PC Guard — how to run (simple)
 
-IMPORTANT:
-Windows may hide ".bat", so START.bat can look like just "START".
-Use DOUBLE-CLICK-ME if that is easier to find.
+THE ERROR YOU SAW
+Chrome said "Check your Internet connection" because an OLD page
+tried to open http://127.0.0.1 — that needs network/firewall.
 
-1) Download this zip and extract it:
+THIS APP DOES NOT NEED INTERNET.
+Open the local file only:  data\live.html
+
+STEPS
+1) Download latest zip again and extract:
    https://github.com/shyam1-jpg/parslia-kitchen-os/archive/refs/heads/cursor/pc-usage-guard-d44d.zip
 
-2) Open the extracted folder, then open THIS folder:
-   pc-guard
+2) Open folder:  pc-guard
 
-   You should see files like:
-   DOUBLE-CLICK-ME
-   START
-   CHECK
-   TEST-NOW
-   READ-ME-FIRST
+3) Double-click:  DOUBLE-CLICK-ME
+   Keep the black window open.
 
-3) Double-click: DOUBLE-CLICK-ME
-   (or START / 1-START-HERE)
-   - Keep the black window open
-   - A browser page should open (live.html)
+4) If Chrome shows an internet error, CLOSE that tab.
 
-4) To test, double-click: TEST-NOW
+5) In the pc-guard folder, double-click:
+   DASHBOARD.html
+   or open:
+   data\live.html
 
-If the browser did not open:
-- Double-click OPEN-DASHBOARD
-- Or open: pc-guard\data\live.html
+6) To test: double-click TEST-NOW
 
-To see .bat endings in Windows:
-File Explorer -> View -> tick "File name extensions"
+DO NOT OPEN these in Chrome:
+- http://127.0.0.1:8787
+- http://localhost:8787

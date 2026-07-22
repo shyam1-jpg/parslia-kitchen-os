@@ -57,8 +57,26 @@ def wait_and_open_browser(url: str, host: str, port: int, timeout: float = 20.0)
         print(f"  Could not open browser ({exc}). Open manually:\n  {url}")
 
 
+def _open_local_file(path: Path) -> None:
+    """Open a local file path only — never http://."""
+    import os
+
+    path = path.resolve()
+    print(f"  Open this FILE in Chrome/Edge (not a website):\n  {path}")
+    if os.environ.get("PC_GUARD_NO_BROWSER") == "1":
+        return
+    try:
+        if hasattr(os, "startfile"):
+            os.startfile(str(path))  # type: ignore[attr-defined]
+        else:
+            webbrowser.open(path.as_uri(), new=2)
+        print("  Opened local file dashboard")
+    except Exception as exc:
+        print(f"  Could not auto-open ({exc}). Double-click the file above.")
+
+
 def run_offline(monitor: GuardMonitor) -> None:
-    """No network port — writes data/live.html and opens it in the browser."""
+    """No network port — writes data/live.html and opens it as a local file."""
     stop = threading.Event()
 
     def refresh_loop() -> None:
@@ -71,14 +89,16 @@ def run_offline(monitor: GuardMonitor) -> None:
     # First paint immediately
     path = write_live_dashboard(monitor.store.recent(250), monitor.status())
     try:
-        DASHBOARD_URL_FILE.write_text(path.resolve().as_uri() + "\n", encoding="utf-8")
+        # Store a normal Windows path, never http://
+        DASHBOARD_URL_FILE.write_text(str(path.resolve()) + "\n", encoding="utf-8")
     except OSError:
         pass
 
     print("")
     print("  ========================================")
-    print("   PC Guard is running (NO FIREWALL MODE)")
-    print(f"   Dashboard file: {path}")
+    print("   PC Guard is running (LOCAL FILE MODE)")
+    print("   Do NOT open http://127.0.0.1")
+    print(f"   Open this file: {path}")
     print("   Keep this window OPEN")
     print("  ========================================")
     folders = monitor.watched_folders
@@ -86,17 +106,12 @@ def run_offline(monitor: GuardMonitor) -> None:
         print(f"  Watching {len(folders)} folder(s)")
         for f in folders[:6]:
             print(f"   - {f}")
-    print("  To test: double-click TEST-NOW.bat")
+    print("  To test: double-click TEST-NOW")
     print("  Press Ctrl+C to stop")
     print("")
 
     threading.Thread(target=refresh_loop, name="live-html", daemon=True).start()
-    try:
-        webbrowser.open(path.resolve().as_uri(), new=2)
-        print("  Browser opened the local dashboard file")
-    except Exception as exc:
-        print(f"  Open this file manually in Chrome/Edge:\n  {path}")
-        print(f"  ({exc})")
+    _open_local_file(path)
 
     try:
         while True:
@@ -105,7 +120,6 @@ def run_offline(monitor: GuardMonitor) -> None:
         print("\n  Stopping...")
     finally:
         stop.set()
-
 
 def run_web(monitor: GuardMonitor) -> None:
     from flask import Flask, jsonify, render_template, send_from_directory

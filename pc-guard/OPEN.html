@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Open PC Guard</title>
+  <title>Open PC Guard (local file only)</title>
   <style>
     body {
       font-family: Segoe UI, sans-serif;
@@ -24,31 +24,25 @@
       border-radius: 0.5rem;
       font-weight: 600;
     }
-    a.btn.secondary { background: #334; }
     code { background: #e4ece7; padding: 0.1rem 0.35rem; border-radius: 0.25rem; }
     .box { background: #fff; border: 1px solid #d5e0da; border-radius: 0.75rem; padding: 1.25rem; }
+    .warn { color: #8a4b00; background: #fff6e5; border: 1px solid #f0d9a8; padding: 0.75rem; border-radius: 0.5rem; }
   </style>
 </head>
 <body>
   <div class="box">
     <h1>Open PC Guard</h1>
-    <p>1. First double-click <code>START.bat</code> and keep that window open.</p>
-    <p>2. Then open the dashboard:</p>
-    <p>
-      <a class="btn" href="http://127.0.0.1:8787">Open http://127.0.0.1:8787</a>
-      <a class="btn secondary" href="http://localhost:8787">Try localhost</a>
+    <p class="warn">
+      Ignore Chrome messages about Internet / firewall for this app.<br />
+      Do <strong>not</strong> use http://127.0.0.1 — that old link causes the error you saw.
     </p>
-    <p>If it still fails:</p>
-    <ul>
-      <li>PC Guard is not running — run <code>START.bat</code> and keep it open</li>
-      <li>Firewall blocked it — right-click <code>FIX-FIREWALL.bat</code> → Run as administrator</li>
-    </ul>
+    <p>1. Double-click <code>DOUBLE-CLICK-ME</code> and keep that window open.</p>
+    <p>2. Open the local file dashboard:</p>
+    <p>
+      <a class="btn" href="data/live.html">Open data/live.html</a>
+      <a class="btn" href="DASHBOARD.html">Open DASHBOARD.html</a>
+    </p>
+    <p>Or in File Explorer open: <code>pc-guard\data\live.html</code></p>
   </div>
-  <script>
-    // Try auto-open; if server is down the browser will show an error — that's OK.
-    setTimeout(function () {
-      window.location.href = "http://127.0.0.1:8787";
-    }, 600);
-  </script>
 </body>
 </html>
