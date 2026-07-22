@@ -48,9 +48,16 @@
       e.preventDefault();
       var name = form.name.value.trim();
       var email = form.email.value.trim();
-      var company = form.company.value.trim();
-      var role = form.role.value.trim();
-      var message = form.message.value.trim();
+      var company = (form.company && form.company.value.trim()) || "";
+      var role = (form.role && form.role.value.trim()) || "";
+      var businessType = (form.businessType && form.businessType.value) || "";
+      var locations = (form.locations && form.locations.value) || "";
+      var staff = (form.staff && form.staff.value) || "";
+      var device = (form.device && form.device.value) || "";
+      var problem = (form.problem && form.problem.value.trim()) || "";
+      var message = (form.message && form.message.value.trim()) || "";
+      var consentContact = form.consentContact && form.consentContact.checked;
+      var consentPrivacy = form.consentPrivacy && form.consentPrivacy.checked;
 
       if (!name || !email) {
         setNote("Please add your name and email so we can reply.", "err");
@@ -60,13 +67,30 @@
         setNote("That email address does not look right.", "err");
         return;
       }
+      if (!consentContact || !consentPrivacy) {
+        setNote("Please confirm contact permission and the Privacy Policy.", "err");
+        return;
+      }
+
+      var modules = [];
+      form.querySelectorAll('input[name="modules"]:checked').forEach(function (box) {
+        modules.push(box.value);
+      });
 
       var subject = "Parslia early access request — " + name;
       var body =
         "Name: " + name + "\n" +
         "Email: " + email + "\n" +
         "Company / Kitchen: " + (company || "-") + "\n" +
-        "Role: " + (role || "-") + "\n\n" +
+        "Role: " + (role || "-") + "\n" +
+        "Business type: " + (businessType || "-") + "\n" +
+        "Locations: " + (locations || "-") + "\n" +
+        "Staff: " + (staff || "-") + "\n" +
+        "Preferred device: " + (device || "-") + "\n" +
+        "Main problem: " + (problem || "-") + "\n" +
+        "Interested modules: " + (modules.length ? modules.join(", ") : "-") + "\n" +
+        "Consent to contact: yes\n" +
+        "Agreed to Privacy Policy: yes\n\n" +
         "Message:\n" + (message || "-") + "\n";
 
       var mailto =
@@ -76,10 +100,9 @@
         encodeURIComponent(body);
 
       window.location.href = mailto;
-      setNote(
-        "Thank you. Your early access request has been received. We will contact you soon.",
-        "ok"
-      );
+      setNote("", "");
+      var success = document.getElementById("formSuccess");
+      if (success) success.hidden = false;
       form.reset();
     });
   }
@@ -88,5 +111,9 @@
     if (!note) return;
     note.textContent = text;
     note.className = "form-note " + (kind || "");
+    if (kind === "err") {
+      var success = document.getElementById("formSuccess");
+      if (success) success.hidden = true;
+    }
   }
 })();

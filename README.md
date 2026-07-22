@@ -7,11 +7,13 @@
 
 | File | Purpose |
 |------|---------|
-| `index.html` | Full landing page |
-| `styles.css` | Styling |
+| `index.html` | Public marketing landing (unauthenticated visitors) |
+| `dashboard.html` | Interactive Kitchen OS preview |
+| `privacy/` · `terms/` · `cookies/` · `support/` · `delete-account/` | Full legal & support pages |
+| `styles.css` | Marketing styling |
 | `script.js` | Menu + early access form |
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
-| `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
+| `assets/parslia-60-second-demo.mp4` | Product demo video (Watch Demo) |
 
 ## Preview locally (Windows)
 
@@ -47,9 +49,12 @@ In **GoDaddy DNS**, point `@` to GitHub Pages A records:
 - `185.199.110.153`
 - `185.199.111.153`
 
-CNAME `www` → `shyam1-jpg.github.io`
+CNAME `www` → `shyam1-jpg.github.io` *(fix typo if it says hyam1-jpg)*
 
 Turn off GoDaddy Website Builder.
+
+**Email:** `hello@parslia.app` needs a GoDaddy mailbox + MX records.  
+See **`EMAIL-SETUP.md`** — without MX, mail to hello@ will not arrive.
 
 ## Not included yet (backend)
 

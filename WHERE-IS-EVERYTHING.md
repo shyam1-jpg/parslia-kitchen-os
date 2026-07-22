@@ -57,20 +57,22 @@ GitHub Pages is set to `parslia.app`, but **GoDaddy DNS still points to GoDaddy*
 
 ## What exists vs what you still need
 
-### Exists now (frontend marketing only)
+### Exists now (frontend marketing + dashboard preview)
 
-- [x] Marketing landing page (`index.html`)
+- [x] Marketing landing page (`index.html`) — what unauthenticated visitors see at parslia.app
+- [x] Logged-in Kitchen OS dashboard preview (`dashboard.html`) — sample KPIs, getting started, philosophy
 - [x] Mobile menu + styling
 - [x] Early access form (opens email — **no server**)
 - [x] GitHub Pages deploy workflow
 
 ### Missing (backend + product)
 
+- [ ] **hello@parslia.app mailbox + MX on GoDaddy** — see `EMAIL-SETUP.md` (currently no MX; mail cannot arrive)
 - [ ] **Backend API** (Node/Express or similar)
 - [ ] **User registration / login**
 - [ ] **Stripe payments**
 - [ ] **Newsletter** (e.g. Mailchimp, Resend, Buttondown)
-- [ ] **Contact form** saved to database (not mailto)
+- [ ] **Contact form** with Formspree/Web3Forms (not only mailto)
 - [ ] **Parslia Kitchen OS app** (recipes, stock, rota — the tablet UI in your video)
 
 ---
