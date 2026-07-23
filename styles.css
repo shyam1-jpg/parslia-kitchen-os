@@ -201,7 +201,8 @@ h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.12;
 .screen-row em { font-style: normal; font-size: .68rem; font-weight: 600; color: var(--muted); background: var(--soft); padding: 2px 8px; border-radius: 999px; }
 .screen-row em.ok { color: var(--green-2); background: rgba(15,107,79,.12); }
 .screen-row.warn em { color: var(--copper-dark); background: rgba(184,115,51,.14); }
-.screen-btn { margin-top: 8px; width: 100%; padding: 7px 10px; border: 0; border-radius: 8px; background: var(--copper); color: #fff; font-size: .72rem; font-weight: 600; font-family: var(--font-body); cursor: default; }
+.screen-btn { margin-top: 8px; width: 100%; padding: 7px 10px; border: 0; border-radius: 8px; background: var(--copper); color: #fff; font-size: .72rem; font-weight: 600; font-family: var(--font-body); cursor: pointer; display: inline-block; text-align: center; text-decoration: none; box-sizing: border-box; }
+a.screen-btn:hover { background: var(--copper-dark); }
 
 /* Benefits */
 .benefits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
