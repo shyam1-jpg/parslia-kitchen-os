@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu Creator · Parslia Kitchen OS</title>
+  <meta name="description" content="Build a day, 3-day, or full week menu with breakfast, brunch, lunch and dinner slots — Parslia Kitchen OS Menu Creator." />
+  <meta name="theme-color" content="#063F32" />
+  <meta name="robots" content="noindex" />
+  <link rel="canonical" href="https://parslia.app/menu-creator.html" />
+  <link rel="icon" href="assets/USE_THIS_parslia_app_icon_1024.png" />
+  <link rel="apple-touch-icon" href="assets/USE_THIS_parslia_app_icon_1024.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="menu-creator.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to menu creator</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/USE_THIS_parslia_header_logo_clean.png" alt="Parslia" class="brand-logo" width="140" height="40" />
+      </a>
+      <div class="topbar-copy">
+        <p class="eyebrow">Kitchen OS</p>
+        <h1>Menu Creator</h1>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn btn-ghost btn-sm" href="index.html">← Marketing site</a>
+        <button type="button" class="btn btn-outline btn-sm" id="btnPrint">Print / PDF</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btnSave">Save menu</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="layout">
+    <aside class="setup-panel" aria-label="Week menu setup">
+      <div class="panel-block">
+        <h2>Week menu setup</h2>
+        <p class="lede">Choose how many days and which services you need — then fill each slot with dishes.</p>
+      </div>
+
+      <form id="setupForm" class="setup-form" autocomplete="off">
+        <label class="field">
+          <span>Menu name</span>
+          <input type="text" id="menuName" name="menuName" maxlength="80" placeholder="e.g. Main dining · Week 12" value="Main dining week" />
+        </label>
+
+        <fieldset class="field">
+          <legend>Duration</legend>
+          <div class="chip-row" role="radiogroup" aria-label="Menu duration">
+            <label class="chip"><input type="radio" name="duration" value="1" /> 1 day</label>
+            <label class="chip"><input type="radio" name="duration" value="3" checked /> 3 days</label>
+            <label class="chip"><input type="radio" name="duration" value="5" /> 5 days</label>
+            <label class="chip"><input type="radio" name="duration" value="7" /> Full week</label>
+            <label class="chip"><input type="radio" name="duration" value="custom" /> Custom</label>
+          </div>
+          <div class="custom-days" id="customDaysWrap" hidden>
+            <label>
+              <span>Number of days (1–14)</span>
+              <input type="number" id="customDays" min="1" max="14" value="4" />
+            </label>
+          </div>
+        </fieldset>
+
+        <label class="field">
+          <span>Start date</span>
+          <input type="date" id="startDate" name="startDate" />
+        </label>
+
+        <fieldset class="field">
+          <legend>Meal services</legend>
+          <p class="hint">Tick breakfast, brunch, lunch and/or dinner — mix any combination.</p>
+          <div class="meal-checks">
+            <label class="check"><input type="checkbox" name="meal" value="breakfast" /> Breakfast</label>
+            <label class="check"><input type="checkbox" name="meal" value="brunch" /> Brunch</label>
+            <label class="check"><input type="checkbox" name="meal" value="lunch" checked /> Lunch</label>
+            <label class="check"><input type="checkbox" name="meal" value="dinner" checked /> Dinner</label>
+          </div>
+        </fieldset>
+
+        <div class="setup-actions">
+          <button type="submit" class="btn btn-primary" id="btnBuild">Build menu board</button>
+          <button type="button" class="btn btn-outline" id="btnClear">Clear dishes</button>
+        </div>
+        <p class="status" id="setupStatus" role="status"></p>
+      </form>
+
+      <div class="panel-block saved-block">
+        <h3>Saved menus</h3>
+        <p class="hint">Stored in this browser only (demo).</p>
+        <ul class="saved-list" id="savedList"></ul>
+      </div>
+    </aside>
+
+    <section class="board-panel" aria-label="Menu board">
+      <div class="board-head">
+        <div>
+          <p class="eyebrow" id="boardEyebrow">Setup ready</p>
+          <h2 id="boardTitle">Your menu board</h2>
+          <p class="lede" id="boardMeta">Pick duration and meal services on the left, then build the board.</p>
+        </div>
+        <div class="board-stats" id="boardStats" hidden>
+          <span><strong id="statDays">0</strong> days</span>
+          <span><strong id="statMeals">0</strong> services</span>
+          <span><strong id="statDishes">0</strong> dishes</span>
+        </div>
+      </div>
+
+      <div class="empty-state" id="emptyState">
+        <p><strong>Week or multi-day menus</strong> — e.g. 3 days of lunch &amp; dinner, a full week of breakfast + lunch, or brunch only for the weekend.</p>
+        <ol>
+          <li>Choose duration (1 day, 3 days, 5 days, full week, or custom).</li>
+          <li>Select meal services: breakfast, brunch, lunch, dinner.</li>
+          <li>Press <em>Build menu board</em>, then add dishes to each slot.</li>
+        </ol>
+      </div>
+
+      <div class="board-scroll" id="boardScroll" hidden>
+        <div class="menu-board" id="menuBoard" role="table" aria-label="Day and meal menu grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="dish-dialog" id="dishDialog" aria-labelledby="dishDialogTitle">
+    <form method="dialog" id="dishForm" class="dish-form">
+      <header class="dish-dialog-head">
+        <div>
+          <p class="eyebrow" id="dishSlotLabel">Slot</p>
+          <h2 id="dishDialogTitle">Add dish</h2>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="dishClose" value="cancel">Close</button>
+      </header>
+
+      <label class="field">
+        <span>Dish name</span>
+        <input type="text" id="dishName" maxlength="120" placeholder="Type a dish or pick from samples" required />
+      </label>
+
+      <label class="field">
+        <span>Notes (optional)</span>
+        <input type="text" id="dishNotes" maxlength="160" placeholder="Allergen, portion, or prep note" />
+      </label>
+
+      <div class="sample-block">
+        <div class="sample-head">
+          <h3>Sample dishes</h3>
+          <input type="search" id="dishSearch" placeholder="Search samples…" aria-label="Search sample dishes" />
+        </div>
+        <div class="sample-list" id="sampleList" role="listbox" aria-label="Sample dishes"></div>
+      </div>
+
+      <footer class="dish-dialog-foot">
+        <button type="button" class="btn btn-outline" id="dishRemove" hidden>Remove dish</button>
+        <div class="foot-spacer"></div>
+        <button type="button" class="btn btn-ghost" id="dishCancel">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="dishSave">Add to menu</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <script src="menu-creator.js"></script>
+</body>
+</html>
