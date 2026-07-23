@@ -143,9 +143,19 @@ button, input { font: inherit; }
 .check input { accent-color: var(--copper); width: 16px; height: 16px; }
 
 .custom-days { margin-top: 10px; }
+.inline-num {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: #fff;
+}
+.inline-num span { font-weight: 600; color: var(--text); text-transform: none; letter-spacing: 0; font-size: 0.92rem; }
+.inline-num input {
+  width: 72px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); text-align: center;
+}
 .setup-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.setup-actions .btn-primary { flex: 1 1 100%; }
 .status { min-height: 1.2em; font-size: 0.88rem; color: var(--green-2); }
 .status.err { color: #8b3a2a; }
+.empty-state .btn { margin-top: 16px; }
 
 .saved-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .saved-list li {

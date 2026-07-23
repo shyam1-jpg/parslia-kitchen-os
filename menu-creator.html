@@ -39,7 +39,7 @@
     <aside class="setup-panel" aria-label="Week menu setup">
       <div class="panel-block">
         <h2>Week menu setup</h2>
-        <p class="lede">Choose how many days and which services you need — then fill each slot with dishes.</p>
+        <p class="lede">Choose days and meal services, then press <strong>Generate menu</strong> to fill dishes automatically.</p>
       </div>
 
       <form id="setupForm" class="setup-form" autocomplete="off">
@@ -81,11 +81,21 @@
           </div>
         </fieldset>
 
+        <fieldset class="field">
+          <legend>Dishes per service</legend>
+          <p class="hint">How many dishes to auto-fill in each meal slot.</p>
+          <label class="inline-num">
+            <span>Count</span>
+            <input type="number" id="dishesPerMeal" min="1" max="6" value="3" />
+          </label>
+        </fieldset>
+
         <div class="setup-actions">
-          <button type="submit" class="btn btn-primary" id="btnBuild">Build menu board</button>
-          <button type="button" class="btn btn-outline" id="btnClear">Clear dishes</button>
+          <button type="submit" class="btn btn-primary" id="btnGenerate">Generate menu</button>
+          <button type="button" class="btn btn-outline" id="btnEmptyBoard">Empty board</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btnClear">Clear dishes</button>
         </div>
-        <p class="status" id="setupStatus" role="status"></p>
+        <p class="status" id="setupStatus" role="status">Ready — pick days and meals, then Generate menu.</p>
       </form>
 
       <div class="panel-block saved-block">
@@ -100,7 +110,7 @@
         <div>
           <p class="eyebrow" id="boardEyebrow">Setup ready</p>
           <h2 id="boardTitle">Your menu board</h2>
-          <p class="lede" id="boardMeta">Pick duration and meal services on the left, then build the board.</p>
+          <p class="lede" id="boardMeta">Pick duration and meal services on the left, then press Generate menu.</p>
         </div>
         <div class="board-stats" id="boardStats" hidden>
           <span><strong id="statDays">0</strong> days</span>
@@ -110,12 +120,13 @@
       </div>
 
       <div class="empty-state" id="emptyState">
-        <p><strong>Week or multi-day menus</strong> — e.g. 3 days of lunch &amp; dinner, a full week of breakfast + lunch, or brunch only for the weekend.</p>
+        <p><strong>Generate a filled menu</strong> — e.g. 3 days of lunch &amp; dinner, a full week of breakfast + lunch, or brunch for the weekend.</p>
         <ol>
           <li>Choose duration (1 day, 3 days, 5 days, full week, or custom).</li>
           <li>Select meal services: breakfast, brunch, lunch, dinner.</li>
-          <li>Press <em>Build menu board</em>, then add dishes to each slot.</li>
+          <li>Press <em>Generate menu</em> — dishes fill automatically. Edit any slot after.</li>
         </ol>
+        <button type="button" class="btn btn-primary" id="btnGenerateEmpty">Generate menu now</button>
       </div>
 
       <div class="board-scroll" id="boardScroll" hidden>
@@ -125,7 +136,7 @@
   </main>
 
   <dialog class="dish-dialog" id="dishDialog" aria-labelledby="dishDialogTitle">
-    <form method="dialog" id="dishForm" class="dish-form">
+    <form id="dishForm" class="dish-form">
       <header class="dish-dialog-head">
         <div>
           <p class="eyebrow" id="dishSlotLabel">Slot</p>

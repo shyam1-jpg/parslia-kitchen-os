@@ -115,7 +115,65 @@
     setupStatus.className = "status" + (isErr ? " err" : "");
   }
 
-  function buildBoard(preserveSlots) {
+  function dishesPerMealCount() {
+    var el = document.getElementById("dishesPerMeal");
+    var n = el ? parseInt(el.value, 10) : 3;
+    if (!n || n < 1) n = 1;
+    if (n > 6) n = 6;
+    return n;
+  }
+
+  function shuffle(list) {
+    var arr = list.slice();
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+    }
+    return arr;
+  }
+
+  function poolForMeal(meal) {
+    var preferred = SAMPLE_DISHES.filter(function (d) {
+      return d.meals && d.meals.indexOf(meal) !== -1;
+    });
+    if (preferred.length >= 4) return preferred;
+    return SAMPLE_DISHES.slice();
+  }
+
+  function pickDishes(meal, count, usedNames) {
+    var pool = shuffle(poolForMeal(meal));
+    var picked = [];
+    var i;
+
+    for (i = 0; i < pool.length && picked.length < count; i++) {
+      if (usedNames[pool[i].name]) continue;
+      picked.push(pool[i]);
+      usedNames[pool[i].name] = true;
+    }
+
+    // If we ran out of unique dishes, allow reuse from a reshuffled pool
+    if (picked.length < count) {
+      pool = shuffle(poolForMeal(meal));
+      for (i = 0; i < pool.length && picked.length < count; i++) {
+        var already = picked.some(function (p) { return p.name === pool[i].name; });
+        if (already) continue;
+        picked.push(pool[i]);
+      }
+    }
+
+    // Absolute fallback: still fill with something
+    while (picked.length < count && SAMPLE_DISHES.length) {
+      picked.push(SAMPLE_DISHES[picked.length % SAMPLE_DISHES.length]);
+    }
+
+    return picked.map(function (d) {
+      return { name: d.name, notes: d.course || "" };
+    });
+  }
+
+  function applySetupToState() {
     var name = document.getElementById("menuName").value.trim() || "Untitled menu";
     var days = selectedDuration();
     var meals = selectedMeals();
@@ -126,23 +184,53 @@
       return false;
     }
 
-    var oldSlots = preserveSlots ? state.slots : {};
     state.name = name;
     state.days = days;
     state.startDate = start;
     state.meals = meals;
+    return true;
+  }
+
+  function buildBoard(preserveSlots, fillGenerated) {
+    if (!applySetupToState()) return false;
+
+    var oldSlots = preserveSlots ? state.slots : {};
+    var usedNames = {};
+    var perMeal = dishesPerMealCount();
     state.slots = {};
 
-    for (var d = 0; d < days; d++) {
-      meals.forEach(function (meal) {
+    for (var d = 0; d < state.days; d++) {
+      state.meals.forEach(function (meal) {
         var key = slotKey(d, meal);
-        state.slots[key] = (oldSlots[key] || []).slice();
+        if (fillGenerated) {
+          state.slots[key] = pickDishes(meal, perMeal, usedNames);
+        } else {
+          state.slots[key] = (oldSlots[key] || []).slice();
+        }
       });
     }
 
     renderBoard();
-    setStatus("Board ready — " + days + " day" + (days === 1 ? "" : "s") + ", " + meals.length + " service" + (meals.length === 1 ? "" : "s") + ".");
+    if (fillGenerated) {
+      setStatus(
+        "Menu generated — " +
+          state.days + " day" + (state.days === 1 ? "" : "s") + ", " +
+          state.meals.length + " service" + (state.meals.length === 1 ? "" : "s") + ", " +
+          countDishes() + " dishes. Edit any dish to change it."
+      );
+    } else {
+      setStatus(
+        "Empty board ready — " +
+          state.days + " day" + (state.days === 1 ? "" : "s") + ", " +
+          state.meals.length + " service" + (state.meals.length === 1 ? "" : "s") +
+          ". Add dishes or press Generate menu."
+      );
+    }
     return true;
+  }
+
+  function generateMenu() {
+    return buildBoard(false, true);
   }
 
   function renderBoard() {
@@ -323,17 +411,31 @@
 
   setupForm.addEventListener("submit", function (e) {
     e.preventDefault();
-    buildBoard(true);
+    generateMenu();
   });
 
+  var btnEmptyBoard = document.getElementById("btnEmptyBoard");
+  if (btnEmptyBoard) {
+    btnEmptyBoard.addEventListener("click", function () {
+      buildBoard(false, false);
+    });
+  }
+
+  var btnGenerateEmpty = document.getElementById("btnGenerateEmpty");
+  if (btnGenerateEmpty) {
+    btnGenerateEmpty.addEventListener("click", function () {
+      generateMenu();
+    });
+  }
+
   document.getElementById("btnClear").addEventListener("click", function () {
-    Object.keys(state.slots).forEach(function (k) { state.slots[k] = []; });
-    if (boardScroll.hidden) {
-      setStatus("Build a board first, then you can clear dishes.", true);
+    if (boardScroll.hidden || !Object.keys(state.slots).length) {
+      setStatus("Generate a menu first, then you can clear dishes.", true);
       return;
     }
+    Object.keys(state.slots).forEach(function (k) { state.slots[k] = []; });
     renderBoard();
-    setStatus("All dishes cleared from the board.");
+    setStatus("All dishes cleared. Press Generate menu to refill.");
   });
 
   function loadStore() {
@@ -413,7 +515,7 @@
 
   document.getElementById("btnSave").addEventListener("click", function () {
     if (boardScroll.hidden) {
-      setStatus("Build a menu board before saving.", true);
+      setStatus("Generate a menu before saving.", true);
       return;
     }
     var items = loadStore();
@@ -434,7 +536,7 @@
 
   document.getElementById("btnPrint").addEventListener("click", function () {
     if (boardScroll.hidden) {
-      setStatus("Build a menu board before printing.", true);
+      setStatus("Generate a menu before printing.", true);
       return;
     }
     window.print();
