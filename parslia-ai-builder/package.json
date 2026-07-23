@@ -1,0 +1,167 @@
+{
+  "name": "parslia-ai-builder",
+  "displayName": "Parslia AI Builder",
+  "description": "Hospitality-focused AI coding agent for VS Code — chat with your project, generate multi-file changes, review diffs, and fix tests.",
+  "version": "0.1.0",
+  "publisher": "parslia",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Chat",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "parslia",
+    "ai",
+    "agent",
+    "hospitality",
+    "kitchen",
+    "coding"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "parslia.openChat",
+        "title": "Parslia: Open AI Builder Chat",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "parslia.analyseProject",
+        "title": "Parslia: Analyse Project"
+      },
+      {
+        "command": "parslia.buildFeature",
+        "title": "Parslia: Build This Feature"
+      },
+      {
+        "command": "parslia.editSelection",
+        "title": "Parslia: Edit Selection"
+      },
+      {
+        "command": "parslia.runTestsAndFix",
+        "title": "Parslia: Run Tests and Fix Failures"
+      },
+      {
+        "command": "parslia.undoLastChanges",
+        "title": "Parslia: Undo Last Applied Changes"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "parslia-ai-builder",
+          "title": "Parslia AI Builder",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "parslia-ai-builder": [
+        {
+          "type": "webview",
+          "id": "parslia.chatView",
+          "name": "AI Builder"
+        }
+      ]
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "parslia.editSelection",
+          "when": "editorHasSelection",
+          "group": "parslia@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "parslia.openChat"
+        },
+        {
+          "command": "parslia.analyseProject"
+        },
+        {
+          "command": "parslia.buildFeature"
+        },
+        {
+          "command": "parslia.editSelection"
+        },
+        {
+          "command": "parslia.runTestsAndFix"
+        },
+        {
+          "command": "parslia.undoLastChanges"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Parslia AI Builder",
+      "properties": {
+        "parslia.openaiApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API key used by Parslia AI Builder. Prefer setting OPENAI_API_KEY in your environment instead of storing the key here.",
+          "order": 1
+        },
+        "parslia.model": {
+          "type": "string",
+          "default": "gpt-4.1",
+          "description": "OpenAI model for agent planning and code changes.",
+          "order": 2
+        },
+        "parslia.baseUrl": {
+          "type": "string",
+          "default": "https://api.openai.com/v1",
+          "description": "OpenAI-compatible API base URL.",
+          "order": 3
+        },
+        "parslia.maxToolRounds": {
+          "type": "number",
+          "default": 12,
+          "minimum": 1,
+          "maximum": 30,
+          "description": "Maximum agent tool rounds per request.",
+          "order": 4
+        },
+        "parslia.testCommand": {
+          "type": "string",
+          "default": "",
+          "description": "Optional test command override (e.g. npm test). Leave empty to auto-detect.",
+          "order": 5
+        },
+        "parslia.requireApprovalForTerminal": {
+          "type": "boolean",
+          "default": true,
+          "description": "Require explicit approval before running terminal commands.",
+          "order": 6
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "npm run build:ext && npm run build:webview",
+    "build:ext": "tsc -p ./",
+    "build:webview": "npm run build --prefix webview-ui",
+    "watch": "tsc -watch -p ./",
+    "lint": "tsc -p ./ --noEmit",
+    "smoke": "npx --yes tsx scripts/smoke.ts",
+    "package": "vsce package --no-dependencies",
+    "postinstall": "npm install --prefix webview-ui"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.24.0",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "diff": "^5.2.0"
+  }
+}
