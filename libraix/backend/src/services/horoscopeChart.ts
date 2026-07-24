@@ -362,9 +362,59 @@ function pickBestGeocodeHit(hits: GeocodeHit[], query: string): GeocodeHit | nul
   return [...hits].sort((a, b) => scoreGeocodeHit(b, query) - scoreGeocodeHit(a, query))[0] ?? null;
 }
 
+/** Canonical coordinates for historic Indian birth cities (never trust ambiguous geocode rank). */
+const PLACE_HARD_OVERRIDES: Record<string, GeocodedPlace> = {
+  calcutta: {
+    name: "Kolkata",
+    country: "India",
+    admin1: "West Bengal",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+    label: "Kolkata, West Bengal, India",
+  },
+  kolkatta: {
+    name: "Kolkata",
+    country: "India",
+    admin1: "West Bengal",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+    label: "Kolkata, West Bengal, India",
+  },
+  bombay: {
+    name: "Mumbai",
+    country: "India",
+    admin1: "Maharashtra",
+    latitude: 19.07283,
+    longitude: 72.88261,
+    timezone: "Asia/Kolkata",
+    label: "Mumbai, Maharashtra, India",
+  },
+  madras: {
+    name: "Chennai",
+    country: "India",
+    admin1: "Tamil Nadu",
+    latitude: 13.08784,
+    longitude: 80.27847,
+    timezone: "Asia/Kolkata",
+    label: "Chennai, Tamil Nadu, India",
+  },
+};
+
 export async function geocodeBirthPlace(place: string): Promise<GeocodedPlace> {
   const raw = place.trim();
   if (!raw) throw new Error("PLACE_REQUIRED");
+
+  const cityKey = normalizePlaceToken(raw.split(",")[0] || raw);
+  const hard = PLACE_HARD_OVERRIDES[cityKey];
+  if (hard) {
+    const lower = raw.toLowerCase();
+    const forcedAway =
+      /\bsouth africa\b|\bmpumalanga\b|\bunited states\b|\bohio\b|\bsuriname\b|\bbelize\b/.test(lower) &&
+      !/\bindia\b|\bwest bengal\b|\bmaharashtra\b|\btamil nadu\b/.test(lower);
+    if (!forcedAway) return { ...hard };
+  }
 
   const candidates = expandPlaceQueries(raw);
   let lastError: Error | null = null;
@@ -865,12 +915,17 @@ export async function buildHoroscopeChart(input: BirthDetailsInput): Promise<Hor
 
   let place: GeocodedPlace;
   if (input.latitude != null && input.longitude != null && input.timezone) {
+    // Prefer canonical Indian labels when client sends override coords for historic names.
+    const cityKey = normalizePlaceToken((input.place || "").split(",")[0] || "");
+    const hard = PLACE_HARD_OVERRIDES[cityKey];
     place = {
-      name: input.place.trim() || "Birth place",
+      name: hard?.name || input.place.trim() || "Birth place",
+      country: hard?.country,
+      admin1: hard?.admin1,
       latitude: input.latitude,
       longitude: input.longitude,
       timezone: input.timezone,
-      label: input.place.trim() || "Birth place",
+      label: hard?.label || input.place.trim() || "Birth place",
     };
   } else {
     if (!input.place.trim()) throw new Error("PLACE_REQUIRED");

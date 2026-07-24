@@ -194,7 +194,7 @@ function BirthFields({ person, onChange, idPrefix }: BirthFieldsProps) {
           className="input"
           value={person.place}
           onChange={(e) => set("place", e.target.value)}
-          placeholder="City, Country"
+          placeholder="Kolkata, India"
           required
         />
       </label>

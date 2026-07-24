@@ -327,6 +327,107 @@ type BirthBody = {
   timezone?: string;
 };
 
+/** Hard overrides so historic names never geocode to the wrong country (e.g. Calcutta ZA). */
+const BIRTH_PLACE_OVERRIDES: Record<
+  string,
+  { place: string; latitude: number; longitude: number; timezone: string }
+> = {
+  calcutta: {
+    place: "Kolkata, West Bengal, India",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+  },
+  kolkatta: {
+    place: "Kolkata, West Bengal, India",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+  },
+  kolkata: {
+    place: "Kolkata, West Bengal, India",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+  },
+  bombay: {
+    place: "Mumbai, Maharashtra, India",
+    latitude: 19.07283,
+    longitude: 72.88261,
+    timezone: "Asia/Kolkata",
+  },
+  mumbai: {
+    place: "Mumbai, Maharashtra, India",
+    latitude: 19.07283,
+    longitude: 72.88261,
+    timezone: "Asia/Kolkata",
+  },
+  madras: {
+    place: "Chennai, Tamil Nadu, India",
+    latitude: 13.08784,
+    longitude: 80.27847,
+    timezone: "Asia/Kolkata",
+  },
+  chennai: {
+    place: "Chennai, Tamil Nadu, India",
+    latitude: 13.08784,
+    longitude: 80.27847,
+    timezone: "Asia/Kolkata",
+  },
+  bangalore: {
+    place: "Bengaluru, Karnataka, India",
+    latitude: 12.97194,
+    longitude: 77.59369,
+    timezone: "Asia/Kolkata",
+  },
+  bengaluru: {
+    place: "Bengaluru, Karnataka, India",
+    latitude: 12.97194,
+    longitude: 77.59369,
+    timezone: "Asia/Kolkata",
+  },
+  delhi: {
+    place: "New Delhi, Delhi, India",
+    latitude: 28.6139,
+    longitude: 77.209,
+    timezone: "Asia/Kolkata",
+  },
+  "new delhi": {
+    place: "New Delhi, Delhi, India",
+    latitude: 28.6139,
+    longitude: 77.209,
+    timezone: "Asia/Kolkata",
+  },
+};
+
+/** Resolve historic city names to India coords so production never maps Calcutta → South Africa. */
+export function resolveBirthPlace(place: string): Pick<BirthBody, "place" | "latitude" | "longitude" | "timezone"> {
+  const raw = place.trim();
+  const city = raw.split(",")[0]?.trim().toLowerCase().replace(/\./g, "") ?? "";
+  const override = BIRTH_PLACE_OVERRIDES[city];
+  if (override) {
+    // If user already typed another country explicitly, keep their text but still force India coords
+    // only when they did not clearly ask for a non-India Calcutta.
+    const lower = raw.toLowerCase();
+    const forcedAway =
+      /\bsouth africa\b|\bmpumalanga\b|\busa\b|\bunited states\b|\bohio\b|\bsuriname\b|\bbelize\b/.test(lower) &&
+      !/\bindia\b|\bwest bengal\b/.test(lower);
+    if (!forcedAway) return { ...override };
+  }
+  return { place: raw };
+}
+
+function withResolvedPlace(body: BirthBody): BirthBody {
+  const resolved = resolveBirthPlace(body.place);
+  return {
+    ...body,
+    place: resolved.place,
+    latitude: body.latitude ?? resolved.latitude,
+    longitude: body.longitude ?? resolved.longitude,
+    timezone: body.timezone ?? resolved.timezone,
+  };
+}
+
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     ...options,
@@ -382,13 +483,16 @@ export const toolsApi = {
   horoscopeChart: (body: BirthBody) =>
     api<HoroscopeChart>("/api/tools/horoscope-chart", {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify(withResolvedPlace(body)),
     }),
 
   horoscopeMatch: (body: { personA: BirthBody; personB: BirthBody }) =>
     api<HoroscopeMatchResult>("/api/tools/horoscope-match", {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        personA: withResolvedPlace(body.personA),
+        personB: withResolvedPlace(body.personB),
+      }),
     }),
 
   search: (query: string, provider: "all" | "wikipedia" | "web" = "all") =>
