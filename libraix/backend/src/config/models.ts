@@ -220,7 +220,7 @@ export const PRODUCT_CATALOG: ProductCatalog = {
     { id: "deep-research", name: "Deep Research", description: "Multi-step web research with citations (Pro).", tier: "pro", enabled: true },
     { id: "web-search", name: "Live Web Search", description: "Real-time search with source links.", tier: "free", enabled: true },
     { id: "live-vision", name: "Live Vision Assist", description: "Point your camera at products or machinery for step-by-step help.", tier: "free", enabled: true },
-    { id: "horoscope-chart", name: "Horoscope Chart", description: "Advanced Vedic kundli — dignity, yogas, antardasha, Ashtakoot match, topic reports, Print/PDF.", tier: "free", enabled: true },
+    { id: "horoscope-chart", name: "Horoscope Chart", description: "Super-advanced Vedic kundli — D9, drishti, gochara, pratyantardasha, Ashtakoot + match layer, Print/PDF.", tier: "free", enabled: true },
     { id: "model-compare", name: "Model Comparison", description: "Run the same prompt on 2–4 models side by side.", tier: "pro", enabled: true },
     { id: "pdf-chat", name: "PDF Chat", description: "Upload and question documents.", tier: "free", enabled: true },
     { id: "youtube", name: "YouTube Summariser", description: "Summarise videos from a URL.", tier: "free", enabled: true },

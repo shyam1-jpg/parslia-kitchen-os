@@ -88,8 +88,24 @@ export interface HoroscopeChart {
     endDate: string;
     years: number;
   } | null;
+  currentPratyantardasha?: {
+    mahaLord: string;
+    antarLord: string;
+    lord: string;
+    startDate: string;
+    endDate: string;
+    years: number;
+  } | null;
   antardashas?: Array<{
     mahaLord: string;
+    lord: string;
+    startDate: string;
+    endDate: string;
+    years: number;
+  }>;
+  pratyantardashas?: Array<{
+    mahaLord: string;
+    antarLord: string;
     lord: string;
     startDate: string;
     endDate: string;
@@ -108,10 +124,29 @@ export interface HoroscopeChart {
     ruler: string;
     nakshatra: string;
     nakshatraLord: string;
+    nakshatraDeity?: string | null;
+    nakshatraSymbol?: string | null;
     pada: number;
     house: number | null;
     longitude: number;
+    degreeInSign?: number;
+    nakshatraProgress?: number;
     dignity: string;
+    retrograde?: boolean;
+    combust?: boolean;
+    combustionOrb?: number | null;
+  }>;
+  planetDetails?: Array<{
+    id: string;
+    degreeInSign: number;
+    nakshatraProgress: number;
+    nakshatraDeity: string | null;
+    nakshatraSymbol: string | null;
+    retrograde: boolean;
+    combust: boolean;
+    combustionOrb: number | null;
+    naturalFriends: string[];
+    naturalEnemies: string[];
   }>;
   houses: Array<{
     number: number;
@@ -140,6 +175,58 @@ export interface HoroscopeChart {
     meaning: string;
     nature: string;
   }>;
+  vedicDrishti?: Array<{
+    from: string;
+    to: string;
+    houses: number;
+    kind: string;
+    summary: string;
+  }>;
+  navamsa?: {
+    lagna: { rashi: string; rashiWestern: string; degree: string } | null;
+    planets: Array<{
+      id: string;
+      name: string;
+      short: string;
+      rashi: string;
+      rashiWestern: string;
+      house: number | null;
+      longitude: number;
+      degree: string;
+    }>;
+    houses: Array<{
+      number: number;
+      sign: string;
+      signWestern: string;
+      planets: Array<{ id: string; short: string }>;
+    }>;
+    note: string;
+  };
+  gochara?: {
+    asOf: string;
+    transitMoon: {
+      planet: string;
+      rashi: string;
+      rashiWestern: string;
+      houseFromLagna: number | null;
+      houseFromMoon: number | null;
+      note: string;
+    } | null;
+    keyTransits: Array<{
+      planet: string;
+      rashi: string;
+      rashiWestern: string;
+      houseFromLagna: number | null;
+      houseFromMoon: number | null;
+      note: string;
+    }>;
+    sadeSati: {
+      active: boolean;
+      phase: "approaching" | "peak" | "leaving" | "none";
+      summary: string;
+    };
+    note: string;
+  };
   balance: {
     elements: Record<string, number>;
     modalities: Record<string, number>;
@@ -194,8 +281,37 @@ export interface AshtakootMatch {
   accuracyNote: string;
 }
 
+export interface AdvancedMatchLayer {
+  navamsa: {
+    lagnaA: string | null;
+    lagnaB: string | null;
+    sameNavamsaLagna: boolean;
+    venusHouseA: number | null;
+    venusHouseB: number | null;
+    note: string;
+  };
+  seventhHouse: {
+    signA: string | null;
+    signB: string | null;
+    lordA: string | null;
+    lordB: string | null;
+    planetsA: string[];
+    planetsB: string[];
+    note: string;
+  };
+  dashaOverlap: {
+    mahaA: string | null;
+    mahaB: string | null;
+    antarA: string | null;
+    antarB: string | null;
+    note: string;
+  };
+  readingContext: string;
+}
+
 export interface HoroscopeMatchResult {
   match: AshtakootMatch;
+  advanced?: AdvancedMatchLayer;
   personA: HoroscopeChart;
   personB: HoroscopeChart;
 }

@@ -22,7 +22,17 @@ const SUN_SIGNS = [
   { name: "Pisces", range: "19 Feb – 20 Mar" },
 ] as const;
 
-type TabId = "chart" | "planets" | "houses" | "dasha" | "yogas" | "aspects" | "reading";
+type TabId =
+  | "chart"
+  | "planets"
+  | "houses"
+  | "dasha"
+  | "yogas"
+  | "aspects"
+  | "navamsa"
+  | "drishti"
+  | "transit"
+  | "reading";
 type Mode = "chart" | "match";
 type Gender = "unspecified" | "female" | "male" | "other";
 
@@ -74,6 +84,9 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "dasha", label: "Dasha" },
   { id: "yogas", label: "Yogas" },
   { id: "aspects", label: "Aspects" },
+  { id: "navamsa", label: "D9" },
+  { id: "drishti", label: "Drishti" },
+  { id: "transit", label: "Gochara" },
   { id: "reading", label: "Reading" },
 ];
 
@@ -271,12 +284,23 @@ function ChartResultPanels({
         </div>
         <div className="horoscope-core-item">
           <span className="dim">Current dasha</span>
-          <strong>{chart.currentDasha?.lord ?? "—"}</strong>
-          {chart.currentDasha && (
+          <strong>
+            {chart.currentPratyantardasha
+              ? `${chart.currentPratyantardasha.mahaLord}–${chart.currentPratyantardasha.antarLord}–${chart.currentPratyantardasha.lord}`
+              : chart.currentAntardasha
+                ? `${chart.currentAntardasha.mahaLord}–${chart.currentAntardasha.lord}`
+                : (chart.currentDasha?.lord ?? "—")}
+          </strong>
+          {chart.currentPratyantardasha ? (
+            <em>
+              {chart.currentPratyantardasha.startDate.slice(0, 10)} →{" "}
+              {chart.currentPratyantardasha.endDate.slice(0, 10)}
+            </em>
+          ) : chart.currentDasha ? (
             <em>
               {chart.currentDasha.startDate.slice(0, 10)} → {chart.currentDasha.endDate.slice(0, 10)}
             </em>
-          )}
+          ) : null}
         </div>
         <div className="horoscope-core-item">
           <span className="dim">Current antardasha</span>
@@ -366,6 +390,10 @@ function ChartResultPanels({
                     <th>Pada</th>
                     <th>House</th>
                     <th>Dignity</th>
+                    <th>Retro</th>
+                    <th>Combust</th>
+                    <th>Nak%</th>
+                    <th>Deity</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -387,6 +415,22 @@ function ChartResultPanels({
                           {p.dignity}
                         </span>
                       </td>
+                      <td>
+                        {p.retrograde ? <span className="badge">R</span> : <span className="dim">—</span>}
+                      </td>
+                      <td>
+                        {p.combust ? (
+                          <span className="badge" title={p.combustionOrb != null ? `orb ${p.combustionOrb}` : undefined}>
+                            C
+                          </span>
+                        ) : (
+                          <span className="dim">—</span>
+                        )}
+                      </td>
+                      <td className="dim">
+                        {typeof p.nakshatraProgress === "number" ? `${p.nakshatraProgress}%` : "—"}
+                      </td>
+                      <td className="dim">{p.nakshatraDeity ?? "—"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -448,6 +492,13 @@ function ChartResultPanels({
                     {chart.currentAntardasha.endDate.slice(0, 10)}
                   </>
                 ) : null}
+                {chart.currentPratyantardasha ? (
+                  <>
+                    {" "}
+                    · pratyantardasha: <strong>{chart.currentPratyantardasha.lord}</strong> until{" "}
+                    {chart.currentPratyantardasha.endDate.slice(0, 10)}
+                  </>
+                ) : null}
               </p>
             )}
             <h4 className="horoscope-subhead">Mahadasha</h4>
@@ -494,6 +545,42 @@ function ChartResultPanels({
                           {" "}
                           {ad.startDate.slice(0, 10)} → {ad.endDate.slice(0, 10)} · ~
                           {Math.round(ad.years * 100) / 100}y
+                          {current ? " · now" : ""}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+            {(chart.pratyantardashas?.length ?? 0) > 0 && (
+              <>
+                <h4 className="horoscope-subhead">
+                  Pratyantardasha
+                  {chart.currentAntardasha
+                    ? ` (inside ${chart.currentAntardasha.mahaLord}–${chart.currentAntardasha.lord})`
+                    : ""}
+                </h4>
+                <ul className="horoscope-dasha-list">
+                  {chart.pratyantardashas!.map((pd) => {
+                    const current =
+                      chart.currentPratyantardasha &&
+                      pd.mahaLord === chart.currentPratyantardasha.mahaLord &&
+                      pd.antarLord === chart.currentPratyantardasha.antarLord &&
+                      pd.lord === chart.currentPratyantardasha.lord &&
+                      pd.startDate === chart.currentPratyantardasha.startDate;
+                    return (
+                      <li
+                        key={`${pd.mahaLord}-${pd.antarLord}-${pd.lord}-${pd.startDate}`}
+                        className={current ? "dasha-current" : ""}
+                      >
+                        <strong>
+                          {pd.mahaLord}–{pd.antarLord}–{pd.lord}
+                        </strong>
+                        <span className="dim">
+                          {" "}
+                          {pd.startDate.slice(0, 10)} → {pd.endDate.slice(0, 10)} · ~
+                          {Math.round(pd.years * 1000) / 1000}y
                           {current ? " · now" : ""}
                         </span>
                       </li>
@@ -560,6 +647,172 @@ function ChartResultPanels({
                   </tbody>
                 </table>
               </div>
+            )}
+          </div>
+        )}
+
+        {tab === "navamsa" && (
+          <div className="horoscope-panel is-active">
+            <h3>Navamsa (D9)</h3>
+            {!chart.navamsa ? (
+              <p className="dim">Navamsa data not available for this chart.</p>
+            ) : (
+              <>
+                <p>
+                  D9 Lagna:{" "}
+                  <strong>
+                    {chart.navamsa.lagna
+                      ? `${chart.navamsa.lagna.rashi} / ${chart.navamsa.lagna.rashiWestern} ${chart.navamsa.lagna.degree}`
+                      : "—"}
+                  </strong>
+                </p>
+                <h4 className="horoscope-subhead">D9 planets</h4>
+                <div className="horoscope-table-wrap">
+                  <table className="horoscope-table">
+                    <thead>
+                      <tr>
+                        <th>Planet</th>
+                        <th>Sign</th>
+                        <th>House</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {chart.navamsa.planets.map((p) => (
+                        <tr key={`d9-${p.id}`}>
+                          <td>
+                            <strong>{p.short}</strong> {p.name}
+                          </td>
+                          <td>
+                            {p.rashi} <span className="dim">({p.rashiWestern})</span>
+                          </td>
+                          <td>{p.house ?? "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <h4 className="horoscope-subhead">D9 houses</h4>
+                <ul className="horoscope-dasha-list">
+                  {chart.navamsa.houses.map((h) => (
+                    <li key={`d9h-${h.number}`}>
+                      <strong>H{h.number}</strong> {h.sign}
+                      <span className="dim">
+                        {" "}
+                        · {h.planets.map((p) => p.short).join(" ") || "—"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {chart.navamsa.note && <p className="dim">{chart.navamsa.note}</p>}
+              </>
+            )}
+          </div>
+        )}
+
+        {tab === "drishti" && (
+          <div className="horoscope-panel is-active">
+            <h3>Vedic drishti</h3>
+            <p className="dim">Classical graha aspects — separate from the Western aspects tab.</p>
+            {(chart.vedicDrishti?.length ?? 0) === 0 ? (
+              <p className="dim">No Vedic drishti returned for this chart.</p>
+            ) : (
+              <div className="horoscope-table-wrap">
+                <table className="horoscope-table">
+                  <thead>
+                    <tr>
+                      <th>From</th>
+                      <th>To</th>
+                      <th>Kind</th>
+                      <th>Summary</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {chart.vedicDrishti!.map((d, i) => (
+                      <tr key={`${d.from}-${d.to}-${d.kind}-${i}`}>
+                        <td>
+                          <strong>{d.from}</strong>
+                        </td>
+                        <td>{d.to}</td>
+                        <td>{d.kind}</td>
+                        <td className="horoscope-theme-cell">{d.summary}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "transit" && (
+          <div className="horoscope-panel is-active">
+            <h3>Gochara (transits)</h3>
+            {!chart.gochara ? (
+              <p className="dim">Transit data not available for this chart.</p>
+            ) : (
+              <>
+                <p className="dim">As of {chart.gochara.asOf}</p>
+                <div className={`horoscope-yoga-card ${chart.gochara.sadeSati.active ? "present" : "absent"}`}>
+                  <div className="horoscope-yoga-head">
+                    <strong>Sade Sati</strong>
+                    <span className="badge">
+                      {chart.gochara.sadeSati.active ? chart.gochara.sadeSati.phase : "Clear"}
+                    </span>
+                  </div>
+                  <p>{chart.gochara.sadeSati.summary}</p>
+                </div>
+                {chart.gochara.transitMoon && (
+                  <p>
+                    Transit Moon: <strong>{chart.gochara.transitMoon.rashi}</strong>
+                    {chart.gochara.transitMoon.houseFromLagna != null
+                      ? ` · H${chart.gochara.transitMoon.houseFromLagna} from Lagna`
+                      : ""}
+                    {chart.gochara.transitMoon.houseFromMoon != null
+                      ? ` · H${chart.gochara.transitMoon.houseFromMoon} from Moon`
+                      : ""}
+                    {chart.gochara.transitMoon.note ? (
+                      <>
+                        {" "}
+                        <span className="dim">— {chart.gochara.transitMoon.note}</span>
+                      </>
+                    ) : null}
+                  </p>
+                )}
+                <h4 className="horoscope-subhead">Key transits</h4>
+                {(chart.gochara.keyTransits?.length ?? 0) === 0 ? (
+                  <p className="dim">No key transits listed.</p>
+                ) : (
+                  <div className="horoscope-table-wrap">
+                    <table className="horoscope-table">
+                      <thead>
+                        <tr>
+                          <th>Planet</th>
+                          <th>Sign</th>
+                          <th>From Lagna</th>
+                          <th>From Moon</th>
+                          <th>Note</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {chart.gochara.keyTransits.map((t, i) => (
+                          <tr key={`${t.planet}-${i}`}>
+                            <td>
+                              <strong>{t.planet}</strong>
+                            </td>
+                            <td>
+                              {t.rashi} <span className="dim">({t.rashiWestern})</span>
+                            </td>
+                            <td>{t.houseFromLagna != null ? `H${t.houseFromLagna}` : "—"}</td>
+                            <td>{t.houseFromMoon != null ? `H${t.houseFromMoon}` : "—"}</td>
+                            <td className="horoscope-theme-cell">{t.note}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {chart.gochara.note && <p className="dim">{chart.gochara.note}</p>}
+              </>
             )}
           </div>
         )}
@@ -958,8 +1211,9 @@ export function HoroscopePage() {
         <p className="section-label">Vedic astrology</p>
         <h1>Pro kundli & guna milan</h1>
         <p className="tagline">
-          Free Vedic kundli with fine detail — dignity, nakshatra lords, house lords, yogas, mahadasha & antardasha,
-          Western aspects — plus Ashtakoot (36-guna) matching, topic reports, and Print / Save as PDF.
+          Free Vedic kundli with fine detail — dignity, nakshatra lords, house lords, yogas, mahadasha, antardasha &
+          pratyantardasha, D9 navamsa, Vedic drishti, gochara transits, Western aspects — plus Ashtakoot (36-guna)
+          matching, topic reports, and Print / Save as PDF.
         </p>
       </header>
 
@@ -1158,6 +1412,65 @@ export function HoroscopePage() {
               <p className="dim">{match.manglik.note}</p>
             </div>
           </div>
+
+          {matchResult.advanced && (
+            <div className="horoscope-advanced-match">
+              <h3 className="horoscope-subhead">Beyond Ashtakoot</h3>
+              <div className="horoscope-core-grid">
+                <div className="horoscope-core-item">
+                  <span className="dim">D9 Lagnas</span>
+                  <strong>
+                    A: {matchResult.advanced.navamsa.lagnaA ?? "—"} · B:{" "}
+                    {matchResult.advanced.navamsa.lagnaB ?? "—"}
+                  </strong>
+                  <em>
+                    {matchResult.advanced.navamsa.sameNavamsaLagna ? "Same D9 lagna" : "Different D9 lagnas"}
+                    {matchResult.advanced.navamsa.note ? ` · ${matchResult.advanced.navamsa.note}` : ""}
+                  </em>
+                </div>
+                <div className="horoscope-core-item">
+                  <span className="dim">7th house</span>
+                  <strong>
+                    A: {matchResult.advanced.seventhHouse.signA ?? "—"}
+                    {matchResult.advanced.seventhHouse.lordA
+                      ? ` (lord ${matchResult.advanced.seventhHouse.lordA})`
+                      : ""}{" "}
+                    · B: {matchResult.advanced.seventhHouse.signB ?? "—"}
+                    {matchResult.advanced.seventhHouse.lordB
+                      ? ` (lord ${matchResult.advanced.seventhHouse.lordB})`
+                      : ""}
+                  </strong>
+                  <em>
+                    {[
+                      matchResult.advanced.seventhHouse.planetsA.length
+                        ? `A: ${matchResult.advanced.seventhHouse.planetsA.join(", ")}`
+                        : null,
+                      matchResult.advanced.seventhHouse.planetsB.length
+                        ? `B: ${matchResult.advanced.seventhHouse.planetsB.join(", ")}`
+                        : null,
+                      matchResult.advanced.seventhHouse.note || null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") || "—"}
+                  </em>
+                </div>
+                <div className="horoscope-core-item">
+                  <span className="dim">Dasha overlap</span>
+                  <strong>
+                    A: {matchResult.advanced.dashaOverlap.mahaA ?? "—"}
+                    {matchResult.advanced.dashaOverlap.antarA
+                      ? `–${matchResult.advanced.dashaOverlap.antarA}`
+                      : ""}{" "}
+                    · B: {matchResult.advanced.dashaOverlap.mahaB ?? "—"}
+                    {matchResult.advanced.dashaOverlap.antarB
+                      ? `–${matchResult.advanced.dashaOverlap.antarB}`
+                      : ""}
+                  </strong>
+                  <em>{matchResult.advanced.dashaOverlap.note || "—"}</em>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="horoscope-form-actions horoscope-no-print">
             <button className="btn btn-ghost" disabled={reading} onClick={() => void runMatchReading()}>

@@ -1,4 +1,20 @@
 import { calculateAstrology, calculateVedic, type VedicChart } from "natalengine";
+import {
+  advancedReadingAppendix,
+  buildGochara,
+  buildNavamsaChart,
+  buildPratyantardashas,
+  buildVedicDrishti,
+  currentPratyantardasha,
+  dayLaterLongitudes,
+  detectAdvancedYogas,
+  enrichPlanetDetails,
+  type GocharaReport,
+  type NavamsaChart,
+  type PlanetFineDetail,
+  type PratyantardashaPeriod,
+  type VedicDrishti,
+} from "./vedicAdvanced.js";
 
 const GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search";
 
@@ -35,10 +51,17 @@ export interface ChartPlanetRow {
   ruler: string;
   nakshatra: string;
   nakshatraLord: string;
+  nakshatraDeity: string | null;
+  nakshatraSymbol: string | null;
   pada: number;
   house: number | null;
   longitude: number;
+  degreeInSign: number;
+  nakshatraProgress: number;
   dignity: string;
+  retrograde: boolean;
+  combust: boolean;
+  combustionOrb: number | null;
 }
 
 export interface ChartYoga {
@@ -131,9 +154,12 @@ export interface HoroscopeChartResult {
   };
   currentDasha: DashaPeriod | null;
   currentAntardasha: AntardashaPeriod | null;
+  currentPratyantardasha: PratyantardashaPeriod | null;
   antardashas: AntardashaPeriod[];
+  pratyantardashas: PratyantardashaPeriod[];
   dashas: DashaPeriod[];
   planets: ChartPlanetRow[];
+  planetDetails: PlanetFineDetail[];
   houses: Array<{
     number: number;
     sign: string;
@@ -146,6 +172,9 @@ export interface HoroscopeChartResult {
   houseLords: Array<{ house: number; sign: string; lord: string; lordHouse: number | null; meaning: string }>;
   yogas: ChartYoga[];
   aspects: ChartAspect[];
+  vedicDrishti: VedicDrishti[];
+  navamsa: NavamsaChart;
+  gochara: GocharaReport;
   balance: {
     elements: Record<string, number>;
     modalities: Record<string, number>;
@@ -716,6 +745,12 @@ function buildReadingContext(result: Omit<HoroscopeChartResult, "readingContext"
       `Current Antardasha: ${result.currentAntardasha.mahaLord}–${result.currentAntardasha.lord} (${result.currentAntardasha.startDate.slice(0, 10)} → ${result.currentAntardasha.endDate.slice(0, 10)})`,
     );
   }
+  if (result.currentPratyantardasha) {
+    const p = result.currentPratyantardasha;
+    lines.push(
+      `Current Pratyantardasha: ${p.mahaLord}–${p.antarLord}–${p.lord} (${p.startDate.slice(0, 10)} → ${p.endDate.slice(0, 10)})`,
+    );
+  }
   if (result.balance.dominantElement) {
     lines.push(
       `Element balance: Fire ${result.balance.elements.Fire ?? 0}, Earth ${result.balance.elements.Earth ?? 0}, Air ${result.balance.elements.Air ?? 0}, Water ${result.balance.elements.Water ?? 0} (dominant ${result.balance.dominantElement}; modality ${result.balance.dominantModality ?? "—"})`,
@@ -725,7 +760,7 @@ function buildReadingContext(result: Omit<HoroscopeChartResult, "readingContext"
   for (const p of result.planets) {
     if (p.id === "ascendant") continue;
     lines.push(
-      `- ${p.name}: ${p.rashi} (${p.rashiWestern}) ${p.degree} · ${p.nakshatra} p${p.pada} lord ${p.nakshatraLord}${p.house ? ` · H${p.house}` : ""} · ${p.dignity}`,
+      `- ${p.name}: ${p.rashi} (${p.rashiWestern}) ${p.degree} · ${p.nakshatra} p${p.pada} lord ${p.nakshatraLord}${p.nakshatraDeity ? ` deity ${p.nakshatraDeity}` : ""}${p.house ? ` · H${p.house}` : ""} · ${p.dignity}${p.retrograde ? " · R" : ""}${p.combust ? " · combust" : ""} · nak ${p.nakshatraProgress}%`,
     );
   }
   lines.push("Houses (whole-sign from Lagna):");
@@ -747,6 +782,17 @@ function buildReadingContext(result: Omit<HoroscopeChartResult, "readingContext"
   }
   if (result.western.bigThree) {
     lines.push(`Western big three (tropical): ${result.western.bigThree}`);
+  }
+  if (result.navamsa?.lagna) {
+    lines.push(
+      advancedReadingAppendix({
+        navamsa: result.navamsa,
+        drishti: result.vedicDrishti ?? [],
+        pratyantar: result.currentPratyantardasha,
+        gochara: result.gochara,
+        planetDetails: result.planetDetails ?? [],
+      }),
+    );
   }
   return lines.join("\n");
 }
@@ -780,10 +826,38 @@ export async function buildHoroscopeChart(input: BirthDetailsInput): Promise<Hor
 
   const houseOf = planetHouseMap(raw);
 
+  const laterLons = dayLaterLongitudes(input.date, birthHour, utcOffset, place.latitude, place.longitude);
+  const sunLon = raw.positions.sun?.longitude;
   const planets: ChartPlanetRow[] = Object.entries(PLANET_META)
     .filter(([id]) => raw.positions[id])
     .map(([id, meta]) => {
       const pos = raw.positions[id]!;
+      const degInSign = typeof pos.rashi.degreeInSign === "number" ? pos.rashi.degreeInSign : pos.longitude % 30;
+      const degInNak =
+        typeof pos.nakshatra.degreeInNakshatra === "number" ? pos.nakshatra.degreeInNakshatra : 0;
+      const nakProgress = Math.round((degInNak / (360 / 27)) * 1000) / 10;
+      const later = laterLons[id];
+      const retrograde =
+        id === "rahu" || id === "ketu"
+          ? true
+          : later != null
+            ? later < pos.longitude - 0.01
+            : false;
+      let combust = false;
+      let combustionOrb: number | null = null;
+      const combustOrbs: Record<string, number> = {
+        moon: 12,
+        mars: 17,
+        mercury: 14,
+        jupiter: 11,
+        venus: 10,
+        saturn: 15,
+      };
+      if (sunLon != null && combustOrbs[id] != null) {
+        const d = Math.abs(pos.longitude - sunLon);
+        combustionOrb = Math.round(Math.min(d, 360 - d) * 100) / 100;
+        combust = combustionOrb <= combustOrbs[id]!;
+      }
       return {
         id,
         name: meta.name,
@@ -796,10 +870,17 @@ export async function buildHoroscopeChart(input: BirthDetailsInput): Promise<Hor
         ruler: pos.rashi.ruler,
         nakshatra: pos.nakshatra.name,
         nakshatraLord: pos.nakshatra.lord,
+        nakshatraDeity: pos.nakshatra.deity ?? null,
+        nakshatraSymbol: pos.nakshatra.symbol ?? null,
         pada: pos.nakshatra.pada,
         house: id === "ascendant" ? 1 : houseOf[id] ?? null,
         longitude: pos.longitude,
+        degreeInSign: Math.round(degInSign * 100) / 100,
+        nakshatraProgress: nakProgress,
         dignity: dignityFor(id, pos.rashi.name),
+        retrograde,
+        combust,
+        combustionOrb,
       };
     });
 
@@ -842,8 +923,16 @@ export async function buildHoroscopeChart(input: BirthDetailsInput): Promise<Hor
   const sun = raw.positions.sun;
   if (!sun) throw new Error("CHART_FAILED");
   const moon = raw.moonSign;
-  const yogas = detectYogas(planets, houseOf);
+  const yogas = [...detectYogas(planets, houseOf), ...detectAdvancedYogas(planets, houseOf)];
   const balance = elementBalance(planets);
+  const vedicDrishti = buildVedicDrishti(planets);
+  const lagnaLon = raw.positions.ascendant?.longitude ?? null;
+  const navamsa = buildNavamsaChart(planets, lagnaLon);
+  const planetDetails = enrichPlanetDetails(
+    planets,
+    raw.positions as Record<string, { longitude?: number; nakshatra?: { deity?: string; symbol?: string; degreeInNakshatra?: number }; rashi?: { degreeInSign?: number } }>,
+    laterLons,
+  );
 
   const aspects: ChartAspect[] = Array.isArray((westernRaw as { aspects?: unknown })?.aspects)
     ? ((westernRaw as { aspects: Array<Record<string, unknown>> }).aspects ?? [])
@@ -891,6 +980,8 @@ export async function buildHoroscopeChart(input: BirthDetailsInput): Promise<Hor
 
   const antardashas = currentDasha ? buildAntardashas(currentDasha) : [];
   const antardashaNow = currentAntardasha(antardashas);
+  const pratyantardashas = antardashaNow ? buildPratyantardashas(antardashaNow) : [];
+  const pratyantarNow = currentPratyantardasha(pratyantardashas);
 
   const lagnaBlock = asc
     ? {
@@ -908,6 +999,23 @@ export async function buildHoroscopeChart(input: BirthDetailsInput): Promise<Hor
     : null;
 
   const accuracy = estimateAccuracy(planets, lagnaBlock);
+
+  const natalLagnaRashiIndex =
+    asc && typeof asc.rashi.index === "number" ? asc.rashi.index - 1 : rashiNumber(asc?.rashi.westernName ?? "") != null
+      ? (rashiNumber(asc!.rashi.westernName)! - 1)
+      : null;
+  const natalMoonRashiIndex =
+    typeof moon.rashi.index === "number"
+      ? moon.rashi.index - 1
+      : (rashiNumber(moon.rashi.westernName) ?? rashiNumber(moon.rashi.name) ?? 1) - 1;
+  const gochara = await buildGochara({
+    natalMoonHouse: houseOf.moon ?? null,
+    natalLagnaRashiIndex,
+    natalMoonRashiIndex,
+    latitude: place.latitude,
+    longitude: place.longitude,
+    utcOffsetHours: utcOffset,
+  });
 
   const base: Omit<HoroscopeChartResult, "readingContext"> = {
     name: input.name?.trim() || null,
@@ -954,13 +1062,19 @@ export async function buildHoroscopeChart(input: BirthDetailsInput): Promise<Hor
     },
     currentDasha,
     currentAntardasha: antardashaNow,
+    currentPratyantardasha: pratyantarNow,
     antardashas,
+    pratyantardashas,
     dashas,
     planets,
+    planetDetails,
     houses,
     houseLords,
     yogas,
     aspects,
+    vedicDrishti,
+    navamsa,
+    gochara,
     balance,
     western,
   };

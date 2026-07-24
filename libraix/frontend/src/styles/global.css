@@ -870,6 +870,37 @@ button, input, textarea, select {
   border-color: rgba(143, 188, 143, 0.35);
   color: #b7d7b7;
 }
+.planet-flag {
+  display: inline-block;
+  min-width: 1.1em;
+  padding: 1px 5px;
+  margin-right: 3px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.planet-flag-r {
+  background: rgba(196, 165, 116, 0.18);
+  color: var(--c2);
+}
+.planet-flag-c {
+  background: rgba(224, 122, 109, 0.18);
+  color: #e7a399;
+}
+.horoscope-advanced-match {
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.horoscope-advanced-match ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.55;
+}
 tr.koota-weak td {
   background: rgba(224, 122, 109, 0.06);
 }
