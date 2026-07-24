@@ -1,0 +1,776 @@
+From e3e76ba5f5026f37d76e4e30ef33be30377074da Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Fri, 24 Jul 2026 23:26:26 +0000
+Subject: [PATCH] Fix Kiteline dashboard gaps: live polling, status dots,
+ kitchen data
+
+Replace corrupted ?? status markers with CSS dots, seed workflows per
+kitchen so the site switcher changes Happening Now/overdue, add task
+detail Open modal, working pagination controls, notification dropdown,
+richer Ctrl+K search, 30s live refresh, and clock-session merge on
+hydrate so clock-in survives refresh.
+---
+ css/styles.css       |  25 +++++-
+ js/app.js            | 140 +++++++++++++++++++++++++++++-----
+ js/store.js          |  75 +++++++++++++++---
+ js/views.js          | 177 ++++++++++++++++++++++++++++++-------------
+ server/sensor-sim.js |   3 +-
+ 5 files changed, 338 insertions(+), 82 deletions(-)
+
+diff --git a/css/styles.css b/css/styles.css
+index 32adcc7..58cff63 100644
+--- a/css/styles.css
++++ b/css/styles.css
+@@ -25,12 +25,32 @@ html, body { height: 100%; }
+ .wf-item:hover { background:#f8fafc; }
+ .wf-item.wf-live-row { border-color:#fde68a; background:#fffbeb; }
+ .wf-item.wf-overdue-row { border-color:#fecaca; background:#fef2f2; }
+-.wf-dot { font-size:.85rem; line-height:1; flex:none; margin-top:.15rem; }
++.wf-dot {
++  width:9px; height:9px; border-radius:999px; flex:none; margin-top:.35rem;
++  display:inline-block; background:#94a3b8; box-shadow:0 0 0 2px rgba(148,163,184,.2);
++}
++.wf-dot--green { background:#16a34a; box-shadow:0 0 0 2px rgba(22,163,74,.18); }
++.wf-dot--amber { background:#d97706; box-shadow:0 0 0 2px rgba(217,119,6,.18); }
++.wf-dot--red { background:#dc2626; box-shadow:0 0 0 2px rgba(220,38,38,.18); }
++.wf-dot--blue { background:#2563eb; box-shadow:0 0 0 2px rgba(37,99,235,.18); }
++.badge .wf-dot { margin-top:0; }
+ .wf-status-panel { border-left:4px solid #e2e8f0; }
+ .wf-status-panel.ok { border-color:#14b8a6; }
+ .wf-status-panel.warn { border-color:#f59e0b; }
+ .wf-status-panel.bad { border-color:#ef4444; }
+ 
++/* header notifications dropdown */
++.notif-wrap { position:relative; }
++.notif-panel {
++  position:absolute; right:0; top:calc(100% + .5rem); width:min(22rem, calc(100vw - 2rem));
++  background:#fff; border:1px solid #e2e8f0; border-radius:.9rem;
++  box-shadow:0 18px 40px -18px rgba(15,23,42,.35); z-index:80; overflow:hidden;
++}
++.notif-panel.hidden { display:none; }
++.notif-item { display:flex; gap:.75rem; padding:.85rem 1rem; border-bottom:1px solid #f1f5f9; text-align:left; width:100%; background:#fff; }
++.notif-item:hover { background:#f8fafc; }
++.notif-item:last-child { border-bottom:0; }
++
+ /* layout */
+ .app-shell { display: grid; grid-template-columns: var(--side) 1fr; min-height: 100vh; }
+ .mobile-nav-btn { display: none; }
+@@ -42,6 +62,7 @@ html, body { height: 100%; }
+     position: fixed; inset: 0 auto 0 0; width: min(var(--side), 85vw); z-index: 60;
+     transform: translateX(-100%); transition: transform .2s ease;
+     box-shadow: 0 0 0 0 rgba(0,0,0,0);
++    max-height: 100dvh; overflow: hidden;
+   }
+   .sidebar.open { transform: translateX(0); box-shadow: 8px 0 30px rgba(0,0,0,.35); }
+   .sidebar-overlay {
+@@ -49,6 +70,8 @@ html, body { height: 100%; }
+     opacity: 0; pointer-events: none; transition: opacity .2s ease;
+   }
+   .sidebar-overlay.open { display: block; opacity: 1; pointer-events: auto; }
++  #view { padding: 1rem !important; }
++  header .select { max-width: 42vw; }
+ }
+ 
+ /* marketing site mobile nav */
+diff --git a/js/app.js b/js/app.js
+index 64e90c2..724b089 100644
+--- a/js/app.js
++++ b/js/app.js
+@@ -44,9 +44,12 @@
+     { id:'foodcost', label:'Food Cost', icon:'coin' },
+     { id:'manual', label:'User Manual', icon:'help' },
+     { sep:'Products' },
++    { id:'safeserve', label:'SafeServe', icon:'check' },
+     { id:'allerq', label:'MenuGuard', icon:'allerq' },
+     { id:'labels', label:'LabelSmart', icon:'labels' },
+     { id:'waste', label:'WasteWise', icon:'waste' },
++    { id:'clock', label:'Clock In/Out', icon:'team' },
++    { id:'rota', label:'Rota', icon:'team' },
+     { sep:'' },
+     { id:'settings', label:'Settings', icon:'settings' },
+   ];
+@@ -903,7 +906,18 @@
+       const view = (V[r] || V.home)();
+       const navRoute = r;
+       const site = S.site();
+-      const openAlerts = (S.db.alerts || []).filter(a => a.status==='open').length;
++      const siteAlerts = (S.db.alerts || []).filter(a => a.status === 'open' && a.site === S.db.currentSite);
++      const openAlerts = siteAlerts.length;
++      const notifPreview = siteAlerts.slice(0, 6).map((a) => {
++        const sev = a.severity === 'critical' ? '#dc2626' : a.severity === 'warning' ? '#d97706' : '#3b82f6';
++        return `<button type="button" class="notif-item" data-go="alerts">
++          <span class="pulse-dot mt-1.5" style="background:${sev}"></span>
++          <span class="min-w-0 flex-1">
++            <span class="block text-sm font-semibold text-ink-800 truncate">${escapeHtml(a.title || 'Alert')}</span>
++            <span class="block text-xs text-ink-400 truncate">${escapeHtml(a.detail || a.severity || '')}</span>
++          </span>
++        </button>`;
++      }).join('');
+ 
+       document.getElementById('root').innerHTML = `
+         <div id="sidebarOverlay" class="sidebar-overlay"></div>
+@@ -916,7 +930,7 @@
+             <nav class="flex-1 space-y-1 overflow-auto">
+               ${NAV.filter(n => n.sep!==undefined || canAccess(n.id, me.rank)).map(n => n.sep!==undefined
+                 ? `<div class="text-[10px] uppercase tracking-wider text-ink-500 font-bold px-3 pt-4 pb-1">${n.sepKey?t('nav.'+n.sepKey,n.sep):n.sep==='Products'?t('nav.products','Products'):n.sep}</div>`
+-                : `<a class="nav-link ${navRoute===n.id?'active':''}" href="#${n.id}">${icon(n.icon)} <span>${t('nav.'+n.id, n.label)}</span>${n.id==='alerts'&&openAlerts?`<span class="ml-auto badge badge-red">${openAlerts}</span>`:''}</a>`
++                : `<a class="nav-link ${navRoute===n.id || (n.id==='safeserve' && navRoute==='haccp') || (n.id==='haccp' && navRoute==='safeserve')?'active':''}" href="#${n.id}">${icon(n.icon)} <span>${t('nav.'+n.id, n.label)}</span>${n.id==='alerts'&&openAlerts?`<span class="ml-auto badge badge-red">${openAlerts}</span>`:''}</a>`
+               ).join('')}
+             </nav>
+             <div class="border-t border-white/10 pt-3 mt-3">
+@@ -931,19 +945,33 @@
+ 
+           <main class="min-w-0">
+             <header class="bg-white border-b border-ink-100 px-5 py-3 flex items-center justify-between sticky top-0 z-30">
+-              <div class="flex items-center gap-3">
++              <div class="flex items-center gap-3 min-w-0">
+                 <button class="mobile-nav-btn btn btn-ghost btn-sm !px-2" id="menuBtn" aria-label="Open menu">${icon('menu','w-5 h-5')}</button>
+-                <select id="siteSwitch" class="select !w-auto !py-1.5 font-semibold text-sm">
++                <select id="siteSwitch" class="select !w-auto !max-w-[12rem] sm:!max-w-none !py-1.5 font-semibold text-sm">
+                   ${S.db.sites.map(s=>`<option value="${s.id}" ${s.id===S.db.currentSite?'selected':''}>${s.name}</option>`).join('')}
+                 </select>
+                 <span class="hidden sm:flex items-center gap-1.5 text-xs text-ink-400"><span class="pulse-dot pulse-live"></span> ${t('top.live','Live')}</span>
+               </div>
+               <div class="flex items-center gap-2.5">
+-                <button id="paletteBtn" class="flex items-center gap-2 text-sm text-ink-400 border border-ink-200 rounded-lg px-3 py-1.5 hover:bg-ink-50">${icon('search','w-4 h-4')} <span class="hidden md:inline">${t('top.search','Search…')}</span></button>
++                <button id="paletteBtn" class="flex items-center gap-2 text-sm text-ink-400 border border-ink-200 rounded-lg px-3 py-1.5 hover:bg-ink-50" title="Search (Ctrl/⌘ K)">${icon('search','w-4 h-4')} <span class="hidden md:inline">${t('top.search','Search…')}</span><kbd class="hidden lg:inline text-[10px] border border-ink-200 rounded px-1 ml-1">⌘K</kbd></button>
+                 <select id="langSel" class="select !w-auto !py-1.5 text-sm" title="Language">
+                   ${(window.I18n?window.I18n.langs:['en']).map(l=>`<option value="${l}" ${window.I18n&&l===window.I18n.lang?'selected':''}>${window.I18n?window.I18n.langName(l):l}</option>`).join('')}
+                 </select>
+-                <a href="#alerts" class="relative text-ink-500 hover:text-ink-800">${icon('bell','w-5 h-5')}${openAlerts?`<span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">${openAlerts}</span>`:''}</a>
++                <div class="notif-wrap">
++                  <button type="button" id="notifBtn" class="relative text-ink-500 hover:text-ink-800" aria-label="Notifications" aria-expanded="false">${icon('bell','w-5 h-5')}${openAlerts?`<span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">${openAlerts > 9 ? '9+' : openAlerts}</span>`:''}</button>
++                  <div id="notifPanel" class="notif-panel hidden" role="menu">
++                    <div class="px-4 py-3 border-b border-ink-100 flex items-center justify-between">
++                      <div class="font-bold text-sm">Notifications</div>
++                      <span class="badge ${openAlerts ? 'badge-red' : 'badge-green'}">${openAlerts} open</span>
++                    </div>
++                    <div class="max-h-72 overflow-auto">
++                      ${openAlerts ? notifPreview : `<div class="px-4 py-8 text-center text-sm text-ink-400">No open alerts for ${escapeHtml(site.name || 'this kitchen')}.</div>`}
++                    </div>
++                    <div class="px-3 py-2 border-t border-ink-100 bg-ink-50">
++                      <a href="#alerts" class="btn btn-ghost btn-sm w-full justify-center">View all alerts</a>
++                    </div>
++                  </div>
++                </div>
+                 <button id="headerLogout" class="btn btn-ghost btn-sm text-ink-600">${icon('logout','w-4 h-4')} <span class="hidden sm:inline">Sign out</span></button>
+               </div>
+             </header>
+@@ -957,11 +985,48 @@
+       document.getElementById('closeNav')?.addEventListener('click', () => this.closeMobileNav());
+       document.getElementById('sidebarOverlay')?.addEventListener('click', () => this.closeMobileNav());
+       document.querySelectorAll('#sidebar .nav-link').forEach(a => a.addEventListener('click', () => this.closeMobileNav()));
+-      document.getElementById('siteSwitch').onchange = (e) => { S.setSite(e.target.value); this.render(); };
++      document.getElementById('siteSwitch').onchange = (e) => {
++        S.setSite(e.target.value);
++        // Reset list pages when switching kitchens so counts/pages match the new site
++        window.WfPage = {};
++        this.render();
++      };
+       const langSel = document.getElementById('langSel');
+       if (langSel) langSel.onchange = (e) => { if (window.I18n) window.I18n.setLang(e.target.value); this.render(); };
+       const pb = document.getElementById('paletteBtn');
+       if (pb) pb.onclick = () => this.openPalette();
++      const notifBtn = document.getElementById('notifBtn');
++      const notifPanel = document.getElementById('notifPanel');
++      if (notifBtn && notifPanel) {
++        const closeNotif = () => {
++          notifPanel.classList.add('hidden');
++          notifBtn.setAttribute('aria-expanded', 'false');
++        };
++        notifBtn.onclick = (e) => {
++          e.stopPropagation();
++          const willOpen = notifPanel.classList.contains('hidden');
++          document.querySelectorAll('.notif-panel').forEach((p) => p.classList.add('hidden'));
++          if (willOpen) {
++            notifPanel.classList.remove('hidden');
++            notifBtn.setAttribute('aria-expanded', 'true');
++          } else {
++            closeNotif();
++          }
++        };
++        notifPanel.onclick = (e) => e.stopPropagation();
++        notifPanel.querySelectorAll('[data-go]').forEach((el) => {
++          el.onclick = () => { closeNotif(); location.hash = el.dataset.go; };
++        });
++        if (!this._notifOutsideBound) {
++          this._notifOutsideBound = true;
++          document.addEventListener('click', () => {
++            const panel = document.getElementById('notifPanel');
++            const btn = document.getElementById('notifBtn');
++            if (panel) panel.classList.add('hidden');
++            if (btn) btn.setAttribute('aria-expanded', 'false');
++          });
++        }
++      }
+       document.querySelectorAll('[data-nav]').forEach(el => el.onclick = () => { location.hash = el.dataset.nav; });
+       if (view.mount) view.mount();
+       } catch (err) {
+@@ -986,25 +1051,62 @@
+     openPalette() {
+       if (!this.authed()) return;
+       const meRank = currentUser().rank;
++      const fuzzy = (hay, q) => {
++        const h = (hay || '').toLowerCase();
++        const parts = (q || '').toLowerCase().trim().split(/\s+/).filter(Boolean);
++        if (!parts.length) return true;
++        return parts.every((p) => h.includes(p));
++      };
+       const dests = NAV.filter(n => n.sep === undefined && canAccess(n.id, meRank)).map(n => ({
+-        label: t('nav.'+n.id, n.label), hint: 'Go to', icon: n.icon, run: () => { location.hash = n.id; }
++        label: t('nav.'+n.id, n.label), hint: 'Page', icon: n.icon, run: () => { location.hash = n.id; },
++        search: t('nav.'+n.id, n.label) + ' ' + n.id
++      }));
++      const siteItems = (S.db.sites || []).map((s) => ({
++        label: s.name, hint: 'Kitchen', icon: 'sites',
++        search: [s.name, s.city, s.type, s.manager].join(' '),
++        run: () => { S.setSite(s.id); window.WfPage = {}; location.hash = 'home'; this.render(); }
++      }));
++      const staffItems = (S.db.team || []).slice(0, 80).map((m) => ({
++        label: m.name, hint: m.role || 'Staff', icon: 'team',
++        search: [m.name, m.role, m.email, m.siteId].join(' '),
++        run: () => {
++          if (m.siteId && m.siteId !== S.db.currentSite) S.setSite(m.siteId);
++          location.hash = 'team';
++        }
++      }));
++      const taskItems = S.workflowsForSite(S.db.currentSite).slice(0, 120).map((w) => ({
++        label: w.label, hint: (w.status || 'task').replace('_', ' '), icon: 'check',
++        search: [w.label, w.category, w.status, w.assignee].join(' '),
++        run: () => {
++          location.hash = 'wflive';
++          setTimeout(() => {
++            const el = document.querySelector(`[data-wf-open="${w.id}"]`);
++            if (el) el.click();
++            else if (w.route) location.hash = w.route;
++          }, 50);
++        }
+       }));
+       const actions = [
+-        ...(canAccess('sites', meRank) ? [{ label: t('nav.sites','Sites')+': switch site', hint:'Action', icon:'sites', run: () => { location.hash = 'sites'; } }] : []),
+-        ...(canAccess('settings', meRank) ? [{ label: 'Reset demo data', hint:'Danger', icon:'settings', run: () => { location.hash = 'settings'; } }] : []),
+-        { label: 'Sign out', hint:'Account', icon:'logout', run: () => this.signOut() },
++        ...(canAccess('sites', meRank) ? [{ label: 'Switch kitchen…', hint:'Action', icon:'sites', search:'switch kitchen site', run: () => { location.hash = 'sites'; } }] : []),
++        ...(canAccess('settings', meRank) ? [{ label: 'Open settings', hint:'Action', icon:'settings', search:'settings pin billing', run: () => { location.hash = 'settings'; } }] : []),
++        { label: 'Sign out', hint:'Account', icon:'logout', search:'sign out logout', run: () => this.signOut() },
+       ];
+-      const items = dests.concat(actions);
++      let items = dests.concat(actions);
+       const layer = document.getElementById('modal-layer');
+       layer.classList.remove('hidden');
+       const render = (q) => {
+-        const filtered = items.filter(i => i.label.toLowerCase().includes(q.toLowerCase()));
++        const query = (q || '').trim();
++        const pool = query.length
++          ? dests.concat(siteItems, staffItems, taskItems, actions)
++          : dests.concat(actions);
++        const filtered = pool.filter((i) => fuzzy(i.search || i.label, query)).slice(0, 40);
++        items = filtered;
+         layer.querySelector('#cpList').innerHTML = filtered.length ? filtered.map((i, idx) =>
+-          `<button class="cp-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left ${idx===0?'bg-brand-50':''}" data-i="${items.indexOf(i)}">
++          `<button class="cp-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left ${idx===0?'bg-brand-50':''}" data-i="${idx}">
+             <span class="text-ink-400">${icon(i.icon,'w-4 h-4')}</span>
+-            <span class="flex-1 text-sm font-medium">${i.label}</span>
+-            <span class="text-[10px] text-ink-400 uppercase tracking-wide">${i.hint}</span>
+-          </button>`).join('') : '<div class="px-3 py-6 text-center text-ink-400 text-sm">No results</div>';
++            <span class="flex-1 text-sm font-medium truncate">${escapeHtml(i.label)}</span>
++            <span class="text-[10px] text-ink-400 uppercase tracking-wide flex-none">${escapeHtml(i.hint)}</span>
++          </button>`).join('') : '<div class="px-3 py-6 text-center text-ink-400 text-sm">No results — try a task, staff name, or kitchen</div>';
+         layer.querySelectorAll('.cp-item').forEach(b => b.onclick = () => { const it = items[+b.dataset.i]; UI.closeModal(); it.run(); });
+       };
+       layer.innerHTML = `
+@@ -1013,7 +1115,7 @@
+           <div class="modal-card card w-full max-w-lg overflow-hidden">
+             <div class="flex items-center gap-2 px-4 py-3 border-b border-ink-100">
+               ${icon('search','w-5 h-5 text-ink-400')}
+-              <input id="cpInput" class="flex-1 outline-none text-sm" placeholder="Type to search pages and actions…" autocomplete="off">
++              <input id="cpInput" class="flex-1 outline-none text-sm" placeholder="Search tasks, staff, kitchens, pages…" autocomplete="off">
+               <span class="text-[10px] text-ink-400 border border-ink-200 rounded px-1.5 py-0.5">ESC</span>
+             </div>
+             <div id="cpList" class="p-2 max-h-80 overflow-auto"></div>
+@@ -1078,7 +1180,7 @@
+         } else if (wfChanged && /^(home|hub|wflive|wfdone|wfout|wfod|wfstaff|wfdel|wfprod|wfclean|wfhaccp|wfperf)$/.test(this.route) && !document.querySelector('#modal-layer').innerHTML) {
+           this.render();
+         }
+-      }, 5000);
++      }, 30000);
+     },
+   };
+ 
+diff --git a/js/store.js b/js/store.js
+index 0266c5d..069abd6 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -405,8 +405,13 @@
+       { id:uid(), user:'u_lena',  action:'Acknowledged alert: Closing checklist overdue', at:hoursAgo(1.9) },
+     ];
+ 
+-    // Live kitchen workflows — supplier, prep, temps, H&S, HACCP
+-    const workflows = seedWorkflows('site_grove');
++    // Live kitchen workflows — per site so the kitchen switcher changes data
++    const workflows = sites.flatMap((s) => {
++      const pack = seedWorkflows(s.id);
++      // Full pack for flagship demos; compact pack for the rest (keeps localStorage lean)
++      if (['site_grove', 'site_dock', 'site_vedanta', 'site_govindas', 'site_quay'].includes(s.id)) return pack;
++      return pack.slice(0, 40);
++    });
+ 
+     // Approved suppliers register (due-diligence)
+     const suppliers = [
+@@ -667,6 +672,26 @@
+     </div>`;
+   }
+ 
++  /** Ensure every site has its own workflow pack (fixes kitchen switcher showing Grove-only data). */
++  function ensureWorkflowsForAllSites(db) {
++    if (!db || !Array.isArray(db.workflows) || !Array.isArray(db.sites)) return false;
++    const counts = {};
++    db.workflows.forEach((w) => { counts[w.site] = (counts[w.site] || 0) + 1; });
++    let changed = false;
++    db.sites.forEach((site) => {
++      const n = counts[site.id] || 0;
++      if (n >= 30) return;
++      const pack = seedWorkflows(site.id);
++      const size = ['site_grove', 'site_dock', 'site_vedanta', 'site_govindas', 'site_quay'].includes(site.id) ? pack.length : 40;
++      const next = pack.slice(0, size);
++      db.workflows = db.workflows.filter((w) => w.site !== site.id).concat(next);
++      counts[site.id] = next.length;
++      changed = true;
++    });
++    if (changed) db._workflowsPerSite = 1;
++    return changed;
++  }
++
+   // Ensure a loaded/synced db has every collection the current app expects.
+   function ensureShape(db) {
+     if (!db || typeof db !== 'object') return seed();
+@@ -695,6 +720,9 @@
+       if ((db.team || []).length < 10) db.team = s.team;
+       if (!db.workflows || db.workflows.length < 90) db.workflows = s.workflows;
+       if ((db.recipes || []).length < 100) db.recipes = s.recipes;
++      if (ensureWorkflowsForAllSites(db)) {
++        try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {}
++      }
+     }
+     if (window.Rota && window.Rota.ensureDemo) window.Rota.ensureDemo(db);
+     if (!isPrivate) ensurePilots(db);
+@@ -731,6 +759,9 @@
+       try {
+         const serverState = await window.Api.getState();
+         if (serverState) {
++          // Keep local clock/attendance if the server blob is older/empty (prevents refresh wipe)
++          const localClocks = Array.isArray(this.db.clockSessions) ? this.db.clockSessions.slice() : [];
++          const localAttendance = Array.isArray(this.db.attendanceLog) ? this.db.attendanceLog.slice() : [];
+           const isPrivate = !!(serverState._tenantPrivate || serverState._isPrivate);
+           const needsPilot = !isPrivate && (
+             !PILOT_SITE_IDS.every((id) => (serverState.sites || []).some((s) => s.id === id))
+@@ -740,8 +771,19 @@
+             || (serverState.sites || []).length < 10 || (serverState.sensors || []).length < 20
+             || (serverState.workflows || []).length < 90);
+           this.db = ensureShape(serverState);
++          const byId = {};
++          (this.db.clockSessions || []).forEach((c) => { byId[c.id] = c; });
++          localClocks.forEach((c) => {
++            const cur = byId[c.id];
++            if (!cur) { byId[c.id] = c; return; }
++            const curLen = (cur.sessions || []).length;
++            const locLen = (c.sessions || []).length;
++            if (locLen > curLen) byId[c.id] = c;
++          });
++          this.db.clockSessions = Object.values(byId);
++          if (!(this.db.attendanceLog || []).length && localAttendance.length) this.db.attendanceLog = localAttendance;
+           save(this.db);
+-          if (missing || needsPilot) await window.Api.putState(this.db).catch(() => {}); // persist newly-added collections
++          if (missing || needsPilot || localClocks.length) await window.Api.putState(this.db).catch(() => {});
+         } else {
+           await window.Api.putState(this.db); // upload local seed on first run
+         }
+@@ -806,23 +848,25 @@
+       return (this.db.workflows || []).filter(w => w.site === (id || this.db.currentSite));
+     },
+     tickWorkflows() {
+-      const site = this.db.currentSite;
+-      const wfs = this.workflowsForSite(site);
+-      if (!wfs.length) return false;
++      // Recalculate overdue across all sites so badges stay accurate after kitchen switches
++      const all = this.db.workflows || [];
++      if (!all.length) return false;
+       let changed = false;
+       const ts = Date.now();
+-      wfs.forEach(w => {
++      all.forEach(w => {
+         if (w.status !== 'completed' && w.dueAt && new Date(w.dueAt).getTime() < ts && w.status !== 'overdue') {
+           w.status = 'overdue'; w.updatedAt = now(); changed = true;
+         }
+       });
++      const site = this.db.currentSite;
++      const wfs = this.workflowsForSite(site);
+       const sched = wfs.filter(w => w.status === 'scheduled');
+-      if (sched.length && Math.random() < 0.45) {
++      if (sched.length && Math.random() < 0.35) {
+         const w = sched[Math.floor(Math.random() * sched.length)];
+         w.status = 'in_progress'; w.startedAt = now(); w.updatedAt = now(); changed = true;
+       }
+       const prog = wfs.filter(w => w.status === 'in_progress');
+-      if (prog.length && Math.random() < 0.5) {
++      if (prog.length && Math.random() < 0.4) {
+         const w = prog[Math.floor(Math.random() * prog.length)];
+         w.status = 'completed'; w.completedAt = now(); w.updatedAt = now();
+         this.db.activity.unshift({ id: uid(), user: w.assignee, action: w.label, at: now() });
+@@ -832,6 +876,19 @@
+       if (changed) save(this.db);
+       return changed;
+     },
++    completeWorkflow(id) {
++      const w = (this.db.workflows || []).find(x => x.id === id);
++      if (!w || w.status === 'completed') return false;
++      w.status = 'completed';
++      w.completedAt = now();
++      w.updatedAt = now();
++      this.logActivity(w.assignee, 'Completed: ' + w.label);
++      this.persist();
++      return true;
++    },
++    overdueCount(siteId) {
++      return this.workflowsForSite(siteId).filter(w => w.status === 'overdue').length;
++    },
+   };
+ 
+   const ROTA_STATUS = {
+diff --git a/js/views.js b/js/views.js
+index 04b2cc4..1b76543 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -384,9 +384,14 @@
+       </tr>`;
+     }).join('');
+     const html = `
+-      ${sectionHeader('Temperature Monitoring','10 live LoRaWAN probes per site ? 24/7 auto-logging ? EC 852/2004 compliant audit trail', `
++      ${sectionHeader('Temperature Monitoring','Live LoRaWAN probes per site · auto-logging · EC 852/2004 audit trail', `
+         <button class="btn btn-ghost btn-sm" data-act="manual">${icon('plus','ico')} Manual reading</button>
+         <button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add sensor</button>`)}
++      <div class="card card-pad mb-4 flex flex-wrap items-center gap-3 border-l-4 border-brand-500 bg-brand-50/40">
++        <span class="pulse-dot pulse-live"></span>
++        <div class="text-sm flex-1"><b>Live readings</b> · cards refresh automatically · last UI refresh ${new Date().toLocaleTimeString('en-GB')}</div>
++        <div class="text-xs text-ink-500">Hardware ingest every 5 min via <code>/api/ingest</code></div>
++      </div>
+       <div class="grid sm:grid-cols-4 gap-4 mb-5">
+         <div class="kpi"><div class="text-xs text-ink-500">Sensors (this site)</div><div class="v">${sensors.length}</div></div>
+         <div class="kpi"><div class="text-xs text-ink-500">In range</div><div class="v text-brand-600">${counts.ok}</div></div>
+@@ -2181,21 +2186,77 @@
+ 
+   /* ---------------- HOME / LIVE WORKFLOW DASHBOARD ---------------- */
+   const WF_META = {
+-    completed: { dot:'??', badge:'badge-green', row:'', label:'Completed' },
+-    in_progress: { dot:'??', badge:'badge-amber', row:'wf-live-row', label:'In Progress' },
+-    overdue: { dot:'??', badge:'badge-red', row:'wf-overdue-row', label:'Overdue' },
+-    scheduled: { dot:'??', badge:'badge-blue', row:'', label:'Scheduled' },
++    completed: { tone:'green', badge:'badge-green', row:'', label:'Completed' },
++    in_progress: { tone:'amber', badge:'badge-amber', row:'wf-live-row', label:'In Progress' },
++    overdue: { tone:'red', badge:'badge-red', row:'wf-overdue-row', label:'Overdue' },
++    scheduled: { tone:'blue', badge:'badge-blue', row:'', label:'Scheduled' },
++  };
++  const wfDot = (status) => {
++    const m = WF_META[status] || WF_META.scheduled;
++    return `<span class="wf-dot wf-dot--${m.tone}" aria-hidden="true"></span>`;
+   };
++  const wfLegend = () => Object.keys(WF_META).map((k) => {
++    const m = WF_META[k];
++    return `<span class="badge ${m.badge}">${wfDot(k)} ${m.label}</span>`;
++  }).join('');
+   const isToday = (iso) => iso && new Date(iso).toDateString() === new Date().toDateString();
++
++  function openWorkflowDetail(w) {
++    if (!w) return;
++    const m = WF_META[w.status] || WF_META.scheduled;
++    const who = S.member(w.assignee);
++    const site = S.site(w.site);
++    const steps = [
++      'Confirm task requirements and PPE / hygiene rules',
++      'Complete the work and record evidence (photo / temp / note)',
++      'Sign off or escalate corrective action if out of range',
++    ];
++    modal(escapeHtml(w.label), `<div class="space-y-4">
++      <div class="flex flex-wrap items-center gap-2">
++        <span class="badge ${m.badge}">${wfDot(w.status)} ${m.label}</span>
++        <span class="badge badge-gray">${escapeHtml(w.category)}</span>
++      </div>
++      <div class="grid sm:grid-cols-2 gap-3 text-sm">
++        <div><div class="text-xs text-ink-400 uppercase font-bold">Assigned to</div><div class="font-semibold">${escapeHtml(who.name)}</div><div class="text-xs text-ink-400">${escapeHtml(who.role || '')}</div></div>
++        <div><div class="text-xs text-ink-400 uppercase font-bold">Kitchen</div><div class="font-semibold">${escapeHtml(site.name || w.site)}</div></div>
++        <div><div class="text-xs text-ink-400 uppercase font-bold">Due</div><div>${w.dueAt ? fmt.ago(w.dueAt) : '—'} <span class="text-ink-400 text-xs">${w.dueAt ? '(' + new Date(w.dueAt).toLocaleString('en-GB') + ')' : ''}</span></div></div>
++        <div><div class="text-xs text-ink-400 uppercase font-bold">Updated</div><div>${fmt.ago(w.updatedAt || w.completedAt || w.startedAt || w.dueAt)}</div></div>
++      </div>
++      <div>
++        <div class="text-xs text-ink-400 uppercase font-bold mb-2">Sub-steps</div>
++        <ol class="list-decimal pl-5 space-y-1 text-sm text-ink-700">${steps.map(s => `<li>${s}</li>`).join('')}</ol>
++      </div>
++      <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm">
++        <div class="font-bold text-amber-900 mb-1">Corrective actions</div>
++        <p class="text-ink-600 text-xs">${w.status === 'overdue'
++          ? 'Escalate to the duty manager, complete the check immediately, and log why it was late.'
++          : 'If limits are breached, stop service for that item, notify the manager, and record the corrective action in HACCP / Incidents.'}</p>
++      </div>
++      <div class="flex flex-wrap gap-2">
++        ${w.status !== 'completed' ? `<button type="button" class="btn btn-primary flex-1" id="wfCompleteBtn">Mark completed</button>` : ''}
++        ${w.route ? `<button type="button" class="btn btn-ghost flex-1" id="wfModuleBtn">Open ${escapeHtml(w.route)}</button>` : ''}
++      </div>
++    </div>`, { wide: true });
++    const done = document.getElementById('wfCompleteBtn');
++    if (done) done.onclick = () => {
++      if (S.completeWorkflow(w.id)) {
++        closeModal();
++        toast('Task completed · overdue count updated');
++        window.App.render();
++      }
++    };
++    const mod = document.getElementById('wfModuleBtn');
++    if (mod) mod.onclick = () => { closeModal(); location.hash = w.route; };
++  }
++
+   function wfItemHtml(w) {
+     const m = WF_META[w.status] || WF_META.scheduled;
+     const who = S.member(w.assignee);
+-    const go = w.route ? ` data-go="${w.route}" role="button" tabindex="0"` : '';
+-    return `<div class="wf-item ${m.row} fade-in"${go}>
+-      <span class="wf-dot">${m.dot}</span>
++    return `<div class="wf-item ${m.row} fade-in" data-wf-open="${escapeHtml(w.id)}" role="button" tabindex="0">
++      ${wfDot(w.status)}
+       <div class="flex-1 min-w-0">
+         <div class="text-sm font-semibold">${escapeHtml(w.label)}</div>
+-        <div class="text-xs text-ink-400">${escapeHtml(w.category)} ? ${escapeHtml(who.name)} ? ${fmt.ago(w.updatedAt || w.completedAt || w.startedAt || w.dueAt)}</div>
++        <div class="text-xs text-ink-400">${escapeHtml(w.category)} · ${escapeHtml(who.name)} · ${fmt.ago(w.updatedAt || w.completedAt || w.startedAt || w.dueAt)}</div>
+       </div>
+       <span class="badge ${m.badge} flex-none text-[10px]">${m.label}</span>
+     </div>`;
+@@ -2204,38 +2265,55 @@
+   const WF_PAGE_SIZE = 10;
+   window.WfPage = window.WfPage || {};
+   function wfPaginate(routeId, items) {
+-    const total = Math.max(1, Math.ceil(items.length / WF_PAGE_SIZE));
++    const total = Math.max(1, Math.ceil(items.length / WF_PAGE_SIZE) || 1);
+     const pg = Math.min(Math.max(0, window.WfPage[routeId] || 0), total - 1);
+     window.WfPage[routeId] = pg;
+     const slice = items.slice(pg * WF_PAGE_SIZE, (pg + 1) * WF_PAGE_SIZE);
+-    const pages = Array.from({ length: total }, (_, i) =>
+-      `<button class="btn btn-sm ${i === pg ? 'btn-primary' : 'btn-ghost'}" data-wfpg="${routeId}:${i}">${i + 1}</button>`
+-    ).join('');
+-    return { slice, pg, total, pages, start: pg * WF_PAGE_SIZE + 1, end: Math.min((pg + 1) * WF_PAGE_SIZE, items.length) };
++    const pageBtns = [];
++    const windowSize = 7;
++    let start = Math.max(0, pg - Math.floor(windowSize / 2));
++    let end = Math.min(total, start + windowSize);
++    start = Math.max(0, end - windowSize);
++    if (start > 0) pageBtns.push(`<button type="button" class="btn btn-sm btn-ghost" data-wfpg="${routeId}:0">1</button><span class="text-ink-300 px-1">…</span>`);
++    for (let i = start; i < end; i++) {
++      pageBtns.push(`<button type="button" class="btn btn-sm ${i === pg ? 'btn-primary' : 'btn-ghost'}" data-wfpg="${routeId}:${i}">${i + 1}</button>`);
++    }
++    if (end < total) pageBtns.push(`<span class="text-ink-300 px-1">…</span><button type="button" class="btn btn-sm btn-ghost" data-wfpg="${routeId}:${total - 1}">${total}</button>`);
++    const pages = `
++      <button type="button" class="btn btn-sm btn-ghost" data-wfpg="${routeId}:${Math.max(0, pg - 1)}" ${pg === 0 ? 'disabled' : ''}>Prev</button>
++      ${pageBtns.join('')}
++      <button type="button" class="btn btn-sm btn-ghost" data-wfpg="${routeId}:${Math.min(total - 1, pg + 1)}" ${pg >= total - 1 ? 'disabled' : ''}>Next</button>`;
++    return { slice, pg, total, pages, start: items.length ? pg * WF_PAGE_SIZE + 1 : 0, end: Math.min((pg + 1) * WF_PAGE_SIZE, items.length) };
+   }
+   function wfTableRow(w) {
+     const m = WF_META[w.status] || WF_META.scheduled;
+     const who = S.member(w.assignee);
+     return `<tr class="fade-in">
+-      <td>${m.dot}</td>
++      <td>${wfDot(w.status)}</td>
+       <td><div class="font-semibold text-sm">${escapeHtml(w.label)}</div></td>
+       <td class="text-xs text-ink-500">${escapeHtml(w.category)}</td>
+       <td>${escapeHtml(who.name)}</td>
+       <td><span class="badge ${m.badge}">${m.label}</span></td>
+       <td class="text-xs text-ink-400">${fmt.ago(w.updatedAt || w.completedAt || w.dueAt)}</td>
+-      <td>${w.route ? `<a href="#${w.route}" class="text-brand-600 text-xs font-semibold">Open</a>` : '?'}</td>
++      <td><button type="button" class="text-brand-600 text-xs font-semibold" data-wf-open="${escapeHtml(w.id)}">Open</button></td>
+     </tr>`;
+   }
++  function bindWorkflowOpeners(root) {
++    (root || document).querySelectorAll('[data-wf-open]').forEach((el) => {
++      el.style.cursor = 'pointer';
++      el.onclick = (e) => {
++        e.preventDefault();
++        e.stopPropagation();
++        const w = (S.db.workflows || []).find((x) => x.id === el.dataset.wfOpen);
++        openWorkflowDetail(w);
++      };
++    });
++  }
+   function workflowListPage(routeId, title, subtitle, iconName, items, extraHtml) {
+     const pag = wfPaginate(routeId, items);
+     const html = `
+-      ${sectionHeader(title, subtitle + ` ? ${items.length} total ? 10 per page`, `<a href="#home" class="btn btn-ghost btn-sm">${icon('chevron','ico')} Back to Home</a>`)}
+-      <div class="flex flex-wrap gap-2 mb-4 text-xs">
+-        <span class="badge badge-green">?? Completed</span>
+-        <span class="badge badge-amber">?? In Progress</span>
+-        <span class="badge badge-red">?? Overdue</span>
+-        <span class="badge badge-blue">?? Scheduled</span>
+-      </div>
++      ${sectionHeader(title, subtitle + ` · ${items.length} total · 10 per page`, `<button type="button" class="btn btn-ghost btn-sm" data-go="home">${icon('chevron','ico')} Back to Home</button>`)}
++      <div class="flex flex-wrap gap-2 mb-4 text-xs">${wfLegend()}</div>
+       ${extraHtml || ''}
+       <div class="card overflow-hidden mb-4">
+         <table class="table">
+@@ -2244,19 +2322,18 @@
+         </table>
+       </div>
+       <div class="flex flex-wrap items-center justify-between gap-3">
+-        <div class="text-sm text-ink-500">Showing ${items.length ? pag.start : 0}?${pag.end} of ${items.length} ? Page ${pag.pg + 1} of ${pag.total}</div>
+-        <div class="flex flex-wrap gap-1">${pag.pages}</div>
++        <div class="text-sm text-ink-500">Showing ${pag.start}–${pag.end} of ${items.length} · Page ${pag.pg + 1} of ${pag.total}</div>
++        <div class="flex flex-wrap gap-1 items-center">${pag.pages}</div>
+       </div>`;
+     return { title, html, mount() {
+-      document.querySelectorAll('[data-wfpg]').forEach(b => b.onclick = () => {
++      document.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => { location.hash = b.dataset.go; });
++      document.querySelectorAll('[data-wfpg]').forEach((b) => b.onclick = () => {
++        if (b.disabled) return;
+         const [rid, p] = b.dataset.wfpg.split(':');
+         window.WfPage[rid] = parseInt(p, 10);
+         window.App.render();
+       });
+-      document.querySelectorAll('.wf-item[data-go]').forEach(el => {
+-        el.style.cursor = 'pointer';
+-        el.onclick = () => { location.hash = el.dataset.go; };
+-      });
++      bindWorkflowOpeners();
+     }};
+   }
+ 
+@@ -2429,7 +2506,7 @@
+     // product tiles
+     const wasteKg = db.waste.filter(w=>w.site===site).reduce((n,w)=>n+w.kg,0);
+     const products = [
+-      { name:'SafeServe', tag:'HACCP, checklists & live temperatures', icon:'check', route:'haccp', color:'#0d9488',
++      { name:'SafeServe', tag:'HACCP, checklists & live temperatures', icon:'check', route:'safeserve', color:'#0d9488',
+         stat: tempCompliance+'% compliant', sub: breaches?(breaches+' breach(es) now'):'all in range' },
+       { name:'MenuGuard', tag:'Allergen menus with QR codes', icon:'allerq', route:'allerq', color:'#2563eb',
+         stat: db.menus.length+' menus', sub:'14 statutory allergens' },
+@@ -2438,7 +2515,7 @@
+       { name:'WasteWise', tag:'Track & cut food waste', icon:'waste', route:'waste', color:'#dc2626',
+         stat: wasteKg.toFixed(1)+' kg', sub:'logged this period' },
+     ];
+-    const tiles = products.map(p=>`<button class="card text-left overflow-hidden hover:shadow-xl transition-all hover:-translate-y-0.5 fade-in group" data-go="${p.route}">
++    const tiles = products.map(p=>`<button type="button" class="card text-left overflow-hidden hover:shadow-xl transition-all hover:-translate-y-0.5 fade-in group" data-go="${p.route}">
+       <div class="px-5 pt-5 pb-4" style="background:linear-gradient(135deg,${p.color}14,#ffffff)">
+         <div class="flex items-center justify-between mb-4">
+           <span class="w-14 h-14 rounded-2xl flex items-center justify-center flex-none shadow-sm" style="background:${p.color};color:#fff">${icon(p.icon,'w-7 h-7')}</span>
+@@ -2449,7 +2526,7 @@
+       </div>
+       <div class="px-5 py-3 flex items-center justify-between border-t border-ink-50">
+         <span class="text-xs text-ink-400">${p.sub}</span>
+-        <span class="btn btn-sm text-white group-hover:brightness-110" style="background:${p.color}">Launch ${icon('chevron','w-4 h-4')}</span>
++        <span class="btn btn-sm text-white group-hover:brightness-110 pointer-events-none" style="background:${p.color}">Launch ${icon('chevron','w-4 h-4')}</span>
+       </div>
+     </button>`).join('');
+ 
+@@ -2517,9 +2594,9 @@
+         <div class="h-2 rounded-full bg-ink-100 overflow-hidden mb-4"><div class="h-full bg-brand-500 transition-all" style="width:${Math.round(msDone / milestones.length * 100)}%"></div></div>
+         <div class="space-y-2">
+           ${milestones.map(m => `<div class="flex items-center gap-3 text-sm py-1">
+-            <span class="w-5 text-center ${m.done ? 'text-brand-600 font-bold' : 'text-ink-300'}">${m.done ? '?' : '?'}</span>
++            <span class="w-5 text-center ${m.done ? 'text-brand-600 font-bold' : 'text-ink-300'}">${m.done ? '✓' : '○'}</span>
+             <span class="flex-1 ${m.done ? 'text-ink-500' : 'font-medium text-ink-800'}">${escapeHtml(m.label)}</span>
+-            ${!m.done && m.route ? `<button class="btn btn-ghost btn-sm" data-go="${m.route}">Go ?</button>` : ''}
++            ${!m.done && m.route ? `<button class="btn btn-ghost btn-sm" data-go="${m.route}">Go →</button>` : ''}
+           </div>`).join('')}
+         </div>
+       </div>`;
+@@ -2550,12 +2627,7 @@
+           <h1 class="text-2xl font-extrabold">${greet}, ${escapeHtml(firstName)}</h1>
+           <p class="text-ink-500 text-sm">${escapeHtml(siteName)} ? Retreat centre kitchen ? ${fmt.date(S.now())}</p>
+         </div>
+-        <div class="flex flex-wrap gap-2 text-xs">
+-          <span class="badge badge-green">?? Completed</span>
+-          <span class="badge badge-amber">?? In Progress</span>
+-          <span class="badge badge-red">?? Overdue</span>
+-          <span class="badge badge-blue">?? Scheduled</span>
+-        </div>
++        <div class="flex flex-wrap gap-2 text-xs">${wfLegend()}</div>
+       </div>
+       ${openAlerts?`<div class="card card-pad mb-5 flex items-center gap-3 border-l-4 border-red-500 bg-red-50">
+         ${icon('alert','w-5 h-5 text-red-600')}<div class="text-sm"><b>${openAlerts} open alert(s)</b> at this site.</div>
+@@ -2578,7 +2650,8 @@
+             <h2 class="font-bold flex items-center gap-2">${icon('temp','w-5 h-5 text-amber-500')} Happening Now</h2>
+             <a href="#wflive" class="text-xs text-brand-600 font-semibold">All pages (10 each) ?</a>
+           </div>
+-          <div class="wf-feed space-y-2" id="wf-live">${live.length ? live.map(wfItemHtml).join('') : '<p class="text-ink-400 text-sm py-4 text-center">No active tasks ? kitchen is between service periods.</p>'}</div>
++          <div class="wf-feed space-y-2" id="wf-live" data-live-poll="30">${live.length ? live.map(wfItemHtml).join('') : '<p class="text-ink-400 text-sm py-4 text-center">No active tasks — kitchen is between service periods.</p>'}</div>
++          <p class="text-[10px] text-ink-400 mt-2">Auto-refreshes every 30 seconds · last update ${new Date().toLocaleTimeString('en-GB')}</p>
+         </div>
+         <div class="space-y-5">
+           <div class="card card-pad">
+@@ -2644,7 +2717,7 @@
+       </details>`;
+     return { title:'Home', html, mount() {
+       document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{ location.hash = b.dataset.go; });
+-      document.querySelectorAll('.wf-item[data-go]').forEach(el=>{ el.style.cursor='pointer'; el.onclick=()=>{ location.hash=el.dataset.go; }; });
++      bindWorkflowOpeners();
+     }};
+   }
+ 
+@@ -2726,10 +2799,10 @@
+ 
+       <h3 class="font-bold mb-3 text-ink-500 text-sm uppercase tracking-wide">Menu engineering matrix</h3>
+       <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+-        ${quad('Star','? Stars','High profit ? high popularity ? promote & protect','#059669')}
+-        ${quad('Plowhorse','?? Plowhorses','Popular but low margin ? re-engineer cost','#d97706')}
+-        ${quad('Puzzle','?? Puzzles','High margin but low sales ? reposition/upsell','#2563eb')}
+-        ${quad('Dog','?? Dogs','Low profit ? low sales ? consider removing','#dc2626')}
++        ${quad('Star','Stars','High profit · high popularity — promote & protect','#059669')}
++        ${quad('Plowhorse','Plowhorses','Popular but low margin — re-engineer cost','#d97706')}
++        ${quad('Puzzle','Puzzles','High margin but low sales — reposition/upsell','#2563eb')}
++        ${quad('Dog','Dogs','Low profit · low sales — consider removing','#dc2626')}
+       </div>
+ 
+       <h3 class="font-bold mb-3 text-ink-500 text-sm uppercase tracking-wide">Dish profitability</h3>
+@@ -3299,7 +3372,7 @@
+         </div>
+         <div class="card card-pad" id="billingCard">
+           <h3 class="font-bold mb-1">Billing</h3>
+-          <p class="text-sm text-ink-500 mb-2" id="billingLine">Checking subscription?</p>
++          <p class="text-sm text-ink-500 mb-2" id="billingLine">Checking subscription…</p>
+           <p class="text-xs text-ink-400 mb-3 hidden" id="billingTeamLine"></p>
+           <div class="flex flex-wrap gap-2" id="billingPlanBtns"></div>
+           <button class="btn btn-ghost btn-sm hidden mt-2" id="billPortal">Manage subscription</button>
+@@ -3313,11 +3386,11 @@
+           <p class="text-xs text-ink-400 mt-2">Email ? Admins. SMS ? Admins + site Managers with a mobile on Team (or NOTIFY_PHONE in server/.env).</p>
+           <button class="btn btn-ghost btn-sm w-full mt-3" id="testemail">${icon('mail','ico')} Send test email</button>
+           <button class="btn btn-ghost btn-sm w-full mt-2" id="testsms">${icon('mail','ico')} Send test SMS</button>
+-          <p class="text-xs text-ink-400 mt-3" id="notifyStatus">Checking notification setup?</p>
++          <p class="text-xs text-ink-400 mt-3" id="notifyStatus">Checking notification setup…</p>
+         </div>
+         <div class="card card-pad lg:col-span-2" id="recipeAiCard">
+-          <h3 class="font-bold mb-1">Recipe AI assistant ? 3 ways to enable</h3>
+-          <p class="text-sm text-ink-500 mb-2" id="recipeAiLine">Checking?</p>
++          <h3 class="font-bold mb-1">Recipe AI assistant — 3 ways to enable</h3>
++          <p class="text-sm text-ink-500 mb-2" id="recipeAiLine">Checking…</p>
+           <p class="text-xs text-ink-400 mb-3" id="recipeAiUsage"></p>
+           <div id="recipeAiServerBits" class="flex flex-wrap gap-2 mb-4 text-[10px] font-semibold uppercase tracking-wide"></div>
+           <div class="grid md:grid-cols-3 gap-4">
+@@ -4236,5 +4309,5 @@
+     }};
+   }
+ 
+-  window.Views = { home: hub, hub, wflive, wfdone, wfout, wfod, wfstaff, wfdel, wfprod, wfclean, wfhaccp, wfperf, foodcost, taskoverview, deliveries, dashboard, temps, alerts, haccp, records, sites, reports, team, recipes, suppliers, training, incidents, maintenance, assets, batches, cooling, phlogs, holding, allerq, labels, waste, manual, settings, clock, rota };
++  window.Views = { home: hub, hub, wflive, wfdone, wfout, wfod, wfstaff, wfdel, wfprod, wfclean, wfhaccp, wfperf, foodcost, taskoverview, deliveries, dashboard, temps, alerts, haccp, safeserve: haccp, records, sites, reports, team, recipes, suppliers, training, incidents, maintenance, assets, batches, cooling, phlogs, holding, allerq, labels, waste, manual, settings, clock, rota };
+ })();
+diff --git a/server/sensor-sim.js b/server/sensor-sim.js
+index 1a12fe9..9e27b1e 100644
+--- a/server/sensor-sim.js
++++ b/server/sensor-sim.js
+@@ -8,7 +8,8 @@ const path = require('path');
+ 
+ const HOST = process.env.SENSOR_HOST || 'http://localhost:4001';
+ const KEY = process.env.INGEST_KEY || 'kiteline-demo-key';
+-const INTERVAL = +(process.env.SENSOR_INTERVAL_MS || 45000);
++// Default 5 minutes — matches typical LoRaWAN fridge probe cadence
++const INTERVAL = +(process.env.SENSOR_INTERVAL_MS || 300000);
+ const DB_FILE = path.join(process.env.DATA_DIR || path.join(__dirname, 'data'), 'db.json');
+ 
+ const FALLBACK = [
+-- 
+2.43.0
+
