@@ -1326,6 +1326,10 @@ export function AppPage() {
                         navigate("/app/horoscope");
                         return;
                       }
+                      if (/guna milan|kundli match|ashtakoot/i.test(s)) {
+                        navigate("/app/horoscope");
+                        return;
+                      }
                       let mode: string | undefined;
                       if (/^super:/i.test(s)) mode = "super";
                       else if (/^agent:/i.test(s)) mode = "agent";
