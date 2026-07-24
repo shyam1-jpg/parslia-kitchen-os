@@ -41,12 +41,18 @@ export interface HoroscopeChart {
   system: string;
   note: string;
   ayanamsa: { value: number; formatted: string; system: string };
+  accuracy?: {
+    score: number;
+    label: string;
+    notes: string[];
+  };
   lagna: {
     rashi: string;
     rashiWestern: string;
     degree: string;
     nakshatra: string;
     nakshatraLord: string;
+    nakshatraNumber?: number | null;
     pada: number;
     element: string;
     quality: string;
@@ -55,8 +61,10 @@ export interface HoroscopeChart {
   moonSign: {
     rashi: string;
     rashiWestern: string;
+    rashiNumber?: number | null;
     nakshatra: string;
     nakshatraLord: string;
+    nakshatraNumber?: number | null;
     pada: number;
     summary: string;
     element: string;
@@ -67,11 +75,26 @@ export interface HoroscopeChart {
     rashiWestern: string;
     nakshatra: string;
     nakshatraLord: string;
+    nakshatraNumber?: number | null;
     pada: number;
     element: string;
     quality: string;
   };
   currentDasha: { lord: string; startDate: string; endDate: string; years: number } | null;
+  currentAntardasha?: {
+    mahaLord: string;
+    lord: string;
+    startDate: string;
+    endDate: string;
+    years: number;
+  } | null;
+  antardashas?: Array<{
+    mahaLord: string;
+    lord: string;
+    startDate: string;
+    endDate: string;
+    years: number;
+  }>;
   dashas: Array<{ lord: string; startDate: string; endDate: string; years: number }>;
   planets: Array<{
     id: string;
@@ -131,6 +154,63 @@ export interface HoroscopeChart {
   readingContext: string;
 }
 
+export interface AshtakootMatch {
+  system: "Ashtakoot";
+  maxScore: number;
+  totalScore: number;
+  percentage: number;
+  band: "excellent" | "very-good" | "good" | "acceptable" | "challenging";
+  verdict: string;
+  recommended: boolean;
+  kootas: Array<{
+    id: string;
+    name: string;
+    score: number;
+    maxScore: number;
+    personA: string;
+    personB: string;
+    summary: string;
+    detail: string;
+    ok: boolean;
+  }>;
+  doshas: Array<{
+    id: string;
+    name: string;
+    active: boolean;
+    cancelled: boolean;
+    reason: string;
+  }>;
+  manglik: {
+    personA: boolean;
+    personB: boolean;
+    status: "none" | "both" | "one-sided";
+    note: string;
+  };
+  people: {
+    a: { name: string; nakshatra: string; pada: number; rashi: string; rashiWestern: string };
+    b: { name: string; nakshatra: string; pada: number; rashi: string; rashiWestern: string };
+  };
+  readingContext: string;
+  accuracyNote: string;
+}
+
+export interface HoroscopeMatchResult {
+  match: AshtakootMatch;
+  personA: HoroscopeChart;
+  personB: HoroscopeChart;
+}
+
+type BirthBody = {
+  name?: string;
+  gender?: "female" | "male" | "other" | "unspecified";
+  date: string;
+  time: string;
+  place: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+};
+
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     ...options,
@@ -183,17 +263,14 @@ export const toolsApi = {
       body: JSON.stringify({ query, depth }),
     }),
 
-  horoscopeChart: (body: {
-    name?: string;
-    gender?: "female" | "male" | "other" | "unspecified";
-    date: string;
-    time: string;
-    place: string;
-    latitude?: number;
-    longitude?: number;
-    timezone?: string;
-  }) =>
+  horoscopeChart: (body: BirthBody) =>
     api<HoroscopeChart>("/api/tools/horoscope-chart", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  horoscopeMatch: (body: { personA: BirthBody; personB: BirthBody }) =>
+    api<HoroscopeMatchResult>("/api/tools/horoscope-match", {
       method: "POST",
       body: JSON.stringify(body),
     }),

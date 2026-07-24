@@ -22,6 +22,7 @@ import {
 } from "../services/usage.js";
 import { createRealtimeCall, resolveRealtimeVoice, realtimeSafetyId } from "../services/realtime.js";
 import { buildHoroscopeChart } from "../services/horoscopeChart.js";
+import { buildHoroscopeMatch } from "../services/horoscopeMatch.js";
 import { db } from "../db/schema.js";
 
 const router = Router();
@@ -640,6 +641,47 @@ router.post("/horoscope-chart", async (req, res) => {
       msg === "PLACE_REQUIRED" ||
       msg === "INVALID_BIRTH_DATE" ||
       msg === "INVALID_BIRTH_TIME"
+        ? 400
+        : 502;
+    res.status(status).json({ error: msg });
+  }
+});
+
+const birthPersonSchema = z.object({
+  name: z.string().max(120).optional(),
+  gender: z.enum(["female", "male", "other", "unspecified"]).optional(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  time: z.string().regex(/^\d{1,2}:\d{2}$/),
+  place: z.string().min(1).max(200),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+  timezone: z.string().max(80).optional(),
+});
+
+/**
+ * POST /api/tools/horoscope-match
+ * Two birth charts → Ashtakoot (36-guna) matching + Manglik compare.
+ */
+router.post("/horoscope-match", async (req, res) => {
+  const schema = z.object({
+    personA: birthPersonSchema,
+    personB: birthPersonSchema,
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
+
+  try {
+    const result = await buildHoroscopeMatch(parsed.data);
+    res.json(result);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "MATCH_FAILED";
+    const status =
+      msg === "PLACE_NOT_FOUND" ||
+      msg === "PLACE_REQUIRED" ||
+      msg === "INVALID_BIRTH_DATE" ||
+      msg === "INVALID_BIRTH_TIME" ||
+      msg === "INVALID_NAKSHATRA" ||
+      msg === "INVALID_RASHI"
         ? 400
         : 502;
     res.status(status).json({ error: msg });

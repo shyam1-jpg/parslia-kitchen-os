@@ -60,6 +60,21 @@ export interface ChartAspect {
   nature: string;
 }
 
+export interface DashaPeriod {
+  lord: string;
+  startDate: string;
+  endDate: string;
+  years: number;
+}
+
+export interface AntardashaPeriod {
+  mahaLord: string;
+  lord: string;
+  startDate: string;
+  endDate: string;
+  years: number;
+}
+
 export interface HoroscopeChartResult {
   name: string | null;
   gender: string;
@@ -75,12 +90,18 @@ export interface HoroscopeChartResult {
   system: string;
   note: string;
   ayanamsa: { value: number; formatted: string; system: string };
+  accuracy: {
+    score: number;
+    label: string;
+    notes: string[];
+  };
   lagna: {
     rashi: string;
     rashiWestern: string;
     degree: string;
     nakshatra: string;
     nakshatraLord: string;
+    nakshatraNumber: number | null;
     pada: number;
     element: string;
     quality: string;
@@ -89,8 +110,10 @@ export interface HoroscopeChartResult {
   moonSign: {
     rashi: string;
     rashiWestern: string;
+    rashiNumber: number | null;
     nakshatra: string;
     nakshatraLord: string;
+    nakshatraNumber: number | null;
     pada: number;
     summary: string;
     element: string;
@@ -101,12 +124,15 @@ export interface HoroscopeChartResult {
     rashiWestern: string;
     nakshatra: string;
     nakshatraLord: string;
+    nakshatraNumber: number | null;
     pada: number;
     element: string;
     quality: string;
   };
-  currentDasha: { lord: string; startDate: string; endDate: string; years: number } | null;
-  dashas: Array<{ lord: string; startDate: string; endDate: string; years: number }>;
+  currentDasha: DashaPeriod | null;
+  currentAntardasha: AntardashaPeriod | null;
+  antardashas: AntardashaPeriod[];
+  dashas: DashaPeriod[];
   planets: ChartPlanetRow[];
   houses: Array<{
     number: number;
@@ -232,37 +258,59 @@ export function utcOffsetHoursForLocal(timeZone: string, date: string, time: str
 }
 
 export async function geocodeBirthPlace(place: string): Promise<GeocodedPlace> {
-  const url = `${GEOCODE_URL}?name=${encodeURIComponent(place.trim())}&count=1&language=en`;
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 8_000);
-  try {
-    const res = await fetch(url, { signal: ctrl.signal });
-    if (!res.ok) throw new Error("GEOCODE_FAILED");
-    const data = (await res.json()) as {
-      results?: Array<{
-        name: string;
-        country?: string;
-        admin1?: string;
-        latitude: number;
-        longitude: number;
-        timezone?: string;
-      }>;
-    };
-    const found = data.results?.[0];
-    if (!found) throw new Error("PLACE_NOT_FOUND");
-    const label = [found.name, found.admin1, found.country].filter(Boolean).join(", ");
-    return {
-      name: found.name,
-      country: found.country,
-      admin1: found.admin1,
-      latitude: found.latitude,
-      longitude: found.longitude,
-      timezone: found.timezone || "UTC",
-      label,
-    };
-  } finally {
-    clearTimeout(timer);
+  const raw = place.trim();
+  if (!raw) throw new Error("PLACE_REQUIRED");
+
+  // Try full string, then progressively shorter city-first queries ("London, UK" → "London").
+  const candidates = [
+    raw,
+    raw.replace(/\s*,\s*/g, " "),
+    raw.split(",")[0]?.trim() || raw,
+  ].filter((v, i, arr) => v && arr.indexOf(v) === i);
+
+  let lastError: Error | null = null;
+  for (const q of candidates) {
+    const url = `${GEOCODE_URL}?name=${encodeURIComponent(q)}&count=1&language=en`;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8_000);
+    try {
+      const res = await fetch(url, { signal: ctrl.signal });
+      if (!res.ok) {
+        lastError = new Error("GEOCODE_FAILED");
+        continue;
+      }
+      const data = (await res.json()) as {
+        results?: Array<{
+          name: string;
+          country?: string;
+          admin1?: string;
+          latitude: number;
+          longitude: number;
+          timezone?: string;
+        }>;
+      };
+      const found = data.results?.[0];
+      if (!found) {
+        lastError = new Error("PLACE_NOT_FOUND");
+        continue;
+      }
+      const label = [found.name, found.admin1, found.country].filter(Boolean).join(", ");
+      return {
+        name: found.name,
+        country: found.country,
+        admin1: found.admin1,
+        latitude: found.latitude,
+        longitude: found.longitude,
+        timezone: found.timezone || "UTC",
+        label,
+      };
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error("GEOCODE_FAILED");
+    } finally {
+      clearTimeout(timer);
+    }
   }
+  throw lastError ?? new Error("PLACE_NOT_FOUND");
 }
 
 function planetHouseMap(chart: VedicChart): Record<string, number> {
@@ -297,6 +345,167 @@ function isBetweenArc(lon: number, a: number, b: number): boolean {
   const end = normalizeAngle(b);
   if (start <= end) return x >= start && x <= end;
   return x >= start || x <= end;
+}
+
+const DASHA_ORDER = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"] as const;
+const DASHA_YEARS: Record<string, number> = {
+  Ketu: 7,
+  Venus: 20,
+  Sun: 6,
+  Moon: 10,
+  Mars: 7,
+  Rahu: 18,
+  Jupiter: 16,
+  Saturn: 19,
+  Mercury: 17,
+};
+
+const NAKSHATRA_INDEX: Record<string, number> = {
+  ashwini: 1,
+  bharani: 2,
+  krittika: 3,
+  rohini: 4,
+  mrigashira: 5,
+  ardra: 6,
+  punarvasu: 7,
+  pushya: 8,
+  ashlesha: 9,
+  magha: 10,
+  "purva phalguni": 11,
+  "uttara phalguni": 12,
+  hasta: 13,
+  chitra: 14,
+  swati: 15,
+  vishakha: 16,
+  anuradha: 17,
+  jyeshtha: 18,
+  jyestha: 18,
+  mula: 19,
+  "purva ashadha": 20,
+  "uttara ashadha": 21,
+  shravana: 22,
+  dhanishtha: 23,
+  dhanishta: 23,
+  shatabhisha: 24,
+  "purva bhadrapada": 25,
+  "uttara bhadrapada": 26,
+  revati: 27,
+};
+
+const RASHI_INDEX: Record<string, number> = {
+  mesha: 1,
+  aries: 1,
+  vrishabha: 2,
+  taurus: 2,
+  mithuna: 3,
+  gemini: 3,
+  karka: 4,
+  cancer: 4,
+  simha: 5,
+  leo: 5,
+  kanya: 6,
+  virgo: 6,
+  tula: 7,
+  libra: 7,
+  vrishchika: 8,
+  scorpio: 8,
+  dhanu: 9,
+  sagittarius: 9,
+  makara: 10,
+  capricorn: 10,
+  kumbha: 11,
+  aquarius: 11,
+  meena: 12,
+  pisces: 12,
+};
+
+function nakshatraNumber(name: string): number | null {
+  return NAKSHATRA_INDEX[name.trim().toLowerCase()] ?? null;
+}
+
+function rashiNumber(name: string): number | null {
+  return RASHI_INDEX[name.trim().toLowerCase()] ?? null;
+}
+
+function addFractionalYears(start: Date, years: number): Date {
+  const ms = years * 365.25 * 24 * 60 * 60 * 1000;
+  return new Date(start.getTime() + ms);
+}
+
+/** Vimshottari antardasha sequence inside a mahadasha. */
+function buildAntardashas(maha: DashaPeriod): AntardashaPeriod[] {
+  const startIdx = DASHA_ORDER.indexOf(maha.lord as (typeof DASHA_ORDER)[number]);
+  if (startIdx < 0) return [];
+  const mahaYears = DASHA_YEARS[maha.lord] ?? maha.years;
+  const out: AntardashaPeriod[] = [];
+  let cursor = new Date(maha.startDate);
+  const mahaEnd = new Date(maha.endDate);
+  for (let i = 0; i < 9; i++) {
+    const lord = DASHA_ORDER[(startIdx + i) % 9]!;
+    const antardashaYears = (mahaYears * (DASHA_YEARS[lord] ?? 0)) / 120;
+    let end = addFractionalYears(cursor, antardashaYears);
+    if (end > mahaEnd) end = new Date(mahaEnd);
+    if (cursor >= mahaEnd) break;
+    out.push({
+      mahaLord: maha.lord,
+      lord,
+      startDate: cursor.toISOString(),
+      endDate: end.toISOString(),
+      years: Math.round(antardashaYears * 1000) / 1000,
+    });
+    cursor = end;
+  }
+  return out;
+}
+
+function currentAntardasha(
+  periods: AntardashaPeriod[],
+  at: Date = new Date(),
+): AntardashaPeriod | null {
+  for (const p of periods) {
+    const s = new Date(p.startDate).getTime();
+    const e = new Date(p.endDate).getTime();
+    if (at.getTime() >= s && at.getTime() < e) return p;
+  }
+  return periods[periods.length - 1] ?? null;
+}
+
+function estimateAccuracy(planets: ChartPlanetRow[], lagna: HoroscopeChartResult["lagna"]): HoroscopeChartResult["accuracy"] {
+  const notes: string[] = [];
+  let score = 92;
+  notes.push("Lahiri (Chitrapaksha) ayanamsa with astronomy-engine positions.");
+  notes.push("Whole-sign Vedic houses from Lagna.");
+
+  const moon = planets.find((p) => p.id === "moon");
+  if (moon) {
+    const withinSign = moon.longitude % 30;
+    const nakSpan = 360 / 27;
+    const posInNak = moon.longitude % nakSpan;
+    const nearNakEdge = posInNak < 0.5 || posInNak > nakSpan - 0.5;
+    if (nearNakEdge) {
+      score -= 8;
+      notes.push("Moon is near a nakshatra boundary — a small birth-time error can flip dasha/matching.");
+    }
+    if (withinSign < 0.5 || withinSign > 29.5) {
+      score -= 4;
+      notes.push("Moon is near a rashi cusp.");
+    }
+  }
+  if (lagna) {
+    const degMatch = /(\d+)/.exec(lagna.degree);
+    const deg = degMatch ? Number(degMatch[1]) : 15;
+    if (deg <= 1 || deg >= 29) {
+      score -= 6;
+      notes.push("Lagna near sign cusp — confirm birth time to the minute for rising sign.");
+    }
+  } else {
+    score -= 15;
+    notes.push("Lagna unavailable — rising-dependent readings are less reliable.");
+  }
+  score = Math.max(72, Math.min(95, score));
+  const label =
+    score >= 90 ? "High (~90%+)" : score >= 82 ? "Strong" : score >= 75 ? "Good with caveats" : "Needs birth-time check";
+  return { score, label, notes };
 }
 
 function detectYogas(
@@ -388,12 +597,6 @@ function detectYogas(
   });
 
   const saH = houseOf.saturn;
-  const sadeSatiHint =
-    moonHouse != null &&
-    saH != null &&
-    [moonHouse, ((moonHouse + 10) % 12) + 1, ((moonHouse + 11) % 12) + 1, ((moonHouse) % 12) + 1].includes(saH);
-  // Simpler natal note: Saturn near Moon sign houses 12,1,2 from Moon = Sade Sati zone in transit sense;
-  // For natal we note if Saturn is in Moon's sign or adjacent houses from Moon.
   const satFromMoon = moonHouse != null && saH != null ? ((saH - moonHouse + 12) % 12) + 1 : null;
   const saturnMoonPressure = satFromMoon === 1 || satFromMoon === 12 || satFromMoon === 2;
   yogas.push({
@@ -407,7 +610,53 @@ function detectYogas(
     detail: "Natal hint only (not current Sade Sati transit). Useful for emotional endurance themes.",
   });
 
-  void sadeSatiHint;
+  // Pancha Mahapurusha — planet in own/exaltation in kendra (1/4/7/10)
+  const mahapurusha: Array<{ id: string; name: string; planet: string; exaltOrOwn: string[] }> = [
+    { id: "ruchaka", name: "Ruchaka Yoga", planet: "mars", exaltOrOwn: ["Own sign", "Exalted"] },
+    { id: "bhadra", name: "Bhadra Yoga", planet: "mercury", exaltOrOwn: ["Own sign", "Exalted"] },
+    { id: "hamsa", name: "Hamsa Yoga", planet: "jupiter", exaltOrOwn: ["Own sign", "Exalted"] },
+    { id: "malavya", name: "Malavya Yoga", planet: "venus", exaltOrOwn: ["Own sign", "Exalted"] },
+    { id: "sasa", name: "Sasa Yoga", planet: "saturn", exaltOrOwn: ["Own sign", "Exalted"] },
+  ];
+  for (const m of mahapurusha) {
+    const p = planets.find((x) => x.id === m.planet);
+    const h = houseOf[m.planet];
+    const present = !!(p && h != null && [1, 4, 7, 10].includes(h) && m.exaltOrOwn.includes(p.dignity));
+    yogas.push({
+      id: m.id,
+      name: m.name,
+      present,
+      severity: "notable",
+      summary: present
+        ? `${p!.name} in ${p!.dignity} in kendra H${h} — Pancha Mahapurusha favour.`
+        : `${m.planet[0]!.toUpperCase()}${m.planet.slice(1)} is not in own/exaltation in a kendra.`,
+      detail: "Classical Pancha Mahapurusha yoga screen (whole-sign kendras).",
+    });
+  }
+
+  // Raja yoga hint: Jupiter or Venus in own/exaltation in kendra
+  const kendra = [1, 4, 7, 10];
+  let raja = false;
+  let rajaDetail = "";
+  const ju = planets.find((p) => p.id === "jupiter");
+  const ve = planets.find((p) => p.id === "venus");
+  if (ju && ju.house != null && kendra.includes(ju.house) && (ju.dignity === "Own sign" || ju.dignity === "Exalted")) {
+    raja = true;
+    rajaDetail = `Jupiter ${ju.dignity} in kendra H${ju.house}`;
+  }
+  if (ve && ve.house != null && kendra.includes(ve.house) && (ve.dignity === "Own sign" || ve.dignity === "Exalted")) {
+    raja = true;
+    rajaDetail = rajaDetail ? `${rajaDetail}; Venus ${ve.dignity} in H${ve.house}` : `Venus ${ve.dignity} in kendra H${ve.house}`;
+  }
+  yogas.push({
+    id: "raja-hint",
+    name: "Raja-yoga dignity hint",
+    present: raja,
+    severity: "notable",
+    summary: raja ? `${rajaDetail} — status/support theme.` : "No simple Jupiter/Venus kendra dignity raja hint.",
+    detail: "Lightweight screen only — full raja yoga needs kendra–trikona lord relationships.",
+  });
+
   return yogas;
 }
 
@@ -444,21 +693,27 @@ function buildReadingContext(result: Omit<HoroscopeChartResult, "readingContext"
     `Native: ${result.name || "Seeker"}${result.gender && result.gender !== "unspecified" ? ` · ${result.gender}` : ""}`,
     `Birth: ${result.birth.date} ${result.birth.time} · ${result.birth.place} (${result.birth.timezone}, UTC${result.birth.utcOffsetHours >= 0 ? "+" : ""}${result.birth.utcOffsetHours})`,
     `Ayanamsa: ${result.ayanamsa.system} ${result.ayanamsa.formatted}`,
+    `Chart confidence: ${result.accuracy.label} (${result.accuracy.score}%) — ${result.accuracy.notes.join(" ")}`,
   ];
   if (result.lagna) {
     lines.push(
-      `Lagna: ${result.lagna.rashi} (${result.lagna.rashiWestern}) ${result.lagna.degree} · ${result.lagna.nakshatra} (lord ${result.lagna.nakshatraLord}) pada ${result.lagna.pada} · ${result.lagna.element}/${result.lagna.quality} · ruled by ${result.lagna.ruler}`,
+      `Lagna: ${result.lagna.rashi} (${result.lagna.rashiWestern}) ${result.lagna.degree} · ${result.lagna.nakshatra} #${result.lagna.nakshatraNumber ?? "?"} (lord ${result.lagna.nakshatraLord}) pada ${result.lagna.pada} · ${result.lagna.element}/${result.lagna.quality} · ruled by ${result.lagna.ruler}`,
     );
   }
   lines.push(
-    `Moon: ${result.moonSign.rashi} (${result.moonSign.rashiWestern}) · ${result.moonSign.nakshatra} (lord ${result.moonSign.nakshatraLord}) pada ${result.moonSign.pada}`,
+    `Moon: ${result.moonSign.rashi} (${result.moonSign.rashiWestern}) #${result.moonSign.rashiNumber ?? "?"} · ${result.moonSign.nakshatra} #${result.moonSign.nakshatraNumber ?? "?"} (lord ${result.moonSign.nakshatraLord}) pada ${result.moonSign.pada}`,
   );
   lines.push(
-    `Sun: ${result.sunSign.rashi} (${result.sunSign.rashiWestern}) · ${result.sunSign.nakshatra} (lord ${result.sunSign.nakshatraLord}) pada ${result.sunSign.pada}`,
+    `Sun: ${result.sunSign.rashi} (${result.sunSign.rashiWestern}) · ${result.sunSign.nakshatra} #${result.sunSign.nakshatraNumber ?? "?"} (lord ${result.sunSign.nakshatraLord}) pada ${result.sunSign.pada}`,
   );
   if (result.currentDasha) {
     lines.push(
       `Current Vimshottari Mahadasha: ${result.currentDasha.lord} (${result.currentDasha.startDate.slice(0, 10)} → ${result.currentDasha.endDate.slice(0, 10)})`,
+    );
+  }
+  if (result.currentAntardasha) {
+    lines.push(
+      `Current Antardasha: ${result.currentAntardasha.mahaLord}–${result.currentAntardasha.lord} (${result.currentAntardasha.startDate.slice(0, 10)} → ${result.currentAntardasha.endDate.slice(0, 10)})`,
     );
   }
   if (result.balance.dominantElement) {
@@ -585,6 +840,7 @@ export async function buildHoroscopeChart(input: BirthDetailsInput): Promise<Hor
 
   const asc = raw.positions.ascendant;
   const sun = raw.positions.sun;
+  if (!sun) throw new Error("CHART_FAILED");
   const moon = raw.moonSign;
   const yogas = detectYogas(planets, houseOf);
   const balance = elementBalance(planets);
@@ -618,6 +874,41 @@ export async function buildHoroscopeChart(input: BirthDetailsInput): Promise<Hor
         : null,
   };
 
+  const dashas: DashaPeriod[] = (raw.dasha.dashas ?? []).slice(0, 9).map((d) => ({
+    lord: d.lord,
+    startDate: asIsoDate(d.startDate),
+    endDate: asIsoDate(d.endDate),
+    years: d.years,
+  }));
+  const currentDasha: DashaPeriod | null = raw.dasha.current
+    ? {
+        lord: raw.dasha.current.lord,
+        startDate: asIsoDate(raw.dasha.current.startDate),
+        endDate: asIsoDate(raw.dasha.current.endDate),
+        years: raw.dasha.current.years,
+      }
+    : null;
+
+  const antardashas = currentDasha ? buildAntardashas(currentDasha) : [];
+  const antardashaNow = currentAntardasha(antardashas);
+
+  const lagnaBlock = asc
+    ? {
+        rashi: asc.rashi.name,
+        rashiWestern: asc.rashi.westernName,
+        degree: asc.degree,
+        nakshatra: asc.nakshatra.name,
+        nakshatraLord: asc.nakshatra.lord,
+        nakshatraNumber: nakshatraNumber(asc.nakshatra.name),
+        pada: asc.nakshatra.pada,
+        element: asc.rashi.element,
+        quality: asc.rashi.quality,
+        ruler: asc.rashi.ruler,
+      }
+    : null;
+
+  const accuracy = estimateAccuracy(planets, lagnaBlock);
+
   const base: Omit<HoroscopeChartResult, "readingContext"> = {
     name: input.name?.trim() || null,
     gender: input.gender ?? "unspecified",
@@ -637,24 +928,15 @@ export async function buildHoroscopeChart(input: BirthDetailsInput): Promise<Hor
       formatted: raw.ayanamsa.formatted,
       system: raw.ayanamsa.system,
     },
-    lagna: asc
-      ? {
-          rashi: asc.rashi.name,
-          rashiWestern: asc.rashi.westernName,
-          degree: asc.degree,
-          nakshatra: asc.nakshatra.name,
-          nakshatraLord: asc.nakshatra.lord,
-          pada: asc.nakshatra.pada,
-          element: asc.rashi.element,
-          quality: asc.rashi.quality,
-          ruler: asc.rashi.ruler,
-        }
-      : null,
+    accuracy,
+    lagna: lagnaBlock,
     moonSign: {
       rashi: moon.rashi.name,
       rashiWestern: moon.rashi.westernName,
+      rashiNumber: rashiNumber(moon.rashi.westernName) ?? rashiNumber(moon.rashi.name),
       nakshatra: moon.nakshatra.name,
       nakshatraLord: moon.nakshatra.lord,
+      nakshatraNumber: nakshatraNumber(moon.nakshatra.name),
       pada: moon.nakshatra.pada,
       summary: moon.summary,
       element: moon.rashi.element,
@@ -665,24 +947,15 @@ export async function buildHoroscopeChart(input: BirthDetailsInput): Promise<Hor
       rashiWestern: sun.rashi.westernName,
       nakshatra: sun.nakshatra.name,
       nakshatraLord: sun.nakshatra.lord,
+      nakshatraNumber: nakshatraNumber(sun.nakshatra.name),
       pada: sun.nakshatra.pada,
       element: sun.rashi.element,
       quality: sun.rashi.quality,
     },
-    currentDasha: raw.dasha.current
-      ? {
-          lord: raw.dasha.current.lord,
-          startDate: asIsoDate(raw.dasha.current.startDate),
-          endDate: asIsoDate(raw.dasha.current.endDate),
-          years: raw.dasha.current.years,
-        }
-      : null,
-    dashas: (raw.dasha.dashas ?? []).slice(0, 9).map((d) => ({
-      lord: d.lord,
-      startDate: asIsoDate(d.startDate),
-      endDate: asIsoDate(d.endDate),
-      years: d.years,
-    })),
+    currentDasha,
+    currentAntardasha: antardashaNow,
+    antardashas,
+    dashas,
     planets,
     houses,
     houseLords,
