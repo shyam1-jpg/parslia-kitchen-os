@@ -56,12 +56,12 @@ const ASSISTANT_UI: Record<
   astrology: {
     emoji: "✨",
     title: "Astrology & Horoscope",
-    blurb: "Deep advanced readings — or open Horoscope for a free Vedic kundli chart from birth details",
+    blurb: "Deep Vedic kundli, Ashtakoot guna milan match, dasha timing — open Horoscope for a free chart",
     suggestions: [
       "Open my kundli chart — take me to birth details",
+      "Match two kundlis with Ashtakoot guna milan",
       "Give me a deep advanced daily horoscope — I'm a Leo rising Virgo",
       "Full natal chart reading — 14 July 1995, London, 3:20pm (houses, aspects, career & love)",
-      "Deep compatibility reading: Cancer Sun / Scorpio Moon with Taurus Sun / Libra Rising",
     ],
   },
   writing: {
@@ -1323,6 +1323,10 @@ export function AppPage() {
                     className="suggestion-chip"
                     onClick={() => {
                       if (/kundli chart|birth details/i.test(s)) {
+                        navigate("/app/horoscope");
+                        return;
+                      }
+                      if (/guna milan|kundli match|ashtakoot/i.test(s)) {
                         navigate("/app/horoscope");
                         return;
                       }
