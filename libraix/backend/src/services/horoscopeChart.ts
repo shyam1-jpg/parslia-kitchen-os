@@ -286,20 +286,91 @@ export function utcOffsetHoursForLocal(timeZone: string, date: string, time: str
   return Math.round(offsetAt(utcMs) * 100) / 100;
 }
 
+/** Historical / common birth-place aliases → preferred modern search name. */
+const PLACE_ALIASES: Record<string, string> = {
+  calcutta: "Kolkata",
+  kolkatta: "Kolkata",
+  bombay: "Mumbai",
+  madras: "Chennai",
+  bangalore: "Bengaluru",
+  bengalooru: "Bengaluru",
+  poona: "Pune",
+  baroda: "Vadodara",
+  trivandrum: "Thiruvananthapuram",
+  cochin: "Kochi",
+  trichy: "Tiruchirappalli",
+  benares: "Varanasi",
+  banaras: "Varanasi",
+  gauhati: "Guwahati",
+  simla: "Shimla",
+  cawnpore: "Kanpur",
+};
+
+type GeocodeHit = {
+  name: string;
+  country?: string;
+  admin1?: string;
+  latitude: number;
+  longitude: number;
+  timezone?: string;
+  population?: number;
+  feature_code?: string;
+  country_code?: string;
+};
+
+function normalizePlaceToken(s: string): string {
+  return s.trim().toLowerCase().replace(/\./g, "").replace(/\s+/g, " ");
+}
+
+function expandPlaceQueries(place: string): string[] {
+  const raw = place.trim();
+  const cityPart = raw.split(",")[0]?.trim() || raw;
+  const alias = PLACE_ALIASES[normalizePlaceToken(cityPart)];
+  const queries = [
+    alias ? `${alias}, India` : "",
+    alias || "",
+    raw,
+    raw.replace(/\s*,\s*/g, " "),
+    cityPart,
+    // If user wrote Calcutta without country, force the Indian mega-city query.
+    !/,/.test(raw) && alias ? alias : "",
+  ].filter((v, i, arr) => !!v && arr.indexOf(v) === i);
+  return queries;
+}
+
+function scoreGeocodeHit(hit: GeocodeHit, query: string): number {
+  const q = normalizePlaceToken(query.split(",")[0] || query);
+  const name = normalizePlaceToken(hit.name);
+  let score = 0;
+  const pop = hit.population ?? 0;
+  score += Math.min(60, Math.log10(pop + 10) * 12);
+  if (hit.feature_code === "PPLC") score += 40; // capital
+  else if (hit.feature_code === "PPLA") score += 28; // admin capital
+  else if (hit.feature_code === "PPLA2") score += 16;
+  else if (hit.feature_code === "PPL") score += 6;
+  if (hit.country_code === "IN" || /india/i.test(hit.country ?? "")) score += 18;
+  if (name === q || name === normalizePlaceToken(PLACE_ALIASES[q] ?? q)) score += 25;
+  if (name.startsWith(q) || q.startsWith(name)) score += 8;
+  // Penalise tiny namesakes (e.g. Calcutta, Mpumalanga ZA ~35k vs Kolkata millions)
+  if (pop > 0 && pop < 100_000) score -= 20;
+  if (pop > 1_000_000) score += 20;
+  return score;
+}
+
+function pickBestGeocodeHit(hits: GeocodeHit[], query: string): GeocodeHit | null {
+  if (!hits.length) return null;
+  return [...hits].sort((a, b) => scoreGeocodeHit(b, query) - scoreGeocodeHit(a, query))[0] ?? null;
+}
+
 export async function geocodeBirthPlace(place: string): Promise<GeocodedPlace> {
   const raw = place.trim();
   if (!raw) throw new Error("PLACE_REQUIRED");
 
-  // Try full string, then progressively shorter city-first queries ("London, UK" → "London").
-  const candidates = [
-    raw,
-    raw.replace(/\s*,\s*/g, " "),
-    raw.split(",")[0]?.trim() || raw,
-  ].filter((v, i, arr) => v && arr.indexOf(v) === i);
-
+  const candidates = expandPlaceQueries(raw);
   let lastError: Error | null = null;
+
   for (const q of candidates) {
-    const url = `${GEOCODE_URL}?name=${encodeURIComponent(q)}&count=1&language=en`;
+    const url = `${GEOCODE_URL}?name=${encodeURIComponent(q)}&count=8&language=en`;
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8_000);
     try {
@@ -308,17 +379,8 @@ export async function geocodeBirthPlace(place: string): Promise<GeocodedPlace> {
         lastError = new Error("GEOCODE_FAILED");
         continue;
       }
-      const data = (await res.json()) as {
-        results?: Array<{
-          name: string;
-          country?: string;
-          admin1?: string;
-          latitude: number;
-          longitude: number;
-          timezone?: string;
-        }>;
-      };
-      const found = data.results?.[0];
+      const data = (await res.json()) as { results?: GeocodeHit[] };
+      const found = pickBestGeocodeHit(data.results ?? [], q);
       if (!found) {
         lastError = new Error("PLACE_NOT_FOUND");
         continue;

@@ -1296,8 +1296,8 @@ export function HoroscopePage() {
           )}
         </div>
         <p className="dim horoscope-hint">
-          Accurate Lagna and Moon nakshatra need correct birth time and place. Charts use Lahiri (sidereal). Print
-          opens your browser dialog — choose “Save as PDF”.
+          Accurate Lagna and Moon nakshatra need correct birth time and place. Use modern or historic city names
+          (Calcutta → Kolkata, Bombay → Mumbai). Charts use Lahiri (sidereal). Print → “Save as PDF”.
         </p>
       </section>
 
