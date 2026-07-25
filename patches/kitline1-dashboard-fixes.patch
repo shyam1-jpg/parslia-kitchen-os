@@ -1,7 +1,7 @@
 From 09d64a4d85d76516930485e2a1b36deea0f19bfd Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Fri, 24 Jul 2026 23:29:24 +0000
-Subject: [PATCH 1/7] Add kitchen Clock In/Out kiosk with PIN pad and home
+Subject: [PATCH 1/8] Add kitchen Clock In/Out kiosk with PIN pad and home
  widget
 
 Promote Clock In/Out into Live Ops, add PIN-pad kiosk (auto toggle),
@@ -1167,7 +1167,7 @@ index 1a12fe9..9e27b1e 100644
 From 967cfda1d6f61e3c2cffa68c6c4ea19a5f254a2a Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Fri, 24 Jul 2026 23:51:15 +0000
-Subject: [PATCH 2/7] Premium Clock In/Out kiosk matching Kiteline brand
+Subject: [PATCH 2/8] Premium Clock In/Out kiosk matching Kiteline brand
 
 Restyle the clock as a dark-teal glass kiosk with Sora type, PIN
 slot animation, gradient CTA, premium staff cards, and attendance
@@ -1639,7 +1639,7 @@ index 9342e25..abeb7e0 100644
 From 0e8d3101941e75a988a698aaafc33076bbef8828 Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Sat, 25 Jul 2026 00:02:44 +0000
-Subject: [PATCH 3/7] Polish Clock In/Out page hero and weekend rota cover
+Subject: [PATCH 3/8] Polish Clock In/Out page hero and weekend rota cover
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -1809,7 +1809,7 @@ index abeb7e0..7de15f8 100644
 From 686ed9c8cebe71aa68941edccd549e6b4fd342de Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Sat, 25 Jul 2026 00:12:07 +0000
-Subject: [PATCH 4/7] Require PIN for clock in/out with visible demo codes
+Subject: [PATCH 4/8] Require PIN for clock in/out with visible demo codes
 
 Always prompt for a 4-digit PIN (premium pad modal), restore known
 demo PINs, show PIN chips on the kiosk and staff cards, and confirm
@@ -2160,7 +2160,7 @@ index 7de15f8..8a91718 100644
 From a5b2b8199d3920efca1ccb554fc1e7d99db5acb4 Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Sat, 25 Jul 2026 00:27:56 +0000
-Subject: [PATCH 5/7] Fix clock PIN lookup across kitchens
+Subject: [PATCH 5/8] Fix clock PIN lookup across kitchens
 
 Resolve staff by PIN on any site, clock against their kitchen, and
 re-ensure demo PINs before submit so stale storage still works.
@@ -2255,7 +2255,7 @@ index 8a91718..6f0cd2d 100644
 From a0065de6d7a3790072fd19fa9aff56c7f2c9d61a Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Sat, 25 Jul 2026 00:41:14 +0000
-Subject: [PATCH 6/7] Fix PIN clock-in: single shell so pad clicks register
+Subject: [PATCH 6/8] Fix PIN clock-in: single shell so pad clicks register
 
 Wrap hero + kiosk in one #clockShell so PIN chips/pad handlers
 contain the controls. Require PIN with visible demo codes (Sarah 1234).
@@ -2550,7 +2550,7 @@ index 6f0cd2d..e7d6bd2 100644
 From ef457b4d03e4c2b2521e8b745c0640432f8bbac3 Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Sat, 25 Jul 2026 00:53:34 +0000
-Subject: [PATCH 7/7] Fix Wrong PIN on clock: match demo PINs by name
+Subject: [PATCH 7/8] Fix Wrong PIN on clock: match demo PINs by name
 
 Private starter packs use different staff ids (e.g. Sarah Mitchell
 (sample)), so 1234 never matched. Restore demo PINs by name, normalize
@@ -2830,6 +2830,288 @@ index ee666d2..39a8f83 100644
        _sample: true,
      },
    ];
+-- 
+2.43.0
+
+
+From 7725833fe92dd842e08388b1b766fa1ad602d77c Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sat, 25 Jul 2026 01:01:46 +0000
+Subject: [PATCH 8/8] Admin clock: one-tap Clock me in, no PIN on staff cards
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-in Admin/Manager can clock staff without the PIN pad.
+Show the signed-in user’s clock PIN (vs login password) and a
+Clock me in/out button. Match demo PINs by email too.
+---
+ css/styles.css   | 25 ++++++++++++++++
+ index.html       |  8 ++---
+ js/store.js      | 13 ++++++++
+ js/views.js      | 78 ++++++++++++++++++++++++++++++++++++++++++++----
+ server/server.js |  2 +-
+ 5 files changed, 115 insertions(+), 11 deletions(-)
+
+diff --git a/css/styles.css b/css/styles.css
+index 2e7da55..b88b6fa 100644
+--- a/css/styles.css
++++ b/css/styles.css
+@@ -71,6 +71,31 @@ html, body { height: 100%; }
+ .clock-page-hero__sub {
+   margin: .35rem 0 0; font-size: .9rem; font-weight: 500; color: #0f766e;
+ }
++.clock-me-banner {
++  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .85rem;
++  padding: 1rem 1.15rem;
++  border-radius: 1.1rem;
++  border: 1px solid #99f6e4;
++  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 55%, #fff 100%);
++  box-shadow: 0 12px 28px -22px rgba(15,118,110,.55);
++}
++.clock-me-banner__eyebrow {
++  font-size: .65rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #0f766e;
++}
++.clock-me-banner__name {
++  font-size: 1.15rem; font-weight: 800; color: #042f2e; letter-spacing: -0.02em; line-height: 1.2;
++}
++.clock-me-banner__pin {
++  margin-top: .2rem; font-size: .85rem; font-weight: 600; color: #115e59;
++}
++.clock-me-banner__pin b {
++  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
++  font-size: 1.05rem; letter-spacing: .12em; color: #042f2e;
++}
++.clock-pin-chip--me {
++  outline: 2px solid rgba(45,212,191,.85);
++  box-shadow: 0 0 0 3px rgba(13,148,136,.2);
++}
+ .clock-kiosk {
+   position: relative;
+   overflow: hidden;
+diff --git a/index.html b/index.html
+index bd58727..402799d 100644
+--- a/index.html
++++ b/index.html
+@@ -48,7 +48,7 @@
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+-  <link rel="stylesheet" href="/css/styles.css?v=32" />
++  <link rel="stylesheet" href="/css/styles.css?v=33" />
+ </head>
+ <body class="bg-ink-100 text-ink-900 font-sans antialiased">
+   <noscript>
+@@ -123,7 +123,7 @@
+   <script src="/js/i18n.js?v=12"></script>
+   <script src="/js/api.js?v=19"></script>
+   <script src="/js/recipe-seeds.js?v=4"></script>
+-  <script src="/js/store.js?v=32"></script>
++  <script src="/js/store.js?v=33"></script>
+   <script src="/js/ui.js?v=14"></script>
+   <script src="/js/security.js?v=1"></script>
+   <script src="/js/compliance.js?v=4"></script>
+@@ -131,9 +131,9 @@
+   <script src="/js/recipe-media.js?v=1"></script>
+   <script src="/js/recipe-ai.js?v=2"></script>
+   <script src="/js/register-form.js?v=6"></script>
+-  <script src="/js/views.js?v=32"></script>
++  <script src="/js/views.js?v=33"></script>
+   <script src="/js/compliance-views.js?v=4"></script>
+-  <script src="/js/app.js?v=33"></script>
++  <script src="/js/app.js?v=34"></script>
+   <script>
+     if ('serviceWorker' in navigator) {
+       window.addEventListener('load', () => {
+diff --git a/js/store.js b/js/store.js
+index 1ab9689..f1b16aa 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -1061,9 +1061,22 @@
+     'ravi patel': '6666',
+   };
+ 
++  const DEMO_CLOCK_PINS_BY_EMAIL = {
++    'sarah@kiteline.uk': '1234',
++    'james@kiteline.uk': '2345',
++    'lena@kiteline.uk': '3456',
++    'marco@kiteline.uk': '4567',
++    'amy@kiteline.uk': '5678',
++    'shyam_1@hotmail.co.uk': '1001',
++    'sample.manager@kiteline.uk': '1234',
++    'sample.staff@kiteline.uk': '2345',
++  };
++
+   function demoPinForMember(m) {
+     if (!m) return '';
+     if (DEMO_CLOCK_PINS[m.id]) return DEMO_CLOCK_PINS[m.id];
++    const email = String(m.email || '').toLowerCase().trim();
++    if (email && DEMO_CLOCK_PINS_BY_EMAIL[email]) return DEMO_CLOCK_PINS_BY_EMAIL[email];
+     const name = String(m.name || '')
+       .toLowerCase()
+       .replace(/\s*\(sample\)\s*/g, ' ')
+diff --git a/js/views.js b/js/views.js
+index 928b4b3..7d1668d 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -4201,6 +4201,13 @@
+     paint();
+   }
+ 
++  function clockSignedInMember() {
++    const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
++    if (!me || !me.email) return null;
++    if (window.Rota) window.Rota.ensureDemo(S.db);
++    return (S.db.team || []).find((t) => (t.email || '').toLowerCase() === me.email.toLowerCase()) || null;
++  }
++
+   function bindClockToggle(site) {
+     const R = window.Rota;
+     const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
+@@ -4226,6 +4233,13 @@
+         toast(m.name + (on ? ' clocked out' : ' clocked in'));
+         window.App.render();
+       };
++      // Admin / Manager signed in on a device: clock staff without fighting the PIN pad
++      // (shared kitchen kiosk still uses PIN). Action is logged under the signed-in email.
++      const isManagerPlus = me && ((me.rank || 0) >= 2 || me.role === 'Admin' || me.role === 'Manager');
++      if (isManagerPlus) {
++        doToggle(member);
++        return;
++      }
+       clockPinModal(member, doToggle);
+     };
+   }
+@@ -4234,7 +4248,11 @@
+     opts = opts || {};
+     const R = window.Rota;
+     R.ensureDemo(S.db);
+-    const team = R.teamForSite(S.db, site);
++    const meUser = window.App && window.App.currentUser ? window.App.currentUser() : null;
++    const meMember = clockSignedInMember();
++    let team = R.teamForSite(S.db, site).slice();
++    // Keep the signed-in Admin/Owner on the clock even if their home kitchen differs
++    if (meMember && !team.some((m) => m.id === meMember.id)) team = [meMember].concat(team);
+     const siteName = (S.site(site) || {}).name || 'Kitchen';
+     const today = R.dateKey();
+     const clocked = R.clockedInStaff(S.db, site);
+@@ -4242,6 +4260,18 @@
+     const log = (R.todayLog ? R.todayLog(S.db, site, today) : []).slice(0, opts.logLimit || 12);
+     const compact = !!opts.compact;
+     const dateLabel = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
++    const meOn = meMember ? R.isClockedIn(S.db, meMember.siteId || site, meMember.id) : false;
++    const mePin = meMember ? String(meMember.clockPin || meMember.pin || '').replace(/\D/g, '').slice(0, 4) : '';
++    const meBanner = (!compact && meMember) ? `<div class="clock-me-banner mb-4">
++      <div class="min-w-0">
++        <div class="clock-me-banner__eyebrow">Signed in · ${escapeHtml(meUser && meUser.role ? meUser.role : 'Admin')}</div>
++        <div class="clock-me-banner__name">${escapeHtml(meMember.name)}</div>
++        <div class="clock-me-banner__pin">Your clock PIN is <b>${escapeHtml(mePin || '————')}</b> <span class="text-ink-400 font-normal">(not your login password)</span></div>
++      </div>
++      <button type="button" class="btn btn-primary" id="clockMeBtn" data-clock-me="${escapeHtml(meMember.id)}">
++        ${icon('clock','w-4 h-4')} ${meOn ? 'Clock me out' : 'Clock me in'}
++      </button>
++    </div>` : '';
+ 
+     const cards = team.map((m) => {
+       const on = R.isClockedIn(S.db, site, m.id);
+@@ -4263,7 +4293,11 @@
+           <span class="badge ${on ? 'badge-green' : 'badge-gray'}">${on ? 'On shift' : 'Out'}</span>
+         </div>
+         <div class="clock-staff-pin">PIN <b>${escapeHtml(String(pinCode))}</b></div>
+-        <button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'} btn-sm clock-toggle-btn">${on ? 'Clock out · PIN' : 'Clock in · PIN'}</button>
++        <button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'} btn-sm clock-toggle-btn">${
++          (meUser && (meUser.rank || 0) >= 2)
++            ? (on ? 'Clock out' : 'Clock in')
++            : (on ? 'Clock out · PIN' : 'Clock in · PIN')
++        }</button>
+       </div>`;
+     }).join('');
+ 
+@@ -4305,11 +4339,11 @@
+         <button type="button" class="clock-cta" id="clockPinSubmit">${icon('clock', 'w-5 h-5')} Enter PIN to clock</button>
+         <p class="clock-pin-error hidden" id="clockPinError" role="alert"></p>
+         <div class="clock-pin-cheatsheet">
+-          <div class="clock-pin-cheatsheet__title">Demo PINs — tap chip or type on pad</div>
++          <div class="clock-pin-cheatsheet__title">4-digit clock PINs — tap chip (login password won’t work here)</div>
+           <div class="clock-pin-cheatsheet__rows">
+             ${team.slice(0, compact ? 2 : 6).map((m) =>
+-              `<button type="button" class="clock-pin-chip" data-fill-pin="${escapeHtml(String(m.clockPin || m.pin || ''))}" title="Use this PIN">
+-                <span>${escapeHtml(m.name.split(' ')[0])}</span>
++              `<button type="button" class="clock-pin-chip ${meMember && m.id === meMember.id ? 'clock-pin-chip--me' : ''}" data-fill-pin="${escapeHtml(String(m.clockPin || m.pin || ''))}" title="Use this PIN">
++                <span>${meMember && m.id === meMember.id ? 'You' : escapeHtml(m.name.split(' ')[0])}</span>
+                 <b>${escapeHtml(String(m.clockPin || m.pin || '————'))}</b>
+               </button>`
+             ).join('')}
+@@ -4331,6 +4365,7 @@
+     }
+ 
+     const body = `
++      ${meBanner}
+       <div class="grid lg:grid-cols-5 gap-5 mb-6">
+         <div class="lg:col-span-2">${kiosk}</div>
+         <div class="lg:col-span-3 space-y-4">
+@@ -4348,7 +4383,7 @@
+           </div>
+         </div>
+       </div>
+-      <h3 class="clock-section-title">Staff roster — tap to clock</h3>
++      <h3 class="clock-section-title">Staff roster — tap to clock${meUser && (meUser.rank || 0) >= 2 ? ' (Admin / Manager: no PIN needed)' : ''}</h3>
+       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${cards || '<p class="text-ink-400">No team at this site.</p>'}</div>`;
+ 
+     // When nested inside clock() page shell, don't wrap another .clock-shell
+@@ -4473,8 +4508,39 @@
+       const staff = e.target.closest('[data-clock-staff]');
+       if (staff && clickRoot.contains(staff) && !e.target.closest('.clock-kiosk')) {
+         bindClockToggle(S.db.currentSite || site)(staff.getAttribute('data-clock-staff'));
++        return;
++      }
++      const meBtn = e.target.closest('#clockMeBtn, [data-clock-me]');
++      if (meBtn && clickRoot.contains(meBtn)) {
++        e.preventDefault();
++        const id = meBtn.getAttribute('data-clock-me') || (clockSignedInMember() || {}).id;
++        if (id) bindClockToggle(S.db.currentSite || site)(id);
++      }
++    };
++
++    // Physical keyboard → PIN pad (Admin tablets / desktop)
++    if (window._clockKeyHandler) window.removeEventListener('keydown', window._clockKeyHandler);
++    window._clockKeyHandler = (ev) => {
++      if (!document.getElementById('clockShell')) return;
++      if (ev.target && /input|textarea|select/i.test(ev.target.tagName)) return;
++      if (document.getElementById('modal-layer') && !document.getElementById('modal-layer').classList.contains('hidden')) return;
++      if (ev.key >= '0' && ev.key <= '9') {
++        if (state.pin.length < 4) state.pin += ev.key;
++        paint();
++        setErr('');
++        if (state.pin.length === 4) submitPin();
++      } else if (ev.key === 'Backspace') {
++        state.pin = state.pin.slice(0, -1);
++        paint();
++      } else if (ev.key === 'Escape') {
++        state.pin = '';
++        paint();
++        setErr('');
++      } else if (ev.key === 'Enter') {
++        submitPin();
+       }
+     };
++    window.addEventListener('keydown', window._clockKeyHandler);
+   }
+ 
+   function clock() {
+diff --git a/server/server.js b/server/server.js
+index 96f5ba5..84f01b8 100644
+--- a/server/server.js
++++ b/server/server.js
+@@ -28,7 +28,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
+   || (!isProd && process.env.DEMO_MODE !== 'false');
+ // Early access: registration open unless explicitly disabled.
+ const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
+-const APP_BUILD = '2026-07-25-clock-pin-fix';
++const APP_BUILD = '2026-07-25-admin-clock';
+ const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
+ const notify = require('./notify');
+ const vedantaReports = require('./vedanta-reports');
 -- 
 2.43.0
 
