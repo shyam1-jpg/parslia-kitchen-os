@@ -34,15 +34,15 @@ Tofoo recipes (201)
 32. Faux Tofoo Egg and Cress Sandwich
 33. Firecracker Tofoo Rainbow Bowl
 34. Flamin’ Fajita Burger
-35. Garlic & Herb Nugget Flatbreads with Tzatziki
-36. Ginger Sesame Tempeh Stir Fry
-37. Gochujang & Tofoo Rigatoni (Protein Pasta)
-38. Gochujang Chilli Tofu Grain Bowl
-39. Gochujang Spicy Korean Tofoo
-40. Harissa Charred Tofoo Pizza
-41. Harissa Tempeh Shakshuka
-42. Harissa Tofoo Steak Gyro
-43. Hawaiian Tofoo Naans
+35. Ginger Sesame Tempeh Stir Fry
+36. Gochujang & Tofoo Rigatoni (Protein Pasta)
+37. Gochujang Chilli Tofu Grain Bowl
+38. Gochujang Spicy Korean Tofoo
+39. Harissa Charred Tofoo Pizza
+40. Harissa Tempeh Shakshuka
+41. Harissa Tofoo Steak Gyro
+42. Hawaiian Tofoo Naans
+43. Herb Nugget Flatbreads with Tzatziki
 44. Hoisin Tofoo Wraps
 45. Honey, Sriracha and Pineapple Tofoo Pops
 46. Jamaican Jerk Tofoo
@@ -153,29 +153,29 @@ Tofoo recipes (201)
 151. Tofoo and Mushroom Wellington
 152. Tofoo and Pea Samosas
 153. Tofoo and Spinach Chana Masala
-154. Tofoo and Tenderstem Broccoli Stir Fry
-155. Tofoo Balls in a Mediterranean Vegetable Sauce
-156. Tofoo Breakfast Burritos
-157. Tofoo Breakfast Muffin
-158. Tofoo Burger
-159. Tofoo Cajun Fries
-160. Tofoo Canelloni
-161. Tofoo Caprese Salad
-162. Tofoo Chilli with Courgetti Spaghetti
-163. Tofoo Christmas Roast Dinner
-164. Tofoo Couscous with Sweet Potato, Kale and Peas
-165. Tofoo Curry Pots with Coconut Naan Dippers
-166. Tofoo Daal with Kashmiri Tofu for Under £5
-167. Tofoo Doner Kebab
-168. Tofoo Drippy Skewers
-169. Tofoo Fillipino Adobo
-170. Tofoo Frittatas
-171. Tofoo Full English
-172. Tofoo Halloumi
-173. Tofoo Katsu Burger
-174. Tofoo Katsu Curry
-175. Tofoo Kyiv
-176. Tofoo Leek and Sundried Tomato Quiche
+154. Tofoo and Sundried Tomato Quiche
+155. Tofoo and Tenderstem Broccoli Stir Fry
+156. Tofoo Balls in a Mediterranean Vegetable Sauce
+157. Tofoo Breakfast Burritos
+158. Tofoo Breakfast Muffin
+159. Tofoo Burger
+160. Tofoo Cajun Fries
+161. Tofoo Canelloni
+162. Tofoo Caprese Salad
+163. Tofoo Chilli with Courgetti Spaghetti
+164. Tofoo Christmas Roast Dinner
+165. Tofoo Couscous with Sweet Potato, Kale and Peas
+166. Tofoo Curry Pots with Coconut Naan Dippers
+167. Tofoo Daal with Kashmiri Tofu for Under £5
+168. Tofoo Doner Kebab
+169. Tofoo Drippy Skewers
+170. Tofoo Fillipino Adobo
+171. Tofoo Frittatas
+172. Tofoo Full English
+173. Tofoo Halloumi
+174. Tofoo Katsu Burger
+175. Tofoo Katsu Curry
+176. Tofoo Kyiv
 177. Tofoo Loaded Sweet Potato
 178. Tofoo Omelette
 179. Tofoo Pathia Curry
