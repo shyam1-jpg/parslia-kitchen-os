@@ -1,7 +1,7 @@
 From 09d64a4d85d76516930485e2a1b36deea0f19bfd Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Fri, 24 Jul 2026 23:29:24 +0000
-Subject: [PATCH 1/4] Add kitchen Clock In/Out kiosk with PIN pad and home
+Subject: [PATCH 1/5] Add kitchen Clock In/Out kiosk with PIN pad and home
  widget
 
 Promote Clock In/Out into Live Ops, add PIN-pad kiosk (auto toggle),
@@ -1167,7 +1167,7 @@ index 1a12fe9..9e27b1e 100644
 From 967cfda1d6f61e3c2cffa68c6c4ea19a5f254a2a Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Fri, 24 Jul 2026 23:51:15 +0000
-Subject: [PATCH 2/4] Premium Clock In/Out kiosk matching Kiteline brand
+Subject: [PATCH 2/5] Premium Clock In/Out kiosk matching Kiteline brand
 
 Restyle the clock as a dark-teal glass kiosk with Sora type, PIN
 slot animation, gradient CTA, premium staff cards, and attendance
@@ -1639,7 +1639,7 @@ index 9342e25..abeb7e0 100644
 From 0e8d3101941e75a988a698aaafc33076bbef8828 Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Sat, 25 Jul 2026 00:02:44 +0000
-Subject: [PATCH 3/4] Polish Clock In/Out page hero and weekend rota cover
+Subject: [PATCH 3/5] Polish Clock In/Out page hero and weekend rota cover
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -1809,7 +1809,7 @@ index abeb7e0..7de15f8 100644
 From 686ed9c8cebe71aa68941edccd549e6b4fd342de Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Sat, 25 Jul 2026 00:12:07 +0000
-Subject: [PATCH 4/4] Require PIN for clock in/out with visible demo codes
+Subject: [PATCH 4/5] Require PIN for clock in/out with visible demo codes
 
 Always prompt for a 4-digit PIN (premium pad modal), restore known
 demo PINs, show PIN chips on the kiosk and staff cards, and confirm
@@ -2153,6 +2153,101 @@ index 7de15f8..8a91718 100644
      });
    }
  
+-- 
+2.43.0
+
+
+From a5b2b8199d3920efca1ccb554fc1e7d99db5acb4 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sat, 25 Jul 2026 00:27:56 +0000
+Subject: [PATCH 5/5] Fix clock PIN lookup across kitchens
+
+Resolve staff by PIN on any site, clock against their kitchen, and
+re-ensure demo PINs before submit so stale storage still works.
+---
+ js/store.js | 15 ++++++++++-----
+ js/views.js | 34 ++++++++++++++++++++++------------
+ 2 files changed, 32 insertions(+), 17 deletions(-)
+
+diff --git a/js/store.js b/js/store.js
+index 045ae1b..eaa48b6 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -1048,16 +1048,21 @@
+   function rotaFindByPin(db, site, pin) {
+     const code = String(pin || '').trim();
+     if (!/^\d{4}$/.test(code)) return null;
+-    return rotaTeamForSite(db, site).find((m) => String(m.clockPin || m.pin || '') === code) || null;
++    // Prefer current kitchen, then fall back to any site (multi-kitchen orgs)
++    const local = rotaTeamForSite(db, site).find((m) => String(m.clockPin || m.pin || '') === code);
++    if (local) return local;
++    return (db.team || []).find((m) => String(m.clockPin || m.pin || '') === code) || null;
+   }
+ 
+   function rotaToggleByPin(db, site, pin, byUserId) {
+     const member = rotaFindByPin(db, site, pin);
+-    if (!member) return { ok: false, reason: 'Unknown PIN' };
+-    const on = rotaIsClockedIn(db, site, member.id);
+-    const res = on ? rotaClockOut(db, site, member.id, byUserId) : rotaClockIn(db, site, member.id, byUserId);
++    if (!member) return { ok: false, reason: 'Unknown PIN — use a staff PIN from this kitchen' };
++    // Clock against the member's own kitchen so PIN works even if site switcher differs
++    const clockSite = member.siteId || site;
++    const on = rotaIsClockedIn(db, clockSite, member.id);
++    const res = on ? rotaClockOut(db, clockSite, member.id, byUserId) : rotaClockIn(db, clockSite, member.id, byUserId);
+     if (!res.ok) return res;
+-    return { ok: true, member, action: on ? 'out' : 'in', doc: res.doc };
++    return { ok: true, member, action: on ? 'out' : 'in', doc: res.doc, site: clockSite };
+   }
+ 
+   window.Rota = {
+diff --git a/js/views.js b/js/views.js
+index 8a91718..6f0cd2d 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -4385,21 +4385,31 @@
+     };
+ 
+     const submitPin = () => {
+-      if (pin.length !== 4) return toast('Enter your 4-digit PIN', 'warn');
+-      const res = R.toggleByPin(S.db, site, pin, me && me.email);
+-      if (!res.ok) {
++      try {
++        if (pin.length !== 4) return toast('Enter your 4-digit PIN', 'warn');
++        // Re-ensure PINs exist (covers stale localStorage from older demos)
++        R.ensureDemo(S.db);
++        const entered = pin;
++        const res = R.toggleByPin(S.db, site, entered, me && me.email);
++        if (!res.ok) {
++          pin = '';
++          paint();
++          return toast(res.reason || 'Unknown PIN', 'warn');
++        }
++        // If they clocked for another kitchen, switch the view so status updates
++        if (res.site && res.site !== S.db.currentSite) S.setSite(res.site);
+         pin = '';
+         paint();
+-        return toast(res.reason || 'Unknown PIN', 'warn');
++        S.persist();
++        if (S.logActivity) S.logActivity(res.member.id, res.action === 'in' ? 'Clocked in' : 'Clocked out');
++        flashKiosk();
++        showResult(res.member, res.action);
++        toast(res.member.name + (res.action === 'in' ? ' clocked in' : ' clocked out'));
++        setTimeout(() => window.App.render(), 900);
++      } catch (err) {
++        console.error('Clock PIN error', err);
++        toast('Clock failed — try again', 'error');
+       }
+-      pin = '';
+-      paint();
+-      S.persist();
+-      if (S.logActivity) S.logActivity(res.member.id, res.action === 'in' ? 'Clocked in' : 'Clocked out');
+-      flashKiosk();
+-      showResult(res.member, res.action);
+-      toast(res.member.name + (res.action === 'in' ? ' clocked in' : ' clocked out'));
+-      setTimeout(() => window.App.render(), 900);
+     };
+ 
+     document.querySelectorAll('[data-pad]').forEach((b) => {
 -- 
 2.43.0
 
