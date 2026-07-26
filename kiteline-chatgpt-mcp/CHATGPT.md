@@ -4,6 +4,14 @@ Kiteline is a **multipurpose** hospitality platform. ChatGPT connects with a **c
 
 GPT editor (example): `https://chatgpt.com/gpts/editor/g-6a65392fc7b88191923de8c0e7094f71`
 
+## GPT Configure (Name / Description / Instructions)
+
+See **`GPT-INSTRUCTIONS.md`** for copy-paste values.
+
+- **Name:** Kiteline  
+- **Description:** Kiteline for The Vedanta — kitchen ops assistant for temperatures, recipes, menus, allergens, and shopping lists. Connected to your Kiteline company workspace only.  
+- **Instructions:** Vedanta-focused text in `GPT-INSTRUCTIONS.md` (never Grove Hotel)
+
 ## Important: GPT Instructions = The Vedanta (not Grove Hotel)
 
 Real workplace: **The Vedanta** (The Vedanta Way Limited).  
