@@ -3372,7 +3372,7 @@
             <code class="text-xs break-all block mb-2" id="chatgptSchemaUrl">https://kiteline.uk/api/ai/openapi.json</code>
             <button type="button" class="btn btn-ghost btn-sm" id="chatgptCopySchema">Copy schema URL</button>
             <p class="text-xs font-bold text-brand-800 uppercase tracking-wide mb-2 mt-4">GPT Description (paste in ChatGPT editor)</p>
-            <pre class="text-[11px] bg-ink-900 text-ink-100 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap mb-2" id="chatgptGptDescription">Kiteline for The Vedanta — kitchen ops assistant for temperatures, recipes, menus, allergens, and shopping lists. Connected to your Kiteline company workspace only.</pre>
+            <pre class="text-[11px] bg-ink-900 text-ink-100 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap mb-2" id="chatgptGptDescription">Kitchen operations for The Vedanta: live temperature checks, recipes, menus, allergen reports, and shopping lists — securely linked to your Kiteline workspace.</pre>
             <button type="button" class="btn btn-ghost btn-sm mb-3" id="chatgptCopyDescription">Copy GPT description</button>
             <p class="text-xs font-bold text-brand-800 uppercase tracking-wide mb-2">GPT Instructions (paste in ChatGPT editor)</p>
             <p class="text-xs text-amber-800 mb-2">Workplace: <b>The Vedanta</b>. <b>Do not</b> use The Grove Hotel (demo only).</p>

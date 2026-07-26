@@ -9,8 +9,8 @@ GPT editor (example): `https://chatgpt.com/gpts/editor/g-6a65392fc7b88191923de8c
 See **`GPT-INSTRUCTIONS.md`** for copy-paste values.
 
 - **Name:** Kiteline  
-- **Description:** Kiteline for The Vedanta — kitchen ops assistant for temperatures, recipes, menus, allergens, and shopping lists. Connected to your Kiteline company workspace only.  
-- **Instructions:** Vedanta-focused text in `GPT-INSTRUCTIONS.md` (never Grove Hotel)
+- **Description (independent):** Kitchen operations for The Vedanta: live temperature checks, recipes, menus, allergen reports, and shopping lists — securely linked to your Kiteline workspace.  
+- **Instructions:** Vedanta-focused behaviour rules in `GPT-INSTRUCTIONS.md` (never Grove Hotel) — keep separate from Description
 
 ## Important: GPT Instructions = The Vedanta (not Grove Hotel)
 
