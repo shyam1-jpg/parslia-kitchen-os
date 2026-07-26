@@ -1,9 +1,26 @@
 # Apply: Fix ChatGPT “Something went wrong” + GPT logo (Kiteline 1.2.2)
 
+## Fastest path (your PC — do it all)
+
+Cloud cannot push to `kitline1` or log into ChatGPT. On the Windows PC where GitHub + ChatGPT are already logged in:
+
+1. Open this folder: `kiteline-chatgpt-mcp\`
+2. Double-click **`DO-IT-ALL.bat`**
+3. Approve the GitHub PR it opens → merge to `main` (Render redeploys)
+4. In the ChatGPT editor window it opens → **Configure** → upload `chatgpt-gpt-logo.png` → Save
+
+Or from Git / macOS / Linux:
+
+```bash
+bash kiteline-chatgpt-mcp/DO-IT-ALL.sh /path/to/kitline1
+```
+
 ## Why this is in parslia-kitchen-os
 
 This cloud agent can push to `parslia-kitchen-os` but **not** to `shyam1-jpg/kitline1`.
 Kiteline production deploys from **kitline1** on Render → https://kiteline.uk
+
+To let Cloud do the kitline1 push next time: add **`shyam1-jpg/kitline1`** to the Cloud Agent environment with write access.
 
 ## What was wrong
 
