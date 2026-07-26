@@ -40,6 +40,7 @@ const recipeAi = require('./recipe-ai');
 const recipeAiAccess = require('./recipe-ai-access');
 const tenants = require('./tenants');
 const aiConnector = require('./ai-connector');
+const aiMcp = require('./ai-mcp');
 const academyStore = require('./academy/store');
 const academyHandlers = require('./academy/handlers');
 const vedantaOrdering = require('./vedanta-ordering');
@@ -454,7 +455,7 @@ async function sendAcademyVerificationEmail(db, email, baseUrl) {
   const verifyUrl = `${baseUrl}/academy/?verify=${verifyToken}`;
   const msg = {
     subject: 'Kiteline Academy — verify your email',
-    text: `Welcome to Kiteline Academy!\n\nVerify your email to activate your student account:\n\n${verifyUrl}\n\nExpires in 48 hours.\n\nIf you did not receive this email, check spam/junk or use Resend verification on the sign-in page — a link will appear on screen.`,
+    text: `Welcome to Kiteline Academy!\n\nVerify your email to activate your student account:\n\n${verifyUrl}\n\nExpires in 48 hours.\n\nIf you did not receive this email, check spam/junk or use Resend verification on the sign-in page.`,
     html: `<div style="font-family:Inter,sans-serif;max-width:520px"><h2 style="color:#36e6ff">Verify Kiteline Academy</h2><p>Confirm your email to sign in and access your free courses.</p><p><a href="${verifyUrl}" style="display:inline-block;padding:12px 20px;background:#36e6ff;color:#061020;font-weight:bold;border-radius:8px;text-decoration:none">Verify my email</a></p><p style="color:#64748b;font-size:13px">Or copy this link: ${verifyUrl}</p><p style="color:#64748b;font-size:13px">Check spam/junk if you do not see this message. Need help? contact@kiteline.uk</p></div>`,
     replyTo: process.env.ACADEMY_REPLY_TO || 'contact@kiteline.uk',
   };
@@ -489,7 +490,7 @@ function send(res, code, obj, headers, req) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': cors,
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
-    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
   }), headers || {}));
   res.end(body);
 }
@@ -592,7 +593,7 @@ async function handleApi(req, res, url) {
     return;
   }
 
-  const body = (req.method === 'POST' || req.method === 'PUT') ? await readBody(req) : {};
+  const body = (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') ? await readBody(req) : {};
 
   // GET /api/vedanta/reports/status — where data is stored + email schedule
   if (route === '/vedanta/reports/status' && req.method === 'GET') {
@@ -1345,13 +1346,41 @@ async function handleApi(req, res, url) {
 }
 
 /* ---------------- static + routing ---------------- */
+function isChatGptOrigin(origin) {
+  return /^https:\/\/([a-z0-9-]+\.)?(chatgpt\.com|openai\.com|oaistatic\.com)$/i.test(String(origin || ''));
+}
+
+function corsForRequest(req, pathname) {
+  const origin = (req.headers && req.headers.origin) || '';
+  const isMcp = pathname === '/mcp' || pathname.startsWith('/mcp/');
+  const isAi = pathname.startsWith('/api/ai');
+  // ChatGPT Custom GPT Actions + MCP Apps call from chatgpt.com / openai.com.
+  // Without echoing those origins on OPTIONS, the browser shows "Something went wrong".
+  if (isMcp || isAi) {
+    if (!origin) return '*';
+    if (isChatGptOrigin(origin)) return origin;
+  }
+  return security.corsOrigin(req, isProd);
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   if (req.method === 'OPTIONS') {
+    const isMcp = url.pathname === '/mcp' || url.pathname.startsWith('/mcp/');
+    const isAi = url.pathname.startsWith('/api/ai');
+    const allowOrigin = corsForRequest(req, url.pathname);
+    const allowHeaders = (isMcp || isAi)
+      ? 'Content-Type, Authorization, x-api-key, Accept, Mcp-Session-Id'
+      : 'Content-Type, Authorization, x-api-key';
+    const allowMethods = isMcp
+      ? 'GET,POST,DELETE,OPTIONS'
+      : 'GET,POST,PUT,PATCH,DELETE,OPTIONS';
     res.writeHead(204, security.securityHeaders({
-      'Access-Control-Allow-Origin': security.corsOrigin(req, isProd),
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
-      'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+      'Access-Control-Allow-Origin': allowOrigin,
+      'Access-Control-Allow-Headers': allowHeaders,
+      'Access-Control-Allow-Methods': allowMethods,
+      'Access-Control-Max-Age': '86400',
+      'Vary': 'Origin',
     }));
     return res.end();
   }
@@ -1385,20 +1414,22 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname.startsWith('/api/')) return await handleApi(req, res, url);
 
     if (url.pathname === '/mcp') {
-      if (req.method === 'GET' || req.method === 'HEAD') {
-        return send(res, 200, aiConnector.mcpInfo(), null, req);
+      const db = readDb();
+      const ip = security.clientIp(req);
+      let body = {};
+      if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+        body = await readBody(req);
       }
-      if (req.method === 'POST') {
-        const body = await readBody(req);
-        const db = readDb();
-        const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString().split(',')[0].trim();
-        const result = await aiConnector.handleMcp({
-          db, req, body, ip, writeDb,
-          userFromReq,
-        });
-        return send(res, result.status || 200, result.body, null, req);
-      }
-      return send(res, 405, { error: 'Method not allowed' }, null, req);
+      return aiMcp.handleHttp({
+        req,
+        res,
+        method: req.method,
+        body,
+        db,
+        writeDb,
+        ip,
+        send,
+      });
     }
 
     // Kiteline marketing site at "/"

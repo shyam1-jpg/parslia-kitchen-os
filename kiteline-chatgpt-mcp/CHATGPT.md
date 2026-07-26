@@ -1,15 +1,8 @@
 # Add Kiteline to ChatGPT
 
-Kiteline is a **multipurpose** business and hospitality-management platform. It is not limited to vegetarian businesses or any single cuisine, religion, diet or venue type.
+Kiteline is a **multipurpose** hospitality platform. ChatGPT connects with a **company-bound** AI token (`kl_ai_…`) — never a user password.
 
-Supported organisations include hotels, restaurants, catering companies, commercial kitchens, schools and colleges, care homes, retreat centres, cafés, bakeries, event venues and other food businesses.
-
-## Security model
-
-- Each company has its own workspace (tenant).
-- ChatGPT authenticates with a **company-bound** AI token (`kl_ai_…`) or OAuth grant.
-- Tools only return data for that company (and sites allowed on the token).
-- Dietary rules (vegetarian, vegan, Jain, Ekadashi, halal, kosher, gluten-free, …) are **per-company settings**. They are never forced on every Kiteline customer.
+GPT editor (example): `https://chatgpt.com/gpts/editor/g-6a65392fc7b88191923de8c0e7094f71`
 
 ## Endpoints
 
@@ -17,42 +10,58 @@ Supported organisations include hotels, restaurants, catering companies, commerc
 |---------|-----|
 | OpenAPI (GPT Actions) | `https://kiteline.uk/api/ai/openapi.json` |
 | Health | `https://kiteline.uk/api/ai/health` |
-| MCP discovery / JSON-RPC | `https://kiteline.uk/mcp` |
+| MCP | `https://kiteline.uk/mcp` |
 | Setup page | `https://kiteline.uk/chatgpt.html` |
+| **GPT logo (512×512)** | `https://kiteline.uk/chatgpt-gpt-logo.png` |
+| Privacy (required for Actions) | `https://kiteline.uk/privacy.html` |
 
-## First tools
+## Fix: “Something went wrong” when typing
 
-1. Search recipes, products and dishes — `GET /api/ai/recipes?q=`
-2. Create and manage menus — `GET/POST /api/ai/menus`
-3. Search stock and suppliers — `GET /api/ai/stock`, `GET /api/ai/suppliers`
-4. Generate shopping / ordering lists — `GET/POST /api/ai/shopping-list`
-5. Read and add temperature records — `GET/POST /api/ai/temperature-logs`
-6. Allergen and nutrition reports — `GET /api/ai/allergens`, `GET /api/ai/nutrition`
-7. Staff rotas and operational records — `GET /api/ai/rota`
-8. Business, cost and compliance reports — `GET /api/ai/reports?type=compliance|cost|full`
-9. Business / dietary settings — `GET/PUT /api/ai/business`
+Root cause we fixed in **1.2.2**: global `OPTIONS` CORS only allowed `kiteline.uk`, so ChatGPT browser preflight to `/mcp` (and AI routes) failed and ChatGPT showed a generic error.
 
-## Admin setup (in app)
+After deploy of 1.2.2+:
 
-1. Sign in as Admin → **Settings → Connect ChatGPT**
-2. Optionally configure **Dietary rules (this company only)**
-3. Create an AI token with the permissions you want
-4. Import the OpenAPI schema into a Custom GPT Actions panel
-5. Authenticate with the token (Bearer) or OAuth
+1. `curl -s https://kiteline.uk/api/ai/health` → `"ok":true` and `"version":"1.2.2"`
+2. Preflight must echo ChatGPT’s origin:
+
+```bash
+curl -sI -X OPTIONS 'https://kiteline.uk/mcp' \
+  -H 'Origin: https://chatgpt.com' \
+  -H 'Access-Control-Request-Method: POST' \
+  -H 'Access-Control-Request-Headers: content-type,authorization,mcp-session-id'
+# Expect: access-control-allow-origin: https://chatgpt.com
+```
+
+3. In the GPT editor → Actions: re-import OpenAPI, set Bearer/`x-api-key` to a fresh `kl_ai_…` token from **Settings → Connect ChatGPT**.
+4. Privacy policy URL: `https://kiteline.uk/privacy.html`
+
+## Fix: no logo when searching for the GPT
+
+ChatGPT **does not** pull the logo from the API. Upload it once in the editor:
+
+1. Open your GPT in the editor → **Configure**
+2. Click the profile / logo circle
+3. Upload `https://kiteline.uk/chatgpt-gpt-logo.png` (or download from `/chatgpt.html`)
+4. Save / Update the GPT
+
+## Connect (Custom GPT Actions)
+
+1. Admin → **Settings → Connect ChatGPT** → create AI token
+2. GPT → **Actions** → import `https://kiteline.uk/api/ai/openapi.json`
+3. Auth: API Key / Bearer with `kl_ai_…`
+4. Upload the GPT logo (above)
+
+## Connect (ChatGPT Apps / MCP)
+
+1. ChatGPT → Developer mode on
+2. Create app → MCP URL `https://kiteline.uk/mcp`
+3. Auth with `kl_ai_…` for `tools/call`
 
 ## Env (Render)
 
 | Variable | Purpose |
 |----------|---------|
 | `AI_OAUTH_CLIENT_ID` | Defaults to `kiteline-chatgpt` |
-| `AI_OAUTH_CLIENT_SECRET` | Required to enable OAuth for customers |
+| `AI_OAUTH_CLIENT_SECRET` | Enables OAuth |
 | `APP_URL` | `https://kiteline.uk` |
-
-## Local smoke test
-
-```bash
-npm start
-curl -s http://localhost:4000/api/ai/health
-curl -s http://localhost:4000/mcp
-curl -s http://localhost:4000/api/ai/openapi.json | head
-```
+| `ALLOWED_ORIGINS` | Optional; ChatGPT origins are allowed by default in 1.2.2+ |
