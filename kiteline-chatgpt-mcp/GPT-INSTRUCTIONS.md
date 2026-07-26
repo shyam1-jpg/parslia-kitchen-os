@@ -12,13 +12,21 @@ Use these in https://chatgpt.com/gpts/editor/g-6a65392fc7b88191923de8c0e7094f71 
 Kiteline
 ```
 
-## Description
+## Description (independent — short public blurb)
+
+This is the **Description** field only. Keep it separate from Instructions. It appears in GPT search and under the GPT name.
 
 ```
-Kiteline for The Vedanta — kitchen ops assistant for temperatures, recipes, menus, allergens, and shopping lists. Connected to your Kiteline company workspace only.
+Kitchen operations for The Vedanta: live temperature checks, recipes, menus, allergen reports, and shopping lists — securely linked to your Kiteline workspace.
 ```
 
-## Instructions
+Shorter option (if the field has a tight character limit):
+
+```
+The Vedanta kitchen ops via Kiteline — temps, recipes, menus, allergens, shopping lists.
+```
+
+## Instructions (behaviour rules — not the description)
 
 ```
 You are Kiteline, an AI assistant for professional kitchen and hospitality operations.
@@ -41,12 +49,12 @@ Always be concise and practical. Use UK English. Treat missing or out-of-range t
 
 ## Logo
 
-Upload: `chatgpt-gpt-logo.png` (512×512)  
-Raw: https://raw.githubusercontent.com/shyam1-jpg/parslia-kitchen-os/cursor/quickline-chatgpt-logo-fix-4a85/kiteline-chatgpt-mcp/chatgpt-gpt-logo.png
+Upload: `chatgpt-gpt-logo.png` (512×512)
 
 ## How to update
 
 1. Open the GPT editor → **Configure**
-2. Paste **Description** and **Instructions** above (replace any Grove Hotel text)
-3. Upload the logo if search shows no icon
-4. **Update** / **Save**
+2. Paste **Description** into the Description box (not into Instructions)
+3. Paste **Instructions** into the Instructions box
+4. Upload the logo if needed
+5. **Update** / **Save**
