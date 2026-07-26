@@ -4,10 +4,11 @@ Kiteline is a **multipurpose** hospitality platform. ChatGPT connects with a **c
 
 GPT editor (example): `https://chatgpt.com/gpts/editor/g-6a65392fc7b88191923de8c0e7094f71`
 
-## Important: GPT Instructions must not mention The Grove Hotel
+## Important: GPT Instructions = The Vedanta (not Grove Hotel)
 
-**The Grove Hotel** is Kiteline **demo/sample** data only. It is not a real workplace for the account owner.  
-If your Custom GPT Instructions say “The Grove Hotel”, replace them — see **`GPT-INSTRUCTIONS.md`**.
+Real workplace: **The Vedanta** (The Vedanta Way Limited).  
+**The Grove Hotel** is Kiteline **demo/sample** data only — remove it from the Custom GPT Instructions.  
+See **`GPT-INSTRUCTIONS.md`**.
 
 ## Endpoints
 

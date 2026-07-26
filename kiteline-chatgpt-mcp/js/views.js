@@ -3371,6 +3371,10 @@
             <p class="text-xs font-bold text-brand-800 uppercase tracking-wide mb-2 mt-3">OpenAPI schema (GPT Actions)</p>
             <code class="text-xs break-all block mb-2" id="chatgptSchemaUrl">https://kiteline.uk/api/ai/openapi.json</code>
             <button type="button" class="btn btn-ghost btn-sm" id="chatgptCopySchema">Copy schema URL</button>
+            <p class="text-xs font-bold text-brand-800 uppercase tracking-wide mb-2 mt-4">GPT Instructions (paste in ChatGPT editor)</p>
+            <p class="text-xs text-amber-800 mb-2"><b>Do not</b> mention The Grove Hotel — that is demo/sample data only, not a real workplace.</p>
+            <pre class="text-[11px] bg-ink-900 text-ink-100 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap mb-2" id="chatgptGptInstructions"></pre>
+            <button type="button" class="btn btn-ghost btn-sm" id="chatgptCopyInstructions">Copy GPT instructions</button>
           </div>
           <div id="chatgptOAuthBox" class="rounded-xl border border-ink-200 bg-ink-50 p-4 mb-4 text-sm hidden">
             <p class="font-semibold mb-2">OAuth (recommended for customers)</p>
@@ -3867,6 +3871,41 @@
           const url = document.getElementById('chatgptSchemaUrl').textContent.trim();
           navigator.clipboard.writeText(url);
           toast('Schema URL copied');
+        };
+        const instrEl = document.getElementById('chatgptGptInstructions');
+        if (instrEl) {
+          const allSites = (S.db && S.db.sites) || [];
+          const vedantaSite = allSites.find((s) => s && (s.id === 'site_vedanta' || /vedanta/i.test(s.name || '') || /vedanta/i.test(s.legalName || '')));
+          const orgName = (S.db && S.db.org && S.db.org.name && !/grove/i.test(S.db.org.name))
+            ? String(S.db.org.name).trim()
+            : '';
+          const companyLabel = vedantaSite
+            ? ((vedantaSite.legalName && /vedanta/i.test(vedantaSite.legalName))
+              ? vedantaSite.legalName
+              : 'The Vedanta (The Vedanta Way Limited)')
+            : (orgName || 'The Vedanta (The Vedanta Way Limited)');
+          const sites = allSites
+            .map((s) => s && s.name)
+            .filter((n) => n && !/grove hotel|dockside bistro|harbour quay/i.test(n));
+          const siteLine = sites.length
+            ? `Known sites from this workspace: ${sites.join(', ')}. Prefer Vedanta sites when relevant. Confirm with tools before stating them.`
+            : 'Prefer the Vedanta workspace and sites (for example site_vedanta). Confirm with tools before stating them.';
+          instrEl.textContent = [
+            'You are Kiteline, an AI assistant for professional kitchen and hospitality operations.',
+            '',
+            `You help Shyam Prasad and the team at ${companyLabel} and their Kiteline sites.`,
+            siteLine,
+            'Never invent or assume other employers. Do not use demo names such as “The Grove Hotel”, “Dockside Bistro”, or “Harbour Quay Kitchen” unless the user explicitly asks about demo data.',
+            '',
+            'Use your tools to: check missing temperature logs, add readings, search recipes, generate allergen reports, create menus, and generate shopping lists.',
+            '',
+            'Always be concise and practical. Use UK English. Treat missing or out-of-range temperatures as urgent. Only use data from the connected company workspace.',
+          ].join('\n');
+        }
+        const copyInstr = document.getElementById('chatgptCopyInstructions');
+        if (copyInstr) copyInstr.onclick = () => {
+          const t = (document.getElementById('chatgptGptInstructions')?.textContent || '').trim();
+          if (t) { navigator.clipboard.writeText(t); toast('GPT instructions copied — paste into ChatGPT editor'); }
         };
         const copyTok = document.getElementById('chatgptCopyToken');
         if (copyTok) copyTok.onclick = () => {
