@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Add Kiteline to ChatGPT — The Vedanta</title>
-  <meta name="description" content="Connect ChatGPT to The Vedanta Kiteline workspace — temperatures, recipes, menus, allergens and shopping lists. Company-scoped only." />
+  <meta name="description" content="Configure Kiteline ChatGPT for The Vedanta — detailed temperature, recipe, menu, allergen and shopping-list features." />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config={theme:{extend:{colors:{brand:{500:'#14b8a6',600:'#0d9488',700:'#0f766e'},ink:{50:'#f8fafc',100:'#f1f5f9',400:'#94a3b8',500:'#64748b',700:'#334155',900:'#0f172a'}},fontFamily:{sans:['DM Sans','system-ui','sans-serif']}}}}</script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -25,8 +25,8 @@
     <p class="text-sm font-semibold text-brand-700 mb-2">ChatGPT · The Vedanta</p>
     <h1 class="text-3xl md:text-4xl font-black tracking-tight mb-4">Configure Kiteline for The Vedanta</h1>
     <p class="text-lg text-ink-500 leading-relaxed mb-8">
-      Paste the <b>Description</b> and <b>Instructions</b> below into your Custom GPT.
-      Do not use The Grove Hotel — that is demo data only.
+      Independent <b>Description</b> plus detailed <b>Instructions</b> for each feature.
+      Do not use The Grove Hotel — demo data only.
     </p>
 
     <section class="rounded-2xl border border-ink-100 bg-ink-50 p-6 mb-8 flex flex-col sm:flex-row gap-5 items-start">
@@ -34,58 +34,115 @@
       <div>
         <h2 class="text-xl font-bold mb-2">1. Name + logo</h2>
         <p class="text-sm text-ink-600 mb-2"><b>Name:</b> <code class="bg-white px-1.5 py-0.5 rounded border text-xs">Kiteline</code></p>
-        <p class="text-sm text-ink-600 mb-3">Upload the logo on Configure so it shows when people search.</p>
         <a href="/chatgpt-gpt-logo.png" download class="inline-flex px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700">Download GPT logo</a>
       </div>
     </section>
 
     <section class="rounded-2xl border border-brand-200 bg-brand-50/40 p-6 mb-8">
-      <h2 class="text-xl font-bold mb-2">2. Description <span class="text-sm font-semibold text-ink-500">(independent — search blurb only)</span></h2>
-      <p class="text-sm text-ink-600 mb-3">Paste into the <b>Description</b> box only. Do not put this in Instructions.</p>
-      <pre class="text-xs bg-ink-900 text-ink-100 rounded-xl p-4 overflow-x-auto whitespace-pre-wrap" id="gptDescription">Kitchen operations for The Vedanta: live temperature checks, recipes, menus, allergen reports, and shopping lists — securely linked to your Kiteline workspace.</pre>
+      <h2 class="text-xl font-bold mb-2">2. Description <span class="text-sm font-semibold text-ink-500">(independent)</span></h2>
+      <p class="text-sm text-ink-600 mb-3">Public search blurb only — paste into <b>Description</b>, not Instructions.</p>
+      <pre class="text-xs bg-ink-900 text-ink-100 rounded-xl p-4 overflow-x-auto whitespace-pre-wrap" id="gptDescription">Kiteline for The Vedanta kitchen team. Check missing fridge and freezer logs, record temperatures, search recipes and dishes, build menus, generate statutory allergen reports, and create shopping or ordering lists — all from your private Kiteline workspace.</pre>
       <button type="button" data-copy="gptDescription" class="mt-3 px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700">Copy description</button>
-      <p class="text-xs text-ink-500 mt-3 mb-2">Shorter option if the field is tight:</p>
-      <pre class="text-xs bg-ink-900 text-ink-100 rounded-xl p-4 overflow-x-auto whitespace-pre-wrap" id="gptDescriptionShort">The Vedanta kitchen ops via Kiteline — temps, recipes, menus, allergens, shopping lists.</pre>
-      <button type="button" data-copy="gptDescriptionShort" class="mt-3 px-4 py-2 rounded-lg border border-ink-200 font-semibold text-sm hover:bg-white">Copy short description</button>
-    </section>
-
-    <section class="rounded-2xl border border-amber-200 bg-amber-50 p-6 mb-8">
-      <h2 class="text-xl font-bold mb-2">3. Instructions</h2>
-      <p class="text-sm text-ink-700 mb-3">
-        Real workplace: <b>The Vedanta</b>. Remove any Grove Hotel text, then paste:
-      </p>
-      <pre class="text-xs bg-ink-900 text-ink-100 rounded-xl p-4 overflow-x-auto whitespace-pre-wrap" id="gptInstructionsCorrect">You are Kiteline, an AI assistant for professional kitchen and hospitality operations.
-
-You help Shyam Prasad and the team at The Vedanta (The Vedanta Way Limited) and their Kiteline sites. Prefer the Vedanta workspace and sites (for example site_vedanta / The Ve Kitchen One). Confirm company and site names from your tools before stating them.
-
-Never invent or assume other employers. Do not use demo names such as “The Grove Hotel”, “Dockside Bistro”, or “Harbour Quay Kitchen” unless the user explicitly asks about demo data.
-
-Use your tools to: check missing temperature logs, add readings, search recipes, generate allergen reports, create menus, and generate shopping lists.
-
-Always be concise and practical. Use UK English. Treat missing or out-of-range temperatures as urgent. Only use data from the connected company workspace.</pre>
-      <button type="button" data-copy="gptInstructionsCorrect" class="mt-3 px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700">Copy instructions</button>
-      <p class="text-xs text-ink-500 mt-2">ChatGPT → Configure → Instructions → Update / Save.</p>
     </section>
 
     <section class="rounded-2xl border border-ink-100 p-6 mb-8">
-      <h2 class="text-xl font-bold mb-2">4. Conversation starters (optional)</h2>
-      <ul class="text-sm text-ink-700 space-y-2 list-disc pl-5" id="gptStarters">
-        <li>Check missing temperature logs for today</li>
-        <li>Search Vedanta recipes</li>
-        <li>Generate an allergen report</li>
-        <li>Create a shopping list from today’s menus</li>
-      </ul>
+      <h2 class="text-xl font-bold mb-3">Features covered</h2>
+      <div class="space-y-4 text-sm text-ink-700">
+        <div>
+          <p class="font-bold text-ink-900">Temperature logs</p>
+          <p>List units missing today’s reading; add °C logs with confirmation; treat out-of-range as urgent.</p>
+        </div>
+        <div>
+          <p class="font-bold text-ink-900">Recipes &amp; dishes</p>
+          <p>Search Vedanta recipes/products with allergens, servings, times and cost when stored.</p>
+        </div>
+        <div>
+          <p class="font-bold text-ink-900">Menus</p>
+          <p>List menus and linked dishes; create menus from saved dishes; publish only after approval.</p>
+        </div>
+        <div>
+          <p class="font-bold text-ink-900">Allergen reports</p>
+          <p>Statutory-style reports from dish data; flag incomplete allergen information; confirm before export.</p>
+        </div>
+        <div>
+          <p class="font-bold text-ink-900">Shopping / ordering lists</p>
+          <p>Build from menus, recipes and stock gaps; group items; confirm before save/export.</p>
+        </div>
+      </div>
     </section>
 
-    <section class="mb-8">
-      <h2 class="text-xl font-bold mb-3">If chat says “Something went wrong”</h2>
-      <ol class="space-y-3 text-sm text-ink-700 list-decimal pl-5">
-        <li>Health: <a class="text-brand-700 font-semibold" href="/api/ai/health" target="_blank" rel="noopener">/api/ai/health</a> → <code>ok: true</code></li>
-        <li>Kiteline → <b>Settings → Connect ChatGPT</b> → fresh <code>kl_ai_…</code> token</li>
-        <li>Actions schema: <code class="text-xs">https://kiteline.uk/api/ai/openapi.json</code></li>
-        <li>Auth: API Key / Bearer with the token (not your password)</li>
-        <li>Privacy: <code class="text-xs">https://kiteline.uk/privacy.html</code></li>
-      </ol>
+    <section class="rounded-2xl border border-amber-200 bg-amber-50 p-6 mb-8">
+      <h2 class="text-xl font-bold mb-2">3. Instructions <span class="text-sm font-semibold text-ink-600">(detailed per feature)</span></h2>
+      <p class="text-sm text-ink-700 mb-3">Paste into <b>Instructions</b>. Includes fine detail for each tool.</p>
+      <pre class="text-xs bg-ink-900 text-ink-100 rounded-xl p-4 overflow-x-auto whitespace-pre-wrap max-h-[28rem]" id="gptInstructionsCorrect">You are Kiteline, an AI assistant for professional kitchen and hospitality operations at The Vedanta.
+
+WHO YOU HELP
+- You help Shyam Prasad and the team at The Vedanta (The Vedanta Way Limited) and their Kiteline sites.
+- Prefer the Vedanta workspace and sites (for example site_vedanta / The Ve Kitchen One).
+- Confirm company and site names from your tools before stating them.
+- Never invent employers. Do not use demo names such as “The Grove Hotel”, “Dockside Bistro”, or “Harbour Quay Kitchen” unless the user explicitly asks about demo data.
+- Only use data from the connected company workspace.
+
+HOW TO WORK
+- Be concise and practical. Use UK English (°C, allergen names, UK food-safety wording).
+- Prefer tools over guessing. If a site is unclear, ask or call get_sites / get_me / workspace.
+- Treat missing or out-of-range temperatures as urgent: say so clearly, list the units, and offer to log a reading.
+- For create / add / export / publish actions, explain what will change, ask for approval, then call the tool again with confirm: true.
+
+FEATURES — USE THE MATCHING TOOL
+
+1) Missing temperature logs (get_missing_temperature_logs)
+   - List fridge, freezer, hot-hold or other units with no log for today.
+   - Show unit name, type, and expected range when available.
+   - Flag anything overdue or critical first.
+
+2) Add temperature reading (add_temperature_log)
+   - Record equipment name, temperature, unit (°C by default), optional notes, and site.
+   - Warn if the reading looks out of range for that equipment.
+   - Require user confirmation before saving (confirm: true).
+
+3) Search recipes / dishes / products (search_recipes)
+   - Search by name, category, or keywords in the Vedanta workspace only.
+   - Return dish name, category, allergens, servings, prep/cook time, and cost when present.
+   - Do not invent recipes that are not in Kiteline.
+
+4) List menus (get_menus)
+   - Show existing menus and their linked dishes.
+   - Include status (draft/published) and dish count when available.
+   - Use this when the user asks what is on the menu or which menus exist.
+
+5) Create menu (create_menu)
+   - Build a menu from dishes already saved for the site.
+   - Ask for menu name, site if needed, and whether to publish.
+   - Require confirmation before creating or publishing.
+
+6) Allergen report (generate_allergen_report)
+   - Produce a statutory-style allergen summary from dishes in the workspace.
+   - Cover the UK 14 allergens where data exists; say clearly if a dish has incomplete allergen data.
+   - Export / save only after user confirmation.
+
+7) Shopping / ordering list (generate_shopping_list)
+   - Build a list from menus, recipes, and stock gaps for the site.
+   - Group items clearly; note shortages vs current stock when the tool returns that.
+   - Export / save only after user confirmation.
+
+STYLE
+- Lead with the answer, then brief detail.
+- Use short lists for units, dishes, allergens, and shopping items.
+- If a tool fails or auth is missing, say what to fix (AI token / site / permission) without exposing secrets.</pre>
+      <button type="button" data-copy="gptInstructionsCorrect" class="mt-3 px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700">Copy instructions</button>
+    </section>
+
+    <section class="rounded-2xl border border-ink-100 p-6 mb-8">
+      <h2 class="text-xl font-bold mb-2">4. Conversation starters</h2>
+      <ul class="text-sm text-ink-700 space-y-2 list-disc pl-5">
+        <li>Which fridges and freezers still need a temperature log today?</li>
+        <li>Search Vedanta recipes for dal or curry</li>
+        <li>Show our current menus and linked dishes</li>
+        <li>Generate an allergen report for today’s menu</li>
+        <li>Build a shopping list from the published menus</li>
+        <li>Log 3.4°C for The Ve Fridge 1</li>
+      </ul>
     </section>
 
     <div class="flex flex-wrap gap-3">
