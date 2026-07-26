@@ -47,6 +47,22 @@
       </div>
     </section>
 
+    <section class="rounded-2xl border border-amber-200 bg-amber-50 p-6 mb-8">
+      <h2 class="text-xl font-bold mb-2">Correct GPT Instructions</h2>
+      <p class="text-sm text-ink-700 mb-3">
+        <b>The Grove Hotel is demo data only</b> — not a real workplace. If your GPT Instructions mention Grove Hotel, replace them with:
+      </p>
+      <pre class="text-xs bg-ink-900 text-ink-100 rounded-xl p-4 overflow-x-auto whitespace-pre-wrap" id="gptInstructionsCorrect">You are Kiteline, an AI assistant for professional kitchen and hospitality operations.
+
+Help the signed-in Kiteline company and their real sites only. Discover the company name and site names from your tools (for example get_me / workspace / get_sites). Never invent or assume an employer, hotel, or site name — especially never use demo names such as “The Grove Hotel”, “Dockside Bistro”, or “Harbour Quay Kitchen”.
+
+Use your tools to: check missing temperature logs, add readings, search recipes, generate allergen reports, create menus, and generate shopping lists.
+
+Always be concise and practical. Use UK English. Treat missing or out-of-range temperatures as urgent. Only use data from the connected company workspace.</pre>
+      <button type="button" id="copyGptInstructions" class="mt-3 px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700">Copy correct instructions</button>
+      <p class="text-xs text-ink-500 mt-2">Paste into ChatGPT GPT editor → Configure → Instructions → Save.</p>
+    </section>
+
     <section class="mb-8">
       <h2 class="text-xl font-bold mb-3">If chat says “Something went wrong”</h2>
       <ol class="space-y-3 text-sm text-ink-700 list-decimal pl-5">
@@ -86,5 +102,15 @@
     <a href="/security.html" class="text-brand-700 font-semibold">Security</a> ·
     <a href="mailto:contact@kiteline.uk" class="text-brand-700 font-semibold">contact@kiteline.uk</a>
   </footer>
+  <script>
+    document.getElementById('copyGptInstructions')?.addEventListener('click', async () => {
+      const t = document.getElementById('gptInstructionsCorrect')?.textContent || '';
+      try {
+        await navigator.clipboard.writeText(t.trim());
+        const b = document.getElementById('copyGptInstructions');
+        if (b) { const old = b.textContent; b.textContent = 'Copied'; setTimeout(() => { b.textContent = old; }, 1500); }
+      } catch (e) { alert('Copy failed — select the text manually'); }
+    });
+  </script>
 </body>
 </html>

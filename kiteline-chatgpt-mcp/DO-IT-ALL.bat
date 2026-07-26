@@ -54,13 +54,16 @@ copy /Y "%ROOT%server\ai-openapi.js" "server\ai-openapi.js" >nul
 copy /Y "%ROOT%server\ai-mcp.js" "server\ai-mcp.js" >nul
 copy /Y "%ROOT%server\ai-connector.js" "server\ai-connector.js" >nul
 if not exist "site" mkdir site
+if not exist "js" mkdir js
 copy /Y "%ROOT%site\chatgpt.html" "site\chatgpt.html" >nul
+copy /Y "%ROOT%js\views.js" "js\views.js" >nul
 copy /Y "%LOGO%" "chatgpt-gpt-logo.png" >nul
 copy /Y "%LOGO%" "site\chatgpt-gpt-logo.png" >nul
 copy /Y "%ROOT%CHATGPT.md" "CHATGPT.md" >nul
+copy /Y "%ROOT%GPT-INSTRUCTIONS.md" "GPT-INSTRUCTIONS.md" >nul
 
-git add server/server.js server/security.js server/ai-openapi.js server/ai-mcp.js server/ai-connector.js site/chatgpt.html chatgpt-gpt-logo.png site/chatgpt-gpt-logo.png CHATGPT.md
-git commit -m "Fix ChatGPT Something went wrong (CORS) + add GPT logo"
+git add server/server.js server/security.js server/ai-openapi.js server/ai-mcp.js server/ai-connector.js site/chatgpt.html js/views.js chatgpt-gpt-logo.png site/chatgpt-gpt-logo.png CHATGPT.md GPT-INSTRUCTIONS.md
+git commit -m "Fix ChatGPT CORS, GPT logo, and remove Grove Hotel from GPT instructions"
 if errorlevel 1 (
   echo Nothing new to commit, or commit failed. Continuing push/open steps...
 )
@@ -84,13 +87,14 @@ start "" "https://chatgpt.com/gpts/editor/g-6a65392fc7b88191923de8c0e7094f71"
 
 echo Opening logo folder for upload...
 start "" explorer /select,"%LOGO%"
+start "" notepad "%ROOT%GPT-INSTRUCTIONS.md"
 
 popd
 
 echo.
 echo === Almost done — 60 seconds in the browser ===
 echo 1. On GitHub: create the PR and merge to main (Render redeploys kiteline.uk)
-echo 2. In ChatGPT GPT editor - Configure: click logo circle, upload chatgpt-gpt-logo.png, Save
+echo 2. In ChatGPT GPT editor - Configure: replace Instructions (see GPT-INSTRUCTIONS.md - NOT Grove Hotel), upload logo, Save
 echo 3. Actions: re-import https://kiteline.uk/api/ai/openapi.json with your kl_ai_ token
 echo 4. After deploy: curl https://kiteline.uk/api/ai/health  (expect version 1.2.2)
 echo.

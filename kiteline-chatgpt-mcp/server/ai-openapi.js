@@ -50,7 +50,7 @@ function buildOpenApi(baseUrl) {
         name: 'site',
         in: 'query',
         schema: { type: 'string' },
-        description: 'Kitchen site id for this company (e.g. site_grove)',
+        description: 'Kitchen site id for this company (use get_sites — do not invent demo site ids)',
       });
     }
     if (method === 'get' && ['search', 'recipes', 'menus', 'stock', 'suppliers', 'search_recipes', 'get_menus'].includes(name)) {

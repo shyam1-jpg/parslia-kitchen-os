@@ -1,5 +1,9 @@
 # Apply: Fix ChatGPT “Something went wrong” + GPT logo (Kiteline 1.2.2)
 
+## Also fix wrong GPT Instructions (Grove Hotel)
+
+**The Grove Hotel is demo data only.** Paste the text from `GPT-INSTRUCTIONS.md` into ChatGPT → Configure → Instructions.
+
 ## Fastest path (your PC — do it all)
 
 Cloud cannot push to `kitline1` or log into ChatGPT. On the Windows PC where GitHub + ChatGPT are already logged in:

@@ -40,13 +40,15 @@ cp -f "$ROOT/server/ai-mcp.js" server/ai-mcp.js
 cp -f "$ROOT/server/ai-connector.js" server/ai-connector.js
 mkdir -p site
 cp -f "$ROOT/site/chatgpt.html" site/chatgpt.html
+mkdir -p js
+cp -f "$ROOT/js/views.js" js/views.js
 cp -f "$LOGO" chatgpt-gpt-logo.png
 cp -f "$LOGO" site/chatgpt-gpt-logo.png
 cp -f "$ROOT/CHATGPT.md" CHATGPT.md
+cp -f "$ROOT/GPT-INSTRUCTIONS.md" GPT-INSTRUCTIONS.md
 
-git add server/server.js server/security.js server/ai-openapi.js server/ai-mcp.js \
-  server/ai-connector.js site/chatgpt.html chatgpt-gpt-logo.png site/chatgpt-gpt-logo.png CHATGPT.md
-git commit -m "Fix ChatGPT Something went wrong (CORS) + add GPT logo" || true
+git add server/server.js server/security.js server/ai-openapi.js server/ai-mcp.js   server/ai-connector.js site/chatgpt.html js/views.js chatgpt-gpt-logo.png site/chatgpt-gpt-logo.png CHATGPT.md GPT-INSTRUCTIONS.md
+git commit -m "Fix ChatGPT CORS, GPT logo, and remove Grove Hotel from GPT instructions" || true
 git push -u origin cursor/chatgpt-cors-logo-4a85
 
 echo
