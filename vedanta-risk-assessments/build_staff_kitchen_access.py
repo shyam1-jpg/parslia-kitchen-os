@@ -208,7 +208,7 @@ def build():
     sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = sub.add_run(
         "Separate departmental pack for:\n"
-        "Kitchen staff · Restaurant / FOH staff · Building & support staff\n"
+        "Kitchen staff · Restaurant / FOH staff · Building & Ground staff\n"
         "Anyone entering the kitchen, fridge, freezer, dry store or portable cabin"
     )
     set_run(run, size=11, color=MUTED)
@@ -220,9 +220,9 @@ def build():
         "The Vedanta Kitchen & Retreat Centre\n"
         "Branston Hall, Lincoln Road, Branston, Lincoln LN4 1PD\n"
         "Website: https://thevedanta.org/\n\n"
-        f"Assessor: Shyam Prasad\n"
-        f"Date: {date.today().strftime('%d %B %Y')}\n"
-        "Review due: 27 July 2027\n\n"
+        "Assessor: Shyam Prasad\n"
+        "Date: 27 June 2026\n"
+        "Review due: 27 June 2027\n\n"
         "This pack is SEPARATE from the equipment risk assessment brochure.\n"
         "Issue a copy to each department whose staff enter the kitchen."
     )
@@ -261,12 +261,12 @@ def build():
             ("Workplace", "The Vedanta Kitchen & Retreat Centre — Branston Hall, LN4 1PD"),
             ("Company", "The Vedanta Way Limited"),
             ("Assessor", "Shyam Prasad"),
-            ("Assessment date", date.today().strftime("%d %B %Y")),
-            ("Review date", "27 July 2027, or sooner after an incident / near miss / layout change"),
+            ("Assessment date", "27 June 2026"),
+            ("Review date", "27 June 2027, or sooner after an incident / near miss / layout change"),
             (
                 "People covered",
                 "Kitchen team; restaurant / FOH / service staff; housekeeping; maintenance; "
-                "office / building staff; contractors; any visitor entering food areas",
+                "office / building / ground staff; contractors; any visitor entering food areas",
             ),
             (
                 "Areas covered",
@@ -692,7 +692,7 @@ def build():
             ("Document owner", "Shyam Prasad"),
             ("Approved by", ""),
             ("Approval date", ""),
-            ("Version", "1.1 Staff Kitchen Access Pack — includes clean as you go"),
+            ("Version", "1.2 Staff Kitchen Access Pack — dates aligned to 27 June 2026"),
             ("Related document", "Vedanta_Kitchen_Safety_Brochure_Risk_Pack.docx (equipment only)"),
         ],
     )
