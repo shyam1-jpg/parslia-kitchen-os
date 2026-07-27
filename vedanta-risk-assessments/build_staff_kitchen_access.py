@@ -191,16 +191,13 @@ def build():
 
     # Cover
     try:
-        add_picture(doc, "Vedanta-Way-Ltd-text-banner.jpg", 6.5)
+        add_picture(doc, "Vedanta-Way-Ltd-cover-banner.jpg", 6.5)
     except Exception:
         pass
-    title = doc.add_paragraph()
-    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = title.add_run("THE VEDANTA WAY LIMITED")
-    set_run(run, size=12, bold=True, color=GOLD, font="Georgia")
 
     main = doc.add_paragraph()
     main.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    main.paragraph_format.space_before = Pt(14)
     run = main.add_run("Staff Kitchen Access\nRisk Assessment & Rules")
     set_run(run, size=24, bold=True, color=NAVY, font="Georgia")
 
@@ -218,8 +215,6 @@ def build():
     meta.paragraph_format.space_before = Pt(14)
     run = meta.add_run(
         "The Vedanta Kitchen & Retreat Centre\n"
-        "Branston Hall, Lincoln Road, Branston, Lincoln LN4 1PD\n"
-        "Website: https://thevedanta.org/\n\n"
         "Assessor: Shyam Prasad\n"
         "Date: 27 June 2026\n"
         "Review due: 27 June 2027\n\n"

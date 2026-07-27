@@ -191,19 +191,13 @@ def add_steps_guide(doc, filename, caption="Step-by-step visual guide"):
 
 def cover_page(doc):
     try:
-        add_picture(doc, "Vedanta-Way-Ltd-text-banner.jpg", width_inches=6.5)
+        add_picture(doc, "Vedanta-Way-Ltd-cover-banner.jpg", width_inches=6.5)
     except Exception:
         pass
 
-    title = doc.add_paragraph()
-    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    title.paragraph_format.space_before = Pt(10)
-    run = title.add_run("THE VEDANTA WAY LIMITED")
-    set_run(run, size=12, bold=True, color=TEAL, font="Georgia")
-
     main = doc.add_paragraph()
     main.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    main.paragraph_format.space_before = Pt(6)
+    main.paragraph_format.space_before = Pt(14)
     run = main.add_run("Kitchen Safety Brochure &\nCombined Risk Assessment Pack")
     set_run(run, size=24, bold=True, color=NAVY, font="Georgia")
 
@@ -221,9 +215,7 @@ def cover_page(doc):
     meta.paragraph_format.space_before = Pt(18)
     run = meta.add_run(
         "The Vedanta Kitchen & Retreat Centre\n"
-        "Branston Hall, Lincoln Road, Branston, Lincoln LN4 1PD\n"
         "Company: The Vedanta Way Limited\n"
-        "Website: https://thevedanta.org/\n\n"
         f"Assessor: Shyam Prasad\n"
         f"Document date: {date.today().strftime('%d %B %Y')}\n"
         f"Review due: 27 July 2027"
