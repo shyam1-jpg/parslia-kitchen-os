@@ -46,6 +46,7 @@ Open http://localhost:8000
 
 | Guide | Path |
 |-------|------|
+| **Messy Desktop — START HERE** | [docs/START-HERE-TIDY-DESKTOP.md](docs/START-HERE-TIDY-DESKTOP.md) |
 | Desktop tidy (Windows folders) | [docs/DESKTOP-ORGANIZATION.md](docs/DESKTOP-ORGANIZATION.md) |
 | Where everything is | [docs/WHERE-IS-EVERYTHING.md](docs/WHERE-IS-EVERYTHING.md) |
 | Libraix owner checklist | [docs/LIBRAIX_OWNER_DESKTOP_GUIDE.md](docs/LIBRAIX_OWNER_DESKTOP_GUIDE.md) |
