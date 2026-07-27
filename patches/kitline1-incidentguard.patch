@@ -1,0 +1,1034 @@
+From 8d6f8fc1c1e43cd6b1019902686863f00968a338 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Mon, 27 Jul 2026 21:58:20 +0000
+Subject: [PATCH] Add Kiteline IncidentGuard module and pilot landing page
+
+Introduce kitchen-specific incident, near-miss and CAPA workflow with
+lifecycle statuses, RIDDOR guidance, QR report links, and a marketing
+page at /incident-management.html. Nav label becomes IncidentGuard.
+---
+ index.html                    |   7 +-
+ js/app.js                     |   2 +-
+ js/i18n.js                    |   2 +-
+ js/incidentguard.js           | 219 ++++++++++++++++++++
+ js/store.js                   |  12 +-
+ js/views.js                   | 377 +++++++++++++++++++++++++++++-----
+ server/server.js              |   2 +-
+ site/incident-management.html | 235 +++++++++++++++++++++
+ site/index.html               |  12 +-
+ 9 files changed, 810 insertions(+), 58 deletions(-)
+ create mode 100644 js/incidentguard.js
+ create mode 100644 site/incident-management.html
+
+diff --git a/index.html b/index.html
+index 92db234..55e636f 100644
+--- a/index.html
++++ b/index.html
+@@ -122,17 +122,18 @@
+   <script src="/js/i18n.js?v=12"></script>
+   <script src="/js/api.js?v=19"></script>
+   <script src="/js/recipe-seeds.js?v=4"></script>
+-  <script src="/js/store.js?v=16"></script>
++  <script src="/js/store.js?v=34"></script>
+   <script src="/js/ui.js?v=14"></script>
+   <script src="/js/security.js?v=1"></script>
+   <script src="/js/compliance.js?v=4"></script>
++  <script src="/js/incidentguard.js?v=1"></script>
+   <script src="/js/recipe-nutrition.js?v=3"></script>
+   <script src="/js/recipe-media.js?v=1"></script>
+   <script src="/js/recipe-ai.js?v=2"></script>
+   <script src="/js/register-form.js?v=6"></script>
+-  <script src="/js/views.js?v=26"></script>
++  <script src="/js/views.js?v=34"></script>
+   <script src="/js/compliance-views.js?v=4"></script>
+-  <script src="/js/app.js?v=31"></script>
++  <script src="/js/app.js?v=35"></script>
+   <script>
+     if ('serviceWorker' in navigator) {
+       window.addEventListener('load', () => {
+diff --git a/js/app.js b/js/app.js
+index 64e90c2..b97121f 100644
+--- a/js/app.js
++++ b/js/app.js
+@@ -33,7 +33,7 @@
+     { id:'phlogs', label:'pH Monitor', icon:'droplet' },
+     { id:'batches', label:'Batches', icon:'layers' },
+     { id:'suppliers', label:'Suppliers', icon:'truck' },
+-    { id:'incidents', label:'Incidents', icon:'shield' },
++    { id:'incidents', label:'IncidentGuard', icon:'shield' },
+     { id:'maintenance', label:'Maintenance', icon:'wrench' },
+     { id:'assets', label:'Assets & Equipment', icon:'box' },
+     { id:'sites', label:'Sites', icon:'sites' },
+diff --git a/js/i18n.js b/js/i18n.js
+index bfc91c4..cfe49d6 100644
+--- a/js/i18n.js
++++ b/js/i18n.js
+@@ -11,7 +11,7 @@
+       'nav.home':'Home','nav.wflive':'Happening Now','nav.wfdone':'Completed Today','nav.wfout':'Outstanding','nav.wfod':'Overdue','nav.wfstaff':'Staff Working','nav.wfdel':'Deliveries Today','nav.wfprod':'Food Production','nav.wfclean':'Cleaning Status','nav.wfhaccp':'HACCP Status','nav.wfperf':'Performance','nav.dashboard':'Dashboard','nav.taskoverview':'Task Overview','nav.deliveries':'Deliveries','nav.temps':'Temperatures','nav.alerts':'Alerts',
+       'nav.haccp':'HACCP & Checklists','nav.records':'Records','nav.sites':'Sites',
+       'nav.compliance':'Kitchen Compliance',
+-      'nav.suppliers':'Suppliers','nav.incidents':'Incidents','nav.training':'Training','nav.maintenance':'Maintenance',
++      'nav.suppliers':'Suppliers','nav.incidents':'IncidentGuard','nav.training':'Training','nav.maintenance':'Maintenance',
+       'nav.cooling':'Cooling','nav.holding':'Hot & Cold Hold','nav.phlogs':'pH Monitor','nav.batches':'Batches','nav.assets':'Assets & Equipment',
+       'nav.reports':'Reports','nav.team':'Team','nav.recipes':'Recipes','nav.foodcost':'Food Cost','nav.manual':'User Manual',
+       'nav.allerq':'MenuGuard','nav.labels':'LabelSmart','nav.waste':'WasteWise','nav.settings':'Settings',
+diff --git a/js/incidentguard.js b/js/incidentguard.js
+new file mode 100644
+index 0000000..0366574
+--- /dev/null
++++ b/js/incidentguard.js
+@@ -0,0 +1,219 @@
++/* Kiteline IncidentGuard — incident / near-miss / CAPA helpers */
++(function () {
++  const CATEGORIES = [
++    'Accident or injury',
++    'Burn, cut, slip or fall',
++    'Near miss',
++    'Unsafe condition',
++    'Allergen incident',
++    'Foreign object',
++    'Food contamination',
++    'Suspected food poisoning',
++    'Fridge or freezer failure',
++    'Cooking or hot-holding failure',
++    'Equipment breakdown',
++    'Pest sighting',
++    'Chemical spill',
++    'Fire or gas incident',
++    'Customer complaint',
++    'Supplier recall',
++    'Other',
++  ];
++
++  const STATUSES = [
++    'Reported',
++    'Manager Review',
++    'Investigation',
++    'Action Required',
++    'Awaiting Verification',
++    'Closed',
++  ];
++
++  const SEVERITIES = ['Low', 'Medium', 'High', 'Critical'];
++
++  const QR_LOCATIONS = [
++    { id: 'fridge', label: 'Fridge / freezer' },
++    { id: 'oven', label: 'Oven' },
++    { id: 'fryer', label: 'Fryer' },
++    { id: 'blast', label: 'Blast chiller' },
++    { id: 'dishwasher', label: 'Dishwasher' },
++    { id: 'dry_store', label: 'Dry store' },
++    { id: 'chemical', label: 'Chemical cupboard' },
++    { id: 'delivery', label: 'Delivery area' },
++    { id: 'section', label: 'Kitchen section' },
++    { id: 'noticeboard', label: 'Staff safety noticeboard' },
++  ];
++
++  const ACTION_STATUSES = ['Open', 'In progress', 'Awaiting verification', 'Completed'];
++
++  function nextRef(db) {
++    const n = ((db.incidents || []).length + 1);
++    return 'IG-' + String(n).padStart(4, '0');
++  }
++
++  function migrateStatus(s) {
++    if (!s) return 'Reported';
++    if (STATUSES.includes(s)) return s;
++    if (s === 'Open') return 'Reported';
++    if (s === 'In progress') return 'Action Required';
++    if (s === 'Closed') return 'Closed';
++    return 'Reported';
++  }
++
++  function normalize(inc) {
++    if (!inc || typeof inc !== 'object') return inc;
++    inc.status = migrateStatus(inc.status);
++    if (!inc.ref) inc.ref = 'IG-' + String((inc.id || '').replace(/\D/g, '').slice(-4) || '0000').padStart(4, '0');
++    if (!inc.category && inc.type) {
++      const map = {
++        Accident: 'Accident or injury',
++        Complaint: 'Customer complaint',
++        Pest: 'Pest sighting',
++        Equipment: 'Equipment breakdown',
++        'Food safety': 'Food contamination',
++        Other: 'Other',
++      };
++      inc.category = map[inc.type] || inc.type;
++    }
++    if (!Array.isArray(inc.actions)) inc.actions = [];
++    if (!inc.investigation || typeof inc.investigation !== 'object') {
++      inc.investigation = {
++        immediateCause: '', contributing: '', rootCause: '', fiveWhys: '',
++        existingControls: '', failedControls: '', lessons: '',
++        approvedBy: '', approvedAt: '',
++      };
++    }
++    if (!Array.isArray(inc.history)) inc.history = [];
++    if (inc.riddorFlag == null) inc.riddorFlag = false;
++    if (inc.dangerPresent == null) inc.dangerPresent = false;
++    return inc;
++  }
++
++  function ensureAll(db) {
++    if (!db || !Array.isArray(db.incidents)) return db;
++    db.incidents.forEach(normalize);
++    if (!Array.isArray(db.incidentQrCodes)) {
++      db.incidentQrCodes = QR_LOCATIONS.map((loc) => ({
++        id: 'iqr_' + loc.id,
++        locationKey: loc.id,
++        label: loc.label,
++        siteId: db.currentSite || null,
++      }));
++    }
++    return db;
++  }
++
++  function mayNeedRiddor(inc) {
++    const sev = String(inc.severity || '');
++    const cat = String(inc.category || inc.type || '').toLowerCase();
++    if (sev === 'Critical' || sev === 'High') {
++      if (/accident|injur|burn|cut|slip|fall|poison|fire|gas|chemical/.test(cat)) return true;
++    }
++    return !!inc.riddorFlag;
++  }
++
++  function openCount(db, site) {
++    return (db.incidents || []).filter((i) => {
++      if (site && i.site !== site) return false;
++      return migrateStatus(i.status) !== 'Closed';
++    }).length;
++  }
++
++  function overdueActions(db, site) {
++    const today = new Date().toISOString().slice(0, 10);
++    const out = [];
++    (db.incidents || []).forEach((inc) => {
++      if (site && inc.site !== site) return;
++      normalize(inc);
++      (inc.actions || []).forEach((a) => {
++        if (a.status === 'Completed') return;
++        if (a.due && a.due < today) out.push({ incident: inc, action: a });
++      });
++    });
++    return out;
++  }
++
++  function createIncident(db, patch, byUserId) {
++    ensureAll(db);
++    const now = new Date().toISOString();
++    const inc = normalize(Object.assign({
++      id: (window.Store && window.Store.uid) ? window.Store.uid('inc') : ('inc_' + Date.now()),
++      ref: nextRef(db),
++      title: '',
++      category: 'Near miss',
++      type: 'Other',
++      site: db.currentSite,
++      area: '',
++      severity: 'Medium',
++      description: '',
++      dangerPresent: false,
++      immediateAction: '',
++      peopleInvolved: '',
++      witnesses: '',
++      firstAid: '',
++      equipment: '',
++      foodAffected: '',
++      photoNote: '',
++      voiceNote: '',
++      reportedBy: byUserId || 'unknown',
++      at: now,
++      status: 'Reported',
++      action: '',
++      actions: [],
++      investigation: {},
++      history: [{ at: now, by: byUserId || 'unknown', note: 'Incident reported' }],
++      riddorFlag: false,
++      qrLocation: '',
++    }, patch));
++    if (mayNeedRiddor(inc)) inc.riddorFlag = true;
++    db.incidents.unshift(inc);
++    return inc;
++  }
++
++  function addAction(inc, patch, byUserId) {
++    normalize(inc);
++    const a = Object.assign({
++      id: 'iga_' + Date.now().toString(36),
++      ownerId: '',
++      priority: 'Medium',
++      due: '',
++      instructions: '',
++      evidence: '',
++      notes: '',
++      status: 'Open',
++      completedAt: '',
++      verifiedBy: '',
++    }, patch);
++    inc.actions.push(a);
++    inc.status = 'Action Required';
++    inc.history.push({ at: new Date().toISOString(), by: byUserId || 'unknown', note: 'Corrective action added' });
++    return a;
++  }
++
++  function setStatus(inc, status, byUserId, note) {
++    normalize(inc);
++    const next = migrateStatus(status);
++    inc.status = next;
++    if (next === 'Closed') inc.closedAt = new Date().toISOString();
++    inc.history.push({
++      at: new Date().toISOString(),
++      by: byUserId || 'unknown',
++      note: note || ('Status → ' + next),
++    });
++    return inc;
++  }
++
++  function reportUrl(locationKey, siteId) {
++    const q = new URLSearchParams();
++    if (siteId) q.set('site', siteId);
++    if (locationKey) q.set('qr', locationKey);
++    q.set('report', '1');
++    return '/app#incidents?' + q.toString();
++  }
++
++  window.IncidentGuard = {
++    CATEGORIES, STATUSES, SEVERITIES, QR_LOCATIONS, ACTION_STATUSES,
++    nextRef, normalize, ensureAll, mayNeedRiddor, openCount, overdueActions,
++    createIncident, addAction, setStatus, reportUrl, migrateStatus,
++  };
++})();
+diff --git a/js/store.js b/js/store.js
+index 0266c5d..b3a2f25 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -503,12 +503,13 @@
+       { id:uid(), supplier:'Bidfood', site:'site_quay', category:'Ambient', temp:null, target:null, packaging:'Good', dateCheck:'Fail', vehicle:'Clean', by:'u_amy', at:hoursAgo(6), accepted:false, reason:'Two cases past best-before date — rejected those cases, rest accepted.', items:'Canned goods, oils' },
+     ];
+ 
+-    // Incidents & corrective actions log
++    // IncidentGuard — incidents, near-miss & CAPA
+     const incidents = [
+-      { id:uid(), title:'Walk-in fridge over temperature', type:'Equipment', site:'site_quay', severity:'High', reportedBy:'u_amy', at:hoursAgo(6), status:'In progress', action:'Engineer called; stock moved to spare unit and temperatures logged hourly.' },
+-      { id:uid(), title:'Customer allergen complaint', type:'Complaint', site:'site_grove', severity:'High', reportedBy:'u_sarah', at:daysAgo(2), status:'Closed', action:'Reviewed allergen matrix, retrained server, apology issued. No reaction occurred.' },
+-      { id:uid(), title:'Minor burn — fryer station', type:'Accident', site:'site_dock', severity:'Low', reportedBy:'u_lena', at:daysAgo(4), status:'Closed', action:'First aid administered, accident book updated, splash guard fitted.' },
+-      { id:uid(), title:'Evidence of pests near bins', type:'Pest', site:'site_dock', severity:'Medium', reportedBy:'u_marco', at:daysAgo(1), status:'Open', action:'' },
++      { id:uid(), ref:'IG-0001', title:'Walk-in fridge over temperature', type:'Equipment', category:'Fridge or freezer failure', site:'site_quay', severity:'High', reportedBy:'u_amy', at:hoursAgo(6), status:'Action Required', area:'Walk-in', equipment:'Walk-in fridge 2', foodAffected:'Dairy & prep stock', description:'Walk-in reading 9.4°C on opening checks.', action:'Engineer called; stock moved to spare unit and temperatures logged hourly.', dangerPresent:true, riddorFlag:false, actions:[{ id:'iga_1', ownerId:'u_amy', priority:'High', due:new Date().toISOString().slice(0,10), instructions:'Confirm engineer visit and discard any unsafe stock', status:'Open', evidence:'', notes:'', completedAt:'', verifiedBy:'' }], investigation:{ immediateCause:'Compressor fault', contributing:'Door left ajar overnight', rootCause:'', fiveWhys:'', existingControls:'Hourly temp checks', failedControls:'Overnight monitoring gap', lessons:'', approvedBy:'', approvedAt:'' }, history:[{ at:hoursAgo(6), by:'u_amy', note:'Incident reported' }] },
++      { id:uid(), ref:'IG-0002', title:'Customer allergen complaint', type:'Complaint', category:'Allergen incident', site:'site_grove', severity:'High', reportedBy:'u_sarah', at:daysAgo(2), status:'Closed', area:'Pass', description:'Guest reported possible nut exposure.', action:'Reviewed allergen matrix, retrained server, apology issued. No reaction occurred.', riddorFlag:false, actions:[], investigation:{ immediateCause:'Server used wrong garnish', contributing:'Busy service', rootCause:'Allergen briefing missed at briefing', fiveWhys:'', existingControls:'Allergen matrix', failedControls:'Pass check', lessons:'Reinforce allergen brief before service', approvedBy:'u_sarah', approvedAt:daysAgo(1) }, history:[{ at:daysAgo(2), by:'u_sarah', note:'Incident reported' },{ at:daysAgo(1), by:'u_sarah', note:'Status → Closed' }] },
++      { id:uid(), ref:'IG-0003', title:'Minor burn — fryer station', type:'Accident', category:'Burn, cut, slip or fall', site:'site_dock', severity:'Low', reportedBy:'u_lena', at:daysAgo(4), status:'Closed', area:'Hot line', equipment:'Fryer 1', firstAid:'Cold water 10 min, dressing', description:'Oil splash while basket lifted.', action:'First aid administered, accident book updated, splash guard fitted.', riddorFlag:false, actions:[], investigation:{}, history:[] },
++      { id:uid(), ref:'IG-0004', title:'Evidence of pests near bins', type:'Pest', category:'Pest sighting', site:'site_dock', severity:'Medium', reportedBy:'u_marco', at:daysAgo(1), status:'Reported', area:'Delivery', description:'Droppings noted beside external bins.', action:'', dangerPresent:true, riddorFlag:false, actions:[], investigation:{}, history:[{ at:daysAgo(1), by:'u_marco', note:'Incident reported' }] },
++      { id:uid(), ref:'IG-0005', title:'Near miss — wet floor by dish pit', type:'Other', category:'Near miss', site:'site_grove', severity:'Medium', reportedBy:'u_james', at:hoursAgo(3), status:'Manager Review', area:'Dish pit', description:'Staff nearly slipped; no injury.', immediateAction:'Cone placed; floor dried', action:'Cone placed; floor dried', dangerPresent:false, riddorFlag:false, actions:[], investigation:{}, history:[] },
+     ];
+ 
+     return {
+@@ -697,6 +698,7 @@
+       if ((db.recipes || []).length < 100) db.recipes = s.recipes;
+     }
+     if (window.Rota && window.Rota.ensureDemo) window.Rota.ensureDemo(db);
++    if (window.IncidentGuard && window.IncidentGuard.ensureAll) window.IncidentGuard.ensureAll(db);
+     if (!isPrivate) ensurePilots(db);
+     return db;
+   }
+diff --git a/js/views.js b/js/views.js
+index 04b2cc4..204bd22 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -2118,67 +2118,352 @@
+     }};
+   }
+ 
+-  /* ---------------- INCIDENTS & CORRECTIVE ACTIONS ---------------- */
++  /* ---------------- INCIDENTGUARD ---------------- */
+   function incidents() {
+-    const list = S.db.incidents.slice().sort((a,b)=>new Date(b.at)-new Date(a.at));
+-    const sevBadge=(s)=> s==='High'?'<span class="badge badge-red">High</span>':s==='Medium'?'<span class="badge badge-amber">Medium</span>':'<span class="badge badge-gray">Low</span>';
+-    const stBadge=(s)=> s==='Closed'?'<span class="badge badge-green">Closed</span>':s==='In progress'?'<span class="badge badge-amber">In progress</span>':'<span class="badge badge-red">Open</span>';
+-    const cards = list.map(i=>{
+-      const m=S.member(i.reportedBy)||{name:i.reportedBy};
+-      return `<div class="card card-pad fade-in">
++    const IG = window.IncidentGuard;
++    if (IG) IG.ensureAll(S.db);
++    const site = S.db.currentSite;
++    const list = (S.db.incidents || []).slice().map((i) => (IG ? IG.normalize(i) : i))
++      .sort((a, b) => new Date(b.at) - new Date(a.at));
++    const siteList = list.filter((i) => !i.site || i.site === site);
++    const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
++    const meId = (() => {
++      if (!me || !me.email) return (S.db.team[0] && S.db.team[0].id) || 'u_sarah';
++      const m = (S.db.team || []).find((t) => (t.email || '').toLowerCase() === me.email.toLowerCase());
++      return (m && m.id) || (S.db.team[0] && S.db.team[0].id) || 'u_sarah';
++    })();
++
++    const sevBadge = (s) => {
++      if (s === 'Critical') return '<span class="badge badge-red">Critical</span>';
++      if (s === 'High') return '<span class="badge badge-red">High</span>';
++      if (s === 'Medium') return '<span class="badge badge-amber">Medium</span>';
++      return '<span class="badge badge-gray">Low</span>';
++    };
++    const stBadge = (s) => {
++      if (s === 'Closed') return '<span class="badge badge-green">Closed</span>';
++      if (s === 'Awaiting Verification') return '<span class="badge badge-blue">Awaiting verification</span>';
++      if (s === 'Action Required' || s === 'Investigation') return '<span class="badge badge-amber">' + escapeHtml(s) + '</span>';
++      return '<span class="badge badge-red">' + escapeHtml(s || 'Reported') + '</span>';
++    };
++
++    const open = siteList.filter((i) => i.status !== 'Closed').length;
++    const critical = siteList.filter((i) => i.severity === 'Critical' || i.severity === 'High').length;
++    const overdue = IG ? IG.overdueActions(S.db, site).length : 0;
++    const qrLocs = (IG && IG.QR_LOCATIONS) || [];
++
++    const cards = siteList.map((i) => {
++      const m = S.member(i.reportedBy) || { name: i.reportedBy };
++      const openActs = (i.actions || []).filter((a) => a.status !== 'Completed').length;
++      const riddor = IG && IG.mayNeedRiddor(i);
++      return `<div class="card card-pad fade-in border-l-4 ${i.status === 'Closed' ? 'border-ink-200' : 'border-brand-500'}">
+         <div class="flex items-start justify-between gap-3 mb-2">
+-          <div><div class="font-bold">${escapeHtml(i.title)}</div>
+-          <div class="text-xs text-ink-400">${escapeHtml(i.type)} ? ${escapeHtml(S.site(i.site).name)} ? ${fmt.ago(i.at)} ? by ${escapeHtml(m.name)}</div></div>
+-          <div class="flex flex-col items-end gap-1">${sevBadge(i.severity)}${stBadge(i.status)}</div>
++          <div class="min-w-0">
++            <div class="text-xs font-mono font-bold text-brand-700">${escapeHtml(i.ref || i.id)}</div>
++            <div class="font-bold text-ink-900">${escapeHtml(i.title)}</div>
++            <div class="text-xs text-ink-400 mt-1">${escapeHtml(i.category || i.type || 'Incident')} · ${escapeHtml((S.site(i.site) || {}).name || '')} · ${fmt.ago(i.at)} · ${escapeHtml(m.name)}</div>
++          </div>
++          <div class="flex flex-col items-end gap-1 flex-none">${sevBadge(i.severity)}${stBadge(i.status)}</div>
+         </div>
+-        <div class="text-sm text-ink-600 mt-2"><span class="font-semibold text-ink-700">Corrective action:</span> ${i.action?escapeHtml(i.action):'<span class="text-ink-400">None recorded yet</span>'}</div>
+-        <div class="flex gap-2 mt-3">
+-          <button class="btn btn-ghost btn-sm" data-action="${i.id}">${icon('edit','ico')} Action</button>
+-          ${i.status!=='Closed'?`<button class="btn btn-ghost btn-sm" data-close="${i.id}">${icon('check','ico')} Mark closed</button>`:''}
++        ${i.description ? `<p class="text-sm text-ink-600 line-clamp-2">${escapeHtml(i.description)}</p>` : ''}
++        ${riddor ? `<div class="mt-2 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">RIDDOR guidance — review by authorised responsible person</div>` : ''}
++        <div class="text-sm text-ink-600 mt-2"><span class="font-semibold text-ink-700">Summary action:</span> ${i.action ? escapeHtml(i.action) : '<span class="text-ink-400">None yet</span>'}${openActs ? ` · <span class="text-brand-700 font-semibold">${openActs} CAPA open</span>` : ''}</div>
++        <div class="flex flex-wrap gap-2 mt-3">
++          <button type="button" class="btn btn-primary btn-sm" data-ig-open="${i.id}">${icon('edit','ico')} Open</button>
++          <button type="button" class="btn btn-ghost btn-sm" data-ig-capa="${i.id}">${icon('check','ico')} Add action</button>
++          ${i.status !== 'Closed' ? `<button type="button" class="btn btn-ghost btn-sm" data-ig-advance="${i.id}">Next stage</button>` : ''}
+         </div>
+       </div>`;
+-    }).join('');
+-    const open = list.filter(i=>i.status!=='Closed').length;
++    }).join('') || '<div class="card card-pad text-ink-400">No incidents at this kitchen yet. Report the first one.</div>';
++
+     const html = `
+-      ${sectionHeader('Incidents & Corrective Actions','Accidents, complaints, pests and equipment faults ? logged with actions taken', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Report incident</button>`)}
+-      <div class="grid sm:grid-cols-3 gap-4 mb-5">
+-        ${kpiCard('Total logged', list.length, 'shield')}
+-        ${kpiCard('Open / in progress', open, 'alert')}
+-        ${kpiCard('Closed', list.length-open, 'check')}
++      ${sectionHeader('IncidentGuard', 'Incident, near-miss and corrective-action management for this kitchen', `
++        <a href="/incident-management.html" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Product page</a>
++        <button type="button" class="btn btn-ghost btn-sm" data-ig-qr>${icon('qr','ico')} QR posters</button>
++        <button type="button" class="btn btn-primary btn-sm" data-ig-add>${icon('plus','ico')} Report incident</button>`)}
++      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
++        ${kpiCard('Open incidents', open, 'alert')}
++        ${kpiCard('High / critical', critical, 'shield')}
++        ${kpiCard('Overdue actions', overdue, 'alert')}
++        ${kpiCard('Total logged', siteList.length, 'records')}
++      </div>
++      <div class="card card-pad mb-5 border border-brand-100 bg-brand-50/40">
++        <div class="font-bold text-brand-900">Lifecycle</div>
++        <p class="text-sm text-ink-600 mt-1">Reported → Manager Review → Investigation → Action Required → Awaiting Verification → Closed</p>
++        <p class="text-xs text-ink-500 mt-2">AI may assist with drafts later — it will never close incidents or submit RIDDOR for you.</p>
+       </div>
+       <div class="grid md:grid-cols-2 gap-5">${cards}</div>`;
+-    return { title:'Incidents', html, mount() {
+-      document.querySelector('[data-act="add"]').onclick=()=>{
+-        const types=['Accident','Complaint','Pest','Equipment','Food safety','Other'];
+-        modal('Report Incident', `<div class="space-y-3">
+-          <input id="it" class="input" placeholder="Short title">
+-          <div class="grid grid-cols-2 gap-3">
+-            <select id="iy" class="select">${types.map(x=>`<option>${x}</option>`).join('')}</select>
+-            <select id="is" class="select">${['Low','Medium','High'].map(x=>`<option ${x==='Medium'?'selected':''}>${x}</option>`).join('')}</select>
++
++    function openDetail(inc) {
++      if (IG) IG.normalize(inc);
++      const statuses = (IG && IG.STATUSES) || ['Reported', 'Closed'];
++      const teamOpts = (S.db.team || []).map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
++      const acts = (inc.actions || []).map((a) => {
++        const owner = S.member(a.ownerId);
++        return `<div class="rounded-lg border border-ink-100 p-3 text-sm">
++          <div class="flex justify-between gap-2"><b>${escapeHtml(a.instructions || 'Action')}</b><span class="badge badge-gray">${escapeHtml(a.status)}</span></div>
++          <div class="text-xs text-ink-400 mt-1">${escapeHtml((owner && owner.name) || 'Unassigned')} · ${escapeHtml(a.priority || 'Medium')} · due ${escapeHtml(a.due || '—')}</div>
++          <div class="flex gap-2 mt-2">
++            <button type="button" class="btn btn-ghost btn-sm" data-ig-act-done="${a.id}">Mark done</button>
++            <button type="button" class="btn btn-ghost btn-sm" data-ig-act-verify="${a.id}">Verify</button>
+           </div>
+-          <textarea id="ia" class="input" rows="3" placeholder="Corrective action taken (optional)"></textarea>
+-          <button class="btn btn-primary w-full" id="iv">Log incident</button></div>`);
+-        document.getElementById('iv').onclick=()=>{
+-          const title=document.getElementById('it').value.trim(); if(!title)return toast('Enter a title','warn');
+-          const action=document.getElementById('ia').value.trim();
+-          S.db.incidents.push({ id:S.uid('inc'), title, type:document.getElementById('iy').value, site:S.db.currentSite,
+-            severity:document.getElementById('is').value, reportedBy:(S.member&&S.db.team[0]?S.db.team[0].id:'u_sarah'), at:new Date().toISOString(),
+-            status: action?'In progress':'Open', action });
+-          S.persist(); closeModal(); window.App.render(); toast('Incident logged');
++        </div>`;
++      }).join('') || '<p class="text-sm text-ink-400">No corrective actions yet.</p>';
++      const inv = inc.investigation || {};
++      modal(inc.ref + ' · ' + (inc.title || 'Incident'), `<div class="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
++        <div class="flex flex-wrap gap-2">${sevBadge(inc.severity)}${stBadge(inc.status)}
++          ${IG && IG.mayNeedRiddor(inc) ? '<span class="badge badge-amber">RIDDOR review</span>' : ''}
++        </div>
++        ${IG && IG.mayNeedRiddor(inc) ? `<div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"><b>RIDDOR guidance.</b> This event may meet RIDDOR reporting criteria. It must be reviewed by an authorised responsible person. Kiteline does not submit legal reports automatically.</div>` : ''}
++        <p class="text-sm text-ink-600">${escapeHtml(inc.description || '')}</p>
++        <div class="grid sm:grid-cols-2 gap-2 text-xs text-ink-500">
++          <div><b>Area</b><br>${escapeHtml(inc.area || '—')}</div>
++          <div><b>Equipment</b><br>${escapeHtml(inc.equipment || '—')}</div>
++          <div><b>Food / ingredients</b><br>${escapeHtml(inc.foodAffected || '—')}</div>
++          <div><b>First aid</b><br>${escapeHtml(inc.firstAid || '—')}</div>
++          <div><b>People involved</b><br>${escapeHtml(inc.peopleInvolved || '—')}</div>
++          <div><b>Witnesses</b><br>${escapeHtml(inc.witnesses || '—')}</div>
++        </div>
++        <div>
++          <label class="label">Workflow status</label>
++          <select id="ig_st" class="select">${statuses.map((s) => `<option ${s === inc.status ? 'selected' : ''}>${s}</option>`).join('')}</select>
++        </div>
++        <div>
++          <label class="label">Summary / immediate action</label>
++          <textarea id="ig_sum" class="input" rows="2">${escapeHtml(inc.action || inc.immediateAction || '')}</textarea>
++        </div>
++        <div class="border-t border-ink-100 pt-3">
++          <h4 class="font-bold mb-2">Investigation</h4>
++          <textarea id="ig_imm" class="input mb-2" rows="2" placeholder="Immediate cause">${escapeHtml(inv.immediateCause || '')}</textarea>
++          <textarea id="ig_con" class="input mb-2" rows="2" placeholder="Contributing factors">${escapeHtml(inv.contributing || '')}</textarea>
++          <textarea id="ig_root" class="input mb-2" rows="2" placeholder="Root cause">${escapeHtml(inv.rootCause || '')}</textarea>
++          <textarea id="ig_five" class="input mb-2" rows="2" placeholder="Five Whys">${escapeHtml(inv.fiveWhys || '')}</textarea>
++          <textarea id="ig_less" class="input" rows="2" placeholder="Lessons learned">${escapeHtml(inv.lessons || '')}</textarea>
++        </div>
++        <div class="border-t border-ink-100 pt-3">
++          <div class="flex items-center justify-between mb-2"><h4 class="font-bold">Corrective actions</h4>
++            <button type="button" class="btn btn-ghost btn-sm" id="ig_add_act">${icon('plus','ico')} Add</button></div>
++          <div class="space-y-2">${acts}</div>
++        </div>
++        <button type="button" class="btn btn-primary w-full" id="ig_save_detail">Save changes</button>
++      </div>`, { wide: true });
++
++      document.getElementById('ig_save_detail').onclick = () => {
++        inc.action = document.getElementById('ig_sum').value.trim();
++        inc.immediateAction = inc.action;
++        const next = document.getElementById('ig_st').value;
++        if (IG) IG.setStatus(inc, next, meId, 'Status updated');
++        else inc.status = next;
++        inc.investigation = Object.assign({}, inv, {
++          immediateCause: document.getElementById('ig_imm').value.trim(),
++          contributing: document.getElementById('ig_con').value.trim(),
++          rootCause: document.getElementById('ig_root').value.trim(),
++          fiveWhys: document.getElementById('ig_five').value.trim(),
++          lessons: document.getElementById('ig_less').value.trim(),
++        });
++        S.persist();
++        closeModal();
++        window.App.render();
++        toast('Incident saved');
++      };
++      const addAct = document.getElementById('ig_add_act');
++      if (addAct) addAct.onclick = () => { closeModal(); showAddAction(inc); };
++      document.querySelectorAll('[data-ig-act-done]').forEach((b) => {
++        b.onclick = () => {
++          const a = (inc.actions || []).find((x) => x.id === b.dataset.igActDone);
++          if (!a) return;
++          a.status = 'Completed';
++          a.completedAt = new Date().toISOString();
++          S.persist();
++          closeModal();
++          openDetail(inc);
++          toast('Action marked complete');
+         };
++      });
++      document.querySelectorAll('[data-ig-act-verify]').forEach((b) => {
++        b.onclick = () => {
++          const a = (inc.actions || []).find((x) => x.id === b.dataset.igActVerify);
++          if (!a) return;
++          a.status = 'Completed';
++          a.verifiedBy = meId;
++          if (IG) IG.setStatus(inc, 'Closed', meId, 'Actions verified — closed');
++          else inc.status = 'Closed';
++          S.persist();
++          closeModal();
++          window.App.render();
++          toast('Verified and closed');
++        };
++      });
++    }
++
++    function showAddAction(inc) {
++      const teamOpts = (S.db.team || []).map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
++      modal('Add corrective action · ' + (inc.ref || ''), `<div class="space-y-3">
++        <textarea id="iga_i" class="input" rows="3" placeholder="Instructions"></textarea>
++        <div class="grid grid-cols-2 gap-2">
++          <select id="iga_o" class="select"><option value="">Owner</option>${teamOpts}</select>
++          <select id="iga_p" class="select">${['Low','Medium','High','Critical'].map((x)=>`<option ${x==='Medium'?'selected':''}>${x}</option>`).join('')}</select>
++        </div>
++        <input id="iga_d" type="date" class="input">
++        <button type="button" class="btn btn-primary w-full" id="iga_save">Save action</button>
++      </div>`);
++      document.getElementById('iga_save').onclick = () => {
++        const instructions = document.getElementById('iga_i').value.trim();
++        if (!instructions) return toast('Enter instructions', 'warn');
++        if (IG) IG.addAction(inc, {
++          instructions,
++          ownerId: document.getElementById('iga_o').value,
++          priority: document.getElementById('iga_p').value,
++          due: document.getElementById('iga_d').value,
++        }, meId);
++        else {
++          inc.actions = inc.actions || [];
++          inc.actions.push({ id: 'iga_' + Date.now(), instructions, ownerId: document.getElementById('iga_o').value, priority: document.getElementById('iga_p').value, due: document.getElementById('iga_d').value, status: 'Open' });
++          inc.status = 'Action Required';
++        }
++        S.persist();
++        closeModal();
++        window.App.render();
++        toast('Corrective action assigned');
++      };
++    }
++
++    function showReportForm(prefill) {
++      prefill = prefill || {};
++      const cats = (IG && IG.CATEGORIES) || ['Near miss', 'Other'];
++      const sevs = (IG && IG.SEVERITIES) || ['Low', 'Medium', 'High', 'Critical'];
++      const areas = ['Hot line', 'Prep', 'Pass', 'Walk-in', 'Dry store', 'Dish pit', 'Delivery', 'Front of house', 'Other'];
++      modal('Report incident', `<div class="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
++        <input id="ig_title" class="input" placeholder="Short title" value="${escapeHtml(prefill.title || '')}">
++        <div class="grid grid-cols-2 gap-2">
++          <select id="ig_cat" class="select">${cats.map((c) => `<option ${c === (prefill.category || 'Near miss') ? 'selected' : ''}>${c}</option>`).join('')}</select>
++          <select id="ig_sev" class="select">${sevs.map((s) => `<option ${s === (prefill.severity || 'Medium') ? 'selected' : ''}>${s}</option>`).join('')}</select>
++        </div>
++        <div class="grid grid-cols-2 gap-2">
++          <select id="ig_area" class="select">${areas.map((a) => `<option ${a === prefill.area ? 'selected' : ''}>${a}</option>`).join('')}</select>
++          <select id="ig_qr" class="select"><option value="">QR / equipment link</option>${qrLocs.map((q) => `<option value="${q.id}" ${prefill.qrLocation === q.id ? 'selected' : ''}>${escapeHtml(q.label)}</option>`).join('')}</select>
++        </div>
++        <textarea id="ig_desc" class="input" rows="3" placeholder="What happened">${escapeHtml(prefill.description || '')}</textarea>
++        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="ig_danger"> Danger still present</label>
++        <textarea id="ig_immact" class="input" rows="2" placeholder="Immediate action taken"></textarea>
++        <div class="grid grid-cols-2 gap-2">
++          <input id="ig_people" class="input" placeholder="People involved">
++          <input id="ig_wit" class="input" placeholder="Witnesses">
++        </div>
++        <div class="grid grid-cols-2 gap-2">
++          <input id="ig_eq" class="input" placeholder="Equipment involved" value="${escapeHtml(prefill.equipment || '')}">
++          <input id="ig_food" class="input" placeholder="Food / ingredients affected">
++        </div>
++        <input id="ig_aid" class="input" placeholder="First aid provided">
++        <input id="ig_photo" class="input" placeholder="Photo / evidence note (URL or description)">
++        <button type="button" class="btn btn-primary w-full" id="ig_submit">Submit report</button>
++      </div>`, { wide: true });
++      document.getElementById('ig_submit').onclick = () => {
++        const title = document.getElementById('ig_title').value.trim();
++        if (!title) return toast('Enter a title', 'warn');
++        const patch = {
++          title,
++          category: document.getElementById('ig_cat').value,
++          type: document.getElementById('ig_cat').value,
++          severity: document.getElementById('ig_sev').value,
++          area: document.getElementById('ig_area').value,
++          qrLocation: document.getElementById('ig_qr').value,
++          description: document.getElementById('ig_desc').value.trim(),
++          dangerPresent: document.getElementById('ig_danger').checked,
++          immediateAction: document.getElementById('ig_immact').value.trim(),
++          action: document.getElementById('ig_immact').value.trim(),
++          peopleInvolved: document.getElementById('ig_people').value.trim(),
++          witnesses: document.getElementById('ig_wit').value.trim(),
++          equipment: document.getElementById('ig_eq').value.trim(),
++          foodAffected: document.getElementById('ig_food').value.trim(),
++          firstAid: document.getElementById('ig_aid').value.trim(),
++          photoNote: document.getElementById('ig_photo').value.trim(),
++          site,
++          status: 'Reported',
++        };
++        const inc = IG ? IG.createIncident(S.db, patch, meId) : Object.assign({ id: S.uid('inc'), at: new Date().toISOString(), reportedBy: meId, actions: [], history: [] }, patch);
++        if (!IG) S.db.incidents.unshift(inc);
++        S.persist();
++        closeModal();
++        window.App.render();
++        toast((inc.ref || 'Incident') + ' logged');
++        if (IG && IG.mayNeedRiddor(inc)) toast('RIDDOR guidance flagged — manager review needed', 'warn');
+       };
+-      document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>{
+-        const inc=S.db.incidents.find(x=>x.id===b.dataset.action);
+-        modal('Corrective Action', `<div class="space-y-3">
+-          <textarea id="ca" class="input" rows="4" placeholder="Describe the action taken?">${escapeHtml(inc.action||'')}</textarea>
+-          <select id="cs" class="select">${['Open','In progress','Closed'].map(x=>`<option ${x===inc.status?'selected':''}>${x}</option>`).join('')}</select>
+-          <button class="btn btn-primary w-full" id="cv">Save</button></div>`);
+-        document.getElementById('cv').onclick=()=>{ inc.action=document.getElementById('ca').value.trim(); inc.status=document.getElementById('cs').value; S.persist(); closeModal(); window.App.render(); toast('Action saved'); };
++    }
++
++    return { title: 'IncidentGuard', html, mount() {
++      // Deep-link: #incidents?qr=fridge&report=1
++      try {
++        const hash = location.hash || '';
++        const qIdx = hash.indexOf('?');
++        if (qIdx >= 0) {
++          const qs = new URLSearchParams(hash.slice(qIdx + 1));
++          if (qs.get('report') === '1' || qs.get('qr')) {
++            const qr = qs.get('qr') || '';
++            const loc = qrLocs.find((x) => x.id === qr);
++            setTimeout(() => showReportForm({
++              qrLocation: qr,
++              area: loc ? loc.label : '',
++              equipment: loc ? loc.label : '',
++              category: 'Equipment breakdown',
++              title: loc ? (loc.label + ' incident') : '',
++            }), 200);
++          }
++        }
++      } catch (e) {}
++
++      const addBtn = document.querySelector('[data-ig-add]');
++      if (addBtn) addBtn.onclick = () => showReportForm();
++      document.querySelectorAll('[data-ig-open]').forEach((b) => {
++        b.onclick = () => {
++          const inc = S.db.incidents.find((x) => x.id === b.dataset.igOpen);
++          if (inc) openDetail(inc);
++        };
++      });
++      document.querySelectorAll('[data-ig-capa]').forEach((b) => {
++        b.onclick = () => {
++          const inc = S.db.incidents.find((x) => x.id === b.dataset.igCapa);
++          if (inc) showAddAction(inc);
++        };
+       });
+-      document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{ const inc=S.db.incidents.find(x=>x.id===b.dataset.close); inc.status='Closed'; S.persist(); window.App.render(); toast('Incident closed'); });
++      document.querySelectorAll('[data-ig-advance]').forEach((b) => {
++        b.onclick = () => {
++          const inc = S.db.incidents.find((x) => x.id === b.dataset.igAdvance);
++          if (!inc || !IG) return;
++          IG.normalize(inc);
++          const idx = IG.STATUSES.indexOf(inc.status);
++          const next = IG.STATUSES[Math.min(idx + 1, IG.STATUSES.length - 1)];
++          IG.setStatus(inc, next, meId);
++          S.persist();
++          window.App.render();
++          toast('Moved to ' + next);
++        };
++      });
++      const qrBtn = document.querySelector('[data-ig-qr]');
++      if (qrBtn) qrBtn.onclick = () => {
++        const rows = qrLocs.map((q) => {
++          const url = (location.origin || '') + (IG ? IG.reportUrl(q.id, site) : ('/app#incidents?qr=' + q.id + '&report=1'));
++          return `<div class="rounded-xl border border-ink-100 p-3 flex items-center justify-between gap-3">
++            <div><div class="font-bold text-sm">${escapeHtml(q.label)}</div>
++            <div class="text-xs text-ink-400 break-all">${escapeHtml(url)}</div></div>
++            <div class="ig-qr-box flex-none" data-qr-url="${escapeHtml(url)}"></div>
++          </div>`;
++        }).join('');
++        modal('IncidentGuard QR posters', `<div class="space-y-3 max-h-[70vh] overflow-y-auto">
++          <p class="text-sm text-ink-500">Print and place beside equipment. Scanning opens a limited report form linked to that location.</p>
++          ${rows}
++        </div>`, { wide: true });
++        document.querySelectorAll('[data-qr-url]').forEach((el) => {
++          if (window.QRCode) {
++            try { new window.QRCode(el, { text: el.dataset.qrUrl, width: 88, height: 88 }); } catch (e) {}
++          } else {
++            el.textContent = 'QR';
++          }
++        });
++      };
+     }};
+   }
+ 
++
+   /* ---------------- HOME / LIVE WORKFLOW DASHBOARD ---------------- */
+   const WF_META = {
+     completed: { dot:'??', badge:'badge-green', row:'', label:'Completed' },
+diff --git a/server/server.js b/server/server.js
+index 5c5248e..dd4e49b 100644
+--- a/server/server.js
++++ b/server/server.js
+@@ -28,7 +28,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
+   || (!isProd && process.env.DEMO_MODE !== 'false');
+ // Early access: registration open unless explicitly disabled.
+ const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
+-const APP_BUILD = '2026-07-02-pilot-sites';
++const APP_BUILD = '2026-07-27-incidentguard';
+ const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
+ const notify = require('./notify');
+ const vedantaReports = require('./vedanta-reports');
+diff --git a/site/incident-management.html b/site/incident-management.html
+new file mode 100644
+index 0000000..893b016
+--- /dev/null
++++ b/site/incident-management.html
+@@ -0,0 +1,235 @@
++<!DOCTYPE html>
++<html lang="en">
++<head>
++  <meta charset="UTF-8" />
++  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++  <title>Kiteline IncidentGuard — Incident, Near-Miss & Corrective Actions</title>
++  <meta name="description" content="Kiteline IncidentGuard helps professional kitchens report incidents, investigate near misses, and track corrective actions to completion. Pilot programme open." />
++  <script src="https://cdn.tailwindcss.com"></script>
++  <script>tailwind.config={theme:{extend:{colors:{brand:{50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',300:'#5eead4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a'},ink:{50:'#f8fafc',100:'#f1f5f9',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',700:'#334155',800:'#1e293b',900:'#0f172a',950:'#020617'}},fontFamily:{display:['Sora','system-ui','sans-serif'],sans:['Source Sans 3','system-ui','sans-serif']}}}}</script>
++  <link rel="preconnect" href="https://fonts.googleapis.com">
++  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
++  <link rel="stylesheet" href="/css/styles.css" />
++  <link rel="icon" type="image/png" href="/kiteline-logo.png?v=mark3" />
++  <style>
++    :root { --ig-ink:#042f2e; --ig-teal:#0d9488; --ig-glow:rgba(45,212,191,.25); }
++    body { font-family:'Source Sans 3',system-ui,sans-serif; color:var(--ig-ink); }
++    .ig-display { font-family:Sora,system-ui,sans-serif; }
++    .ig-hero {
++      position:relative; overflow:hidden; color:#ecfdf5;
++      background:
++        radial-gradient(90% 80% at 12% 10%, rgba(45,212,191,.35), transparent 55%),
++        radial-gradient(70% 60% at 90% 80%, rgba(15,118,110,.45), transparent 50%),
++        linear-gradient(155deg, #0b1220 0%, #0f766e 48%, #042f2e 100%);
++    }
++    .ig-hero::after {
++      content:''; position:absolute; inset:0; pointer-events:none;
++      background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
++      opacity:.7;
++    }
++    .ig-rise { animation: igRise .7s ease both; }
++    .ig-rise-delay { animation: igRise .8s ease .12s both; }
++    .ig-rise-delay2 { animation: igRise .85s ease .22s both; }
++    @keyframes igRise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
++    .ig-section h2 { font-family:Sora,system-ui,sans-serif; letter-spacing:-0.02em; }
++    .ig-pill {
++      display:inline-flex; align-items:center; gap:.4rem;
++      padding:.35rem .75rem; border-radius:999px; font-size:.75rem; font-weight:700;
++      letter-spacing:.08em; text-transform:uppercase;
++      background:rgba(255,255,255,.12); color:#99f6e4;
++    }
++    .ig-cta {
++      display:inline-flex; align-items:center; justify-content:center;
++      padding:.85rem 1.35rem; border-radius:.9rem; font-weight:700; font-family:Sora,system-ui,sans-serif;
++      transition: transform .15s ease, background .15s ease;
++    }
++    .ig-cta:hover { transform:translateY(-1px); }
++    .ig-cta-primary { background:#2dd4bf; color:#042f2e; }
++    .ig-cta-primary:hover { background:#5eead4; }
++    .ig-cta-ghost { background:rgba(255,255,255,.1); color:#fff; }
++    .ig-cta-ghost:hover { background:rgba(255,255,255,.18); }
++    .ig-list li { padding-left:1.1rem; position:relative; }
++    .ig-list li::before {
++      content:''; position:absolute; left:0; top:.55em; width:.4rem; height:.4rem; border-radius:999px; background:#14b8a6;
++    }
++    .ig-step-num {
++      width:2.25rem; height:2.25rem; border-radius:999px; display:inline-flex; align-items:center; justify-content:center;
++      font-family:Sora,system-ui,sans-serif; font-weight:800; font-size:.85rem;
++      background:#ccfbf1; color:#0f766e;
++    }
++  </style>
++</head>
++<body class="bg-white antialiased">
++  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-ink-100">
++    <div class="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
++      <a href="/" class="brand-lockup brand-lockup--light">
++        <img src="/kiteline-logo.png?v=mark3" alt="" class="brand-mark" width="32" height="32">
++        <span class="brand-name">Kit<em>eline</em></span>
++      </a>
++      <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-ink-700">
++        <a href="product-haccp.html" class="hover:text-brand-700">SafeServe</a>
++        <a href="incident-management.html" class="text-brand-700">IncidentGuard</a>
++        <a href="/#products" class="hover:text-brand-700">Products</a>
++        <a href="pricing.html" class="hover:text-brand-700">Pricing</a>
++        <a href="contact.html" class="hover:text-brand-700">Contact</a>
++      </nav>
++      <a href="/app#incidents" class="px-4 py-2 text-sm font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700">Open in app</a>
++    </div>
++  </header>
++
++  <section class="ig-hero">
++    <div class="relative z-10 max-w-5xl mx-auto px-5 py-20 lg:py-28 text-center">
++      <div class="ig-pill ig-rise"><span class="inline-block w-2 h-2 rounded-full bg-brand-300 animate-pulse"></span> Pilot · Coming into kitchens</div>
++      <p class="ig-display ig-rise-delay mt-6 text-brand-200 text-lg sm:text-xl font-semibold tracking-wide">Kiteline IncidentGuard</p>
++      <h1 class="ig-display ig-rise-delay text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.05] mt-3 max-w-4xl mx-auto">
++        Incident, near-miss and corrective-action management for professional kitchens
++      </h1>
++      <p class="ig-rise-delay2 mt-6 text-lg text-white/75 max-w-2xl mx-auto">
++        Report kitchen incidents quickly, investigate what happened, and track every corrective action through to completion — built for restaurants, hotels, schools, care homes, retreat centres, cafés and catering.
++      </p>
++      <div class="ig-rise-delay2 mt-9 flex flex-wrap gap-3 justify-center">
++        <a href="mailto:contact@kiteline.uk?subject=IncidentGuard%20Pilot" class="ig-cta ig-cta-primary">Join the IncidentGuard Pilot</a>
++        <a href="contact.html#demo" class="ig-cta ig-cta-ghost">Book a Kiteline Demonstration</a>
++      </div>
++    </div>
++  </section>
++
++  <section class="max-w-4xl mx-auto px-5 py-8">
++    <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-center text-sm text-ink-700">
++      <strong class="text-amber-900">Pilot notice.</strong> IncidentGuard is live in the Kiteline app for early testing. AI assistance, offline QR kiosks and SMS escalation are rolling out in stages — final compliance decisions always stay with your authorised responsible person.
++    </div>
++  </section>
++
++  <section class="ig-section max-w-6xl mx-auto px-5 py-16">
++    <div class="max-w-2xl mb-10">
++      <h2 class="text-3xl font-extrabold">Built for professional kitchens</h2>
++      <p class="text-ink-500 mt-3">General workplace tools often miss kitchen-specific risks. IncidentGuard is designed around the hazards your brigade actually faces.</p>
++    </div>
++    <ul class="ig-list grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3 text-ink-700 text-[0.95rem]">
++      <li>Staff accidents and injuries</li>
++      <li>Burns, cuts, slips and falls</li>
++      <li>Near misses and unsafe conditions</li>
++      <li>Allergen incidents</li>
++      <li>Food contamination &amp; foreign objects</li>
++      <li>Suspected food poisoning</li>
++      <li>Temperature-control failures</li>
++      <li>Fridge and freezer breakdowns</li>
++      <li>Equipment faults</li>
++      <li>Chemical spills &amp; pest sightings</li>
++      <li>Fire and gas incidents</li>
++      <li>Customer complaints &amp; supplier recalls</li>
++    </ul>
++  </section>
++
++  <section class="bg-ink-50 ig-section py-16">
++    <div class="max-w-6xl mx-auto px-5 grid lg:grid-cols-2 gap-12 items-start">
++      <div>
++        <h2 class="text-3xl font-extrabold">Make reporting simple</h2>
++        <p class="text-ink-500 mt-3">Staff submit from a phone, tablet or computer. Every report gets a unique reference and joins the secure incident register.</p>
++        <ul class="ig-list mt-6 space-y-2 text-ink-700 text-sm">
++          <li>Location and kitchen area</li>
++          <li>Category, date, time, severity</li>
++          <li>People involved and witnesses</li>
++          <li>What happened and immediate action</li>
++          <li>Equipment / food affected</li>
++          <li>First aid, photos and voice notes</li>
++        </ul>
++      </div>
++      <div>
++        <h2 class="text-3xl font-extrabold">QR-code reporting</h2>
++        <p class="text-ink-500 mt-3">Place a Kiteline QR beside equipment or key areas. Scan to start a report already linked to the right place.</p>
++        <ul class="ig-list mt-6 space-y-2 text-ink-700 text-sm">
++          <li>Fridge, freezer, oven, fryer, blast chiller</li>
++          <li>Dishwasher, dry store, chemical cupboard</li>
++          <li>Delivery area, kitchen section, noticeboard</li>
++        </ul>
++        <a href="/app#incidents" class="inline-block mt-6 text-brand-700 font-semibold">Open QR poster tools in app →</a>
++      </div>
++    </div>
++  </section>
++
++  <section class="ig-section max-w-6xl mx-auto px-5 py-16">
++    <h2 class="text-3xl font-extrabold text-center mb-3">From report to resolution</h2>
++    <p class="text-ink-500 text-center max-w-2xl mx-auto mb-12">One lifecycle for incidents — not a folder of unfinished emails.</p>
++    <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
++      <div>
++        <div class="ig-step-num">1</div>
++        <h3 class="ig-display font-bold mt-3">Report</h3>
++        <p class="text-sm text-ink-500 mt-2">Capture the hazard or near miss while information is fresh.</p>
++      </div>
++      <div>
++        <div class="ig-step-num">2</div>
++        <h3 class="ig-display font-bold mt-3">Review</h3>
++        <p class="text-sm text-ink-500 mt-2">Manager checks severity, risk still present, and people or food affected.</p>
++      </div>
++      <div>
++        <div class="ig-step-num">3</div>
++        <h3 class="ig-display font-bold mt-3">Investigate</h3>
++        <p class="text-sm text-ink-500 mt-2">Immediate causes, contributing factors, root cause and lessons learned.</p>
++      </div>
++      <div>
++        <div class="ig-step-num">4</div>
++        <h3 class="ig-display font-bold mt-3">Take action</h3>
++        <p class="text-sm text-ink-500 mt-2">Assign CAPA to named people with priority and deadlines.</p>
++      </div>
++      <div>
++        <div class="ig-step-num">5</div>
++        <h3 class="ig-display font-bold mt-3">Verify &amp; close</h3>
++        <p class="text-sm text-ink-500 mt-2">Evidence, manager verification and a complete audit history.</p>
++      </div>
++    </div>
++  </section>
++
++  <section class="bg-ink-950 text-ink-100 ig-section py-16">
++    <div class="max-w-6xl mx-auto px-5 grid lg:grid-cols-2 gap-12">
++      <div>
++        <h2 class="text-3xl font-extrabold text-white">Kitchen-specific evidence</h2>
++        <p class="text-ink-400 mt-3">Link an incident to the Kiteline records that matter — temperatures, equipment, recipes, allergens, batches, deliveries, labels, cleaning and shifts.</p>
++      </div>
++      <div>
++        <h2 class="text-3xl font-extrabold text-white">Alerts &amp; RIDDOR guidance</h2>
++        <p class="text-ink-400 mt-3">Dashboard, email and planned SMS escalation by severity. Structured RIDDOR prompts help authorised people decide — Kiteline never auto-submits legal reports.</p>
++      </div>
++    </div>
++  </section>
++
++  <section class="ig-section max-w-3xl mx-auto px-5 py-16">
++    <h2 class="text-2xl font-extrabold text-center mb-8">Frequently asked questions</h2>
++    <div class="space-y-3">
++      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Can staff report without seeing management records?</summary><p class="text-sm text-ink-500 mt-2">Yes. Reporting is designed so front-line staff can submit without opening confidential company information.</p></details>
++      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Will reports support photographs?</summary><p class="text-sm text-ink-500 mt-2">Yes — photo and document evidence fields are part of the IncidentGuard workflow (upload / note today; richer media in pilot).</p></details>
++      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Can actions be assigned to staff?</summary><p class="text-sm text-ink-500 mt-2">Managers assign corrective and preventive actions with owners, deadlines and verification.</p></details>
++      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Will Kiteline decide if something is legally reportable?</summary><p class="text-sm text-ink-500 mt-2">No. Kiteline may show structured guidance. The final decision stays with your organisation’s authorised responsible person.</p></details>
++      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Will AI close incidents automatically?</summary><p class="text-sm text-ink-500 mt-2">No. Planned AI helps with drafts and suggestions only. An authorised manager must review and approve official records.</p></details>
++      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Does it work across multiple sites?</summary><p class="text-sm text-ink-500 mt-2">Multi-site organisations review incidents according to assigned kitchen permissions inside Kiteline.</p></details>
++    </div>
++  </section>
++
++  <section class="ig-hero">
++    <div class="relative z-10 max-w-3xl mx-auto px-5 py-16 text-center">
++      <p class="ig-display text-brand-200 font-semibold">Kiteline IncidentGuard</p>
++      <h2 class="ig-display text-3xl sm:text-4xl font-extrabold mt-2">Join the pilot</h2>
++      <p class="text-white/70 mt-4">Built for kitchens that need a simpler way to report, investigate and prevent safety incidents.</p>
++      <div class="mt-8 flex flex-wrap gap-3 justify-center">
++        <a href="mailto:contact@kiteline.uk?subject=IncidentGuard%20Pilot" class="ig-cta ig-cta-primary">Join the IncidentGuard Pilot</a>
++        <a href="contact.html#demo" class="ig-cta ig-cta-ghost">Book a Demonstration</a>
++        <a href="/app#incidents" class="ig-cta ig-cta-ghost">Try in the app</a>
++      </div>
++      <p class="mt-6 text-sm text-white/50">Contact: <a class="underline hover:text-white" href="mailto:contact@kiteline.uk">contact@kiteline.uk</a></p>
++    </div>
++  </section>
++
++  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm px-5 space-y-3">
++    <div class="flex flex-wrap justify-center gap-x-5 gap-y-2">
++      <a href="/" class="hover:text-white">Home</a>
++      <a href="product-haccp.html" class="hover:text-white">SafeServe</a>
++      <a href="incident-management.html" class="hover:text-white">IncidentGuard</a>
++      <a href="contact.html" class="hover:text-white">Contact</a>
++      <a href="terms.html" class="hover:text-white">Terms</a>
++      <a href="privacy.html" class="hover:text-white">Privacy</a>
++      <a href="/app" class="hover:text-white">App</a>
++    </div>
++    <p>© 2026 Kiteline · All rights reserved.</p>
++  </footer>
++</body>
++</html>
+diff --git a/site/index.html b/site/index.html
+index e65b2d5..00b48bb 100644
+--- a/site/index.html
++++ b/site/index.html
+@@ -25,6 +25,7 @@
+       </a>
+       <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-ink-700">
+         <a href="product-haccp.html" class="hover:text-brand-700">SafeServe</a>
++        <a href="incident-management.html" class="hover:text-brand-700">IncidentGuard</a>
+         <a href="#products" class="hover:text-brand-700">Products</a>
+         <a href="pricing.html" class="hover:text-brand-700">Pricing</a>
+         <a href="hardware.html" class="hover:text-brand-700">Hardware</a>
+@@ -48,6 +49,7 @@
+       </div>
+       <div class="flex flex-col gap-4 text-base font-semibold text-ink-800">
+         <a href="product-haccp.html">SafeServe</a>
++        <a href="incident-management.html">IncidentGuard</a>
+         <a href="#products">Products</a>
+         <a href="pricing.html">Pricing</a>
+         <a href="hardware.html">Hardware</a>
+@@ -184,7 +186,7 @@
+         <h2 class="text-3xl lg:text-4xl font-extrabold">Kiteline modules</h2>
+         <p class="text-ink-500 mt-3">Four products in one platform. Status shown so you know what is ready today.</p>
+       </div>
+-      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
++      <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+         <div class="bg-white rounded-2xl border border-ink-100 p-6 flex flex-col">
+           <span class="text-[10px] font-bold uppercase text-brand-700">Live</span>
+           <h3 class="font-bold text-lg mt-1">SafeServe</h3>
+@@ -193,6 +195,14 @@
+           <p class="text-sm text-ink-500 mt-2 flex-1">Checklists, manual temp logs, alerts, and audit exports. Sensor add-on via pilot.</p>
+           <a href="product-haccp.html" class="mt-4 text-brand-700 font-semibold text-sm">Learn more →</a>
+         </div>
++        <div class="bg-white rounded-2xl border border-brand-100 p-6 flex flex-col ring-1 ring-brand-100">
++          <span class="text-[10px] font-bold uppercase text-amber-700">Pilot</span>
++          <h3 class="font-bold text-lg mt-1">IncidentGuard</h3>
++          <p class="text-sm text-ink-400">Incidents, near-miss & CAPA</p>
++          <p class="text-brand-700 font-bold mt-2">Included in trial</p>
++          <p class="text-sm text-ink-500 mt-2 flex-1">Report kitchen incidents, investigate, assign corrective actions, and keep an audit trail.</p>
++          <a href="incident-management.html" class="mt-4 text-brand-700 font-semibold text-sm">Learn more →</a>
++        </div>
+         <div class="bg-white rounded-2xl border border-ink-100 p-6 flex flex-col">
+           <span class="text-[10px] font-bold uppercase text-ink-500">Beta</span>
+           <h3 class="font-bold text-lg mt-1">MenuGuard</h3>
+-- 
+2.43.0
+
