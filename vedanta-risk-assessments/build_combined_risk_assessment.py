@@ -191,12 +191,9 @@ def add_steps_guide(doc, filename, caption="Step-by-step visual guide"):
 
 def cover_page(doc):
     try:
-        add_picture(doc, "Vedanta-cover-banner.jpg", width_inches=6.5)
+        add_picture(doc, "Vedanta-Way-Ltd-text-banner.jpg", width_inches=6.5)
     except Exception:
-        try:
-            add_picture(doc, "Vedanta-logo-wide.png", width_inches=5.5)
-        except Exception:
-            pass
+        pass
 
     title = doc.add_paragraph()
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER

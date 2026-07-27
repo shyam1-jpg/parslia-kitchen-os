@@ -191,7 +191,7 @@ def build():
 
     # Cover
     try:
-        add_picture(doc, "Vedanta-cover-banner.jpg", 6.5)
+        add_picture(doc, "Vedanta-Way-Ltd-text-banner.jpg", 6.5)
     except Exception:
         pass
     title = doc.add_paragraph()
