@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Build a single polished Vedanta Kitchen combined risk assessment Word document."""
 
+import os
 from datetime import date
 
 from docx import Document
@@ -11,16 +12,18 @@ from docx.oxml.ns import qn
 from docx.shared import Cm, Inches, Pt, RGBColor
 
 IMG_DIR = "/workspace/vedanta-risk-assessments/images"
+BRAND_DIR = f"{IMG_DIR}/brand"
+PRODUCT_DIR = f"{IMG_DIR}/products"
 
-# Brand colours
-NAVY = RGBColor(0x1B, 0x3A, 0x4B)
-TEAL = RGBColor(0x2F, 0x6F, 0x6A)
+# Brand colours — The Vedanta Way (thevedanta.org)
+NAVY = RGBColor(0x1A, 0x1A, 0x1A)  # charcoal / near-black
+TEAL = RGBColor(0x8A, 0x73, 0x4A)  # soft gold accent
 DARK = RGBColor(0x22, 0x22, 0x22)
-MUTED = RGBColor(0x55, 0x55, 0x55)
+MUTED = RGBColor(0x66, 0x66, 0x66)
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
-LIGHT_ROW = "F3F7F6"
-HEADER_BG = "1B3A4B"
-ALT_HEADER = "2F6F6A"
+LIGHT_ROW = "F5F2EC"
+HEADER_BG = "1A1A1A"
+ALT_HEADER = "8A734A"
 
 
 def set_run(run, *, size=11, bold=False, color=DARK, font="Calibri"):
@@ -152,8 +155,21 @@ def page_break(doc):
     doc.add_page_break()
 
 
-def add_picture(doc, filename, width_inches=6.3):
-    path = f"{IMG_DIR}/{filename}"
+def add_picture(doc, filename, width_inches=6.3, *, folder=None):
+    base = folder or IMG_DIR
+    path = f"{base}/{filename}" if "/" not in filename else filename
+    if folder:
+        path = f"{folder}/{filename}"
+    elif not filename.startswith("/"):
+        # try root images, then brand, then products
+        for candidate in (
+            f"{IMG_DIR}/{filename}",
+            f"{BRAND_DIR}/{filename}",
+            f"{PRODUCT_DIR}/{filename}",
+        ):
+            if os.path.exists(candidate):
+                path = candidate
+                break
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(6)
@@ -161,6 +177,63 @@ def add_picture(doc, filename, width_inches=6.3):
     run = p.add_run()
     run.add_picture(path, width=Inches(width_inches))
     return p
+
+
+def cover_page(doc):
+    try:
+        add_picture(doc, "Vedanta-cover-banner.jpg", width_inches=6.5)
+    except Exception:
+        try:
+            add_picture(doc, "Vedanta-logo-wide.png", width_inches=5.5)
+        except Exception:
+            pass
+
+    title = doc.add_paragraph()
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    title.paragraph_format.space_before = Pt(10)
+    run = title.add_run("THE VEDANTA WAY LIMITED")
+    set_run(run, size=12, bold=True, color=TEAL, font="Georgia")
+
+    main = doc.add_paragraph()
+    main.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    main.paragraph_format.space_before = Pt(6)
+    run = main.add_run("Kitchen Safety Brochure &\nCombined Risk Assessment Pack")
+    set_run(run, size=24, bold=True, color=NAVY, font="Georgia")
+
+    sub = doc.add_paragraph()
+    sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    sub.paragraph_format.space_before = Pt(10)
+    run = sub.add_run(
+        "Equipment · Sylvester Keal Chemicals (original brochure products) ·\n"
+        "Step-by-step Do / Don’t / Care staff training guides"
+    )
+    set_run(run, size=11, color=MUTED)
+
+    meta = doc.add_paragraph()
+    meta.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    meta.paragraph_format.space_before = Pt(18)
+    run = meta.add_run(
+        "The Vedanta Kitchen & Retreat Centre\n"
+        "Branston Hall, Lincoln Road, Branston, Lincoln LN4 1PD\n"
+        "Company: The Vedanta Way Limited\n"
+        "Website: https://thevedanta.org/\n\n"
+        f"Assessor: Shyam Prasad\n"
+        f"Document date: {date.today().strftime('%d %B %Y')}\n"
+        f"Review due: 27 July 2027"
+    )
+    set_run(run, size=10, color=DARK)
+
+    note = doc.add_paragraph()
+    note.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    note.paragraph_format.space_before = Pt(16)
+    run = note.add_run(
+        "Includes:\n"
+        "TRK70 · Rational Oven · SK Chemicals / COSHH · Thermomix · Caso ·\n"
+        "Ninja · KitchenAid · Waring · Knives / Mandoline ·\n"
+        "Kitchen, Catering, FOH & Generic Assessments"
+    )
+    set_run(run, size=9, color=MUTED)
+    page_break(doc)
 
 
 def add_do_dont_care(doc, do_items, dont_items, care_items):
@@ -174,58 +247,6 @@ def add_do_dont_care(doc, do_items, dont_items, care_items):
     add_body(doc, "CARE", bold=True, space_after=2)
     for item in care_items:
         add_bullet(doc, item)
-
-
-def cover_page(doc):
-    try:
-        add_picture(doc, "vedanta-safety-brochure-cover.png", width_inches=6.4)
-    except Exception:
-        for _ in range(2):
-            doc.add_paragraph()
-
-    title = doc.add_paragraph()
-    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = title.add_run("VEDANTA KITCHEN & RETREAT CENTRE")
-    set_run(run, size=14, bold=True, color=TEAL, font="Georgia")
-
-    main = doc.add_paragraph()
-    main.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    main.paragraph_format.space_before = Pt(8)
-    run = main.add_run("Kitchen Safety Brochure &\nCombined Risk Assessment Pack")
-    set_run(run, size=26, bold=True, color=NAVY, font="Georgia")
-
-    sub = doc.add_paragraph()
-    sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    sub.paragraph_format.space_before = Pt(12)
-    run = sub.add_run(
-        "Equipment · Chemicals (Sylvester Keal) · Step-by-step care guides\n"
-        "with Do / Don’t / Care visuals for staff training"
-    )
-    set_run(run, size=12, color=MUTED)
-
-    meta = doc.add_paragraph()
-    meta.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    meta.paragraph_format.space_before = Pt(24)
-    run = meta.add_run(
-        f"Assessor: Shyam Prasad\n"
-        f"Location: The Vedanta Kitchen & Retreat Centre\n"
-        f"Document date: {date.today().strftime('%d %B %Y')}\n"
-        f"Review due: 27 July 2027\n"
-        f"Chemical supplier reference: Sylvester Keal (SK brochure)"
-    )
-    set_run(run, size=11, color=DARK)
-
-    note = doc.add_paragraph()
-    note.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    note.paragraph_format.space_before = Pt(24)
-    run = note.add_run(
-        "Includes:\n"
-        "TRK70 · Rational Oven · SK Chemicals / COSHH · Thermomix · Caso ·\n"
-        "Ninja · KitchenAid · Waring · Knives / Mandoline ·\n"
-        "Kitchen, Catering, FOH & Generic Assessments"
-    )
-    set_run(run, size=9, color=MUTED)
-    page_break(doc)
 
 
 def contents_page(doc, sections):
@@ -1067,10 +1088,12 @@ def chemical_risk_section(doc):
     info_table(
         doc,
         [
-            ("Workplace", "The Vedanta Kitchen & Retreat Centre"),
+            ("Workplace", "The Vedanta Kitchen & Retreat Centre — Branston Hall, Lincoln LN4 1PD"),
+            ("Company", "The Vedanta Way Limited"),
             ("Department", "Main Kitchen / Cleaning"),
             ("Activity", "Storage, dosing, use and disposal of Sylvester Keal kitchen cleaning chemicals"),
             ("Supplier", "Sylvester Keal (SK) — https://sylvesterkeal.co.uk/sk-company-brochure/"),
+            ("Website", "https://thevedanta.org/"),
             ("Persons completing the task", "Chefs, kitchen porters, cleaning staff and authorised users"),
             ("Assessor", "Shyam Prasad"),
             ("Assessment date", "27 July 2026"),
@@ -1079,31 +1102,37 @@ def chemical_risk_section(doc):
         ],
     )
 
-    add_heading_styled(doc, "2. Site Chemical Inventory (Sylvester Keal)", 2)
+    add_heading_styled(doc, "2. Site Chemical Inventory (Sylvester Keal brochure)", 2)
     add_body(
         doc,
-        "Products in use / available for Vedanta kitchen operations, based on staff knowledge and the "
-        "Sylvester Keal Machine & Manual Dishwashing / oven-care range. All SK products have COSHH Safety Data Sheets — "
-        "keep the current SDS for each code with this pack.",
+        "Products taken from the official Sylvester Keal Product Guide (Machine & Manual Dishwashing Products "
+        "and Oven Cleaning Products pages). Original brochure product photography is included below. "
+        "All SK products have COSHH Safety Data Sheets — keep the current SDS for each code with this pack. "
+        "Brochure: https://sylvesterkeal.co.uk/sk-company-brochure/",
     )
 
-    # Product inventory table
+    add_subheading(doc, "Original brochure — Machine & Manual Dishwashing Products")
+    try:
+        add_picture(doc, "sk-dishwashing-products.png", width_inches=6.3)
+    except Exception:
+        try:
+            add_picture(doc, "sk-dishwashing-brochure-spread.png", width_inches=6.3)
+        except Exception:
+            pass
+
     products = [
-        ("SK Premium Dishwashing Detergent", "1A", "2×5L / 20L", "Machine detergent for hard water; tannin & scale control"),
-        ("SK Premium Dishwashing Rinse Aid", "2B", "2×5L / 20L", "Machine rinse aid for hygienic, streak-free finish"),
-        ("SK Salt Pebble", "PE12705", "25KG", "Water softener salt — limescale prevention"),
-        ("SK Salt Granular (Hydrosoft)", "1270S", "25KG", "Granular vacuum salt for granular softeners"),
-        ("SK 1DT Dishwasher Tablets", "1DT", "15×7 tablets", "7-in-1 lemon tablets for machine wash sparkle"),
-        ("SK Super Lemon Sinkwash", "3L", "2×5L / 12×1L", "Manual wash-up of crockery, glass, pans; light cleaning"),
-        ("SK Bacti Manual Dishwashing Detergent", "3AB", "2×5L / 20L", "Concentrated neutral detergent; cuts grease; streak-free rinse"),
-        ("SK Heavy Duty Degreaser", "—", "As supplied", "Caustic powder for burnt-on oils/fats on trays & equipment"),
-        ("SK Hot Oven Cleaner", "—", "As supplied", "Removes oils, fats, carbon from hot plates, grills, griddles"),
-        ("SK Rational Detergent Tablets", "—", "As supplied", "Red detergent tablets for Rational combi oven cleaning"),
-        ("SK Rational Active Green Care Cleaner Tablets", "—", "As supplied", "For iCombi Pro / Classic — phosphate-free care cleaner"),
-        ("SK Rational Combi Care Control Tablets", "—", "As supplied", "Care/control tablets for Rational (also Lincat SCC)"),
+        ("SK Premium Dishwashing Detergent", "1A", "2×5L / 20L", "Hard-water machine detergent; tannin & scale control"),
+        ("SK Premium Dishwashing Rinse Aid", "2B", "2×5L / 20L", "Machine rinse aid for hygienic streak-free finish"),
+        ("SK Machine Destainer", "2HX", "2×5L / 3×5L / 20L", "Tea/coffee destainer with sanitiser for machines"),
+        ("SK Bacti Manual Dishwashing Detergent", "3AB", "2×5L / 20L", "Manual dishwashing; cuts grease; streak-free rinse"),
+        ("SK Super Lemon Sinkwash", "3L", "2×5L / 12×1L", "Manual wash-up & light duty general cleaning"),
+        ("SK Super Lemon Sinkwash (1L)", "3L1", "12×1L", "1L sinkwash bottle for manual washing"),
+        ("SK Salt Granular (Hydrosoft)", "12705", "25KG", "Granular vacuum salt for water softeners"),
+        ("SK Salt Pebble", "PE12705", "25KG", "Salt tablets for water softeners / limescale prevention"),
+        ("SK 1DT Dishwasher Tablets", "1DT", "15×7 tablets", "Clean n Fresh 7-in-1 lemon dishwasher tablets"),
     ]
     table = doc.add_table(rows=1 + len(products), cols=4)
-    for i, h in enumerate(["Product", "Code", "Pack size", "Intended use"]):
+    for i, h in enumerate(["Product (brochure)", "Code", "Pack size", "Intended use"]):
         write_cell(table.rows[0].cells[i], h, bold=True, color=WHITE, size=8, center=True, fill=HEADER_BG)
     for r, row in enumerate(products, 1):
         fill = LIGHT_ROW if r % 2 == 0 else None
@@ -1111,10 +1140,40 @@ def chemical_risk_section(doc):
             write_cell(table.rows[r].cells[c], val, size=8, fill=fill)
     doc.add_paragraph()
 
+    add_subheading(doc, "Original brochure — Oven Cleaning Products")
     try:
-        add_picture(doc, "dishwashing-chemicals-care.png")
+        add_picture(doc, "sk-oven-cleaner-products.png", width_inches=6.3)
     except Exception:
-        pass
+        try:
+            add_picture(doc, "sk-oven-cleaner-brochure-spread.png", width_inches=6.3)
+        except Exception:
+            pass
+
+    oven_products = [
+        ("SK Hot Oven Cleaner", "7A750", "6×750ml", "Trigger spray for ovens, hot plates, grills, griddles"),
+        ("SK Hot Oven Cleaner", "7A", "2×5L", "5L hot oven cleaner for commercial cooking equipment"),
+        ("SK Carbon Remover", "7C", "10KG", "Caustic powder for burnt-on oils/fats on trays & equipment"),
+        ("SK Combi Oven Rinse Aid", "2K", "10L", "Integral combi-oven rinse system (auto dosing)"),
+        ("SK Combi Oven Cleaner", "7K", "10L", "Integral combi-oven cleaner / degreaser (auto dosing)"),
+        ("SK Rational Detergent Tablets", "OCA8294", "1×100", "Red Rational combi oven detergent tablets"),
+        ("SK Rational Active Green Care Cleaner Tablets", "56.01.535", "1×150", "iCombi Pro / Classic phosphate-free care cleaner"),
+        ("SK Rational Combi Care Control Tablets", "OCA8357", "1×150", "Care/control tablets for Rational & Lincat SCC"),
+    ]
+    table = doc.add_table(rows=1 + len(oven_products), cols=4)
+    for i, h in enumerate(["Product (brochure)", "Code", "Pack size", "Intended use"]):
+        write_cell(table.rows[0].cells[i], h, bold=True, color=WHITE, size=8, center=True, fill=HEADER_BG)
+    for r, row in enumerate(oven_products, 1):
+        fill = LIGHT_ROW if r % 2 == 0 else None
+        for c, val in enumerate(row):
+            write_cell(table.rows[r].cells[c], val, size=8, fill=fill)
+    doc.add_paragraph()
+
+    add_body(
+        doc,
+        "Source images: Sylvester Keal Company Brochure 2025 — Machine & Manual Dishwashing Products "
+        "and Oven Cleaning Products pages (original product photography).",
+        size=9,
+    )
 
     add_heading_styled(doc, "3. Step-by-step — Dishwashing chemicals", 2)
     add_subheading(doc, "Machine dishwashing (1A / 2B / salt / tablets)")
@@ -1140,14 +1199,14 @@ def chemical_risk_section(doc):
             "Wash hands after chemical contact and before handling clean service ware.",
         ],
     )
-    add_subheading(doc, "Oven / heavy degreasing (Rational tablets / Hot Oven Cleaner / Heavy Duty Degreaser)")
+    add_subheading(doc, "Oven / heavy degreasing (Hot Oven Cleaner / Carbon Remover / Rational tablets / Combi 7K & 2K)")
     add_numbered(
         doc,
         [
-            "Only trained staff may use oven cleaner, caustic degreaser or Rational cleaning tablets.",
+            "Only trained staff may use Hot Oven Cleaner (7A/7A750), Carbon Remover (7C), Combi Oven Cleaner/Rinse (7K/2K) or Rational tablets.",
             "Wear chemical gloves and eye protection.",
-            "For Rational: use only the correct tablet type for the oven model; run the manufacturer cleaning programme; keep door closed.",
-            "For Hot Oven Cleaner / Heavy Duty Degreaser: follow label; do not use on aluminium where the product warns against it.",
+            "For Rational: use only the correct tablet type for the oven model (OCA8294 / 56.01.535 / OCA8357); run the manufacturer cleaning programme; keep door closed.",
+            "For Hot Oven Cleaner: follow label; do not use on aluminium or zinc alloys where the product warns against it.",
             "Never mix these products with sinkwash, bleach or other cleaners.",
             "Rinse food-contact surfaces thoroughly after use.",
         ],
@@ -1282,7 +1341,7 @@ def sign_off(doc):
             ("Approved by", ""),
             ("Approval date", ""),
             ("Next review", "27/07/2027"),
-            ("Version", "2.0 Brochure Pack (visuals + Sylvester Keal chemicals)"),
+            ("Version", "2.1 Vedanta-branded brochure + original SK product photos"),
         ],
     )
     add_heading_styled(doc, "Staff acknowledgement", 2)
