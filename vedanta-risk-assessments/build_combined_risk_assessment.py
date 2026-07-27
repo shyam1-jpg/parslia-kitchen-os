@@ -237,6 +237,8 @@ def cover_page(doc):
         "Includes:\n"
         "TRK70 · Rational Oven · SK Chemicals / COSHH · Thermomix · Caso ·\n"
         "Ninja · KitchenAid · Waring · Knives / Mandoline ·\n"
+        "Lincat Fryer · Dough Mixer · Blast Chiller · Bratt Pan ·\n"
+        "Wrapmaster Cutters · Buffalo Induction · Heavy Tray Storage ·\n"
         "Kitchen, Catering, FOH & Generic Assessments"
     )
     set_run(run, size=9, color=MUTED)
@@ -1354,7 +1356,7 @@ def sign_off(doc):
             ("Approved by", ""),
             ("Approval date", ""),
             ("Next review", "27/07/2027"),
-            ("Version", "2.2 Full step-by-step visuals for all equipment"),
+            ("Version", "2.3 Added fryer, dough mixer, blast chiller, bratt pan, Wrapmaster, induction & tray storage"),
         ],
     )
     add_heading_styled(doc, "Staff acknowledgement", 2)
@@ -1382,6 +1384,8 @@ def build():
     style.font.name = "Calibri"
     style.font.size = Pt(11)
 
+    from extra_equipment import EXTRA_SECTION_TITLES, add_all_extra_equipment
+
     section_titles = [
         "Electrolux / Dito Sama TRK70 Combined Cutter & Vegetable Slicer",
         "Rational Combi Oven",
@@ -1394,6 +1398,7 @@ def build():
         "Waring Stick Blender",
         "Knives & Mandoline — Visual Safety Guide",
         "Knives, Mandoline, Slicers & Peelers",
+        *EXTRA_SECTION_TITLES,
         "Vedanta Kitchen Risk Assessment",
         "Vedanta Catering Services Risk Assessment",
         "Vedanta Front of House & Kitchen Risk Assessment",
@@ -1873,6 +1878,9 @@ def build():
             "If blade guards/sheaths are available, fit them before returning knives to the drawer.",
         ],
     )
+
+    # --- Site equipment from kitchen photos ---
+    add_all_extra_equipment(doc)
 
     # --- Kitchen area ---
     area_section(
