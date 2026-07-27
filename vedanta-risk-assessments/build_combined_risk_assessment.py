@@ -189,8 +189,8 @@ def cover_page(doc):
     note.paragraph_format.space_before = Pt(40)
     run = note.add_run(
         "Sources merged into this pack:\n"
-        "Thermomix TM6 · Caso Ice Creamer · Ninja Hand Blender ·\n"
-        "KitchenAid Professional Stand Mixer · Waring Stick Blender ·\n"
+        "Electrolux / Dito Sama TRK70 · Thermomix TM6 · Caso Ice Creamer ·\n"
+        "Ninja Hand Blender · KitchenAid Professional Stand Mixer · Waring Stick Blender ·\n"
         "Knives / Mandoline / Slicers / Peelers ·\n"
         "Vedanta Kitchen, Catering Services, FOH & Generic Kitchen Assessments"
     )
@@ -292,6 +292,469 @@ def area_section(doc, title, scope, hazards, controls, ppe, notes=None):
     page_break(doc)
 
 
+def detailed_risk_table(doc, hazards):
+    """hazards: list of (hazard, harm, initial, controls, residual)"""
+    table = doc.add_table(rows=1 + len(hazards), cols=5)
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    headers = ["Hazard", "Possible harm", "Initial risk", "Required control measures", "Residual risk"]
+    for i, h in enumerate(headers):
+        write_cell(table.rows[0].cells[i], h, bold=True, color=WHITE, size=8, center=True, fill=HEADER_BG)
+    for r, row in enumerate(hazards, 1):
+        fill = LIGHT_ROW if r % 2 == 0 else None
+        for c, val in enumerate(row):
+            write_cell(
+                table.rows[r].cells[c],
+                val,
+                size=8,
+                center=(c in (2, 4)),
+                fill=fill,
+                bold=(c in (2, 4)),
+                color=TEAL if c in (2, 4) else DARK,
+            )
+    doc.add_paragraph()
+
+
+def add_subheading(doc, text):
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(8)
+    p.paragraph_format.space_after = Pt(4)
+    run = p.add_run(text)
+    set_run(run, size=11, bold=True, color=NAVY)
+    return p
+
+
+def trk70_section(doc):
+    add_heading_styled(
+        doc,
+        "Electrolux / Dito Sama TRK70 — Combined Cutter & Vegetable Slicer Risk Assessment",
+        1,
+    )
+
+    add_heading_styled(doc, "1. Workplace & Equipment Information", 2)
+    info_table(
+        doc,
+        [
+            ("Workplace", "The Vedanta Kitchen & Retreat Centre"),
+            ("Department", "Main Kitchen"),
+            ("Equipment", "Electrolux / Dito Sama TRK70 Combined Cutter and Vegetable Slicer"),
+            ("Manufacturer / model", "Electrolux Professional / Dito Sama TRK70"),
+            ("Persons completing the task", "Trained and authorised kitchen staff"),
+            ("Assessor", "Shyam Prasad"),
+            ("Assessment date", "27 July 2026"),
+            ("Review date", "27 July 2027, or sooner after an accident, near miss, equipment change or safety concern"),
+            ("Manager responsible", "[Name]"),
+        ],
+    )
+
+    add_heading_styled(doc, "2. Activity Covered", 2)
+    add_body(
+        doc,
+        "Operating, loading, unloading, changing cutting discs or blades, clearing blockages, "
+        "dismantling, cleaning, reassembling and maintaining the TRK70.",
+    )
+    add_body(
+        doc,
+        "The TRK70 uses interchangeable rotating blades and discs for cutting, chopping, slicing, "
+        "grating, shredding and dicing food. The machine incorporates a magnetic safety system and "
+        "motor brake intended to stop operation when the hopper, vegetable preparation lever or "
+        "cutter lid is not correctly closed. These safety systems must never be defeated or bypassed.",
+    )
+
+    add_heading_styled(doc, "3. Persons at Risk", 2)
+    for person in [
+        "Chefs and kitchen assistants",
+        "Kitchen porters and cleaning staff",
+        "Maintenance contractors",
+        "Employees working close to the machine",
+        "New, inexperienced or young workers",
+        "Consumers, where poor cleaning or allergen controls could contaminate food",
+    ]:
+        add_bullet(doc, person)
+
+    add_heading_styled(doc, "4. Risk-Rating System", 2)
+    add_body(doc, "Likelihood", bold=True, space_after=2)
+    for item in [
+        "1 – Rare",
+        "2 – Unlikely",
+        "3 – Possible",
+        "4 – Likely",
+        "5 – Almost certain",
+    ]:
+        add_bullet(doc, item)
+    add_body(doc, "Severity", bold=True, space_after=2)
+    for item in [
+        "1 – Minor injury",
+        "2 – Injury requiring first aid",
+        "3 – Injury requiring medical treatment",
+        "4 – Serious injury",
+        "5 – Fatality or life-changing injury",
+    ]:
+        add_bullet(doc, item)
+    add_body(doc, "Risk score = Likelihood × Severity", bold=True, space_after=2)
+    for item in [
+        "1–4: Low",
+        "5–9: Medium",
+        "10–15: High",
+        "16–25: Very high",
+    ]:
+        add_bullet(doc, item)
+
+    add_heading_styled(doc, "5. Significant Hazards and Control Measures", 2)
+    detailed_risk_table(
+        doc,
+        [
+            (
+                "Contact with rotating cutter blade or slicing disc",
+                "Deep cuts, amputation or life-changing injury",
+                "15 – High",
+                "Only trained and authorised staff may operate. All guards, hopper, lid, pushers and interlocks must be correctly fitted. Hands, knives, spoons and utensils must never enter the feed opening or bowl while connected to power. Feed food only with the supplied pusher.",
+                "5 – Medium",
+            ),
+            (
+                "Reaching into the machine while it is running",
+                "Severe cuts, crushing or amputation",
+                "15 – High",
+                "Never reach beneath the hopper, through the feed chute or into the cutter bowl while operating. Stop and isolate from the electrical supply before inspecting or touching internal components.",
+                "5 – Medium",
+            ),
+            (
+                "Unexpected start-up during assembly, cleaning or blockage removal",
+                "Contact with moving blades resulting in serious injury",
+                "15 – High",
+                "Switch off using the main control, turn off the rear isolation switch and unplug before dismantling, cleaning, changing blades or clearing a blockage. Keep the plug under the operator’s control until the task is complete.",
+                "5 – Medium",
+            ),
+            (
+                "Defective, removed or bypassed guard / interlock",
+                "Access to dangerous moving parts",
+                "15 – High",
+                "Check lid, hopper, pusher, guard and safety interlock before every use. Never bypass, tape down or modify a safety device. If the machine runs with a guard open, stop, unplug, label “DO NOT USE” and report to the manager.",
+                "5 – Medium",
+            ),
+            (
+                "Handling, fitting or removing sharp blades and discs",
+                "Cuts and puncture wounds to hands and fingers",
+                "12 – High",
+                "Switch off and unplug before handling blades. Hold only by hub, handle or non-cutting edge. Wear cut-resistant gloves when changing, transporting or manually cleaning blades. Do not test sharpness with fingers.",
+                "4 – Low",
+            ),
+            (
+                "Blades stored incorrectly",
+                "Cuts while reaching into drawers or cupboards",
+                "12 – High",
+                "Store each blade and disc in a designated rack, protective holder or labelled container. Cutting edges must not be left exposed. Never leave blades submerged in sinks or hidden beneath other equipment.",
+                "4 – Low",
+            ),
+            (
+                "Blocked machine or food becoming stuck",
+                "Operator may attempt to push food with hands or utensils",
+                "15 – High",
+                "Stop and unplug before clearing any blockage. Wait until all movement has stopped. Remove hopper, lid or attachment per manufacturer instructions. Use an appropriate cleaning tool after isolation; never use hands while connected.",
+                "5 – Medium",
+            ),
+            (
+                "Food or broken blade components being ejected",
+                "Cuts, bruising or eye injury",
+                "12 – High",
+                "Inspect blades, discs, bowl, shaft and attachments for cracks, distortion or damage before use. Secure attachments correctly. Do not process bones, frozen-solid food or unsuitable materials. Do not overload. Stand clear when starting.",
+                "4 – Low",
+            ),
+            (
+                "Loose clothing, jewellery or long hair becoming caught",
+                "Entanglement, pulling or impact injury",
+                "12 – High",
+                "Wear close-fitting kitchen clothing. Tie back and secure long hair. Remove loose jewellery, scarves and lanyards. Secure sleeves. Do not distract anyone operating the machine.",
+                "4 – Low",
+            ),
+            (
+                "Electrical damage, wet plug or damaged cable",
+                "Electric shock, burns or fire",
+                "10 – High",
+                "Visually inspect plug, cable, socket and machine before use. Keep connections dry. Do not use with wet hands or pull/lift by the cable. Damaged equipment must be unplugged, labelled and removed from service until repaired by a competent person.",
+                "5 – Medium",
+            ),
+            (
+                "Water entering the motor or electrical controls during cleaning",
+                "Electric shock, equipment failure or fire",
+                "10 – High",
+                "Unplug before cleaning. Never hose down, immerse or pressure-wash the motor base. Clean with a damp cloth using the manufacturer-approved method. Removable food-contact parts may be cleaned separately. Ensure components are dry before reassembly.",
+                "5 – Medium",
+            ),
+            (
+                "Cleaning chemicals",
+                "Skin irritation, eye damage or breathing difficulty",
+                "6 – Medium",
+                "Follow the relevant COSHH assessment and product instructions. Use correct dilution. Wear gloves and eye protection where specified. Never mix chemicals. Store away from food and rinse food-contact components thoroughly.",
+                "3 – Low",
+            ),
+            (
+                "Wet or contaminated floor around the machine",
+                "Slips, falls, strains or impact injuries",
+                "9 – Medium",
+                "Position on a stable work surface. Clean spillages immediately. Display a wet-floor sign where necessary. Keep the power cable away from walkways. Wear slip-resistant safety footwear.",
+                "3 – Low",
+            ),
+            (
+                "Machine positioned on an unstable or unsuitable surface",
+                "Machine movement, falling equipment or operator injury",
+                "12 – High",
+                "Place on a strong, level, dry and stable surface at a comfortable working height. Ensure the base is secure before operation. Do not operate close to the edge of a workbench.",
+                "4 – Low",
+            ),
+            (
+                "Lifting or moving the machine and attachments",
+                "Back, shoulder, hand or foot injuries",
+                "9 – Medium",
+                "Avoid moving the complete machine unnecessarily. Assess weight before lifting. Use a trolley or two-person lift where required. Remove loose attachments before transport. Keep the route clear and use correct manual-handling techniques.",
+                "4 – Low",
+            ),
+            (
+                "Repetitive loading, pushing and awkward posture",
+                "Musculoskeletal injury or fatigue",
+                "6 – Medium",
+                "Position the machine at a suitable height. Keep ingredients close to the operator. Avoid twisting or overreaching. Rotate tasks during prolonged production and take appropriate breaks.",
+                "2 – Low",
+            ),
+            (
+                "Excessive machine noise, vibration or overheating",
+                "Hearing discomfort, equipment failure or fire",
+                "6 – Medium",
+                "Stop if unusual noise, vibration, smell, smoke or overheating occurs. Unplug and report the fault. Do not continue operating damaged equipment. Keep ventilation openings clear.",
+                "2 – Low",
+            ),
+            (
+                "Poor cleaning or food remaining inside attachments",
+                "Bacterial contamination and food poisoning",
+                "12 – High",
+                "Dismantle and clean food-contact parts after every use and between incompatible foods. Inspect hidden areas, shafts, seals, lids and feed components. Sanitise using the approved kitchen procedure and dry before reassembly.",
+                "4 – Low",
+            ),
+            (
+                "Allergen cross-contamination",
+                "Allergic reaction, potentially severe or fatal",
+                "12 – High",
+                "Follow the kitchen allergen-management procedure. Clean and sanitise bowl, blades, discs, hopper, pushers, utensils and surrounding work surface between allergen and non-allergen recipes. Use dedicated equipment where required and verify cleaning before production begins.",
+                "4 – Low",
+            ),
+            (
+                "Use by an untrained or unauthorised person",
+                "Incorrect assembly, unsafe operation or serious injury",
+                "15 – High",
+                "Operators must receive practical training and be assessed as competent. New employees must be directly supervised. Cleaning staff must be trained in isolation and safe blade handling. Operating instructions and this assessment must remain accessible.",
+                "5 – Medium",
+            ),
+            (
+                "Maintenance or repairs by an unauthorised person",
+                "Electric shock, unexpected movement or defective safety systems",
+                "15 – High",
+                "Operators may only perform normal cleaning and user checks. Electrical repairs, motor work, interlock adjustments and internal maintenance must be completed by an authorised competent engineer.",
+                "5 – Medium",
+            ),
+        ],
+    )
+
+    add_heading_styled(doc, "6. Safe Operating Procedure", 2)
+
+    add_subheading(doc, "Before use")
+    add_numbered(
+        doc,
+        [
+            "Confirm that the operator is trained and authorised.",
+            "Check that the machine is clean, dry and correctly positioned.",
+            "Inspect the plug, cable, controls, bowl, lid, hopper, pusher, blades and discs.",
+            "Confirm that all guards and safety interlocks are present and undamaged.",
+            "Select the correct blade, disc and speed for the food being processed.",
+            "Fit the attachment while the machine is unplugged.",
+            "Confirm that the blade or disc is properly secured.",
+            "Secure long hair and remove loose jewellery.",
+            "Keep the floor and surrounding work area clean and dry.",
+            "Do not operate the machine if any component is missing, loose or damaged.",
+        ],
+    )
+
+    add_subheading(doc, "During operation")
+    add_numbered(
+        doc,
+        [
+            "Close and secure the bowl lid or vegetable-slicer hopper.",
+            "Start the machine only after checking that no person is touching the attachments.",
+            "Use only the supplied pusher to feed food.",
+            "Never place hands or utensils inside the feed opening or bowl.",
+            "Do not overload the machine.",
+            "Remain with the machine while it is operating.",
+            "Stop immediately if there is unusual noise, vibration, smell, heat or movement.",
+            "Do not remove any guard until the machine has stopped completely and has been unplugged.",
+        ],
+    )
+
+    add_subheading(doc, "Blade or disc changes")
+    add_numbered(
+        doc,
+        [
+            "Switch the machine off.",
+            "Turn off the rear isolation switch.",
+            "Unplug the machine.",
+            "Wait until all movement has stopped.",
+            "Wear suitable cut-resistant gloves.",
+            "Hold the blade or disc by its hub or non-cutting edge.",
+            "Place the removed blade directly into its protective storage rack.",
+            "Fit the replacement securely before reconnecting the machine.",
+        ],
+    )
+
+    add_subheading(doc, "Clearing a blockage")
+    add_numbered(
+        doc,
+        [
+            "Press the stop control.",
+            "Switch off the main isolation switch.",
+            "Unplug the machine.",
+            "Keep control of the plug.",
+            "Wait for the blade or disc to stop completely.",
+            "Carefully dismantle the appropriate attachment.",
+            "Remove the blockage without placing fingers against cutting edges.",
+            "Inspect for blade damage before reassembling.",
+            "Do not restart the machine until all guards are correctly fitted.",
+        ],
+    )
+
+    add_subheading(doc, "Cleaning")
+    add_numbered(
+        doc,
+        [
+            "Switch off and unplug the machine.",
+            "Wear cut-resistant gloves when handling blades.",
+            "Remove the blade or disc first and place it in a safe position.",
+            "Never leave a blade hidden or submerged in washing-up water.",
+            "Dismantle removable food-contact components.",
+            "Wash, rinse, sanitise and dry components according to the kitchen cleaning procedure.",
+            "Do not immerse or hose down the motor base.",
+            "Inspect components for cracks, damage or food deposits.",
+            "Reassemble only when all parts are clean and dry.",
+            "Store blades and discs in their designated protective rack.",
+        ],
+    )
+
+    add_heading_styled(doc, "7. Emergency Arrangements", 2)
+    add_subheading(doc, "Serious cut or amputation")
+    for item in [
+        "Stop and isolate the machine immediately.",
+        "Call 999 for a serious or uncontrolled injury.",
+        "Apply firm pressure using a sterile dressing.",
+        "Do not remove embedded objects.",
+        "Preserve any severed part in a clean sealed bag, place that bag within another bag containing ice, and send it with the injured person.",
+        "Report the accident immediately and secure the machine for investigation.",
+    ]:
+        add_bullet(doc, item)
+
+    add_subheading(doc, "Electric shock")
+    for item in [
+        "Do not touch the injured person until the electrical supply has been safely isolated.",
+        "Switch off the supply or unplug the machine where safe.",
+        "Call 999.",
+        "Begin first aid or CPR if trained and instructed to do so.",
+    ]:
+        add_bullet(doc, item)
+
+    add_subheading(doc, "Equipment malfunction")
+    for item in [
+        "Press stop and disconnect the power.",
+        "Label the machine “DO NOT USE – FAULTY.”",
+        "Inform the kitchen manager.",
+        "Arrange inspection by a competent engineer.",
+        "Do not return the machine to service until formally declared safe.",
+    ]:
+        add_bullet(doc, item)
+
+    add_heading_styled(doc, "8. Training Requirements", 2)
+    add_body(doc, "Operators must be trained in:")
+    for item in [
+        "Correct assembly and attachment selection",
+        "Operation of the controls and isolation switch",
+        "Use of guards, hopper and food pushers",
+        "Safe blade and disc handling",
+        "Blockage-clearing procedure",
+        "Cleaning and sanitising",
+        "Allergen cross-contamination controls",
+        "Pre-use inspection and fault reporting",
+        "Emergency procedures",
+    ]:
+        add_bullet(doc, item)
+    add_body(
+        doc,
+        "Training must be recorded and refreshed following an accident, near miss, unsafe practice, "
+        "equipment modification or significant period without using the machine.",
+    )
+
+    add_heading_styled(doc, "9. Inspection and Maintenance", 2)
+    for item in [
+        "Carry out a visual pre-use check before every shift.",
+        "Inspect guards, lids, pushers and interlocks before every use.",
+        "Record and report damage immediately.",
+        "Maintain the machine according to the manufacturer’s instructions.",
+        "Arrange electrical inspection and testing based on usage, environment and previous inspection results.",
+        "Only competent authorised persons may repair or adjust the machine.",
+        "Keep servicing, repair and inspection records.",
+    ]:
+        add_bullet(doc, item)
+
+    add_heading_styled(doc, "10. Residual Risk Statement", 2)
+    add_body(
+        doc,
+        "Provided that all listed controls are implemented, operators are trained, guards and interlocks "
+        "remain functional, and the machine is isolated before blade handling, cleaning or blockage removal, "
+        "the remaining risk is considered medium to low and tolerable with continued supervision.",
+    )
+    add_body(doc, "The machine must not be used where:", bold=True, space_after=2)
+    for item in [
+        "A guard, lid, hopper or pusher is missing",
+        "A safety interlock is defective",
+        "The blade or disc is damaged",
+        "The machine starts while a guard is open",
+        "The cable, plug or controls are damaged",
+        "There is unusual noise, vibration, heat, smoke or smell",
+        "The operator has not received suitable training",
+    ]:
+        add_bullet(doc, item)
+
+    add_heading_styled(doc, "11. Required PPE", 2)
+    for item in [
+        "Apron / chef whites",
+        "Non-slip / slip-resistant footwear",
+        "Cut-resistant gloves when changing, transporting or manually cleaning blades and discs",
+        "Eye protection and chemical gloves where specified by COSHH for cleaning chemicals",
+    ]:
+        add_bullet(doc, item)
+
+    add_heading_styled(doc, "12. Approval", 2)
+    info_table(
+        doc,
+        [
+            ("Assessor’s name", "Shyam Prasad"),
+            ("Assessor signature", ""),
+            ("Assessor date", "27 July 2026"),
+            ("Manager’s name", ""),
+            ("Manager signature", ""),
+            ("Manager date", ""),
+        ],
+    )
+
+    add_heading_styled(doc, "13. Employee Acknowledgement", 2)
+    add_body(
+        doc,
+        "I confirm that I have read and understood this risk assessment, received suitable instruction "
+        "and training, and agree to follow the stated control measures and safe operating procedure.",
+    )
+    table = doc.add_table(rows=6, cols=3)
+    for i, h in enumerate(["Employee name", "Signature", "Date"]):
+        write_cell(table.rows[0].cells[i], h, bold=True, color=WHITE, size=10, center=True, fill=ALT_HEADER)
+    for r in range(1, 6):
+        for c in range(3):
+            write_cell(table.rows[r].cells[c], "", size=10, fill=LIGHT_ROW if r % 2 == 0 else None)
+
+    page_break(doc)
+
+
 def sign_off(doc):
     add_heading_styled(doc, "Document Control & Sign-Off", 1)
     add_body(
@@ -305,8 +768,8 @@ def sign_off(doc):
             ("Document owner", "Shyam Prasad"),
             ("Approved by", ""),
             ("Approval date", ""),
-            ("Next review", "04/11/2025"),
-            ("Version", "1.0 Combined Pack"),
+            ("Next review", "27/07/2027"),
+            ("Version", "1.1 Combined Pack (includes TRK70)"),
         ],
     )
     add_heading_styled(doc, "Staff acknowledgement", 2)
@@ -335,6 +798,7 @@ def build():
     style.font.size = Pt(11)
 
     section_titles = [
+        "Electrolux / Dito Sama TRK70 Combined Cutter & Vegetable Slicer",
         "Thermomix TM6",
         "Caso Ice Creamer",
         "Ninja Hand Blender",
@@ -350,6 +814,9 @@ def build():
 
     cover_page(doc)
     contents_page(doc, section_titles)
+
+    # --- Electrolux / Dito Sama TRK70 ---
+    trk70_section(doc)
 
     # --- Thermomix TM6 ---
     equipment_section(
