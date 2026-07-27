@@ -189,8 +189,9 @@ def cover_page(doc):
     note.paragraph_format.space_before = Pt(40)
     run = note.add_run(
         "Sources merged into this pack:\n"
-        "Electrolux / Dito Sama TRK70 · Thermomix TM6 · Caso Ice Creamer ·\n"
-        "Ninja Hand Blender · KitchenAid Professional Stand Mixer · Waring Stick Blender ·\n"
+        "Electrolux / Dito Sama TRK70 · Rational Oven · Kitchen Chemicals (COSHH) ·\n"
+        "Thermomix TM6 · Caso Ice Creamer · Ninja Hand Blender ·\n"
+        "KitchenAid Professional Stand Mixer · Waring Stick Blender ·\n"
         "Knives / Mandoline / Slicers / Peelers ·\n"
         "Vedanta Kitchen, Catering Services, FOH & Generic Kitchen Assessments"
     )
@@ -755,6 +756,378 @@ def trk70_section(doc):
     page_break(doc)
 
 
+def rational_oven_section(doc):
+    add_heading_styled(
+        doc,
+        "Rational Combi Oven — Equipment Risk Assessment & Operating Procedures",
+        1,
+    )
+    add_heading_styled(doc, "1. Equipment Information", 2)
+    info_table(
+        doc,
+        [
+            ("Workplace", "The Vedanta Kitchen & Retreat Centre"),
+            ("Department", "Main Kitchen"),
+            ("Equipment", "Rational Combi Oven (steam / convection / combi modes)"),
+            ("Manufacturer / model", "Rational (model as installed on site)"),
+            ("Persons completing the task", "Trained and authorised kitchen staff"),
+            ("Assessor", "Shyam Prasad"),
+            ("Assessment date", "27 July 2026"),
+            ("Review date", "27 July 2027, or sooner after an accident, near miss, equipment change or safety concern"),
+            ("Manager responsible", "[Name]"),
+        ],
+    )
+
+    add_heading_styled(doc, "2. Description of Equipment", 2)
+    add_body(
+        doc,
+        "A commercial Rational combi oven used for roasting, baking, steaming, regenerating and "
+        "combination cooking. The oven can produce high temperatures, steam, hot surfaces, hot liquids "
+        "and condensate. Self-cleaning / CareControl programmes may use cleaning chemicals under heat "
+        "and pressure and must only be run by trained staff following manufacturer instructions.",
+    )
+
+    add_heading_styled(doc, "3. Persons at Risk", 2)
+    for person in [
+        "Chefs and kitchen assistants",
+        "Kitchen porters and cleaning staff",
+        "Maintenance contractors",
+        "Staff working near the oven during service",
+        "New, inexperienced or young workers",
+        "Consumers, where poor cooking or cleaning controls affect food safety",
+    ]:
+        add_bullet(doc, person)
+
+    add_heading_styled(doc, "4. Operating Procedure (How to Use)", 2)
+    add_subheading(doc, "Before use")
+    add_numbered(
+        doc,
+        [
+            "Confirm the operator is trained and authorised on the Rational oven.",
+            "Check the door seal, handle, racks, trays, probes and controls are clean and undamaged.",
+            "Ensure the oven is stable, vents are clear and the surrounding floor is dry.",
+            "Confirm water and power connections are correct where relevant.",
+            "Select the correct mode, temperature and programme for the product.",
+            "Do not operate if the door, glass, seal, racks or controls are damaged.",
+        ],
+    )
+    add_subheading(doc, "During cooking")
+    add_numbered(
+        doc,
+        [
+            "Load trays carefully; do not overload racks or block airflow.",
+            "Keep face and forearms clear when opening the door — open slowly to release steam away from the body.",
+            "Announce “hot” / “steam” when opening during busy service.",
+            "Use dry oven cloths or heat-resistant gloves for trays and racks.",
+            "Never leave flammable materials on or against the oven.",
+            "Remain aware of hot condensate and dripping liquids from trays.",
+            "Stop the programme and seek help if unusual noise, smell, smoke or error codes occur.",
+        ],
+    )
+    add_subheading(doc, "After use / cleaning")
+    add_numbered(
+        doc,
+        [
+            "Allow the oven to cool to a safe temperature before manual cleaning where required.",
+            "Remove food debris from trays, racks and the cavity using approved methods.",
+            "Run manufacturer cleaning / rinse programmes only with approved Rational cleaning chemicals and correct dosing.",
+            "Never mix cleaning tablets/liquids with other chemicals.",
+            "Wear gloves and eye protection when handling oven cleaner.",
+            "Keep the door closed during automatic cleaning cycles as instructed.",
+            "Wipe surrounding floors of condensate and leave the area safe for the next service.",
+        ],
+    )
+
+    add_heading_styled(doc, "5. Risk Assessment", 2)
+    detailed_risk_table(
+        doc,
+        [
+            (
+                "Burns from hot surfaces, trays, racks and door glass",
+                "Burns to hands, arms or face",
+                "15 – High",
+                "Use dry heat-resistant gloves/cloths; warn others; allow cooling where practical; never touch heating elements or hot racks bare-handed.",
+                "5 – Medium",
+            ),
+            (
+                "Steam release when opening the door",
+                "Scalds to face, neck, arms or chest",
+                "15 – High",
+                "Stand to the side; open door slowly; keep face clear of the opening; announce steam release during service.",
+                "5 – Medium",
+            ),
+            (
+                "Hot liquid / grease spill from trays",
+                "Scalds, slips or secondary burns",
+                "12 – High",
+                "Load trays level; do not overfill; use both hands; wipe spills immediately; non-slip footwear.",
+                "4 – Low",
+            ),
+            (
+                "Entrapment / impact from door or falling racks",
+                "Bruising, crush or impact injury",
+                "9 – Medium",
+                "Open and close door under control; seat racks fully on supports; do not overload shelves.",
+                "3 – Low",
+            ),
+            (
+                "Fire from grease build-up or unsuitable items",
+                "Burns, smoke inhalation or property damage",
+                "12 – High",
+                "Clean regularly; never cook with excessive unattended oil; know extinguisher type and shut-off procedure; keep flammables away.",
+                "4 – Low",
+            ),
+            (
+                "Electrical fault or damaged cable / controls",
+                "Electric shock, burns or fire",
+                "10 – High",
+                "Visual checks before use; report faults; isolate and label “DO NOT USE”; repairs by competent engineer only.",
+                "5 – Medium",
+            ),
+            (
+                "Contact with oven cleaning chemicals",
+                "Skin/eye burns, irritation or breathing difficulty",
+                "12 – High",
+                "Use only approved Rational cleaner; follow COSHH and dosing instructions; wear gloves and eye protection; never mix chemicals; rinse as required.",
+                "4 – Low",
+            ),
+            (
+                "Slips from condensate / cleaning water around oven",
+                "Slips, falls and impact injuries",
+                "9 – Medium",
+                "Mop condensate promptly; wet-floor signs; keep walkways clear; slip-resistant footwear.",
+                "3 – Low",
+            ),
+            (
+                "Manual handling of loaded trays / trolleys",
+                "Back, shoulder or strain injuries",
+                "9 – Medium",
+                "Use trolley where available; keep loads manageable; ask for help with heavy pans; good posture.",
+                "4 – Low",
+            ),
+            (
+                "Undercooking / temperature abuse of food",
+                "Food poisoning risk to guests",
+                "12 – High",
+                "Use correct programmes; probe core temperatures where required; follow HACCP and hot-holding rules.",
+                "4 – Low",
+            ),
+            (
+                "Use by untrained staff",
+                "Burns, scalds, chemical injury or unsafe cooking",
+                "12 – High",
+                "Only trained authorised operators; supervise new staff; keep operating instructions accessible.",
+                "4 – Low",
+            ),
+        ],
+    )
+
+    add_heading_styled(doc, "6. Required PPE", 2)
+    for item in [
+        "Apron / chef whites",
+        "Non-slip footwear",
+        "Heat-resistant gloves or dry oven cloths",
+        "Chemical-resistant gloves and eye protection when handling oven cleaner",
+    ]:
+        add_bullet(doc, item)
+
+    add_heading_styled(doc, "7. Emergency Arrangements", 2)
+    for item in [
+        "Burns/scalds: cool under lukewarm running water for at least 20 minutes; seek first aid; call 999 for serious burns.",
+        "Fire: shut down if safe, evacuate if needed, use the correct extinguisher only if trained, call 999.",
+        "Chemical contact: rinse skin/eyes as per SDS/COSHH; seek medical help for eye exposure or persistent symptoms.",
+        "Faulty oven: stop programme if safe, isolate power where possible, label “DO NOT USE – FAULTY”, report to manager.",
+    ]:
+        add_bullet(doc, item)
+
+    add_heading_styled(doc, "8. Additional Notes", 2)
+    for note in [
+        "This section restores the Rational oven risk assessment that was missing from the earlier combined pack.",
+        "Insert the exact Rational model number from the machine rating plate when known.",
+        "Keep the manufacturer manual and cleaning chemical SDS with this assessment.",
+    ]:
+        add_bullet(doc, note)
+
+    page_break(doc)
+
+
+def chemical_risk_section(doc):
+    add_heading_styled(
+        doc,
+        "Kitchen Chemicals (COSHH) — Risk Assessment & Safe Use",
+        1,
+    )
+    add_heading_styled(doc, "1. Assessment Information", 2)
+    info_table(
+        doc,
+        [
+            ("Workplace", "The Vedanta Kitchen & Retreat Centre"),
+            ("Department", "Main Kitchen / Cleaning",),
+            ("Activity", "Storage, dilution, use and disposal of kitchen cleaning and sanitation chemicals"),
+            ("Typical products", "Detergents, sanitiser, degreaser, descaler, oven cleaner, dishwasher chemicals, surface cleaner"),
+            ("Persons completing the task", "Chefs, kitchen porters, cleaning staff and authorised users"),
+            ("Assessor", "Shyam Prasad"),
+            ("Assessment date", "27 July 2026"),
+            ("Review date", "27 July 2027, or sooner after an incident, product change or SDS update"),
+            ("Manager responsible", "[Name]"),
+        ],
+    )
+
+    add_heading_styled(doc, "2. Scope", 2)
+    add_body(
+        doc,
+        "This COSHH-style assessment covers hazardous substances used for kitchen cleaning and equipment care "
+        "at The Vedanta Kitchen & Retreat Centre. It must be read with each product’s Safety Data Sheet (SDS), "
+        "label instructions and dilution charts. Never use a chemical that has no readable label or SDS.",
+    )
+
+    add_heading_styled(doc, "3. Persons at Risk", 2)
+    for person in [
+        "Kitchen porters and cleaning staff",
+        "Chefs and assistants using chemicals during service or close-down",
+        "Maintenance staff",
+        "Other employees nearby during spraying or mopping",
+        "Guests, if residues remain on food-contact surfaces",
+        "New or inexperienced workers",
+    ]:
+        add_bullet(doc, person)
+
+    add_heading_styled(doc, "4. Safe System of Work", 2)
+    add_numbered(
+        doc,
+        [
+            "Store chemicals in the designated locked / labelled chemical cupboard, away from food and heat.",
+            "Keep products in original containers with intact labels; never decant into food or drink bottles.",
+            "Read the label and SDS before use; check expiry and condition.",
+            "Dilute only as instructed using correct measuring equipment / dosing system.",
+            "Wear the PPE specified for the product (usually gloves; eye protection for concentrates / oven cleaner / descaler).",
+            "Ensure good ventilation; avoid spraying towards face or other people.",
+            "Never mix chemicals (especially bleach with acid, ammonia or other cleaners).",
+            "Keep food covered or removed; rinse food-contact surfaces thoroughly after cleaning.",
+            "Clean spills immediately using the spill procedure and PPE.",
+            "Wash hands after use and before handling food.",
+            "Dispose of empty containers and leftover solutions according to product and site waste rules.",
+            "Report missing labels, damaged containers, incorrect storage or ill-health symptoms immediately.",
+        ],
+    )
+
+    add_heading_styled(doc, "5. Risk Assessment", 2)
+    detailed_risk_table(
+        doc,
+        [
+            (
+                "Skin contact with concentrates or working solutions",
+                "Irritation, dermatitis or chemical burns",
+                "12 – High",
+                "Wear suitable gloves; use correct dilution; wash splashes off promptly; moisturise / report skin problems early.",
+                "4 – Low",
+            ),
+            (
+                "Eye contact from splash or spray",
+                "Eye irritation, serious eye damage",
+                "12 – High",
+                "Wear eye protection for concentrates and aggressive cleaners; pour carefully; know eye-wash location.",
+                "4 – Low",
+            ),
+            (
+                "Inhalation of fumes / spray mist",
+                "Breathing difficulty, coughing or dizziness",
+                "9 – Medium",
+                "Ventilate area; avoid unnecessary spraying; do not use in confined unventilated spaces; follow SDS.",
+                "3 – Low",
+            ),
+            (
+                "Mixing incompatible chemicals",
+                "Toxic gas, burns or violent reaction",
+                "15 – High",
+                "Never mix products; clean one chemical away before using another; train all users; supervise new staff.",
+                "4 – Low",
+            ),
+            (
+                "Incorrect dilution (too strong)",
+                "Increased injury risk and surface/food residues",
+                "9 – Medium",
+                "Use dosing aids; follow dilution chart; train staff; do not “strengthen” solutions by guesswork.",
+                "3 – Low",
+            ),
+            (
+                "Chemical stored with food or in unmarked bottles",
+                "Accidental ingestion or food contamination",
+                "15 – High",
+                "Separate chemical store; original labelled containers only; never reuse food bottles; stock checks.",
+                "4 – Low",
+            ),
+            (
+                "Residue left on food-contact surfaces",
+                "Chemical contamination of food / guest illness",
+                "12 – High",
+                "Rinse thoroughly where required; follow sanitiser contact times; keep cleaning cloths for designated areas.",
+                "4 – Low",
+            ),
+            (
+                "Spillage creating slip or exposure hazard",
+                "Slips, skin/eye contact or environmental contamination",
+                "9 – Medium",
+                "Contain spill with PPE; ventilate; wet-floor sign; dispose of waste correctly; report significant spills.",
+                "3 – Low",
+            ),
+            (
+                "Use of Rational / oven cleaner or descaler",
+                "Severe skin/eye burns or respiratory irritation",
+                "15 – High",
+                "Only trained staff; full PPE; follow manufacturer programme; keep door closed during cleaning cycle; store securely.",
+                "5 – Medium",
+            ),
+            (
+                "Untrained person using chemicals",
+                "Incorrect use leading to injury or contamination",
+                "12 – High",
+                "COSHH induction; product-specific instruction; SDS accessible; supervision until competent.",
+                "4 – Low",
+            ),
+        ],
+    )
+
+    add_heading_styled(doc, "6. Required PPE", 2)
+    for item in [
+        "Chemical-resistant gloves suitable for the product",
+        "Eye protection when handling concentrates, oven cleaner, descaler or when splash risk exists",
+        "Apron where specified",
+        "Non-slip footwear",
+        "Additional PPE as stated on the product SDS",
+    ]:
+        add_bullet(doc, item)
+
+    add_heading_styled(doc, "7. Emergency Arrangements", 2)
+    for item in [
+        "Skin contact: remove contaminated clothing; rinse with plenty of water; seek first aid / medical advice if irritation persists.",
+        "Eye contact: rinse immediately with clean water for at least 15 minutes; seek urgent medical attention.",
+        "Inhalation: move to fresh air; seek medical help if breathing is affected.",
+        "Swallowing: do not induce vomiting unless SDS advises; call 999 / poison guidance and take the product label/SDS with the casualty.",
+        "Large spill or unknown reaction: evacuate the immediate area, ventilate if safe, inform the manager, and do not neutralise by mixing other chemicals.",
+    ]:
+        add_bullet(doc, item)
+
+    add_heading_styled(doc, "8. Training & Records", 2)
+    for item in [
+        "All users must receive COSHH awareness and product-specific instruction before unsupervised use.",
+        "Keep SDS sheets for every chemical in an accessible folder / digital location.",
+        "Record training, product changes and any chemical-related incidents or near misses.",
+        "Review this assessment when a new product is introduced or an SDS is updated.",
+    ]:
+        add_bullet(doc, item)
+
+    add_heading_styled(doc, "9. Additional Notes", 2)
+    for note in [
+        "This section restores the kitchen chemical risk assessment that was missing from the earlier combined pack.",
+        "Attach or cross-reference the current site chemical inventory and SDS pack.",
+        "Where a product SDS sets stricter controls than this sheet, follow the SDS.",
+    ]:
+        add_bullet(doc, note)
+
+    page_break(doc)
+
+
 def sign_off(doc):
     add_heading_styled(doc, "Document Control & Sign-Off", 1)
     add_body(
@@ -769,7 +1142,7 @@ def sign_off(doc):
             ("Approved by", ""),
             ("Approval date", ""),
             ("Next review", "27/07/2027"),
-            ("Version", "1.1 Combined Pack (includes TRK70)"),
+            ("Version", "1.2 Combined Pack (TRK70 + Rational Oven + Chemicals)"),
         ],
     )
     add_heading_styled(doc, "Staff acknowledgement", 2)
@@ -799,6 +1172,8 @@ def build():
 
     section_titles = [
         "Electrolux / Dito Sama TRK70 Combined Cutter & Vegetable Slicer",
+        "Rational Combi Oven",
+        "Kitchen Chemicals (COSHH)",
         "Thermomix TM6",
         "Caso Ice Creamer",
         "Ninja Hand Blender",
@@ -817,6 +1192,12 @@ def build():
 
     # --- Electrolux / Dito Sama TRK70 ---
     trk70_section(doc)
+
+    # --- Rational oven ---
+    rational_oven_section(doc)
+
+    # --- Kitchen chemicals / COSHH ---
+    chemical_risk_section(doc)
 
     # --- Thermomix TM6 ---
     equipment_section(
