@@ -8,7 +8,9 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Cm, Pt, RGBColor
+from docx.shared import Cm, Inches, Pt, RGBColor
+
+IMG_DIR = "/workspace/vedanta-risk-assessments/images"
 
 # Brand colours
 NAVY = RGBColor(0x1B, 0x3A, 0x4B)
@@ -150,9 +152,37 @@ def page_break(doc):
     doc.add_page_break()
 
 
+def add_picture(doc, filename, width_inches=6.3):
+    path = f"{IMG_DIR}/{filename}"
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(8)
+    run = p.add_run()
+    run.add_picture(path, width=Inches(width_inches))
+    return p
+
+
+def add_do_dont_care(doc, do_items, dont_items, care_items):
+    add_heading_styled(doc, "Quick visual guide — Do / Don’t / Care", 2)
+    add_body(doc, "DO", bold=True, space_after=2)
+    for item in do_items:
+        add_bullet(doc, item)
+    add_body(doc, "DON’T", bold=True, space_after=2)
+    for item in dont_items:
+        add_bullet(doc, item)
+    add_body(doc, "CARE", bold=True, space_after=2)
+    for item in care_items:
+        add_bullet(doc, item)
+
+
 def cover_page(doc):
-    for _ in range(3):
-        doc.add_paragraph()
+    try:
+        add_picture(doc, "vedanta-safety-brochure-cover.png", width_inches=6.4)
+    except Exception:
+        for _ in range(2):
+            doc.add_paragraph()
+
     title = doc.add_paragraph()
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = title.add_run("VEDANTA KITCHEN & RETREAT CENTRE")
@@ -160,40 +190,39 @@ def cover_page(doc):
 
     main = doc.add_paragraph()
     main.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    main.paragraph_format.space_before = Pt(12)
-    run = main.add_run("Combined Equipment &\nKitchen Risk Assessments")
-    set_run(run, size=28, bold=True, color=NAVY, font="Georgia")
+    main.paragraph_format.space_before = Pt(8)
+    run = main.add_run("Kitchen Safety Brochure &\nCombined Risk Assessment Pack")
+    set_run(run, size=26, bold=True, color=NAVY, font="Georgia")
 
     sub = doc.add_paragraph()
     sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    sub.paragraph_format.space_before = Pt(18)
+    sub.paragraph_format.space_before = Pt(12)
     run = sub.add_run(
-        "A single reference pack covering kitchen equipment,\n"
-        "catering operations, front-of-house, and food safety controls."
+        "Equipment · Chemicals (Sylvester Keal) · Step-by-step care guides\n"
+        "with Do / Don’t / Care visuals for staff training"
     )
     set_run(run, size=12, color=MUTED)
 
     meta = doc.add_paragraph()
     meta.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    meta.paragraph_format.space_before = Pt(36)
+    meta.paragraph_format.space_before = Pt(24)
     run = meta.add_run(
         f"Assessor: Shyam Prasad\n"
         f"Location: The Vedanta Kitchen & Retreat Centre\n"
         f"Document date: {date.today().strftime('%d %B %Y')}\n"
-        f"Review due: 04 November 2025"
+        f"Review due: 27 July 2027\n"
+        f"Chemical supplier reference: Sylvester Keal (SK brochure)"
     )
     set_run(run, size=11, color=DARK)
 
     note = doc.add_paragraph()
     note.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    note.paragraph_format.space_before = Pt(40)
+    note.paragraph_format.space_before = Pt(24)
     run = note.add_run(
-        "Sources merged into this pack:\n"
-        "Electrolux / Dito Sama TRK70 · Rational Oven · Kitchen Chemicals (COSHH) ·\n"
-        "Thermomix TM6 · Caso Ice Creamer · Ninja Hand Blender ·\n"
-        "KitchenAid Professional Stand Mixer · Waring Stick Blender ·\n"
-        "Knives / Mandoline / Slicers / Peelers ·\n"
-        "Vedanta Kitchen, Catering Services, FOH & Generic Kitchen Assessments"
+        "Includes:\n"
+        "TRK70 · Rational Oven · SK Chemicals / COSHH · Thermomix · Caso ·\n"
+        "Ninja · KitchenAid · Waring · Knives / Mandoline ·\n"
+        "Kitchen, Catering, FOH & Generic Assessments"
     )
     set_run(run, size=9, color=MUTED)
     page_break(doc)
@@ -329,6 +358,31 @@ def trk70_section(doc):
         doc,
         "Electrolux / Dito Sama TRK70 — Combined Cutter & Vegetable Slicer Risk Assessment",
         1,
+    )
+    try:
+        add_picture(doc, "trk70-do-dont-care.png")
+    except Exception:
+        pass
+    add_do_dont_care(
+        doc,
+        [
+            "Use only the supplied food pusher",
+            "Keep hopper / lid closed and interlocks engaged",
+            "Wear cut-resistant gloves when changing blades",
+            "Unplug before cleaning or clearing blockages",
+        ],
+        [
+            "Never put hands or utensils in the feed chute while powered",
+            "Never run the machine with a guard open or bypassed",
+            "Never leave blades in sink water or loose in drawers",
+            "Never allow untrained staff to operate the TRK70",
+        ],
+        [
+            "Inspect guards, cable and blades before every use",
+            "Store discs in the protective rack",
+            "Clean and sanitise food-contact parts after use",
+            "Label and remove faulty equipment from service",
+        ],
     )
 
     add_heading_styled(doc, "1. Workplace & Equipment Information", 2)
@@ -762,6 +816,32 @@ def rational_oven_section(doc):
         "Rational Combi Oven — Equipment Risk Assessment & Operating Procedures",
         1,
     )
+    try:
+        add_picture(doc, "rational-oven-do-dont-care.png")
+    except Exception:
+        pass
+    add_do_dont_care(
+        doc,
+        [
+            "Stand to the side and open the door slowly to release steam",
+            "Use heat-resistant gloves / dry cloths for trays and racks",
+            "Select the correct programme and temperature",
+            "Use only approved Rational / SK cleaning tablets as directed",
+        ],
+        [
+            "Don’t put your face in the steam path",
+            "Don’t touch hot racks or glass with bare hands",
+            "Don’t overload trays or leave grease fires unattended",
+            "Don’t mix oven cleaners with other chemicals",
+        ],
+        [
+            "Check door seals and racks before service",
+            "Wipe condensate and keep floors dry",
+            "Run CareControl / cleaning programmes with correct tablets",
+            "Keep SDS for Rational detergent and care tablets with this pack",
+        ],
+    )
+
     add_heading_styled(doc, "1. Equipment Information", 2)
     info_table(
         doc,
@@ -954,17 +1034,43 @@ def rational_oven_section(doc):
 def chemical_risk_section(doc):
     add_heading_styled(
         doc,
-        "Kitchen Chemicals (COSHH) — Risk Assessment & Safe Use",
+        "Kitchen Chemicals (COSHH) — Sylvester Keal Product Risk Assessment",
         1,
     )
+    try:
+        add_picture(doc, "chemicals-coshh-do-dont-care.png")
+    except Exception:
+        pass
+    add_do_dont_care(
+        doc,
+        [
+            "Wear gloves (and eye protection for concentrates / oven cleaner)",
+            "Read the label and SDS before use",
+            "Store chemicals locked / labelled, away from food",
+            "Dilute and dose exactly as instructed",
+        ],
+        [
+            "Never mix chemicals together",
+            "Never pour chemicals into drinks or food bottles",
+            "Never spray toward your face or other people",
+            "Never use a product with no label or SDS",
+        ],
+        [
+            "Keep Sylvester Keal SDS sheets with this pack",
+            "Rinse food-contact surfaces after cleaning",
+            "Wipe spills and wash hands before handling food",
+            "Review when a new SK product is introduced",
+        ],
+    )
+
     add_heading_styled(doc, "1. Assessment Information", 2)
     info_table(
         doc,
         [
             ("Workplace", "The Vedanta Kitchen & Retreat Centre"),
-            ("Department", "Main Kitchen / Cleaning",),
-            ("Activity", "Storage, dilution, use and disposal of kitchen cleaning and sanitation chemicals"),
-            ("Typical products", "Detergents, sanitiser, degreaser, descaler, oven cleaner, dishwasher chemicals, surface cleaner"),
+            ("Department", "Main Kitchen / Cleaning"),
+            ("Activity", "Storage, dosing, use and disposal of Sylvester Keal kitchen cleaning chemicals"),
+            ("Supplier", "Sylvester Keal (SK) — https://sylvesterkeal.co.uk/sk-company-brochure/"),
             ("Persons completing the task", "Chefs, kitchen porters, cleaning staff and authorised users"),
             ("Assessor", "Shyam Prasad"),
             ("Assessment date", "27 July 2026"),
@@ -973,15 +1079,81 @@ def chemical_risk_section(doc):
         ],
     )
 
-    add_heading_styled(doc, "2. Scope", 2)
+    add_heading_styled(doc, "2. Site Chemical Inventory (Sylvester Keal)", 2)
     add_body(
         doc,
-        "This COSHH-style assessment covers hazardous substances used for kitchen cleaning and equipment care "
-        "at The Vedanta Kitchen & Retreat Centre. It must be read with each product’s Safety Data Sheet (SDS), "
-        "label instructions and dilution charts. Never use a chemical that has no readable label or SDS.",
+        "Products in use / available for Vedanta kitchen operations, based on staff knowledge and the "
+        "Sylvester Keal Machine & Manual Dishwashing / oven-care range. All SK products have COSHH Safety Data Sheets — "
+        "keep the current SDS for each code with this pack.",
     )
 
-    add_heading_styled(doc, "3. Persons at Risk", 2)
+    # Product inventory table
+    products = [
+        ("SK Premium Dishwashing Detergent", "1A", "2×5L / 20L", "Machine detergent for hard water; tannin & scale control"),
+        ("SK Premium Dishwashing Rinse Aid", "2B", "2×5L / 20L", "Machine rinse aid for hygienic, streak-free finish"),
+        ("SK Salt Pebble", "PE12705", "25KG", "Water softener salt — limescale prevention"),
+        ("SK Salt Granular (Hydrosoft)", "1270S", "25KG", "Granular vacuum salt for granular softeners"),
+        ("SK 1DT Dishwasher Tablets", "1DT", "15×7 tablets", "7-in-1 lemon tablets for machine wash sparkle"),
+        ("SK Super Lemon Sinkwash", "3L", "2×5L / 12×1L", "Manual wash-up of crockery, glass, pans; light cleaning"),
+        ("SK Bacti Manual Dishwashing Detergent", "3AB", "2×5L / 20L", "Concentrated neutral detergent; cuts grease; streak-free rinse"),
+        ("SK Heavy Duty Degreaser", "—", "As supplied", "Caustic powder for burnt-on oils/fats on trays & equipment"),
+        ("SK Hot Oven Cleaner", "—", "As supplied", "Removes oils, fats, carbon from hot plates, grills, griddles"),
+        ("SK Rational Detergent Tablets", "—", "As supplied", "Red detergent tablets for Rational combi oven cleaning"),
+        ("SK Rational Active Green Care Cleaner Tablets", "—", "As supplied", "For iCombi Pro / Classic — phosphate-free care cleaner"),
+        ("SK Rational Combi Care Control Tablets", "—", "As supplied", "Care/control tablets for Rational (also Lincat SCC)"),
+    ]
+    table = doc.add_table(rows=1 + len(products), cols=4)
+    for i, h in enumerate(["Product", "Code", "Pack size", "Intended use"]):
+        write_cell(table.rows[0].cells[i], h, bold=True, color=WHITE, size=8, center=True, fill=HEADER_BG)
+    for r, row in enumerate(products, 1):
+        fill = LIGHT_ROW if r % 2 == 0 else None
+        for c, val in enumerate(row):
+            write_cell(table.rows[r].cells[c], val, size=8, fill=fill)
+    doc.add_paragraph()
+
+    try:
+        add_picture(doc, "dishwashing-chemicals-care.png")
+    except Exception:
+        pass
+
+    add_heading_styled(doc, "3. Step-by-step — Dishwashing chemicals", 2)
+    add_subheading(doc, "Machine dishwashing (1A / 2B / salt / tablets)")
+    add_numbered(
+        doc,
+        [
+            "Check dishwasher is empty of food debris and spray arms are free.",
+            "Ensure softener salt (pebble or granular) is topped up if the machine requires it.",
+            "Confirm detergent (1A or tablets 1DT) and rinse aid (2B) are correctly loaded / dosed.",
+            "Wear gloves when handling concentrates or tablets.",
+            "Run the cycle; do not open mid-cycle if steam/chemical vapour is present.",
+            "On empty containers, store upright, labelled, away from food.",
+        ],
+    )
+    add_subheading(doc, "Manual dishwashing (Super Lemon Sinkwash / Bacti Manual)")
+    add_numbered(
+        doc,
+        [
+            "Scrape food soil into waste before washing.",
+            "Dilute sinkwash / Bacti Manual as per label — do not guess a stronger mix.",
+            "Wash, rinse and sanitise following kitchen procedure.",
+            "Change water when heavily soiled; wipe spills around the sink.",
+            "Wash hands after chemical contact and before handling clean service ware.",
+        ],
+    )
+    add_subheading(doc, "Oven / heavy degreasing (Rational tablets / Hot Oven Cleaner / Heavy Duty Degreaser)")
+    add_numbered(
+        doc,
+        [
+            "Only trained staff may use oven cleaner, caustic degreaser or Rational cleaning tablets.",
+            "Wear chemical gloves and eye protection.",
+            "For Rational: use only the correct tablet type for the oven model; run the manufacturer cleaning programme; keep door closed.",
+            "For Hot Oven Cleaner / Heavy Duty Degreaser: follow label; do not use on aluminium where the product warns against it.",
+            "Never mix these products with sinkwash, bleach or other cleaners.",
+            "Rinse food-contact surfaces thoroughly after use.",
+        ],
+    )
+
+    add_heading_styled(doc, "4. Persons at Risk", 2)
     for person in [
         "Kitchen porters and cleaning staff",
         "Chefs and assistants using chemicals during service or close-down",
@@ -992,97 +1164,64 @@ def chemical_risk_section(doc):
     ]:
         add_bullet(doc, person)
 
-    add_heading_styled(doc, "4. Safe System of Work", 2)
-    add_numbered(
-        doc,
-        [
-            "Store chemicals in the designated locked / labelled chemical cupboard, away from food and heat.",
-            "Keep products in original containers with intact labels; never decant into food or drink bottles.",
-            "Read the label and SDS before use; check expiry and condition.",
-            "Dilute only as instructed using correct measuring equipment / dosing system.",
-            "Wear the PPE specified for the product (usually gloves; eye protection for concentrates / oven cleaner / descaler).",
-            "Ensure good ventilation; avoid spraying towards face or other people.",
-            "Never mix chemicals (especially bleach with acid, ammonia or other cleaners).",
-            "Keep food covered or removed; rinse food-contact surfaces thoroughly after cleaning.",
-            "Clean spills immediately using the spill procedure and PPE.",
-            "Wash hands after use and before handling food.",
-            "Dispose of empty containers and leftover solutions according to product and site waste rules.",
-            "Report missing labels, damaged containers, incorrect storage or ill-health symptoms immediately.",
-        ],
-    )
-
     add_heading_styled(doc, "5. Risk Assessment", 2)
     detailed_risk_table(
         doc,
         [
             (
-                "Skin contact with concentrates or working solutions",
+                "Skin contact with concentrates (1A, sinkwash, degreaser, oven cleaner)",
                 "Irritation, dermatitis or chemical burns",
                 "12 – High",
-                "Wear suitable gloves; use correct dilution; wash splashes off promptly; moisturise / report skin problems early.",
+                "Gloves for concentrates; correct dilution; wash splashes promptly; report skin problems early.",
                 "4 – Low",
             ),
             (
-                "Eye contact from splash or spray",
-                "Eye irritation, serious eye damage",
+                "Eye contact from splash (oven cleaner / caustic degreaser / dosing)",
+                "Eye irritation or serious eye damage",
                 "12 – High",
-                "Wear eye protection for concentrates and aggressive cleaners; pour carefully; know eye-wash location.",
+                "Eye protection for aggressive cleaners; pour carefully; know eye-wash location.",
                 "4 – Low",
             ),
             (
-                "Inhalation of fumes / spray mist",
-                "Breathing difficulty, coughing or dizziness",
-                "9 – Medium",
-                "Ventilate area; avoid unnecessary spraying; do not use in confined unventilated spaces; follow SDS.",
-                "3 – Low",
-            ),
-            (
-                "Mixing incompatible chemicals",
+                "Mixing incompatible SK / other chemicals",
                 "Toxic gas, burns or violent reaction",
                 "15 – High",
-                "Never mix products; clean one chemical away before using another; train all users; supervise new staff.",
+                "Never mix products; rinse between different cleaners; train and supervise staff.",
                 "4 – Low",
             ),
             (
-                "Incorrect dilution (too strong)",
-                "Increased injury risk and surface/food residues",
-                "9 – Medium",
-                "Use dosing aids; follow dilution chart; train staff; do not “strengthen” solutions by guesswork.",
-                "3 – Low",
+                "Rational tablet / hot oven cleaner misuse",
+                "Severe skin/eye burns or inhalation injury",
+                "15 – High",
+                "Trained staff only; correct tablet for model; door closed on auto clean; PPE; follow SDS.",
+                "5 – Medium",
             ),
             (
-                "Chemical stored with food or in unmarked bottles",
+                "Chemical in unmarked / food bottle",
                 "Accidental ingestion or food contamination",
                 "15 – High",
-                "Separate chemical store; original labelled containers only; never reuse food bottles; stock checks.",
+                "Original SK labelled containers only; separate chemical store; stock checks.",
                 "4 – Low",
             ),
             (
-                "Residue left on food-contact surfaces",
-                "Chemical contamination of food / guest illness",
+                "Residue on crockery or prep surfaces",
+                "Chemical contamination of food",
                 "12 – High",
-                "Rinse thoroughly where required; follow sanitiser contact times; keep cleaning cloths for designated areas.",
+                "Correct rinse aid dosing; rinse food-contact surfaces; follow contact times for sanitisers.",
                 "4 – Low",
             ),
             (
-                "Spillage creating slip or exposure hazard",
-                "Slips, skin/eye contact or environmental contamination",
+                "Spillage of detergent / degreaser",
+                "Slips and skin/eye exposure",
                 "9 – Medium",
-                "Contain spill with PPE; ventilate; wet-floor sign; dispose of waste correctly; report significant spills.",
+                "Contain with PPE; wet-floor sign; dispose correctly; report significant spills.",
                 "3 – Low",
-            ),
-            (
-                "Use of Rational / oven cleaner or descaler",
-                "Severe skin/eye burns or respiratory irritation",
-                "15 – High",
-                "Only trained staff; full PPE; follow manufacturer programme; keep door closed during cleaning cycle; store securely.",
-                "5 – Medium",
             ),
             (
                 "Untrained person using chemicals",
                 "Incorrect use leading to injury or contamination",
                 "12 – High",
-                "COSHH induction; product-specific instruction; SDS accessible; supervision until competent.",
+                "COSHH induction; product-specific instruction; SDS accessible; supervise until competent.",
                 "4 – Low",
             ),
         ],
@@ -1091,10 +1230,10 @@ def chemical_risk_section(doc):
     add_heading_styled(doc, "6. Required PPE", 2)
     for item in [
         "Chemical-resistant gloves suitable for the product",
-        "Eye protection when handling concentrates, oven cleaner, descaler or when splash risk exists",
+        "Eye protection for concentrates, Hot Oven Cleaner, Heavy Duty Degreaser and Rational cleaning chemicals",
         "Apron where specified",
         "Non-slip footwear",
-        "Additional PPE as stated on the product SDS",
+        "Additional PPE as stated on the Sylvester Keal product SDS",
     ]:
         add_bullet(doc, item)
 
@@ -1103,25 +1242,26 @@ def chemical_risk_section(doc):
         "Skin contact: remove contaminated clothing; rinse with plenty of water; seek first aid / medical advice if irritation persists.",
         "Eye contact: rinse immediately with clean water for at least 15 minutes; seek urgent medical attention.",
         "Inhalation: move to fresh air; seek medical help if breathing is affected.",
-        "Swallowing: do not induce vomiting unless SDS advises; call 999 / poison guidance and take the product label/SDS with the casualty.",
-        "Large spill or unknown reaction: evacuate the immediate area, ventilate if safe, inform the manager, and do not neutralise by mixing other chemicals.",
+        "Swallowing: do not induce vomiting unless SDS advises; call 999 / poison guidance and take the product label/SDS.",
+        "Large spill or unknown reaction: evacuate immediate area, ventilate if safe, inform manager, do not neutralise by mixing other chemicals.",
     ]:
         add_bullet(doc, item)
 
     add_heading_styled(doc, "8. Training & Records", 2)
     for item in [
         "All users must receive COSHH awareness and product-specific instruction before unsupervised use.",
-        "Keep SDS sheets for every chemical in an accessible folder / digital location.",
+        "Keep Sylvester Keal SDS sheets for every chemical code in an accessible folder.",
         "Record training, product changes and any chemical-related incidents or near misses.",
-        "Review this assessment when a new product is introduced or an SDS is updated.",
+        "Review this assessment when a new SK product is introduced or an SDS is updated.",
+        "Brochure reference: https://sylvesterkeal.co.uk/sk-company-brochure/",
     ]:
         add_bullet(doc, item)
 
     add_heading_styled(doc, "9. Additional Notes", 2)
     for note in [
-        "This section restores the kitchen chemical risk assessment that was missing from the earlier combined pack.",
-        "Attach or cross-reference the current site chemical inventory and SDS pack.",
+        "This inventory is based on products confirmed by kitchen knowledge and the Sylvester Keal brochure range.",
         "Where a product SDS sets stricter controls than this sheet, follow the SDS.",
+        "Rational cleaning tablets must only be used in compatible Rational / approved ovens.",
     ]:
         add_bullet(doc, note)
 
@@ -1142,7 +1282,7 @@ def sign_off(doc):
             ("Approved by", ""),
             ("Approval date", ""),
             ("Next review", "27/07/2027"),
-            ("Version", "1.2 Combined Pack (TRK70 + Rational Oven + Chemicals)"),
+            ("Version", "2.0 Brochure Pack (visuals + Sylvester Keal chemicals)"),
         ],
     )
     add_heading_styled(doc, "Staff acknowledgement", 2)
@@ -1173,12 +1313,14 @@ def build():
     section_titles = [
         "Electrolux / Dito Sama TRK70 Combined Cutter & Vegetable Slicer",
         "Rational Combi Oven",
-        "Kitchen Chemicals (COSHH)",
+        "Kitchen Chemicals (COSHH) — Sylvester Keal",
         "Thermomix TM6",
         "Caso Ice Creamer",
         "Ninja Hand Blender",
+        "Mixers & Blenders — Visual Safety Guide",
         "KitchenAid Professional Stand Mixer",
         "Waring Stick Blender",
+        "Knives & Mandoline — Visual Safety Guide",
         "Knives, Mandoline, Slicers & Peelers",
         "Vedanta Kitchen Risk Assessment",
         "Vedanta Catering Services Risk Assessment",
@@ -1389,6 +1531,35 @@ def build():
         ],
     )
 
+    # --- Mixers & blenders visual guide ---
+    add_heading_styled(doc, "Mixers & Blenders — Visual Safety Guide", 1)
+    try:
+        add_picture(doc, "mixers-blenders-do-dont-care.png")
+    except Exception:
+        pass
+    add_do_dont_care(
+        doc,
+        [
+            "Start stand mixers on the lowest speed",
+            "Immerse stick-blender blade fully before switching on",
+            "Unplug before changing tools or washing blades",
+            "Use stable bowls / pans and dry grip",
+        ],
+        [
+            "Don’t put spatulas or hands in a moving bowl",
+            "Don’t leave a plugged-in stick blender unattended in a pot",
+            "Don’t wash blades while still connected to power",
+            "Don’t overfill bowls or shallow pans",
+        ],
+        [
+            "Inspect cables and attachments before use",
+            "Clean and sanitise food-contact parts after each product",
+            "Store blades with guards / covers",
+            "Remove damaged equipment from service",
+        ],
+    )
+    page_break(doc)
+
     # --- KitchenAid (from user's screenshot content) ---
     equipment_section(
         doc,
@@ -1517,6 +1688,35 @@ def build():
             "This section consolidates Risk_Assessment_Waring_Stick_Blender.docx and the duplicate “(1)” file.",
         ],
     )
+
+    # --- Knives visual guide ---
+    add_heading_styled(doc, "Knives & Mandoline — Visual Safety Guide", 1)
+    try:
+        add_picture(doc, "knives-do-dont-care.png")
+    except Exception:
+        pass
+    add_do_dont_care(
+        doc,
+        [
+            "Use claw grip and a stable board with non-slip mat",
+            "Use hand guard or cut-resistant glove on mandoline / slicer",
+            "Store knives on a magnetic strip, block or in sheaths",
+            "Wash knives individually and carefully",
+        ],
+        [
+            "Don’t catch a falling knife",
+            "Don’t push food on a mandoline with bare fingers",
+            "Don’t leave knives hidden in sink water",
+            "Don’t store loose blades in drawers",
+        ],
+        [
+            "Keep knives sharp — dull blades slip more easily",
+            "Use colour-coded boards for raw / ready-to-eat / allergens",
+            "Report damaged tools and remove from service",
+            "Train new staff before unsupervised prep work",
+        ],
+    )
+    page_break(doc)
 
     # --- Knives / Mandoline / Slicers / Peelers ---
     equipment_section(
@@ -1819,8 +2019,11 @@ def build():
     sign_off(doc)
 
     out = "/workspace/vedanta-risk-assessments/Vedanta_Combined_Kitchen_Risk_Assessments.docx"
+    brochure = "/workspace/vedanta-risk-assessments/Vedanta_Kitchen_Safety_Brochure_Risk_Pack.docx"
     doc.save(out)
+    doc.save(brochure)
     print(out)
+    print(brochure)
 
 
 if __name__ == "__main__":
