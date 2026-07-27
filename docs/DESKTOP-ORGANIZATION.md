@@ -5,6 +5,16 @@
 
 ---
 
+## Fastest fix (messy Desktop right now)
+
+1. Copy **`TIDY-DESKTOP.bat`** from this repo onto your Desktop  
+2. Double-click it  
+3. Press any key — it creates 6 folders and moves the mess  
+
+Short version: **`docs/START-HERE-TIDY-DESKTOP.md`**
+
+---
+
 ## Your Desktop should look like this
 
 ```

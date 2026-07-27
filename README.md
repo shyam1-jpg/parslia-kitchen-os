@@ -12,9 +12,15 @@
 | `docs/` | Owner guides & maps |
 | `recipes/` | Recipe text data |
 | `libraix/` | Libraix AI app (separate product) |
+| **`TIDY-DESKTOP.bat`** | **Double-click on Windows to clean your Desktop** |
 
 Full map → **[docs/FILE-MAP.md](docs/FILE-MAP.md)**  
-**Organize your Windows Desktop** → **[docs/DESKTOP-ORGANIZATION.md](docs/DESKTOP-ORGANIZATION.md)**
+
+### Messy Desktop? Do this first
+
+1. Copy **`TIDY-DESKTOP.bat`** to your Desktop  
+2. Double-click it  
+3. Follow **[docs/START-HERE-TIDY-DESKTOP.md](docs/START-HERE-TIDY-DESKTOP.md)**
 
 ## Landing page files
 

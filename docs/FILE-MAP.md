@@ -9,6 +9,7 @@ parslia-kitchen-os/
 ├── styles.css
 ├── script.js
 ├── PREVIEW.bat             Double-click to preview landing page
+├── TIDY-DESKTOP.bat        Double-click on Windows to clean Desktop mess
 ├── CNAME                   parslia.app
 ├── .nojekyll
 │
@@ -17,7 +18,8 @@ parslia-kitchen-os/
 │   └── USE_THIS_parslia_app_icon_1024.png
 │
 ├── docs/                   All guides (not code)
-│   ├── DESKTOP-ORGANIZATION.md   ← organize your Windows Desktop
+│   ├── START-HERE-TIDY-DESKTOP.md ← messy Desktop? start here
+│   ├── DESKTOP-ORGANIZATION.md
 │   ├── WHERE-IS-EVERYTHING.md
 │   ├── LIBRAIX_OWNER_DESKTOP_GUIDE.md
 │   ├── CLOUD-LAUNCH-APP-STORE.md
