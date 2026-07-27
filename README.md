@@ -3,7 +3,20 @@
 **Live domain (when DNS points to GitHub Pages):** https://parslia.app  
 **GitHub:** https://github.com/shyam1-jpg/parslia-kitchen-os
 
-## Files
+## Folder layout (systematic)
+
+| Path | Purpose |
+|------|---------|
+| `index.html` + `styles.css` + `script.js` | Parslia landing page |
+| `assets/` | Official logos & app icon |
+| `docs/` | Owner guides & maps |
+| `recipes/` | Recipe text data |
+| `libraix/` | Libraix AI app (separate product) |
+
+Full map → **[docs/FILE-MAP.md](docs/FILE-MAP.md)**  
+**Organize your Windows Desktop** → **[docs/DESKTOP-ORGANIZATION.md](docs/DESKTOP-ORGANIZATION.md)**
+
+## Landing page files
 
 | File | Purpose |
 |------|---------|
@@ -23,18 +36,15 @@ python -m http.server 8000
 
 Open http://localhost:8000
 
-## Raw GitHub links
+## Guides
 
-- [index.html](https://raw.githubusercontent.com/shyam1-jpg/parslia-kitchen-os/main/index.html)
-- [styles.css](https://raw.githubusercontent.com/shyam1-jpg/parslia-kitchen-os/main/styles.css)
-- [script.js](https://raw.githubusercontent.com/shyam1-jpg/parslia-kitchen-os/main/script.js)
-- [Logo PNG](https://raw.githubusercontent.com/shyam1-jpg/parslia-kitchen-os/main/USE_THIS_parslia_header_logo_clean.png)
-
-## Cursor artifacts (original build)
-
-- https://cursor.com/artifacts/v/art-4019db19-1595-4fd0-9188-c1c8ff5c6288
-- https://cursor.com/artifacts/v/art-a83a6a46-6892-4258-a7e1-e7dec9a979e4
-- https://cursor.com/artifacts/v/art-e15bc4f8-923a-4858-8359-e5baeef338c3
+| Guide | Path |
+|-------|------|
+| Desktop tidy (Windows folders) | [docs/DESKTOP-ORGANIZATION.md](docs/DESKTOP-ORGANIZATION.md) |
+| Where everything is | [docs/WHERE-IS-EVERYTHING.md](docs/WHERE-IS-EVERYTHING.md) |
+| Libraix owner checklist | [docs/LIBRAIX_OWNER_DESKTOP_GUIDE.md](docs/LIBRAIX_OWNER_DESKTOP_GUIDE.md) |
+| App Store / launch | [docs/CLOUD-LAUNCH-APP-STORE.md](docs/CLOUD-LAUNCH-APP-STORE.md) |
+| Repo file map | [docs/FILE-MAP.md](docs/FILE-MAP.md) |
 
 ## Go live on parslia.app
 
@@ -51,11 +61,11 @@ CNAME `www` → `shyam1-jpg.github.io`
 
 Turn off GoDaddy Website Builder.
 
-## Not included yet (backend)
+## Not included yet (Parslia backend)
 
 - User registration / login
 - Stripe payments
 - Newsletter API
 - Kitchen OS app (recipes, stock, rota)
 
-See `WHERE-IS-EVERYTHING.md` for full map.
+See [docs/WHERE-IS-EVERYTHING.md](docs/WHERE-IS-EVERYTHING.md) for the full map.

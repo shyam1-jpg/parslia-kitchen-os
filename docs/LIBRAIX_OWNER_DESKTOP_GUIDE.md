@@ -242,4 +242,7 @@ Libraix is fully handed over when:
 
 ---
 
-**Save this file to your Desktop and keep it as your Libraix owner reference.**
+**Save this file to:**  
+`Desktop\04-Accounts-Passwords\LIBRAIX_OWNER_DESKTOP_GUIDE.md`  
+
+Also see: `docs/DESKTOP-ORGANIZATION.md` (how to tidy your whole Desktop).
