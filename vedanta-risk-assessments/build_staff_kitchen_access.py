@@ -237,6 +237,7 @@ def build():
             "Mandatory PPE before entering the kitchen",
             "Restaurant & Front of House — kitchen access steps",
             "Moving safely around the kitchen",
+            "Clean as you go — leave the kitchen professional",
             "Hot gastronorm trays, buffet & service collection",
             "Fridge, freezer, dry store & portable cabin",
             "Building / maintenance / other visiting staff",
@@ -337,6 +338,7 @@ def build():
             "Stay away from open oven doors, hot ranges and fryers — steam and oil splash burn quickly.",
             "Use only agreed routes to the pass, fridge, freezer, dry store or cabin.",
             "When collecting hot trays / buffet items, use dry heat-proof cloths (see next section).",
+            "If you used any equipment, board or knife — clean as you go and put everything back (see Clean as you go section).",
             "Leave promptly, keep walkways clear, and report any spill, out-of-date food or unsafe practice.",
         ],
     )
@@ -378,8 +380,54 @@ def build():
     )
     page_break(doc)
 
-    # 5 Hot trays
-    add_heading(doc, "5. Hot gastronorm trays, buffet & service collection", 1)
+    # 5 Clean as you go
+    add_heading(doc, "5. Clean as you go — leave the kitchen professional", 1)
+    add_picture(doc, "staff-clean-as-you-go.png")
+    add_body(
+        doc,
+        "If restaurant staff, house staff, FOH, kitchen team or anyone else uses the kitchen — "
+        "even for a short task — they must clean as they go. The kitchen must be left professional, "
+        "tidy and ready for the next person. Do not leave chopping boards, knives, peelers, pans, "
+        "utensils or equipment behind dirty or out of place.",
+    )
+    add_body(doc, "Clean-as-you-go steps (everyone):", bold=True)
+    add_numbered(
+        doc,
+        [
+            "Finish your food task first, then clean immediately — do not walk away “for later”.",
+            "Wash or sanitise knives, peelers and utensils you used; dry them.",
+            "Wash chopping boards (correct colour board for the food type) and stand them to dry or return clean.",
+            "Wipe the worktop, sink edge and any spills on the floor you caused.",
+            "Return knives and peelers to the designated drawer; return other equipment to its correct place.",
+            "Never leave a dirty board, knife, blender shaft, pan or tray on the side for someone else to clear.",
+            "If you used a fridge, freezer, dry store or cabin — close doors, wipe drips, put stock back neatly.",
+            "Check the area looks professional before you leave. If you are unsure how to clean a piece of equipment, ask the chef — do not abandon it dirty.",
+        ],
+    )
+    add_do_dont_care(
+        doc,
+        [
+            "Clean boards, knives and tools straight after use",
+            "Put everything back in the correct place / drawer",
+            "Wipe worktops and floor spills you made",
+            "Leave the kitchen tidy for the next person",
+        ],
+        [
+            "Don’t leave chopping boards or knives on the side",
+            "Don’t leave dirty equipment for kitchen staff to clear",
+            "Don’t walk away mid-task without cleaning",
+            "Don’t put wet knives loose and jumbled in the drawer",
+        ],
+        [
+            "Clean as you go is mandatory for every department using the kitchen",
+            "A professional kitchen stays ready for service at all times",
+            "Managers may stop kitchen access for staff who repeatedly leave mess behind",
+        ],
+    )
+    page_break(doc)
+
+    # 6 Hot trays
+    add_heading(doc, "6. Hot gastronorm trays, buffet & service collection", 1)
     add_picture(doc, "staff-hot-trays.png")
     add_body(
         doc,
@@ -428,7 +476,7 @@ def build():
     page_break(doc)
 
     # 6 Storage
-    add_heading(doc, "6. Fridge, freezer, dry store & portable cabin", 1)
+    add_heading(doc, "7. Fridge, freezer, dry store & portable cabin", 1)
     add_picture(doc, "staff-storage-access.png")
     add_body(
         doc,
@@ -471,7 +519,7 @@ def build():
     page_break(doc)
 
     # 7 Building staff
-    add_heading(doc, "7. Building / maintenance / other visiting staff", 1)
+    add_heading(doc, "8. Building / maintenance / other visiting staff", 1)
     add_picture(doc, "staff-building-visit.png")
     add_body(
         doc,
@@ -486,14 +534,14 @@ def build():
             "Stay only in the agreed work area; do not walk the cook line unless escorted.",
             "Do not touch food, prep surfaces, ovens, fryers or knives unless authorised and trained.",
             "Protect food from dust, tools and chemicals — cover or remove food first if needed.",
-            "Clean as you go; remove tools and waste before leaving.",
+            "Clean as you go; remove tools and waste before leaving — never leave boards, knives or equipment dirty.",
             "If cooking is live, wait for a safe window — never distract a chef mid-task at hot equipment.",
         ],
     )
     page_break(doc)
 
     # 8 Kitchen staff
-    add_heading(doc, "8. Kitchen staff reminders", 1)
+    add_heading(doc, "9. Kitchen staff reminders", 1)
     add_body(
         doc,
         "Kitchen team members remain responsible for warning visitors and keeping routes as safe as practical during service.",
@@ -506,12 +554,14 @@ def build():
         "Help FOH lift awkward hot GN trays when asked.",
         "Challenge anyone entering without anti-slip shoes, hair net or chef’s tissue.",
         "Keep fridge/freezer/dry store/cabin organised so visiting staff can find items safely.",
+        "Remind restaurant / house staff: clean as you go — do not leave boards, knives or equipment behind.",
+        "Do not accept a hand-over of dirty prep areas from visiting departments — ask them to finish cleaning first.",
     ]:
         add_bullet(doc, item)
     page_break(doc)
 
     # 9 Full risk table
-    add_heading(doc, "9. Risk assessment table — staff kitchen access", 1)
+    add_heading(doc, "10. Risk assessment table — staff kitchen access", 1)
     risk_table(
         doc,
         [
@@ -585,6 +635,13 @@ def build():
                 "Report in first; escort if needed; agreed work window; no unauthorised equipment use.",
                 "Low",
             ),
+            (
+                "Leaving dirty boards, knives or equipment behind after use",
+                "All staff using kitchen; next users; guests (hygiene)",
+                "High",
+                "Mandatory clean as you go; wash and return tools; wipe surfaces; managers enforce professional leave-behind standard.",
+                "Low",
+            ),
         ],
     )
     page_break(doc)
@@ -602,12 +659,13 @@ def build():
     page_break(doc)
 
     # 11 Sign-off
-    add_heading(doc, "11. Department acknowledgement sign-off", 1)
+    add_heading(doc, "12. Department acknowledgement sign-off", 1)
     add_body(
         doc,
         "I confirm I have read and understood this Staff Kitchen Access Risk Assessment, "
         "including mandatory anti-slip shoes, hair net, chef’s tissue, safe movement, hot tray handling, "
-        "and fridge/freezer/dry store/cabin rules. I will follow these controls whenever I enter the kitchen.",
+        "fridge/freezer/dry store/cabin rules, and clean as you go (never leave boards, knives or equipment dirty). "
+        "I will follow these controls whenever I enter or use the kitchen.",
     )
     add_heading(doc, "Department copies to issue", 2)
     for dept in [
@@ -634,7 +692,7 @@ def build():
             ("Document owner", "Shyam Prasad"),
             ("Approved by", ""),
             ("Approval date", ""),
-            ("Version", "1.0 Staff Kitchen Access Pack (separate from equipment pack)"),
+            ("Version", "1.1 Staff Kitchen Access Pack — includes clean as you go"),
             ("Related document", "Vedanta_Kitchen_Safety_Brochure_Risk_Pack.docx (equipment only)"),
         ],
     )
