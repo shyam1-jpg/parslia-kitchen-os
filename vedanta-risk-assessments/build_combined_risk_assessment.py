@@ -1759,20 +1759,20 @@ def build():
         [
             "Use claw grip and a stable board with non-slip mat",
             "Use hand guard or cut-resistant glove on mandoline / slicer",
-            "Store knives on a magnetic strip, block or in sheaths",
-            "Wash knives individually and carefully",
+            "Keep knives and peelers in the designated kitchen drawer only",
+            "Wash knives and peelers individually and carefully",
         ],
         [
             "Don’t catch a falling knife",
             "Don’t push food on a mandoline with bare fingers",
-            "Don’t leave knives hidden in sink water",
-            "Don’t store loose blades in drawers",
+            "Don’t leave knives or peelers hidden in sink water",
+            "Don’t rummage blindly in the knife/peeler drawer",
         ],
         [
-            "Keep knives sharp — dull blades slip more easily",
+            "Store knives and peelers neatly in the drawer with blades protected / facing one way",
+            "Open the drawer carefully and pick up tools by the handle",
             "Use colour-coded boards for raw / ready-to-eat / allergens",
             "Report damaged tools and remove from service",
-            "Train new staff before unsupervised prep work",
         ],
     )
     page_break(doc)
@@ -1784,16 +1784,19 @@ def build():
         "Various",
         "Chef knives, mandoline, slicers and peelers",
         "Hand tools and small cutting equipment used for preparation of fruit, vegetables, meat "
-        "and other ingredients. This section merges the Knives/Mandoline/Peelers and "
+        "and other ingredients. At The Vedanta Kitchen, kitchen knives and peelers are kept in the "
+        "designated drawer. This section merges the Knives/Mandoline/Peelers and "
         "Knives/Slicers/Peelers assessments into one procedure.",
         [
-            "Select the correct knife or tool for the task; check blades are clean and undamaged.",
+            "Select the correct knife or peeler for the task; check blades are clean and undamaged.",
             "Use a stable chopping board with a non-slip mat underneath.",
             "Keep fingers curled and clear of the blade path (claw grip).",
             "For mandoline / slicers: always use the hand guard or cut-resistant glove; never push product by hand.",
             "Cut away from the body; do not catch falling knives — let them drop.",
-            "Wash knives individually; never leave blades loose in sinks under water.",
-            "Store knives in a knife block, magnetic strip or sheath — not loose in drawers.",
+            "Wash knives and peelers individually; never leave blades loose in sinks under water.",
+            "Return knives and peelers to the designated kitchen drawer after cleaning and drying.",
+            "In the drawer: store neatly with handles accessible, blades protected or facing one direction — do not leave blades exposed and jumbled.",
+            "Open the drawer carefully; pick tools up by the handle only — never rummage with fingers among blades.",
             "Sharpen / hone as required; a dull blade increases slip risk.",
             "Report damaged tools and remove from service.",
         ],
@@ -1802,7 +1805,7 @@ def build():
                 "Cuts / lacerations from knives",
                 "Staff",
                 "High",
-                "Training on safe knife skills; claw grip; cut-resistant gloves for high-risk tasks; safe storage.",
+                "Training on safe knife skills; claw grip; cut-resistant gloves for high-risk tasks; careful drawer handling.",
                 "Low",
             ),
             (
@@ -1810,6 +1813,13 @@ def build():
                 "Staff",
                 "High",
                 "Mandatory use of guard or cut-resistant glove; dismantle carefully for cleaning.",
+                "Low",
+            ),
+            (
+                "Cuts when taking knives or peelers from the drawer",
+                "Staff",
+                "High",
+                "Designated knife/peeler drawer only; store neatly with handles out / blades protected; open carefully; pick up by handle; no blind rummaging.",
                 "Low",
             ),
             (
@@ -1830,7 +1840,7 @@ def build():
                 "Incorrect tool storage injuries",
                 "Staff",
                 "Medium",
-                "Sheaths / magnetic strip / designated knife area; never leave in sinks.",
+                "Keep knives and peelers only in the designated drawer; never leave in sinks or on open worktops after use.",
                 "Low",
             ),
         ],
@@ -1838,6 +1848,10 @@ def build():
             "Apron",
             "Non-slip footwear",
             "Cut-resistant gloves for mandoline, slicer and high-volume prep",
+        ],
+        extra_notes=[
+            "Site practice: kitchen knives and peelers are stored in the designated drawer.",
+            "If blade guards/sheaths are available, fit them before returning knives to the drawer.",
         ],
     )
 
