@@ -1,7 +1,7 @@
 From 8d6f8fc1c1e43cd6b1019902686863f00968a338 Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Mon, 27 Jul 2026 21:58:20 +0000
-Subject: [PATCH] Add Kiteline IncidentGuard module and pilot landing page
+Subject: [PATCH 1/2] Add Kiteline IncidentGuard module and pilot landing page
 
 Introduce kitchen-specific incident, near-miss and CAPA workflow with
 lifecycle statuses, RIDDOR guidance, QR report links, and a marketing
@@ -1029,6 +1029,2006 @@ index e65b2d5..00b48bb 100644
          <div class="bg-white rounded-2xl border border-ink-100 p-6 flex flex-col">
            <span class="text-[10px] font-bold uppercase text-ink-500">Beta</span>
            <h3 class="font-bold text-lg mt-1">MenuGuard</h3>
+-- 
+2.43.0
+
+
+From 28aae58638a5377042a23ff3ac3959b12d28bc30 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Mon, 27 Jul 2026 23:57:33 +0000
+Subject: [PATCH 2/2] Complete IncidentGuard: public QR, media, AI, alerts,
+ bridge
+
+Add anonymous public reporting, GPS/photo/voice, offline queue,
+severity escalation, AI drafts with allowance, safety dashboards,
+reporter feedback, kitchen evidence links, and Parslia bridge export.
+---
+ index.html                    |  11 +-
+ js/api.js                     |  15 +
+ js/incidentguard-views.js     | 597 ++++++++++++++++++++++++++++++++++
+ js/incidentguard.js           | 320 ++++++++++++------
+ js/views.js                   |  59 ++++
+ server/incidentguard.js       | 325 ++++++++++++++++++
+ server/security.js            |   4 +-
+ server/server.js              |  99 +++++-
+ site/incident-management.html |   3 +-
+ site/incident-report.html     | 195 +++++++++++
+ sw.js                         |  73 ++++-
+ 11 files changed, 1593 insertions(+), 108 deletions(-)
+ create mode 100644 js/incidentguard-views.js
+ create mode 100644 server/incidentguard.js
+ create mode 100644 site/incident-report.html
+
+diff --git a/index.html b/index.html
+index 55e636f..afca939 100644
+--- a/index.html
++++ b/index.html
+@@ -120,24 +120,25 @@
+ 
+   <!-- Scripts (classic, file:// friendly) -->
+   <script src="/js/i18n.js?v=12"></script>
+-  <script src="/js/api.js?v=19"></script>
++  <script src="/js/api.js?v=20"></script>
+   <script src="/js/recipe-seeds.js?v=4"></script>
+   <script src="/js/store.js?v=34"></script>
+   <script src="/js/ui.js?v=14"></script>
+   <script src="/js/security.js?v=1"></script>
+   <script src="/js/compliance.js?v=4"></script>
+-  <script src="/js/incidentguard.js?v=1"></script>
++  <script src="/js/incidentguard.js?v=2"></script>
+   <script src="/js/recipe-nutrition.js?v=3"></script>
+   <script src="/js/recipe-media.js?v=1"></script>
+   <script src="/js/recipe-ai.js?v=2"></script>
+   <script src="/js/register-form.js?v=6"></script>
+-  <script src="/js/views.js?v=34"></script>
++  <script src="/js/views.js?v=35"></script>
++  <script src="/js/incidentguard-views.js?v=2"></script>
+   <script src="/js/compliance-views.js?v=4"></script>
+-  <script src="/js/app.js?v=35"></script>
++  <script src="/js/app.js?v=36"></script>
+   <script>
+     if ('serviceWorker' in navigator) {
+       window.addEventListener('load', () => {
+-        navigator.serviceWorker.register('/sw.js?v=42').catch(() => {});
++        navigator.serviceWorker.register('/sw.js?v=43').catch(() => {});
+         navigator.serviceWorker.getRegistrations().then((regs) => {
+           regs.forEach((r) => {
+             if (r.active && !String(r.active.scriptURL || '').includes('v=42')) r.unregister();
+diff --git a/js/api.js b/js/api.js
+index 8ec0d71..8077848 100644
+--- a/js/api.js
++++ b/js/api.js
+@@ -115,6 +115,21 @@
+     async recipeAiRemoveKey() { return req('PUT', '/recipe-ai/settings', { removeKey: true }); },
+     async recipeAiCheckout() { return req('POST', '/recipe-ai/checkout', {}); },
+     async recipeAiGrant(email, enable) { return req('POST', '/recipe-ai/grant', { email, enable }); },
++    async incidentAi(action, body) { return req('POST', '/incident-ai/' + action, body || {}); },
++    async incidentEscalate(id) { return req('POST', '/incidents/escalate', { id }); },
++    async incidentStats(site) { return req('GET', '/incidents/stats' + (site ? ('?site=' + encodeURIComponent(site)) : '')); },
++    async incidentBridge(since) { return req('GET', '/incidents/bridge' + (since ? ('?since=' + encodeURIComponent(since)) : '')); },
++    async incidentPublicReport(body) {
++      const res = await fetch((BASE || '') + '/api/incidents/public-report', {
++        method: 'POST',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify(body || {}),
++      });
++      let data = null;
++      try { data = await res.json(); } catch {}
++      if (!res.ok) throw Object.assign(new Error((data && data.error) || res.statusText), { status: res.status, data });
++      return data;
++    },
+     async aiTokens() { return req('GET', '/ai/tokens'); },
+     async aiCreateToken(body) { return req('POST', '/ai/tokens', body); },
+     async aiRevokeToken(id) { return req('DELETE', '/ai/tokens/' + id); },
+diff --git a/js/incidentguard-views.js b/js/incidentguard-views.js
+new file mode 100644
+index 0000000..c81eb5d
+--- /dev/null
++++ b/js/incidentguard-views.js
+@@ -0,0 +1,597 @@
++/* Kiteline IncidentGuard — full UI (replaces Views.incidents) */
++(function () {
++  const S = () => window.Store;
++  const UI = () => window.UI;
++  const IG = () => window.IncidentGuard;
++
++  function fmtAgo(iso) {
++    if (window.fmt && window.fmt.ago) return window.fmt.ago(iso);
++    try { return new Date(iso).toLocaleString('en-GB'); } catch { return iso; }
++  }
++
++  function incidents() {
++    const { icon, toast, modal, closeModal, escapeHtml } = UI();
++    const sectionHeader = (title, subtitle, actions) => `
++      <div class="flex flex-wrap items-start justify-between gap-3 mb-5">
++        <div class="min-w-0"><h1 class="text-2xl font-extrabold tracking-tight">${title}</h1>
++        <p class="text-sm text-ink-500 mt-1">${subtitle || ''}</p></div>
++        <div class="flex flex-wrap gap-2">${actions || ''}</div>
++      </div>`;
++    const kpiCard = (label, val, ic) => `
++      <div class="card card-pad"><div class="flex items-center justify-between gap-2">
++        <div><div class="text-xs text-ink-400 font-semibold uppercase tracking-wide">${label}</div>
++        <div class="text-2xl font-extrabold mt-1">${val}</div></div>
++        <div class="text-brand-600">${icon(ic || 'shield', 'w-6 h-6')}</div>
++      </div></div>`;
++    const db = S().db;
++    const R = IG();
++    if (R) R.ensureAll(db);
++    const site = db.currentSite;
++    const list = (db.incidents || []).slice().map((i) => (R ? R.normalize(i) : i))
++      .sort((a, b) => new Date(b.at) - new Date(a.at));
++    const siteList = list.filter((i) => !i.site || i.site === site);
++    const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
++    const meId = (() => {
++      if (!me || !me.email) return (db.team[0] && db.team[0].id) || 'u_sarah';
++      const m = (db.team || []).find((t) => (t.email || '').toLowerCase() === me.email.toLowerCase());
++      return (m && m.id) || (db.team[0] && db.team[0].id) || 'u_sarah';
++    })();
++    const stats = R ? R.dashboardStats(db, site) : { open: 0, critical: 0, overdue: 0, total: siteList.length, allergen: 0, temperature: 0, nearMiss: 0, avgHoursToClose: null };
++    const aiAllow = R ? R.aiAllowance(db) : { used: 0, cap: 200, pct: 0 };
++    const qrLocs = (R && R.QR_LOCATIONS) || [];
++    const linkHints = R ? R.suggestLinks(db, site) : [];
++
++    const sevBadge = (s) => {
++      if (s === 'Critical' || s === 'High') return '<span class="badge badge-red">' + escapeHtml(s) + '</span>';
++      if (s === 'Medium') return '<span class="badge badge-amber">Medium</span>';
++      return '<span class="badge badge-gray">Low</span>';
++    };
++    const stBadge = (s) => {
++      if (s === 'Closed') return '<span class="badge badge-green">Closed</span>';
++      if (s === 'Awaiting Verification') return '<span class="badge badge-blue">Awaiting verification</span>';
++      if (s === 'Action Required' || s === 'Investigation') return '<span class="badge badge-amber">' + escapeHtml(s) + '</span>';
++      return '<span class="badge badge-red">' + escapeHtml(s || 'Reported') + '</span>';
++    };
++
++    const topCats = Object.entries(stats.byCategory || {}).sort((a, b) => b[1] - a[1]).slice(0, 5)
++      .map(([k, v]) => `<div class="flex justify-between text-sm"><span>${escapeHtml(k)}</span><b>${v}</b></div>`).join('')
++      || '<p class="text-sm text-ink-400">No category data yet</p>';
++
++    const cards = siteList.map((i) => {
++      const m = S().member(i.reportedBy) || { name: i.reporterName || i.reportedBy };
++      const openActs = (i.actions || []).filter((a) => a.status !== 'Completed').length;
++      const riddor = R && R.mayNeedRiddor(i);
++      const thumb = (i.photos && i.photos[0]) ? `<img src="${i.photos[0]}" alt="" class="w-14 h-14 rounded-lg object-cover flex-none border border-ink-100">` : '';
++      return `<div class="card card-pad fade-in border-l-4 ${i.status === 'Closed' ? 'border-ink-200' : 'border-brand-500'}">
++        <div class="flex items-start gap-3 mb-2">
++          ${thumb}
++          <div class="min-w-0 flex-1">
++            <div class="text-xs font-mono font-bold text-brand-700">${escapeHtml(i.ref || i.id)}</div>
++            <div class="font-bold text-ink-900">${escapeHtml(i.title)}</div>
++            <div class="text-xs text-ink-400 mt-1">${escapeHtml(i.category || i.type || 'Incident')} · ${escapeHtml((S().site(i.site) || {}).name || '')} · ${fmtAgo(i.at)} · ${escapeHtml(m.name || '—')}${i.anonymous ? ' · anonymous' : ''}</div>
++          </div>
++          <div class="flex flex-col items-end gap-1 flex-none">${sevBadge(i.severity)}${stBadge(i.status)}</div>
++        </div>
++        ${i.description ? `<p class="text-sm text-ink-600 line-clamp-2">${escapeHtml(i.description)}</p>` : ''}
++        ${i.gps ? `<div class="text-xs text-ink-400 mt-1">GPS ${Number(i.gps.lat).toFixed(4)}, ${Number(i.gps.lng).toFixed(4)}</div>` : ''}
++        ${riddor ? `<div class="mt-2 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">RIDDOR guidance — authorised person must review (Kiteline never auto-submits)</div>` : ''}
++        ${(i.feedback && i.feedback.length) ? `<div class="text-xs text-brand-700 mt-2">Feedback sent to reporter (${i.feedback.length})</div>` : ''}
++        <div class="text-sm text-ink-600 mt-2"><span class="font-semibold text-ink-700">Summary:</span> ${i.action ? escapeHtml(i.action) : '<span class="text-ink-400">None yet</span>'}${openActs ? ` · <span class="text-brand-700 font-semibold">${openActs} CAPA open</span>` : ''}</div>
++        <div class="flex flex-wrap gap-2 mt-3">
++          <button type="button" class="btn btn-primary btn-sm" data-ig-open="${i.id}">${icon('edit','ico')} Open</button>
++          <button type="button" class="btn btn-ghost btn-sm" data-ig-capa="${i.id}">${icon('check','ico')} Add action</button>
++          <button type="button" class="btn btn-ghost btn-sm" data-ig-ai="${i.id}">AI draft</button>
++          ${i.status !== 'Closed' ? `<button type="button" class="btn btn-ghost btn-sm" data-ig-advance="${i.id}">Next stage</button>` : ''}
++        </div>
++      </div>`;
++    }).join('') || '<div class="card card-pad text-ink-400">No incidents at this kitchen yet.</div>';
++
++    const html = `
++      ${sectionHeader('IncidentGuard', 'Incidents, near-misses, CAPA, QR reports & safety intelligence', `
++        <a href="/incident-management.html" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Product</a>
++        <a href="/incident-report.html?site=${encodeURIComponent(site)}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Public report</a>
++        <button type="button" class="btn btn-ghost btn-sm" data-ig-qr>${icon('qr','ico')} QR posters</button>
++        <button type="button" class="btn btn-primary btn-sm" data-ig-add>${icon('plus','ico')} Report incident</button>`)}
++      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
++        ${kpiCard('Open', stats.open, 'alert')}
++        ${kpiCard('High / critical', stats.critical, 'shield')}
++        ${kpiCard('Overdue CAPA', stats.overdue, 'alert')}
++        ${kpiCard('Near misses', stats.nearMiss || 0, 'records')}
++      </div>
++      <div class="grid lg:grid-cols-3 gap-4 mb-5">
++        <div class="card card-pad lg:col-span-2">
++          <div class="font-bold mb-2">Safety intelligence</div>
++          <div class="grid sm:grid-cols-3 gap-3 text-sm mb-3">
++            <div class="rounded-lg bg-ink-50 p-3"><div class="text-ink-400 text-xs">Allergen events</div><div class="text-xl font-extrabold">${stats.allergen || 0}</div></div>
++            <div class="rounded-lg bg-ink-50 p-3"><div class="text-ink-400 text-xs">Temp-related</div><div class="text-xl font-extrabold">${stats.temperature || 0}</div></div>
++            <div class="rounded-lg bg-ink-50 p-3"><div class="text-ink-400 text-xs">Avg hours to close</div><div class="text-xl font-extrabold">${stats.avgHoursToClose != null ? stats.avgHoursToClose : '—'}</div></div>
++          </div>
++          <div class="text-xs font-bold uppercase text-ink-400 mb-1">By category</div>
++          ${topCats}
++        </div>
++        <div class="card card-pad">
++          <div class="font-bold mb-1">AI allowance</div>
++          <p class="text-sm text-ink-500">${aiAllow.used} / ${aiAllow.cap} drafts this month (${aiAllow.pct || 0}%)</p>
++          <div class="h-2 rounded-full bg-ink-100 mt-2 overflow-hidden"><div class="h-full bg-brand-500" style="width:${Math.min(100, aiAllow.pct || 0)}%"></div></div>
++          <p class="text-xs text-ink-400 mt-2">Incident reporting stays free when AI allowance is used up. AI never closes incidents or submits RIDDOR.</p>
++          <div class="font-bold mt-4 mb-1">Escalation</div>
++          <p class="text-xs text-ink-500">Low → dashboard · Medium → email · High/Critical → email + SMS (when channels on)</p>
++        </div>
++      </div>
++      <div class="card card-pad mb-5 border border-brand-100 bg-brand-50/40">
++        <div class="font-bold text-brand-900">Lifecycle</div>
++        <p class="text-sm text-ink-600 mt-1">Reported → Manager Review → Investigation → Action Required → Awaiting Verification → Closed</p>
++      </div>
++      <div class="grid md:grid-cols-2 gap-5">${cards}</div>`;
++
++    function resizeFile(file) {
++      return new Promise((resolve) => {
++        const reader = new FileReader();
++        reader.onload = (e) => {
++          const img = new Image();
++          img.onload = () => {
++            const max = 700; let w = img.width; let h = img.height;
++            if (w > max) { h = Math.round(h * max / w); w = max; }
++            const c = document.createElement('canvas'); c.width = w; c.height = h;
++            c.getContext('2d').drawImage(img, 0, 0, w, h);
++            resolve(c.toDataURL('image/jpeg', 0.75));
++          };
++          img.onerror = () => resolve(e.target.result);
++          img.src = e.target.result;
++        };
++        reader.readAsDataURL(file);
++      });
++    }
++
++    async function runAi(inc, action) {
++      const consume = R.consumeAi(db);
++      if (!consume.ok) return toast(consume.reason, 'warn');
++      if (consume.warn90) toast('Incident AI allowance at 90%', 'warn');
++      else if (consume.warn70) toast('Incident AI allowance at 70%', 'warn');
++      S().persist();
++      try {
++        toast('AI drafting…');
++        const data = await window.Api.incidentAi(action, { incident: inc });
++        return data;
++      } catch (e) {
++        toast(e.message || 'AI failed — check Settings → Recipe AI', 'error');
++        return null;
++      }
++    }
++
++    function showAiMenu(inc) {
++      modal('AI assist · ' + (inc.ref || ''), `<div class="space-y-2">
++        <p class="text-sm text-ink-500">Drafts only. Manager must approve before official records.</p>
++        <button type="button" class="btn btn-primary w-full" data-a="summarise">Summarise incident</button>
++        <button type="button" class="btn btn-ghost w-full" data-a="root-cause">Suggest root causes</button>
++        <button type="button" class="btn btn-ghost w-full" data-a="capa">Draft CAPA plan</button>
++        <button type="button" class="btn btn-ghost w-full" data-a="toolbox">Toolbox talk</button>
++        <button type="button" class="btn btn-ghost w-full" data-a="translate">Translate (Spanish)</button>
++      </div>`);
++      document.querySelectorAll('[data-a]').forEach((b) => {
++        b.onclick = async () => {
++          const action = b.dataset.a;
++          const data = await runAi(inc, action === 'translate' ? 'translate' : action);
++          if (!data) return;
++          closeModal();
++          if (action === 'summarise' || action === 'summarize') {
++            modal('AI summary (draft)', `<div class="space-y-2 text-sm"><p>${escapeHtml(data.summary || '')}</p>
++              <ul class="list-disc pl-5">${(data.nextSteps || []).map((x) => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
++              <button type="button" class="btn btn-primary w-full" id="ig_apply_sum">Copy into description note</button></div>`);
++            const btn = document.getElementById('ig_apply_sum');
++            if (btn) btn.onclick = () => {
++              inc.aiSummary = data.summary;
++              inc.history.push({ at: new Date().toISOString(), by: meId, note: 'AI summary attached (draft)' });
++              S().persist(); closeModal(); toast('Summary attached as draft'); window.App.render();
++            };
++          } else if (action === 'root-cause') {
++            Object.assign(inc.investigation, {
++              immediateCause: data.immediateCause || '',
++              contributing: data.contributing || '',
++              rootCause: data.rootCause || '',
++              fiveWhys: data.fiveWhys || '',
++              failedControls: data.failedControls || '',
++            });
++            if (R) R.setStatus(inc, 'Investigation', meId, 'AI root-cause draft applied');
++            S().persist(); toast('Investigation draft filled — review required'); window.App.render();
++          } else if (action === 'capa') {
++            (data.actions || []).slice(0, 5).forEach((a) => {
++              const due = new Date(); due.setDate(due.getDate() + (Number(a.days) || 3));
++              R.addAction(inc, {
++                instructions: a.instructions,
++                priority: a.priority || 'Medium',
++                due: due.toISOString().slice(0, 10),
++                ownerId: meId,
++              }, meId);
++            });
++            S().persist(); toast('CAPA drafts added'); window.App.render();
++          } else if (action === 'toolbox') {
++            modal('Toolbox talk (draft)', `<div class="text-sm space-y-2"><h4 class="font-bold">${escapeHtml(data.title || '')}</h4>
++              <p>${escapeHtml(data.briefing || '')}</p>
++              <ul class="list-disc pl-5">${(data.talkingPoints || []).map((x) => `<li>${escapeHtml(x)}</li>`).join('')}</ul></div>`);
++            inc.toolboxDraft = data;
++            S().persist();
++          } else if (action === 'translate') {
++            modal('Translation draft', `<div class="text-sm space-y-2">
++              <p><b>${escapeHtml(data.title || '')}</b></p>
++              <p>${escapeHtml(data.description || '')}</p>
++              <p>${escapeHtml(data.immediateAction || '')}</p></div>`);
++          }
++        };
++      });
++    }
++
++    function openDetail(inc) {
++      if (R) R.normalize(inc);
++      const statuses = R.STATUSES;
++      const acts = (inc.actions || []).map((a) => {
++        const owner = S().member(a.ownerId);
++        return `<div class="rounded-lg border border-ink-100 p-3 text-sm">
++          <div class="flex justify-between gap-2"><b>${escapeHtml(a.instructions || 'Action')}</b><span class="badge badge-gray">${escapeHtml(a.status)}</span></div>
++          <div class="text-xs text-ink-400 mt-1">${escapeHtml((owner && owner.name) || 'Unassigned')} · ${escapeHtml(a.priority || 'Medium')} · due ${escapeHtml(a.due || '—')}</div>
++          <div class="flex gap-2 mt-2">
++            <button type="button" class="btn btn-ghost btn-sm" data-ig-act-done="${a.id}">Mark done</button>
++            <button type="button" class="btn btn-ghost btn-sm" data-ig-act-verify="${a.id}">Verify & close</button>
++          </div>
++        </div>`;
++      }).join('') || '<p class="text-sm text-ink-400">No corrective actions yet.</p>';
++      const inv = inc.investigation || {};
++      const photos = (inc.photos || []).map((p) => `<img src="${p}" class="w-20 h-20 object-cover rounded-lg border" alt="">`).join('');
++      const links = (inc.links || []).map((l) => `<a class="text-xs text-brand-700 font-semibold" href="#${escapeHtml(l.route || 'home')}">${escapeHtml(l.kind)}: ${escapeHtml(l.label)}</a>`).join(' · ')
++        || '<span class="text-xs text-ink-400">None linked</span>';
++      const fb = (inc.feedback || []).map((f) => `<div class="text-xs border-l-2 border-brand-300 pl-2 mb-1"><b>${escapeHtml(f.by)}</b> · ${fmtAgo(f.at)}<br>${escapeHtml(f.message)}</div>`).join('')
++        || '<p class="text-xs text-ink-400">No feedback yet</p>';
++      const linkOpts = linkHints.slice(0, 12).map((l) => `<option value="${escapeHtml(l.kind + ':' + l.id)}">${escapeHtml(l.kind)} — ${escapeHtml(l.label)}</option>`).join('');
++
++      modal(inc.ref + ' · ' + (inc.title || 'Incident'), `<div class="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
++        <div class="flex flex-wrap gap-2">${sevBadge(inc.severity)}${stBadge(inc.status)}
++          ${R.mayNeedRiddor(inc) ? '<span class="badge badge-amber">RIDDOR review</span>' : ''}
++          ${inc.anonymous ? '<span class="badge badge-gray">Anonymous</span>' : ''}
++        </div>
++        ${R.mayNeedRiddor(inc) ? `<div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"><b>RIDDOR guidance.</b> This event may meet reporting criteria. An authorised responsible person must decide. Kiteline does not submit legal reports.</div>` : ''}
++        <p class="text-sm text-ink-600">${escapeHtml(inc.description || '')}</p>
++        ${inc.voiceNote ? `<div class="text-sm bg-ink-50 rounded-lg p-2"><b>Voice / transcript:</b> ${escapeHtml(inc.voiceNote)}</div>` : ''}
++        ${photos ? `<div class="flex flex-wrap gap-2">${photos}</div>` : ''}
++        <div class="grid sm:grid-cols-2 gap-2 text-xs text-ink-500">
++          <div><b>Area</b><br>${escapeHtml(inc.area || '—')}</div>
++          <div><b>Equipment</b><br>${escapeHtml(inc.equipment || '—')}</div>
++          <div><b>Food</b><br>${escapeHtml(inc.foodAffected || '—')}</div>
++          <div><b>GPS</b><br>${inc.gps ? (Number(inc.gps.lat).toFixed(5) + ', ' + Number(inc.gps.lng).toFixed(5)) : '—'}</div>
++        </div>
++        <div><label class="label">Kitchen evidence links</label>
++          <div class="mb-2">${links}</div>
++          <div class="flex gap-2"><select id="ig_link" class="select flex-1"><option value="">Link sensor / recipe / delivery…</option>${linkOpts}</select>
++          <button type="button" class="btn btn-ghost btn-sm" id="ig_link_add">Add</button></div>
++        </div>
++        <div>
++          <label class="label">Workflow status</label>
++          <select id="ig_st" class="select">${statuses.map((s) => `<option ${s === inc.status ? 'selected' : ''}>${s}</option>`).join('')}</select>
++        </div>
++        <div>
++          <label class="label">Summary / immediate action</label>
++          <textarea id="ig_sum" class="input" rows="2">${escapeHtml(inc.action || inc.immediateAction || '')}</textarea>
++        </div>
++        <div class="border-t border-ink-100 pt-3">
++          <h4 class="font-bold mb-2">Investigation</h4>
++          <textarea id="ig_imm" class="input mb-2" rows="2" placeholder="Immediate cause">${escapeHtml(inv.immediateCause || '')}</textarea>
++          <textarea id="ig_con" class="input mb-2" rows="2" placeholder="Contributing factors">${escapeHtml(inv.contributing || '')}</textarea>
++          <textarea id="ig_root" class="input mb-2" rows="2" placeholder="Root cause">${escapeHtml(inv.rootCause || '')}</textarea>
++          <textarea id="ig_five" class="input mb-2" rows="2" placeholder="Five Whys">${escapeHtml(inv.fiveWhys || '')}</textarea>
++          <textarea id="ig_less" class="input" rows="2" placeholder="Lessons learned">${escapeHtml(inv.lessons || '')}</textarea>
++        </div>
++        <div class="border-t border-ink-100 pt-3">
++          <div class="flex items-center justify-between mb-2"><h4 class="font-bold">Corrective actions</h4>
++            <button type="button" class="btn btn-ghost btn-sm" id="ig_add_act">${icon('plus','ico')} Add</button></div>
++          <div class="space-y-2">${acts}</div>
++        </div>
++        <div class="border-t border-ink-100 pt-3">
++          <h4 class="font-bold mb-2">Feedback to reporter</h4>
++          ${fb}
++          <textarea id="ig_fb" class="input mt-2" rows="2" placeholder="Update for the person who reported this"></textarea>
++          <button type="button" class="btn btn-ghost btn-sm mt-2" id="ig_fb_send">Send feedback</button>
++        </div>
++        <div class="flex flex-wrap gap-2">
++          <button type="button" class="btn btn-ghost flex-1" id="ig_ai">AI assist</button>
++          <button type="button" class="btn btn-ghost flex-1" id="ig_esc">Re-escalate alerts</button>
++          <button type="button" class="btn btn-primary flex-1" id="ig_save_detail">Save changes</button>
++        </div>
++      </div>`, { wide: true });
++
++      document.getElementById('ig_save_detail').onclick = () => {
++        inc.action = document.getElementById('ig_sum').value.trim();
++        inc.immediateAction = inc.action;
++        R.setStatus(inc, document.getElementById('ig_st').value, meId, 'Status updated');
++        inc.investigation = Object.assign({}, inv, {
++          immediateCause: document.getElementById('ig_imm').value.trim(),
++          contributing: document.getElementById('ig_con').value.trim(),
++          rootCause: document.getElementById('ig_root').value.trim(),
++          fiveWhys: document.getElementById('ig_five').value.trim(),
++          lessons: document.getElementById('ig_less').value.trim(),
++        });
++        S().persist(); closeModal(); window.App.render(); toast('Incident saved');
++      };
++      document.getElementById('ig_add_act').onclick = () => { closeModal(); showAddAction(inc); };
++      document.getElementById('ig_ai').onclick = () => { closeModal(); showAiMenu(inc); };
++      document.getElementById('ig_fb_send').onclick = () => {
++        const msg = document.getElementById('ig_fb').value.trim();
++        if (!R.addFeedback(inc, msg, me && me.email)) return toast('Enter feedback', 'warn');
++        S().persist(); toast('Feedback recorded'); closeModal(); openDetail(inc);
++      };
++      document.getElementById('ig_link_add').onclick = () => {
++        const v = document.getElementById('ig_link').value;
++        if (!v) return;
++        const [kind, id] = v.split(':');
++        const hit = linkHints.find((l) => l.kind === kind && l.id === id);
++        if (!hit) return;
++        inc.links = inc.links || [];
++        if (!inc.links.some((l) => l.id === hit.id && l.kind === hit.kind)) inc.links.push(hit);
++        S().persist(); toast('Linked ' + hit.label); closeModal(); openDetail(inc);
++      };
++      document.getElementById('ig_esc').onclick = async () => {
++        try {
++          if (window.Api && window.Api.incidentEscalate) await window.Api.incidentEscalate(inc.id);
++          else {
++            db.alerts = db.alerts || [];
++            db.alerts.unshift({ id: S().uid('al'), severity: (inc.severity || 'High').toLowerCase(), site: inc.site, title: 'IncidentGuard ' + inc.ref, detail: inc.title, at: new Date().toISOString(), status: 'open' });
++            S().persist();
++          }
++          toast('Escalation queued');
++        } catch (e) { toast(e.message || 'Escalate failed', 'error'); }
++      };
++      document.querySelectorAll('[data-ig-act-done]').forEach((b) => {
++        b.onclick = () => {
++          const a = (inc.actions || []).find((x) => x.id === b.dataset.igActDone);
++          if (!a) return;
++          a.status = 'Completed'; a.completedAt = new Date().toISOString();
++          R.setStatus(inc, 'Awaiting Verification', meId, 'Action completed');
++          S().persist(); closeModal(); openDetail(inc); toast('Action complete');
++        };
++      });
++      document.querySelectorAll('[data-ig-act-verify]').forEach((b) => {
++        b.onclick = () => {
++          const a = (inc.actions || []).find((x) => x.id === b.dataset.igActVerify);
++          if (!a) return;
++          a.status = 'Completed'; a.verifiedBy = meId;
++          R.setStatus(inc, 'Closed', meId, 'Verified and closed');
++          S().persist(); closeModal(); window.App.render(); toast('Verified and closed');
++        };
++      });
++    }
++
++    function showAddAction(inc) {
++      const teamOpts = (db.team || []).map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
++      modal('Add corrective action · ' + (inc.ref || ''), `<div class="space-y-3">
++        <textarea id="iga_i" class="input" rows="3" placeholder="Instructions"></textarea>
++        <div class="grid grid-cols-2 gap-2">
++          <select id="iga_o" class="select"><option value="">Owner</option>${teamOpts}</select>
++          <select id="iga_p" class="select">${['Low','Medium','High','Critical'].map((x)=>`<option ${x==='Medium'?'selected':''}>${x}</option>`).join('')}</select>
++        </div>
++        <input id="iga_d" type="date" class="input">
++        <button type="button" class="btn btn-primary w-full" id="iga_save">Save action</button>
++      </div>`);
++      document.getElementById('iga_save').onclick = () => {
++        const instructions = document.getElementById('iga_i').value.trim();
++        if (!instructions) return toast('Enter instructions', 'warn');
++        R.addAction(inc, {
++          instructions,
++          ownerId: document.getElementById('iga_o').value,
++          priority: document.getElementById('iga_p').value,
++          due: document.getElementById('iga_d').value,
++        }, meId);
++        S().persist(); closeModal(); window.App.render(); toast('Corrective action assigned');
++      };
++    }
++
++    function showReportForm(prefill) {
++      prefill = prefill || {};
++      let photos = [];
++      let gps = null;
++      let voiceAudio = '';
++      modal('Report incident', `<div class="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
++        <input id="ig_title" class="input" placeholder="Short title" value="${escapeHtml(prefill.title || '')}">
++        <div class="grid grid-cols-2 gap-2">
++          <select id="ig_cat" class="select">${R.CATEGORIES.map((c) => `<option ${c === (prefill.category || 'Near miss') ? 'selected' : ''}>${c}</option>`).join('')}</select>
++          <select id="ig_sev" class="select">${R.SEVERITIES.map((s) => `<option ${s === (prefill.severity || 'Medium') ? 'selected' : ''}>${s}</option>`).join('')}</select>
++        </div>
++        <div class="grid grid-cols-2 gap-2">
++          <input id="ig_area" class="input" placeholder="Kitchen area" value="${escapeHtml(prefill.area || '')}">
++          <select id="ig_qr" class="select"><option value="">QR / equipment link</option>${qrLocs.map((q) => `<option value="${q.id}" ${prefill.qrLocation === q.id ? 'selected' : ''}>${escapeHtml(q.label)}</option>`).join('')}</select>
++        </div>
++        <textarea id="ig_desc" class="input" rows="3" placeholder="What happened">${escapeHtml(prefill.description || '')}</textarea>
++        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="ig_danger"> Danger still present</label>
++        <textarea id="ig_immact" class="input" rows="2" placeholder="Immediate action taken"></textarea>
++        <div class="grid grid-cols-2 gap-2">
++          <input id="ig_people" class="input" placeholder="People involved">
++          <input id="ig_wit" class="input" placeholder="Witnesses">
++        </div>
++        <div class="grid grid-cols-2 gap-2">
++          <input id="ig_eq" class="input" placeholder="Equipment" value="${escapeHtml(prefill.equipment || '')}">
++          <input id="ig_food" class="input" placeholder="Food / ingredients">
++        </div>
++        <input id="ig_aid" class="input" placeholder="First aid provided">
++        <div>
++          <label class="label">Photos</label>
++          <input id="ig_photo" type="file" accept="image/*" capture="environment" class="input" multiple>
++          <div id="ig_photo_prev" class="flex flex-wrap gap-2 mt-2"></div>
++        </div>
++        <div class="flex flex-wrap gap-2">
++          <button type="button" class="btn btn-ghost btn-sm" id="ig_gps">Add GPS</button>
++          <button type="button" class="btn btn-ghost btn-sm" id="ig_stt">Speech to text</button>
++          <button type="button" class="btn btn-ghost btn-sm" id="ig_voice">Record voice 8s</button>
++          <span class="text-xs text-ink-400 self-center" id="ig_gps_lbl"></span>
++        </div>
++        <textarea id="ig_voice_note" class="input" rows="2" placeholder="Voice transcript"></textarea>
++        <select id="ig_link0" class="select"><option value="">Optional link to kitchen record…</option>${linkHints.slice(0, 20).map((l) => `<option value="${escapeHtml(l.kind + ':' + l.id)}">${escapeHtml(l.kind)} — ${escapeHtml(l.label)}</option>`).join('')}</select>
++        <button type="button" class="btn btn-primary w-full" id="ig_submit">Submit report</button>
++      </div>`, { wide: true });
++
++      document.getElementById('ig_photo').onchange = async (e) => {
++        const files = [...(e.target.files || [])].slice(0, 4);
++        photos = [];
++        const box = document.getElementById('ig_photo_prev');
++        box.innerHTML = '';
++        for (const f of files) {
++          const data = await resizeFile(f);
++          photos.push(data);
++          box.innerHTML += `<img src="${data}" class="w-16 h-16 object-cover rounded-lg border" alt="">`;
++        }
++      };
++      document.getElementById('ig_gps').onclick = async () => {
++        gps = await R.captureGps();
++        document.getElementById('ig_gps_lbl').textContent = gps ? (gps.lat.toFixed(4) + ', ' + gps.lng.toFixed(4)) : 'GPS unavailable / denied';
++      };
++      document.getElementById('ig_stt').onclick = () => {
++        if (!R.speechSupported()) return toast('Speech recognition not supported in this browser', 'warn');
++        toast('Listening…');
++        R.startSpeechToText(
++          (t) => { document.getElementById('ig_voice_note').value = t; },
++          (t) => { document.getElementById('ig_voice_note').value = t; toast('Transcript ready'); },
++          () => toast('Speech failed', 'warn')
++        );
++      };
++      document.getElementById('ig_voice').onclick = async () => {
++        try {
++          toast('Recording 8 seconds…');
++          const rec = await R.recordVoiceBlob(8000);
++          voiceAudio = rec.dataUrl;
++          toast('Voice note saved');
++        } catch (e) { toast(e.message || 'Mic failed', 'error'); }
++      };
++
++      document.getElementById('ig_submit').onclick = async () => {
++        const title = document.getElementById('ig_title').value.trim();
++        if (!title) return toast('Enter a title', 'warn');
++        const links = [];
++        const lv = document.getElementById('ig_link0').value;
++        if (lv) {
++          const [kind, id] = lv.split(':');
++          const hit = linkHints.find((l) => l.kind === kind && l.id === id);
++          if (hit) links.push(hit);
++        }
++        const patch = {
++          title,
++          category: document.getElementById('ig_cat').value,
++          type: document.getElementById('ig_cat').value,
++          severity: document.getElementById('ig_sev').value,
++          area: document.getElementById('ig_area').value.trim(),
++          qrLocation: document.getElementById('ig_qr').value,
++          description: document.getElementById('ig_desc').value.trim(),
++          dangerPresent: document.getElementById('ig_danger').checked,
++          immediateAction: document.getElementById('ig_immact').value.trim(),
++          action: document.getElementById('ig_immact').value.trim(),
++          peopleInvolved: document.getElementById('ig_people').value.trim(),
++          witnesses: document.getElementById('ig_wit').value.trim(),
++          equipment: document.getElementById('ig_eq').value.trim(),
++          foodAffected: document.getElementById('ig_food').value.trim(),
++          firstAid: document.getElementById('ig_aid').value.trim(),
++          voiceNote: document.getElementById('ig_voice_note').value.trim(),
++          voiceAudio, photos, gps, links, site,
++          status: 'Reported',
++        };
++        const channels = R.alertChannelsForSeverity(patch.severity);
++        const inc = R.createIncident(db, patch, meId);
++        // Local dashboard alert
++        db.alerts = db.alerts || [];
++        db.alerts.unshift({
++          id: S().uid('al'), severity: (patch.severity || 'Medium').toLowerCase(), site,
++          title: 'IncidentGuard ' + inc.ref + ': ' + inc.title,
++          detail: (inc.description || '').slice(0, 160), at: inc.at, status: 'open', incidentId: inc.id,
++        });
++        S().persist();
++        try {
++          if (window.Api && window.Api.incidentEscalate && (channels.email || channels.sms)) {
++            await window.Api.incidentEscalate(inc.id);
++          }
++        } catch (e) { /* offline ok */ }
++        closeModal();
++        window.App.render();
++        toast(inc.ref + ' logged');
++        if (R.mayNeedRiddor(inc)) toast('RIDDOR guidance flagged — manager review needed', 'warn');
++        if (channels.sms) toast('High/Critical — SMS escalation when notify SMS is configured', 'warn');
++      };
++    }
++
++    return {
++      title: 'IncidentGuard',
++      html,
++      mount() {
++        try {
++          const hash = location.hash || '';
++          const qIdx = hash.indexOf('?');
++          if (qIdx >= 0) {
++            const qs = new URLSearchParams(hash.slice(qIdx + 1));
++            if (qs.get('report') === '1' || qs.get('qr')) {
++              const qr = qs.get('qr') || '';
++              const loc = qrLocs.find((x) => x.id === qr);
++              setTimeout(() => showReportForm({
++                qrLocation: qr,
++                area: loc ? loc.label : '',
++                equipment: loc ? loc.label : '',
++                category: 'Equipment breakdown',
++                title: loc ? (loc.label + ' incident') : '',
++              }), 200);
++            }
++          }
++        } catch (e) {}
++
++        if (R && R.flushOffline && window.Api) {
++          R.flushOffline(async (item) => {
++            if (window.Api.incidentPublicReport) await window.Api.incidentPublicReport(item);
++          }).then((r) => { if (r && r.sent) toast('Synced ' + r.sent + ' offline incident(s)'); }).catch(() => {});
++        }
++
++        const addBtn = document.querySelector('[data-ig-add]');
++        if (addBtn) addBtn.onclick = () => showReportForm();
++        document.querySelectorAll('[data-ig-open]').forEach((b) => {
++          b.onclick = () => { const inc = db.incidents.find((x) => x.id === b.dataset.igOpen); if (inc) openDetail(inc); };
++        });
++        document.querySelectorAll('[data-ig-capa]').forEach((b) => {
++          b.onclick = () => { const inc = db.incidents.find((x) => x.id === b.dataset.igCapa); if (inc) showAddAction(inc); };
++        });
++        document.querySelectorAll('[data-ig-ai]').forEach((b) => {
++          b.onclick = () => { const inc = db.incidents.find((x) => x.id === b.dataset.igAi); if (inc) showAiMenu(inc); };
++        });
++        document.querySelectorAll('[data-ig-advance]').forEach((b) => {
++          b.onclick = () => {
++            const inc = db.incidents.find((x) => x.id === b.dataset.igAdvance);
++            if (!inc || !R) return;
++            R.normalize(inc);
++            const idx = R.STATUSES.indexOf(inc.status);
++            const next = R.STATUSES[Math.min(idx + 1, R.STATUSES.length - 1)];
++            R.setStatus(inc, next, meId);
++            S().persist(); window.App.render(); toast('Moved to ' + next);
++          };
++        });
++        const qrBtn = document.querySelector('[data-ig-qr]');
++        if (qrBtn) qrBtn.onclick = () => {
++          const rows = qrLocs.map((q) => {
++            const pub = (location.origin || '') + R.reportUrl(q.id, site, { public: true });
++            const app = (location.origin || '') + R.reportUrl(q.id, site);
++            return `<div class="rounded-xl border border-ink-100 p-3">
++              <div class="font-bold text-sm mb-1">${escapeHtml(q.label)}</div>
++              <div class="flex items-center gap-3">
++                <div class="ig-qr-box flex-none" data-qr-url="${escapeHtml(pub)}"></div>
++                <div class="text-xs text-ink-400 break-all"><b>Public (no login)</b><br>${escapeHtml(pub)}<br><br><b>Staff app</b><br>${escapeHtml(app)}</div>
++              </div>
++            </div>`;
++          }).join('');
++          modal('IncidentGuard QR posters', `<div class="space-y-3 max-h-[70vh] overflow-y-auto">
++            <p class="text-sm text-ink-500">Public QR opens a limited form with no access to management records.</p>${rows}
++          </div>`, { wide: true });
++          document.querySelectorAll('[data-qr-url]').forEach((el) => {
++            if (window.QRCode) {
++              try { new window.QRCode(el, { text: el.dataset.qrUrl, width: 96, height: 96 }); } catch (e) {}
++            }
++          });
++        };
++      },
++    };
++  }
++
++  function install() {
++    if (!window.Views) window.Views = {};
++    window.Views.incidents = incidents;
++  }
++  install();
++  window.IncidentGuardViews = { incidents, install };
++})();
+diff --git a/js/incidentguard.js b/js/incidentguard.js
+index 0366574..26778c1 100644
+--- a/js/incidentguard.js
++++ b/js/incidentguard.js
+@@ -1,36 +1,17 @@
+-/* Kiteline IncidentGuard — incident / near-miss / CAPA helpers */
++/* Kiteline IncidentGuard — incident / near-miss / CAPA / offline / media helpers */
+ (function () {
+   const CATEGORIES = [
+-    'Accident or injury',
+-    'Burn, cut, slip or fall',
+-    'Near miss',
+-    'Unsafe condition',
+-    'Allergen incident',
+-    'Foreign object',
+-    'Food contamination',
+-    'Suspected food poisoning',
+-    'Fridge or freezer failure',
+-    'Cooking or hot-holding failure',
+-    'Equipment breakdown',
+-    'Pest sighting',
+-    'Chemical spill',
+-    'Fire or gas incident',
+-    'Customer complaint',
+-    'Supplier recall',
+-    'Other',
++    'Accident or injury', 'Burn, cut, slip or fall', 'Near miss', 'Unsafe condition',
++    'Allergen incident', 'Foreign object', 'Food contamination', 'Suspected food poisoning',
++    'Fridge or freezer failure', 'Cooking or hot-holding failure', 'Equipment breakdown',
++    'Pest sighting', 'Chemical spill', 'Fire or gas incident', 'Customer complaint',
++    'Supplier recall', 'Other',
+   ];
+-
+   const STATUSES = [
+-    'Reported',
+-    'Manager Review',
+-    'Investigation',
+-    'Action Required',
+-    'Awaiting Verification',
+-    'Closed',
++    'Reported', 'Manager Review', 'Investigation', 'Action Required',
++    'Awaiting Verification', 'Closed',
+   ];
+-
+   const SEVERITIES = ['Low', 'Medium', 'High', 'Critical'];
+-
+   const QR_LOCATIONS = [
+     { id: 'fridge', label: 'Fridge / freezer' },
+     { id: 'oven', label: 'Oven' },
+@@ -43,12 +24,12 @@
+     { id: 'section', label: 'Kitchen section' },
+     { id: 'noticeboard', label: 'Staff safety noticeboard' },
+   ];
+-
+   const ACTION_STATUSES = ['Open', 'In progress', 'Awaiting verification', 'Completed'];
++  const OFFLINE_KEY = 'kiteline.ig.offlineQueue';
++  const AI_ALLOW_KEY = 'kiteline.ig.aiAllowance';
+ 
+   function nextRef(db) {
+-    const n = ((db.incidents || []).length + 1);
+-    return 'IG-' + String(n).padStart(4, '0');
++    return 'IG-' + String(((db.incidents || []).length + 1)).padStart(4, '0');
+   }
+ 
+   function migrateStatus(s) {
+@@ -66,24 +47,22 @@
+     if (!inc.ref) inc.ref = 'IG-' + String((inc.id || '').replace(/\D/g, '').slice(-4) || '0000').padStart(4, '0');
+     if (!inc.category && inc.type) {
+       const map = {
+-        Accident: 'Accident or injury',
+-        Complaint: 'Customer complaint',
+-        Pest: 'Pest sighting',
+-        Equipment: 'Equipment breakdown',
+-        'Food safety': 'Food contamination',
+-        Other: 'Other',
++        Accident: 'Accident or injury', Complaint: 'Customer complaint', Pest: 'Pest sighting',
++        Equipment: 'Equipment breakdown', 'Food safety': 'Food contamination', Other: 'Other',
+       };
+       inc.category = map[inc.type] || inc.type;
+     }
+     if (!Array.isArray(inc.actions)) inc.actions = [];
++    if (!Array.isArray(inc.photos)) inc.photos = [];
++    if (!Array.isArray(inc.history)) inc.history = [];
++    if (!Array.isArray(inc.feedback)) inc.feedback = [];
++    if (!Array.isArray(inc.links)) inc.links = [];
+     if (!inc.investigation || typeof inc.investigation !== 'object') {
+       inc.investigation = {
+         immediateCause: '', contributing: '', rootCause: '', fiveWhys: '',
+-        existingControls: '', failedControls: '', lessons: '',
+-        approvedBy: '', approvedAt: '',
++        existingControls: '', failedControls: '', lessons: '', approvedBy: '', approvedAt: '',
+       };
+     }
+-    if (!Array.isArray(inc.history)) inc.history = [];
+     if (inc.riddorFlag == null) inc.riddorFlag = false;
+     if (inc.dangerPresent == null) inc.dangerPresent = false;
+     return inc;
+@@ -94,29 +73,27 @@
+     db.incidents.forEach(normalize);
+     if (!Array.isArray(db.incidentQrCodes)) {
+       db.incidentQrCodes = QR_LOCATIONS.map((loc) => ({
+-        id: 'iqr_' + loc.id,
+-        locationKey: loc.id,
+-        label: loc.label,
+-        siteId: db.currentSite || null,
++        id: 'iqr_' + loc.id, locationKey: loc.id, label: loc.label, siteId: db.currentSite || null,
+       }));
+     }
++    if (!db.incidentAi) db.incidentAi = { monthlyCap: 200, used: 0, period: '' };
++    const mk = new Date().toISOString().slice(0, 7);
++    if (db.incidentAi.period !== mk) {
++      db.incidentAi.period = mk;
++      db.incidentAi.used = 0;
++    }
+     return db;
+   }
+ 
+   function mayNeedRiddor(inc) {
+     const sev = String(inc.severity || '');
+     const cat = String(inc.category || inc.type || '').toLowerCase();
+-    if (sev === 'Critical' || sev === 'High') {
+-      if (/accident|injur|burn|cut|slip|fall|poison|fire|gas|chemical/.test(cat)) return true;
+-    }
++    if ((sev === 'Critical' || sev === 'High') && /accident|injur|burn|cut|slip|fall|poison|fire|gas|chemical/.test(cat)) return true;
+     return !!inc.riddorFlag;
+   }
+ 
+   function openCount(db, site) {
+-    return (db.incidents || []).filter((i) => {
+-      if (site && i.site !== site) return false;
+-      return migrateStatus(i.status) !== 'Closed';
+-    }).length;
++    return (db.incidents || []).filter((i) => (!site || i.site === site) && migrateStatus(i.status) !== 'Closed').length;
+   }
+ 
+   function overdueActions(db, site) {
+@@ -126,44 +103,52 @@
+       if (site && inc.site !== site) return;
+       normalize(inc);
+       (inc.actions || []).forEach((a) => {
+-        if (a.status === 'Completed') return;
+-        if (a.due && a.due < today) out.push({ incident: inc, action: a });
++        if (a.status !== 'Completed' && a.due && a.due < today) out.push({ incident: inc, action: a });
+       });
+     });
+     return out;
+   }
+ 
++  function dashboardStats(db, site) {
++    const list = (db.incidents || []).map(normalize).filter((i) => !site || i.site === site);
++    const byCat = {};
++    const byArea = {};
++    list.forEach((i) => {
++      byCat[i.category || 'Other'] = (byCat[i.category || 'Other'] || 0) + 1;
++      byArea[i.area || 'Unspecified'] = (byArea[i.area || 'Unspecified'] || 0) + 1;
++    });
++    const closed = list.filter((i) => i.status === 'Closed' && i.closedAt);
++    let avgHours = null;
++    if (closed.length) {
++      avgHours = Math.round(closed.reduce((a, i) => a + (new Date(i.closedAt) - new Date(i.at)), 0) / closed.length / 36e5);
++    }
++    return {
++      total: list.length,
++      open: list.filter((i) => i.status !== 'Closed').length,
++      critical: list.filter((i) => i.severity === 'Critical' || i.severity === 'High').length,
++      overdue: overdueActions(db, site).length,
++      allergen: list.filter((i) => /allergen/i.test(i.category || '')).length,
++      temperature: list.filter((i) => /fridge|freezer|temperature|hot-hold|cooking/i.test(i.category || '')).length,
++      nearMiss: list.filter((i) => /near miss/i.test(i.category || '')).length,
++      byCategory: byCat,
++      byArea,
++      avgHoursToClose: avgHours,
++    };
++  }
++
+   function createIncident(db, patch, byUserId) {
+     ensureAll(db);
+     const now = new Date().toISOString();
+     const inc = normalize(Object.assign({
+       id: (window.Store && window.Store.uid) ? window.Store.uid('inc') : ('inc_' + Date.now()),
+       ref: nextRef(db),
+-      title: '',
+-      category: 'Near miss',
+-      type: 'Other',
+-      site: db.currentSite,
+-      area: '',
+-      severity: 'Medium',
+-      description: '',
+-      dangerPresent: false,
+-      immediateAction: '',
+-      peopleInvolved: '',
+-      witnesses: '',
+-      firstAid: '',
+-      equipment: '',
+-      foodAffected: '',
+-      photoNote: '',
+-      voiceNote: '',
+-      reportedBy: byUserId || 'unknown',
+-      at: now,
+-      status: 'Reported',
+-      action: '',
+-      actions: [],
+-      investigation: {},
+-      history: [{ at: now, by: byUserId || 'unknown', note: 'Incident reported' }],
+-      riddorFlag: false,
+-      qrLocation: '',
++      title: '', category: 'Near miss', type: 'Other', site: db.currentSite,
++      area: '', severity: 'Medium', description: '', dangerPresent: false,
++      immediateAction: '', action: '', peopleInvolved: '', witnesses: '', firstAid: '',
++      equipment: '', foodAffected: '', photoNote: '', voiceNote: '', voiceAudio: '',
++      photos: [], gps: null, reportedBy: byUserId || 'unknown', at: now, status: 'Reported',
++      actions: [], investigation: {}, history: [{ at: now, by: byUserId || 'unknown', note: 'Incident reported' }],
++      feedback: [], links: [], riddorFlag: false, qrLocation: '', source: 'app',
+     }, patch));
+     if (mayNeedRiddor(inc)) inc.riddorFlag = true;
+     db.incidents.unshift(inc);
+@@ -173,16 +158,8 @@
+   function addAction(inc, patch, byUserId) {
+     normalize(inc);
+     const a = Object.assign({
+-      id: 'iga_' + Date.now().toString(36),
+-      ownerId: '',
+-      priority: 'Medium',
+-      due: '',
+-      instructions: '',
+-      evidence: '',
+-      notes: '',
+-      status: 'Open',
+-      completedAt: '',
+-      verifiedBy: '',
++      id: 'iga_' + Date.now().toString(36), ownerId: '', priority: 'Medium', due: '',
++      instructions: '', evidence: '', notes: '', status: 'Open', completedAt: '', verifiedBy: '',
+     }, patch);
+     inc.actions.push(a);
+     inc.status = 'Action Required';
+@@ -195,25 +172,178 @@
+     const next = migrateStatus(status);
+     inc.status = next;
+     if (next === 'Closed') inc.closedAt = new Date().toISOString();
+-    inc.history.push({
+-      at: new Date().toISOString(),
+-      by: byUserId || 'unknown',
+-      note: note || ('Status → ' + next),
+-    });
++    inc.history.push({ at: new Date().toISOString(), by: byUserId || 'unknown', note: note || ('Status → ' + next) });
+     return inc;
+   }
+ 
+-  function reportUrl(locationKey, siteId) {
++  function addFeedback(inc, message, byUserId) {
++    normalize(inc);
++    const row = { id: 'igf_' + Date.now().toString(36), at: new Date().toISOString(), by: byUserId || 'manager', message: String(message || '').trim() };
++    if (!row.message) return null;
++    inc.feedback.unshift(row);
++    inc.history.push({ at: row.at, by: row.by, note: 'Feedback to reporter' });
++    return row;
++  }
++
++  function reportUrl(locationKey, siteId, opts) {
++    opts = opts || {};
+     const q = new URLSearchParams();
+     if (siteId) q.set('site', siteId);
+     if (locationKey) q.set('qr', locationKey);
+     q.set('report', '1');
++    if (opts.public) return '/incident-report.html?' + q.toString();
+     return '/app#incidents?' + q.toString();
+   }
+ 
++  function suggestLinks(db, site) {
++    const sid = site || db.currentSite;
++    const pack = (arr, kind, route, labelFn, siteKey) =>
++      (arr || []).filter((x) => !sid || x[siteKey] === sid || x.site === sid || x.siteId === sid)
++        .slice(0, 8).map((x) => ({ kind, id: x.id, label: labelFn(x), route }));
++    return []
++      .concat(pack(db.sensors, 'sensor', 'temps', (s) => s.name + (s.temp != null ? (' · ' + s.temp + '°C') : ''), 'siteId'))
++      .concat(pack(db.assets, 'asset', 'assets', (a) => a.name || a.id, 'site'))
++      .concat(pack(db.recipes, 'recipe', 'recipes', (r) => r.name, 'site'))
++      .concat(pack(db.deliveries, 'delivery', 'deliveries', (d) => (d.supplier || 'Delivery'), 'site'))
++      .concat(pack(db.batches, 'batch', 'batches', (b) => b.product || b.batchNo || b.id, 'site'))
++      .concat(pack(db.labels, 'label', 'labels', (l) => l.name || l.product || l.id, 'site'));
++  }
++
++  function captureGps() {
++    return new Promise((resolve) => {
++      if (!navigator.geolocation) return resolve(null);
++      navigator.geolocation.getCurrentPosition(
++        (pos) => resolve({
++          lat: pos.coords.latitude,
++          lng: pos.coords.longitude,
++          accuracy: pos.coords.accuracy,
++          at: new Date().toISOString(),
++        }),
++        () => resolve(null),
++        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
++      );
++    });
++  }
++
++  function speechSupported() {
++    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
++  }
++
++  function startSpeechToText(onPartial, onFinal, onError) {
++    const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
++    if (!Ctor) {
++      if (onError) onError(new Error('Speech recognition not supported in this browser'));
++      return null;
++    }
++    const rec = new Ctor();
++    rec.lang = 'en-GB';
++    rec.interimResults = true;
++    rec.continuous = false;
++    let finalText = '';
++    rec.onresult = (ev) => {
++      let interim = '';
++      for (let i = ev.resultIndex; i < ev.results.length; i++) {
++        const t = ev.results[i][0].transcript;
++        if (ev.results[i].isFinal) finalText += t + ' ';
++        else interim += t;
++      }
++      if (onPartial) onPartial((finalText + interim).trim());
++    };
++    rec.onerror = (e) => { if (onError) onError(e); };
++    rec.onend = () => { if (onFinal) onFinal(finalText.trim()); };
++    rec.start();
++    return rec;
++  }
++
++  async function recordVoiceBlob(ms) {
++    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
++      throw new Error('Microphone not available');
++    }
++    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
++    const rec = new MediaRecorder(stream);
++    const chunks = [];
++    rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
++    const done = new Promise((resolve) => {
++      rec.onstop = () => {
++        stream.getTracks().forEach((t) => t.stop());
++        const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' });
++        const reader = new FileReader();
++        reader.onload = () => resolve({ dataUrl: reader.result, blob });
++        reader.readAsDataURL(blob);
++      };
++    });
++    rec.start();
++    await new Promise((r) => setTimeout(r, ms || 8000));
++    if (rec.state !== 'inactive') rec.stop();
++    return done;
++  }
++
++  function offlineQueue() {
++    try { return JSON.parse(localStorage.getItem(OFFLINE_KEY) || '[]'); } catch { return []; }
++  }
++  function saveOfflineQueue(arr) {
++    localStorage.setItem(OFFLINE_KEY, JSON.stringify(arr.slice(-50)));
++  }
++  function enqueueOffline(report) {
++    const q = offlineQueue();
++    q.push(Object.assign({ queuedAt: new Date().toISOString() }, report));
++    saveOfflineQueue(q);
++    return q.length;
++  }
++  async function flushOffline(apiPost) {
++    const q = offlineQueue();
++    if (!q.length) return { sent: 0 };
++    const remain = [];
++    let sent = 0;
++    for (const item of q) {
++      try {
++        if (apiPost) await apiPost(item);
++        else if (window.Api && window.Api.incidentPublicReport) await window.Api.incidentPublicReport(item);
++        sent += 1;
++      } catch {
++        remain.push(item);
++      }
++    }
++    saveOfflineQueue(remain);
++    return { sent, remain: remain.length };
++  }
++
++  function aiAllowance(db) {
++    ensureAll(db);
++    const local = (() => { try { return JSON.parse(localStorage.getItem(AI_ALLOW_KEY) || '{}'); } catch { return {}; } })();
++    const mk = new Date().toISOString().slice(0, 7);
++    if (local.period !== mk) { local.period = mk; local.used = 0; }
++    const cap = Number((db.incidentAi && db.incidentAi.monthlyCap) || local.cap || 200);
++    const used = Number((db.incidentAi && db.incidentAi.used) || local.used || 0);
++    return { period: mk, cap, used, remaining: Math.max(0, cap - used), pct: cap ? Math.round((used / cap) * 100) : 0 };
++  }
++
++  function consumeAi(db) {
++    ensureAll(db);
++    const a = aiAllowance(db);
++    if (a.used >= a.cap) return { ok: false, reason: 'Monthly Incident AI allowance used — reporting still works' };
++    db.incidentAi.used = (db.incidentAi.used || 0) + 1;
++    const local = { period: a.period, used: db.incidentAi.used, cap: a.cap };
++    localStorage.setItem(AI_ALLOW_KEY, JSON.stringify(local));
++    const pct = Math.round((db.incidentAi.used / a.cap) * 100);
++    return { ok: true, used: db.incidentAi.used, cap: a.cap, warn70: pct >= 70, warn90: pct >= 90 };
++  }
++
++  function alertChannelsForSeverity(severity) {
++    const s = String(severity || 'Low');
++    return {
++      dashboard: true,
++      email: s === 'Medium' || s === 'High' || s === 'Critical',
++      push: s === 'High' || s === 'Critical',
++      sms: s === 'Critical' || s === 'High',
++    };
++  }
++
+   window.IncidentGuard = {
+     CATEGORIES, STATUSES, SEVERITIES, QR_LOCATIONS, ACTION_STATUSES,
+-    nextRef, normalize, ensureAll, mayNeedRiddor, openCount, overdueActions,
+-    createIncident, addAction, setStatus, reportUrl, migrateStatus,
++    nextRef, normalize, ensureAll, mayNeedRiddor, openCount, overdueActions, dashboardStats,
++    createIncident, addAction, setStatus, addFeedback, reportUrl, suggestLinks,
++    captureGps, speechSupported, startSpeechToText, recordVoiceBlob,
++    enqueueOffline, flushOffline, offlineQueue, aiAllowance, consumeAi, alertChannelsForSeverity,
+   };
+ })();
+diff --git a/js/views.js b/js/views.js
+index 204bd22..060a9a1 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -3600,6 +3600,19 @@
+           <button class="btn btn-ghost btn-sm w-full mt-2" id="testsms">${icon('mail','ico')} Send test SMS</button>
+           <p class="text-xs text-ink-400 mt-3" id="notifyStatus">Checking notification setup?</p>
+         </div>
++        <div class="card card-pad lg:col-span-2" id="incidentAiCard">
++          <h3 class="font-bold mb-1">IncidentGuard AI allowance</h3>
++          <p class="text-sm text-ink-500 mb-2">Uses the same Recipe AI access (Kiteline plan / your OpenAI key). Reporting stays available when the allowance is used up.</p>
++          <p class="text-sm font-semibold" id="incidentAiLine">Loading…</p>
++          <div class="h-2 rounded-full bg-ink-100 mt-2 overflow-hidden"><div id="incidentAiBar" class="h-full bg-brand-500" style="width:0%"></div></div>
++          <div class="flex flex-wrap gap-2 mt-3">
++            <label class="text-xs text-ink-500 self-center">Monthly draft cap</label>
++            <input id="incidentAiCap" type="number" min="20" max="5000" class="input !w-28 !py-1 text-sm" value="200">
++            <button type="button" class="btn btn-ghost btn-sm" id="incidentAiSaveCap">Save cap</button>
++            <button type="button" class="btn btn-ghost btn-sm" id="incidentBridgeBtn">Export bridge JSON</button>
++          </div>
++          <p class="text-xs text-ink-400 mt-2">AI drafts never close incidents, never decide RIDDOR, and never change permissions. Public QR reports: <a class="text-brand-700 font-semibold" href="/incident-report.html" target="_blank" rel="noopener">/incident-report.html</a></p>
++        </div>
+         <div class="card card-pad lg:col-span-2" id="recipeAiCard">
+           <h3 class="font-bold mb-1">Recipe AI assistant ? 3 ways to enable</h3>
+           <p class="text-sm text-ink-500 mb-2" id="recipeAiLine">Checking?</p>
+@@ -4055,6 +4068,52 @@
+           } catch (e) { toast(e.message || 'Could not remove key', 'error'); }
+         };
+       }
++      // IncidentGuard AI allowance (local monthly draft cap)
++      try {
++        if (window.IncidentGuard) window.IncidentGuard.ensureAll(S.db);
++        const allow = window.IncidentGuard ? window.IncidentGuard.aiAllowance(S.db) : { used: 0, cap: 200, pct: 0 };
++        const line = document.getElementById('incidentAiLine');
++        const bar = document.getElementById('incidentAiBar');
++        const capInp = document.getElementById('incidentAiCap');
++        if (line) line.textContent = allow.used + ' / ' + allow.cap + ' AI drafts used this month (' + (allow.pct || 0) + '%)';
++        if (bar) bar.style.width = Math.min(100, allow.pct || 0) + '%';
++        if (capInp) capInp.value = String(allow.cap || 200);
++        const saveCap = document.getElementById('incidentAiSaveCap');
++        if (saveCap) saveCap.onclick = () => {
++          const n = Math.max(20, Math.min(5000, parseInt(document.getElementById('incidentAiCap').value, 10) || 200));
++          S.db.incidentAi = S.db.incidentAi || { used: 0, period: '' };
++          S.db.incidentAi.monthlyCap = n;
++          S.persist();
++          toast('Incident AI monthly cap set to ' + n);
++          if (line) {
++            const a2 = window.IncidentGuard.aiAllowance(S.db);
++            line.textContent = a2.used + ' / ' + a2.cap + ' AI drafts used this month (' + (a2.pct || 0) + '%)';
++            if (bar) bar.style.width = Math.min(100, a2.pct || 0) + '%';
++          }
++        };
++        const bridgeBtn = document.getElementById('incidentBridgeBtn');
++        if (bridgeBtn) bridgeBtn.onclick = async () => {
++          try {
++            if (window.Api && S.remote && window.Api.incidentBridge) {
++              const data = await window.Api.incidentBridge();
++              const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
++              const a = document.createElement('a');
++              a.href = URL.createObjectURL(blob);
++              a.download = 'kiteline-incidentguard-bridge.json';
++              a.click();
++              toast('Bridge export downloaded');
++            } else if (window.IncidentGuard) {
++              const stats = window.IncidentGuard.dashboardStats(S.db, S.db.currentSite);
++              const blob = new Blob([JSON.stringify({ product: 'Kiteline IncidentGuard', local: true, stats, incidents: (S.db.incidents || []).slice(0, 100) }, null, 2)], { type: 'application/json' });
++              const a = document.createElement('a');
++              a.href = URL.createObjectURL(blob);
++              a.download = 'kiteline-incidentguard-local.json';
++              a.click();
++              toast('Local IncidentGuard export downloaded');
++            }
++          } catch (e) { toast(e.message || 'Export failed', 'error'); }
++        };
++      } catch (e) {}
+       const AI_PERM_LABELS = {
+         read_recipes: 'Read recipes',
+         create_draft_recipes: 'Create draft recipes',
+diff --git a/server/incidentguard.js b/server/incidentguard.js
+new file mode 100644
+index 0000000..4c16b1b
+--- /dev/null
++++ b/server/incidentguard.js
+@@ -0,0 +1,325 @@
++/* Kiteline IncidentGuard — public report, AI drafts, Parslia bridge helpers */
++'use strict';
++
++const crypto = require('crypto');
++const notify = require('./notify');
++const recipeAiAccess = require('./recipe-ai-access');
++
++const OPENAI_KEY = (process.env.OPENAI_API_KEY || '').trim();
++const OPENAI_BASE = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
++const CHAT_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
++const ENABLED = process.env.RECIPE_AI_ENABLED === 'true' || process.env.INCIDENT_AI_ENABLED === 'true';
++
++// Empty unless INCIDENT_REPORT_KEY is set — demo/public kiosks stay open by default.
++const PUBLIC_REPORT_KEY = (process.env.INCIDENT_REPORT_KEY || '').trim();
++
++function nextRef(state) {
++  const n = ((state.incidents || []).length + 1);
++  return 'IG-' + String(n).padStart(4, '0');
++}
++
++function normalizeIncident(inc) {
++  if (!inc || typeof inc !== 'object') return inc;
++  const map = {
++    Open: 'Reported',
++    'In progress': 'Action Required',
++    Closed: 'Closed',
++  };
++  if (map[inc.status]) inc.status = map[inc.status];
++  if (!inc.ref) inc.ref = nextRef({ incidents: [inc] });
++  if (!Array.isArray(inc.actions)) inc.actions = [];
++  if (!Array.isArray(inc.photos)) inc.photos = [];
++  if (!Array.isArray(inc.history)) inc.history = [];
++  if (!inc.investigation) {
++    inc.investigation = {
++      immediateCause: '', contributing: '', rootCause: '', fiveWhys: '',
++      existingControls: '', failedControls: '', lessons: '',
++    };
++  }
++  if (!Array.isArray(inc.feedback)) inc.feedback = [];
++  if (!Array.isArray(inc.links)) inc.links = [];
++  return inc;
++}
++
++function mayNeedRiddor(inc) {
++  const sev = String(inc.severity || '');
++  const cat = String(inc.category || inc.type || '').toLowerCase();
++  if (sev === 'Critical' || sev === 'High') {
++    if (/accident|injur|burn|cut|slip|fall|poison|fire|gas|chemical/.test(cat)) return true;
++  }
++  return !!inc.riddorFlag;
++}
++
++function createFromBody(state, body, meta) {
++  state.incidents = state.incidents || [];
++  const now = new Date().toISOString();
++  const photos = Array.isArray(body.photos) ? body.photos.slice(0, 4).map((p) => String(p).slice(0, 900000)) : [];
++  if (body.photoData) photos.unshift(String(body.photoData).slice(0, 900000));
++  const inc = normalizeIncident({
++    id: 'inc_' + crypto.randomBytes(4).toString('hex'),
++    ref: nextRef(state),
++    title: String(body.title || 'Untitled incident').trim().slice(0, 160),
++    category: String(body.category || 'Near miss').trim().slice(0, 80),
++    type: String(body.category || body.type || 'Other').trim().slice(0, 80),
++    site: body.site || state.currentSite || (state.sites && state.sites[0] && state.sites[0].id) || '',
++    area: String(body.area || '').trim().slice(0, 80),
++    severity: ['Low', 'Medium', 'High', 'Critical'].includes(body.severity) ? body.severity : 'Medium',
++    description: String(body.description || '').trim().slice(0, 4000),
++    dangerPresent: !!body.dangerPresent,
++    immediateAction: String(body.immediateAction || '').trim().slice(0, 2000),
++    action: String(body.immediateAction || body.action || '').trim().slice(0, 2000),
++    peopleInvolved: String(body.peopleInvolved || '').trim().slice(0, 500),
++    witnesses: String(body.witnesses || '').trim().slice(0, 500),
++    firstAid: String(body.firstAid || '').trim().slice(0, 500),
++    equipment: String(body.equipment || '').trim().slice(0, 200),
++    foodAffected: String(body.foodAffected || '').trim().slice(0, 500),
++    photoNote: String(body.photoNote || '').trim().slice(0, 500),
++    voiceNote: String(body.voiceNote || '').trim().slice(0, 8000),
++    voiceAudio: body.voiceAudio ? String(body.voiceAudio).slice(0, 1200000) : '',
++    photos,
++    gps: body.gps && typeof body.gps === 'object' ? {
++      lat: Number(body.gps.lat) || null,
++      lng: Number(body.gps.lng) || null,
++      accuracy: Number(body.gps.accuracy) || null,
++      at: now,
++    } : null,
++    qrLocation: String(body.qrLocation || '').trim().slice(0, 40),
++    reportedBy: meta.reportedBy || 'anonymous',
++    reporterName: String(body.reporterName || meta.reporterName || 'Anonymous').trim().slice(0, 80),
++    reporterContact: String(body.reporterContact || '').trim().slice(0, 120),
++    anonymous: !!meta.anonymous,
++    at: now,
++    status: 'Reported',
++    actions: [],
++    investigation: {},
++    history: [{ at: now, by: meta.reportedBy || 'anonymous', note: meta.anonymous ? 'Anonymous / QR report' : 'Incident reported' }],
++    feedback: [],
++    links: Array.isArray(body.links) ? body.links.slice(0, 12) : [],
++    riddorFlag: false,
++    source: meta.source || 'app',
++  });
++  if (mayNeedRiddor(inc)) inc.riddorFlag = true;
++  state.incidents.unshift(inc);
++  return inc;
++}
++
++async function escalate(state, inc) {
++  const sev = String(inc.severity || 'Low');
++  const alert = {
++    id: 'al_ig_' + inc.id,
++    severity: sev === 'Critical' ? 'critical' : sev === 'High' ? 'high' : sev === 'Medium' ? 'medium' : 'low',
++    site: inc.site,
++    title: 'IncidentGuard ' + (inc.ref || '') + ': ' + (inc.title || 'Incident'),
++    detail: [inc.category, inc.area, (inc.description || '').slice(0, 180)].filter(Boolean).join(' · '),
++    at: inc.at || new Date().toISOString(),
++    status: 'open',
++    sensor: null,
++    incidentId: inc.id,
++  };
++  state.alerts = state.alerts || [];
++  state.alerts.unshift(alert);
++
++  // Dashboard always; email for Medium+; SMS for High/Critical when channels on
++  const wantEmail = sev === 'Medium' || sev === 'High' || sev === 'Critical';
++  const wantSms = sev === 'High' || sev === 'Critical';
++  const results = { alert: true, email: null, sms: null };
++  try {
++    if (wantEmail && wantSms) {
++      const both = await notify.notifyAlert(state, alert);
++      results.email = both.email;
++      results.sms = both.sms;
++    } else if (wantEmail) {
++      results.email = await notify.sendEmail(state, alert);
++    }
++  } catch (e) {
++    results.email = { error: e.message };
++  }
++  return results;
++}
++
++async function openaiJson(messages, apiKey) {
++  const key = (apiKey || OPENAI_KEY || '').trim();
++  if (!key) throw new Error('No OpenAI API key — enable Recipe AI / Incident AI in Settings');
++  const res = await fetch(`${OPENAI_BASE}/chat/completions`, {
++    method: 'POST',
++    headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
++    body: JSON.stringify({
++      model: CHAT_MODEL,
++      messages,
++      temperature: 0.4,
++      response_format: { type: 'json_object' },
++    }),
++  });
++  let data = null;
++  try { data = await res.json(); } catch {}
++  if (!res.ok) {
++    throw new Error((data && data.error && data.error.message) || 'OpenAI request failed');
++  }
++  const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
++  if (!text) throw new Error('Empty AI response');
++  return JSON.parse(text);
++}
++
++const SYSTEM = `You assist UK professional kitchen managers with IncidentGuard drafts.
++Never claim legal certainty. Never decide RIDDOR. Never close incidents.
++Return JSON only. Keep language clear for busy chefs.`;
++
++async function runAi(action, body, apiKey) {
++  const inc = body.incident || body;
++  const base = [
++    `Title: ${inc.title || ''}`,
++    `Category: ${inc.category || inc.type || ''}`,
++    `Severity: ${inc.severity || ''}`,
++    `Area: ${inc.area || ''}`,
++    `Description: ${inc.description || ''}`,
++    `Immediate action: ${inc.immediateAction || inc.action || ''}`,
++    `Voice note transcript: ${inc.voiceNote || ''}`,
++    `Equipment: ${inc.equipment || ''}`,
++    `Food affected: ${inc.foodAffected || ''}`,
++  ].join('\n');
++
++  if (action === 'summarise' || action === 'summarize') {
++    return openaiJson([
++      { role: 'system', content: SYSTEM },
++      { role: 'user', content: `Summarise this kitchen incident for managers.\n${base}\nReturn JSON { "summary": string, "risks": string[], "nextSteps": string[] }` },
++    ], apiKey);
++  }
++  if (action === 'root-cause') {
++    return openaiJson([
++      { role: 'system', content: SYSTEM },
++      { role: 'user', content: `Suggest investigation angles (draft only).\n${base}\nReturn JSON { "immediateCause": string, "contributing": string, "rootCause": string, "fiveWhys": string, "failedControls": string }` },
++    ], apiKey);
++  }
++  if (action === 'capa') {
++    return openaiJson([
++      { role: 'system', content: SYSTEM },
++      { role: 'user', content: `Suggest corrective/preventive actions.\n${base}\nReturn JSON { "actions": [ { "instructions": string, "priority": "Low|Medium|High|Critical", "days": number } ] }` },
++    ], apiKey);
++  }
++  if (action === 'toolbox') {
++    return openaiJson([
++      { role: 'system', content: SYSTEM },
++      { role: 'user', content: `Draft a 5-minute toolbox talk from this incident.\n${base}\nReturn JSON { "title": string, "talkingPoints": string[], "briefing": string }` },
++    ], apiKey);
++  }
++  if (action === 'translate') {
++    const lang = String(body.lang || 'es').slice(0, 20);
++    return openaiJson([
++      { role: 'system', content: SYSTEM },
++      { role: 'user', content: `Translate incident fields to ${lang}.\n${base}\nReturn JSON { "title": string, "description": string, "immediateAction": string, "lang": string }` },
++    ], apiKey);
++  }
++  if (action === 'structure-voice') {
++    const transcript = String(body.transcript || inc.voiceNote || '').trim();
++    if (!transcript) throw new Error('No transcript');
++    return openaiJson([
++      { role: 'system', content: SYSTEM },
++      { role: 'user', content: `Convert this kitchen voice note into a structured incident draft:\n${transcript}\nReturn JSON { "title": string, "category": string, "severity": "Low|Medium|High|Critical", "description": string, "immediateAction": string, "area": string }` },
++    ], apiKey);
++  }
++  throw new Error('Unknown Incident AI action');
++}
++
++function dashboardStats(state, siteId) {
++  const list = (state.incidents || []).map(normalizeIncident).filter((i) => !siteId || i.site === siteId);
++  const open = list.filter((i) => i.status !== 'Closed');
++  const byCat = {};
++  const byArea = {};
++  list.forEach((i) => {
++    const c = i.category || i.type || 'Other';
++    byCat[c] = (byCat[c] || 0) + 1;
++    const a = i.area || 'Unspecified';
++    byArea[a] = (byArea[a] || 0) + 1;
++  });
++  let overdue = 0;
++  const today = new Date().toISOString().slice(0, 10);
++  list.forEach((i) => (i.actions || []).forEach((a) => {
++    if (a.status !== 'Completed' && a.due && a.due < today) overdue += 1;
++  }));
++  const closed = list.filter((i) => i.status === 'Closed' && i.closedAt);
++  let avgHours = null;
++  if (closed.length) {
++    const sum = closed.reduce((acc, i) => acc + (new Date(i.closedAt) - new Date(i.at)), 0);
++    avgHours = Math.round((sum / closed.length) / 36e5);
++  }
++  return {
++    total: list.length,
++    open: open.length,
++    critical: list.filter((i) => i.severity === 'Critical' || i.severity === 'High').length,
++    overdue,
++    allergen: list.filter((i) => /allergen/i.test(i.category || '')).length,
++    temperature: list.filter((i) => /fridge|freezer|temperature|hot-hold|cooking/i.test(i.category || '')).length,
++    byCategory: byCat,
++    byArea,
++    avgHoursToClose: avgHours,
++  };
++}
++
++function suggestKitchenLinks(state, siteId) {
++  const site = siteId || state.currentSite;
++  const sensors = (state.sensors || []).filter((s) => !site || s.siteId === site).slice(0, 8)
++    .map((s) => ({ kind: 'sensor', id: s.id, label: s.name, route: 'temps' }));
++  const assets = (state.assets || []).filter((a) => !site || a.site === site).slice(0, 8)
++    .map((a) => ({ kind: 'asset', id: a.id, label: a.name || a.id, route: 'assets' }));
++  const recipes = (state.recipes || []).filter((r) => !site || r.site === site).slice(0, 8)
++    .map((r) => ({ kind: 'recipe', id: r.id, label: r.name, route: 'recipes' }));
++  const deliveries = (state.deliveries || []).filter((d) => !site || d.site === site).slice(0, 6)
++    .map((d) => ({ kind: 'delivery', id: d.id, label: (d.supplier || 'Delivery') + ' · ' + (d.items || '').slice(0, 40), route: 'deliveries' }));
++  const batches = (state.batches || []).filter((b) => !site || b.site === site).slice(0, 6)
++    .map((b) => ({ kind: 'batch', id: b.id, label: (b.product || b.batchNo || b.id), route: 'batches' }));
++  return { sensors, assets, recipes, deliveries, batches };
++}
++
++function publicKeyOk(req, body) {
++  const header = String(req.headers['x-api-key'] || req.headers['x-incident-key'] || '').trim();
++  const q = String((body && body.publicKey) || '').trim();
++  // Open by default; set INCIDENT_REPORT_KEY (and optionally INCIDENT_PUBLIC_OPEN=false) to lock kiosks
++  if (process.env.INCIDENT_PUBLIC_OPEN === 'false' && !PUBLIC_REPORT_KEY) return false;
++  if (!PUBLIC_REPORT_KEY) return true;
++  if (process.env.INCIDENT_PUBLIC_OPEN === 'true') return true;
++  const ingest = String(process.env.INGEST_KEY || '').trim();
++  return header === PUBLIC_REPORT_KEY || q === PUBLIC_REPORT_KEY || (!!ingest && header === ingest);
++}
++
++function bridgePayload(state, since) {
++  const list = (state.incidents || []).map(normalizeIncident);
++  const filtered = since
++    ? list.filter((i) => new Date(i.at) >= new Date(since))
++    : list.slice(0, 100);
++  return {
++    product: 'Kiteline IncidentGuard',
++    exportedAt: new Date().toISOString(),
++    count: filtered.length,
++    incidents: filtered.map((i) => ({
++      ref: i.ref,
++      id: i.id,
++      title: i.title,
++      category: i.category,
++      severity: i.severity,
++      status: i.status,
++      site: i.site,
++      area: i.area,
++      at: i.at,
++      closedAt: i.closedAt || null,
++      riddorFlag: !!i.riddorFlag,
++      actionCount: (i.actions || []).length,
++      openActions: (i.actions || []).filter((a) => a.status !== 'Completed').length,
++    })),
++  };
++}
++
++module.exports = {
++  PUBLIC_REPORT_KEY,
++  createFromBody,
++  escalate,
++  runAi,
++  dashboardStats,
++  suggestKitchenLinks,
++  publicKeyOk,
++  bridgePayload,
++  normalizeIncident,
++  mayNeedRiddor,
++  platformAiAvailable: () => ENABLED && !!OPENAI_KEY,
++  resolveAiAccess: (db, email) => recipeAiAccess.resolveAccess(db, email, 'ingredients'),
++  recordAiUsage: (db, email) => recipeAiAccess.recordUsage(db, email, 'ingredients'),
++};
+diff --git a/server/security.js b/server/security.js
+index 1077ef6..7493b03 100644
+--- a/server/security.js
++++ b/server/security.js
+@@ -14,6 +14,8 @@ const RATE_WINDOWS = {
+   resend: { limit: 5, windowMs: 60 * 60 * 1000 },
+   verify: { limit: 10, windowMs: 60 * 60 * 1000 },
+   'recipe-ai': { limit: 30, windowMs: 60 * 60 * 1000 },
++  'incident-report': { limit: 20, windowMs: 60 * 60 * 1000 },
++  'incident-ai': { limit: 40, windowMs: 60 * 60 * 1000 },
+ };
+ 
+ const rateBuckets = new Map();
+@@ -144,7 +146,7 @@ function securityHeaders(extra) {
+     'X-Content-Type-Options': 'nosniff',
+     'X-Frame-Options': 'DENY',
+     'Referrer-Policy': 'strict-origin-when-cross-origin',
+-    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
++    'Permissions-Policy': 'camera=(self), microphone=(self), geolocation=(self)',
+     'X-Robots-Tag': 'noindex, nofollow',
+   }, extra || {});
+ }
+diff --git a/server/server.js b/server/server.js
+index dd4e49b..a8482a7 100644
+--- a/server/server.js
++++ b/server/server.js
+@@ -28,7 +28,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
+   || (!isProd && process.env.DEMO_MODE !== 'false');
+ // Early access: registration open unless explicitly disabled.
+ const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
+-const APP_BUILD = '2026-07-27-incidentguard';
++const APP_BUILD = '2026-07-28-incidentguard-full';
+ const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
+ const notify = require('./notify');
+ const vedantaReports = require('./vedanta-reports');
+@@ -38,6 +38,7 @@ const billing = require('./billing');
+ const security = require('./security');
+ const recipeAi = require('./recipe-ai');
+ const recipeAiAccess = require('./recipe-ai-access');
++const incidentGuard = require('./incidentguard');
+ const tenants = require('./tenants');
+ const aiConnector = require('./ai-connector');
+ const aiMcp = require('./ai-mcp');
+@@ -1061,6 +1062,56 @@ async function handleApi(req, res, url) {
+     if (handled) return;
+   }
+ 
++  // POST /api/incidents/public-report — anonymous / QR kiosk (no management login)
++  if (route === '/incidents/public-report' && req.method === 'POST') {
++    const rl = security.checkRateLimit(req, 'incident-report');
++    if (!rl.ok) return apiSend(429, { error: 'Too many reports. Try again later.', retryAfter: rl.retryAfter });
++    if (!incidentGuard.publicKeyOk(req, body)) return apiSend(401, { error: 'Invalid incident report key' });
++    const kitchen = tenants.getDemoState(db) || db.state;
++    if (!kitchen) return apiSend(409, { error: 'No kitchen workspace available for public reports yet' });
++    if (body.site && Array.isArray(kitchen.sites) && kitchen.sites.some((s) => s.id === body.site)) {
++      kitchen.currentSite = body.site;
++    }
++    const inc = incidentGuard.createFromBody(kitchen, body, {
++      anonymous: true,
++      reportedBy: 'anonymous',
++      reporterName: body.reporterName || 'Anonymous',
++      source: body.qrLocation ? 'qr' : 'public',
++    });
++    const esc = await incidentGuard.escalate(kitchen, inc);
++    kitchen._updatedAt = new Date().toISOString();
++    kitchen._updatedBy = 'incident-public';
++    if (db.state === kitchen || tenants.getDemoState(db) === kitchen) db.state = kitchen;
++    writeDb(db);
++    return apiSend(200, {
++      ok: true,
++      ref: inc.ref,
++      id: inc.id,
++      riddorFlag: !!inc.riddorFlag,
++      escalation: { email: !!(esc.email && !esc.email.skipped), sms: !!(esc.sms && !esc.sms.skipped) },
++    });
++  }
++
++  // GET /api/incidents/public-config — categories for kiosk page
++  if (route === '/incidents/public-config' && req.method === 'GET') {
++    return apiSend(200, {
++      ok: true,
++      build: APP_BUILD,
++      ai: incidentGuard.platformAiAvailable(),
++      openPublic: process.env.INCIDENT_PUBLIC_OPEN === 'true' || !process.env.INCIDENT_REPORT_KEY,
++    });
++  }
++
++  // POST /api/incidents/bridge-pull — Parslia / external ops via shared API key (no user session)
++  if (route === '/incidents/bridge-pull' && req.method === 'POST') {
++    const key = String(req.headers['x-api-key'] || body.key || '').trim();
++    const expected = (process.env.PARSLIA_BRIDGE_KEY || process.env.INGEST_KEY || '').trim();
++    if (!expected || key !== expected) return apiSend(401, { error: 'Invalid bridge key' });
++    const kitchen = tenants.getDemoState(db) || db.state;
++    if (!kitchen) return apiSend(409, { error: 'No state' });
++    return apiSend(200, incidentGuard.bridgePayload(kitchen, body.since));
++  }
++
+   // everything below requires auth
+   const me = userFromReq(db, req);
+   if (!me) return apiSend(401, { error: 'Session expired — sign in again', code: 'session_expired' });
+@@ -1342,6 +1393,52 @@ async function handleApi(req, res, url) {
+     }
+   }
+ 
++  // --- IncidentGuard AI drafts (reuses Recipe AI access / key) ---
++  if (route.startsWith('/incident-ai/') && req.method === 'POST') {
++    const rlAi = security.checkRateLimit(req, 'incident-ai');
++    if (!rlAi.ok) return apiSend(429, { error: 'Too many AI requests. Try again later.', code: 'rate_limited', retryAfter: rlAi.retryAfter });
++    const action = route.replace(/^\/incident-ai\//, '');
++    const access = incidentGuard.resolveAiAccess(db, me.email);
++    if (!access.ok) return apiSend(403, { error: access.error || 'Enable Recipe AI / Incident AI in Settings first', status: access.status });
++    try {
++      const result = await incidentGuard.runAi(action, body, access.apiKey);
++      incidentGuard.recordAiUsage(db, me.email);
++      security.audit(db, 'incident_ai_use', { ip, email: me.email, action });
++      writeDb(db);
++      return apiSend(200, Object.assign({ draft: true, notice: 'AI draft only — manager must review before official use' }, result));
++    } catch (e) {
++      console.error('[incident-ai]', action, e.message);
++      return apiSend(400, { error: e.message || 'Incident AI failed' });
++    }
++  }
++
++  // POST /api/incidents/escalate — re-notify for an existing incident
++  if (route === '/incidents/escalate' && req.method === 'POST') {
++    const state = tenants.getStateForUser(db, me.email);
++    if (!state) return apiSend(409, { error: 'No workspace' });
++    const inc = (state.incidents || []).find((x) => x.id === body.id || x.ref === body.ref);
++    if (!inc) return apiSend(404, { error: 'Incident not found' });
++    const esc = await incidentGuard.escalate(state, inc);
++    writeDb(db);
++    return apiSend(200, { ok: true, escalation: esc });
++  }
++
++  // GET /api/incidents/stats
++  if (route === '/incidents/stats' && req.method === 'GET') {
++    const state = tenants.getStateForUser(db, me.email);
++    if (!state) return apiSend(409, { error: 'No workspace' });
++    const site = url.searchParams.get('site') || state.currentSite;
++    return apiSend(200, incidentGuard.dashboardStats(state, site));
++  }
++
++  // GET /api/incidents/bridge — compact export for Parslia / external ops (auth required)
++  if (route === '/incidents/bridge' && req.method === 'GET') {
++    const state = tenants.getStateForUser(db, me.email);
++    if (!state) return apiSend(409, { error: 'No workspace' });
++    const since = url.searchParams.get('since') || '';
++    return apiSend(200, incidentGuard.bridgePayload(state, since || undefined));
++  }
++
+   return apiSend( 404, { error: 'Unknown API route' });
+ }
+ 
+diff --git a/site/incident-management.html b/site/incident-management.html
+index 893b016..00cd942 100644
+--- a/site/incident-management.html
++++ b/site/incident-management.html
+@@ -96,7 +96,7 @@
+ 
+   <section class="max-w-4xl mx-auto px-5 py-8">
+     <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-center text-sm text-ink-700">
+-      <strong class="text-amber-900">Pilot notice.</strong> IncidentGuard is live in the Kiteline app for early testing. AI assistance, offline QR kiosks and SMS escalation are rolling out in stages — final compliance decisions always stay with your authorised responsible person.
++      <strong class="text-amber-900">Pilot notice.</strong> IncidentGuard is live in the Kiteline app: reporting, CAPA, QR/public forms, GPS, photos, voice notes, AI drafts, escalation and Parslia bridge export. Final compliance and RIDDOR decisions always stay with your authorised responsible person.
+     </div>
+   </section>
+ 
+@@ -214,6 +214,7 @@
+         <a href="mailto:contact@kiteline.uk?subject=IncidentGuard%20Pilot" class="ig-cta ig-cta-primary">Join the IncidentGuard Pilot</a>
+         <a href="contact.html#demo" class="ig-cta ig-cta-ghost">Book a Demonstration</a>
+         <a href="/app#incidents" class="ig-cta ig-cta-ghost">Try in the app</a>
++        <a href="/incident-report.html" class="ig-cta ig-cta-ghost">Public report (no login)</a>
+       </div>
+       <p class="mt-6 text-sm text-white/50">Contact: <a class="underline hover:text-white" href="mailto:contact@kiteline.uk">contact@kiteline.uk</a></p>
+     </div>
+diff --git a/site/incident-report.html b/site/incident-report.html
+new file mode 100644
+index 0000000..7768a78
+--- /dev/null
++++ b/site/incident-report.html
+@@ -0,0 +1,195 @@
++<!DOCTYPE html>
++<html lang="en">
++<head>
++  <meta charset="UTF-8" />
++  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++  <title>Report an incident — Kiteline IncidentGuard</title>
++  <meta name="description" content="Submit a kitchen incident or near-miss without accessing management records." />
++  <script src="https://cdn.tailwindcss.com"></script>
++  <script>tailwind.config={theme:{extend:{colors:{brand:{500:'#14b8a6',600:'#0d9488',700:'#0f766e'},ink:{100:'#f1f5f9',400:'#94a3b8',500:'#64748b',700:'#334155',900:'#0f172a'}},fontFamily:{sans:['Source Sans 3','system-ui','sans-serif']}}}}</script>
++  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Sora:wght@700&display=swap" rel="stylesheet">
++  <style>
++    body{font-family:'Source Sans 3',system-ui,sans-serif}
++    .display{font-family:Sora,system-ui,sans-serif}
++    .hero{background:linear-gradient(155deg,#0b1220,#0f766e 55%,#042f2e)}
++  </style>
++</head>
++<body class="bg-ink-100 text-ink-900 antialiased min-h-screen">
++  <header class="hero text-white px-5 py-8">
++    <div class="max-w-lg mx-auto">
++      <p class="text-brand-300 text-xs font-bold tracking-widest uppercase">Kiteline IncidentGuard</p>
++      <h1 class="display text-2xl font-bold mt-2">Report an incident</h1>
++      <p class="text-white/70 text-sm mt-2">No management login required. Your report gets a reference number and goes to the kitchen register.</p>
++    </div>
++  </header>
++
++  <main class="max-w-lg mx-auto px-5 py-6">
++    <div id="okBox" class="hidden rounded-2xl bg-white border border-brand-200 p-5 mb-4">
++      <p class="font-bold text-brand-700">Report received</p>
++      <p class="text-sm text-ink-500 mt-1" id="okMsg"></p>
++      <a href="/incident-report.html" class="inline-block mt-3 text-brand-700 font-semibold text-sm">Submit another →</a>
++    </div>
++
++    <form id="form" class="bg-white rounded-2xl border border-ink-100 p-5 space-y-3 shadow-sm">
++      <input id="title" class="w-full rounded-lg border border-ink-100 px-3 py-2" placeholder="Short title *" required>
++      <div class="grid grid-cols-2 gap-2">
++        <select id="category" class="rounded-lg border border-ink-100 px-3 py-2 text-sm"></select>
++        <select id="severity" class="rounded-lg border border-ink-100 px-3 py-2 text-sm">
++          <option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option>
++        </select>
++      </div>
++      <input id="area" class="w-full rounded-lg border border-ink-100 px-3 py-2" placeholder="Kitchen area">
++      <textarea id="description" class="w-full rounded-lg border border-ink-100 px-3 py-2" rows="4" placeholder="What happened *" required></textarea>
++      <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="danger"> Danger still present</label>
++      <textarea id="immediateAction" class="w-full rounded-lg border border-ink-100 px-3 py-2" rows="2" placeholder="Immediate action taken"></textarea>
++      <input id="reporterName" class="w-full rounded-lg border border-ink-100 px-3 py-2" placeholder="Your name (optional)">
++      <input id="reporterContact" class="w-full rounded-lg border border-ink-100 px-3 py-2" placeholder="Email or mobile for feedback (optional)">
++      <div>
++        <label class="text-xs font-semibold text-ink-500">Photo evidence</label>
++        <input id="photo" type="file" accept="image/*" capture="environment" class="block w-full text-sm mt-1">
++        <img id="photoPrev" class="hidden mt-2 rounded-lg max-h-40" alt="">
++      </div>
++      <div class="flex flex-wrap gap-2">
++        <button type="button" id="btnGps" class="px-3 py-2 rounded-lg bg-ink-100 text-sm font-semibold">Add GPS</button>
++        <button type="button" id="btnVoice" class="px-3 py-2 rounded-lg bg-ink-100 text-sm font-semibold">Voice note (8s)</button>
++        <span id="gpsLabel" class="text-xs text-ink-400 self-center"></span>
++      </div>
++      <textarea id="voiceNote" class="w-full rounded-lg border border-ink-100 px-3 py-2 text-sm" rows="2" placeholder="Voice transcript / notes"></textarea>
++      <p id="err" class="text-sm text-red-600 hidden"></p>
++      <p id="offlineNote" class="text-xs text-amber-700 hidden">You appear offline — this report will queue on this device and sync when online.</p>
++      <button type="submit" class="w-full py-3 rounded-xl bg-brand-600 text-white font-bold">Submit report</button>
++    </form>
++    <p class="text-center text-xs text-ink-400 mt-6"><a class="underline" href="/incident-management.html">About IncidentGuard</a> · <a class="underline" href="/app">Staff sign-in</a></p>
++  </main>
++
++  <script>
++    const CATS = ['Near miss','Accident or injury','Burn, cut, slip or fall','Unsafe condition','Allergen incident','Foreign object','Food contamination','Suspected food poisoning','Fridge or freezer failure','Cooking or hot-holding failure','Equipment breakdown','Pest sighting','Chemical spill','Fire or gas incident','Customer complaint','Supplier recall','Other'];
++    const catEl = document.getElementById('category');
++    CATS.forEach(c => { const o=document.createElement('option'); o.textContent=c; catEl.appendChild(o); });
++    const params = new URLSearchParams(location.search);
++    const qr = params.get('qr') || '';
++    const site = params.get('site') || '';
++    if (qr) {
++      document.getElementById('area').value = qr.replace(/_/g,' ');
++      document.getElementById('title').value = (qr.replace(/_/g,' ')) + ' incident';
++      catEl.value = 'Equipment breakdown';
++    }
++    let photoData = '';
++    let gps = null;
++    let voiceAudio = '';
++    document.getElementById('photo').onchange = (e) => {
++      const f = e.target.files && e.target.files[0];
++      if (!f) return;
++      const reader = new FileReader();
++      reader.onload = () => {
++        const img = new Image();
++        img.onload = () => {
++          const max=700; let w=img.width,h=img.height;
++          if (w>max){ h=Math.round(h*max/w); w=max; }
++          const c=document.createElement('canvas'); c.width=w; c.height=h;
++          c.getContext('2d').drawImage(img,0,0,w,h);
++          photoData = c.toDataURL('image/jpeg', 0.75);
++          const prev=document.getElementById('photoPrev');
++          prev.src=photoData; prev.classList.remove('hidden');
++        };
++        img.src = reader.result;
++      };
++      reader.readAsDataURL(f);
++    };
++    document.getElementById('btnGps').onclick = () => {
++      if (!navigator.geolocation) { document.getElementById('gpsLabel').textContent='GPS not available'; return; }
++      navigator.geolocation.getCurrentPosition((p)=>{
++        gps={ lat:p.coords.latitude, lng:p.coords.longitude, accuracy:p.coords.accuracy };
++        document.getElementById('gpsLabel').textContent = gps.lat.toFixed(4)+', '+gps.lng.toFixed(4);
++      }, ()=>{ document.getElementById('gpsLabel').textContent='GPS denied'; }, { timeout:8000 });
++    };
++    document.getElementById('btnVoice').onclick = async () => {
++      const btn=document.getElementById('btnVoice');
++      try {
++        btn.disabled=true; btn.textContent='Recording…';
++        const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
++        const rec = new MediaRecorder(stream);
++        const chunks=[];
++        rec.ondataavailable = e => chunks.push(e.data);
++        const done = new Promise(res => { rec.onstop = () => {
++          stream.getTracks().forEach(t=>t.stop());
++          const blob=new Blob(chunks,{type:rec.mimeType||'audio/webm'});
++          const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob);
++        };});
++        rec.start();
++        await new Promise(r=>setTimeout(r,8000));
++        if (rec.state!=='inactive') rec.stop();
++        voiceAudio = await done;
++        btn.textContent='Voice saved';
++        // optional browser STT
++        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
++        if (SR) {
++          const s=new SR(); s.lang='en-GB';
++          s.onresult=(ev)=>{ document.getElementById('voiceNote').value = ev.results[0][0].transcript; };
++          try { s.start(); } catch {}
++        }
++      } catch (e) {
++        btn.textContent='Mic blocked';
++        document.getElementById('err').textContent = e.message || 'Microphone failed';
++        document.getElementById('err').classList.remove('hidden');
++      } finally { setTimeout(()=>{ btn.disabled=false; if(btn.textContent==='Recording…') btn.textContent='Voice note (8s)'; }, 500); }
++    };
++
++    const QUEUE_KEY='kiteline.ig.publicQueue';
++    function queue(report){
++      const q=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]'); q.push(report);
++      localStorage.setItem(QUEUE_KEY, JSON.stringify(q.slice(-40)));
++    }
++    async function flush(){
++      const q=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]'); if(!q.length) return;
++      const left=[];
++      for (const item of q){
++        try {
++          const res=await fetch('/api/incidents/public-report',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(item)});
++          if(!res.ok) throw new Error('fail');
++        } catch { left.push(item); }
++      }
++      localStorage.setItem(QUEUE_KEY, JSON.stringify(left));
++    }
++    flush();
++    window.addEventListener('online', flush);
++
++    document.getElementById('form').onsubmit = async (e) => {
++      e.preventDefault();
++      const err=document.getElementById('err'); err.classList.add('hidden');
++      const body = {
++        title: document.getElementById('title').value.trim(),
++        category: document.getElementById('category').value,
++        severity: document.getElementById('severity').value,
++        area: document.getElementById('area').value.trim(),
++        description: document.getElementById('description').value.trim(),
++        dangerPresent: document.getElementById('danger').checked,
++        immediateAction: document.getElementById('immediateAction').value.trim(),
++        reporterName: document.getElementById('reporterName').value.trim(),
++        reporterContact: document.getElementById('reporterContact').value.trim(),
++        photoData, photos: photoData ? [photoData] : [],
++        gps, voiceNote: document.getElementById('voiceNote').value.trim(), voiceAudio,
++        qrLocation: qr, site: site || undefined,
++      };
++      if (!body.title || !body.description) { err.textContent='Title and description required'; err.classList.remove('hidden'); return; }
++      try {
++        if (!navigator.onLine) throw new Error('offline');
++        const res = await fetch('/api/incidents/public-report', {
++          method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
++        });
++        const data = await res.json().catch(()=>({}));
++        if (!res.ok) throw new Error(data.error || 'Submit failed');
++        document.getElementById('form').classList.add('hidden');
++        document.getElementById('okBox').classList.remove('hidden');
++        document.getElementById('okMsg').textContent = 'Reference ' + (data.ref || data.incident && data.incident.ref) + '. Thank you — a manager will review this.';
++      } catch (ex) {
++        queue(body);
++        document.getElementById('offlineNote').classList.remove('hidden');
++        document.getElementById('form').classList.add('hidden');
++        document.getElementById('okBox').classList.remove('hidden');
++        document.getElementById('okMsg').textContent = 'Saved on this device. It will sync automatically when the connection returns.';
++      }
++    };
++  </script>
++</body>
++</html>
+diff --git a/sw.js b/sw.js
+index a7f494d..fc8c248 100644
+--- a/sw.js
++++ b/sw.js
+@@ -1,10 +1,13 @@
+-/* Kiteline service worker — offline app shell caching */
+-const CACHE = 'kiteline-v42';
++/* Kiteline service worker — offline app shell + IncidentGuard report queue */
++const CACHE = 'kiteline-v43';
+ const ASSETS = [
+   '/css/styles.css',
+   '/kiteline-logo.png?v=mark3',
+   '/manifest.webmanifest',
++  '/js/incidentguard.js',
++  '/incident-report.html',
+ ];
++const IG_QUEUE = 'kiteline-ig-sw-queue';
+ 
+ self.addEventListener('install', (e) => {
+   self.skipWaiting();
+@@ -18,17 +21,77 @@ self.addEventListener('activate', (e) => {
+   );
+ });
+ 
++async function readQueue() {
++  const cache = await caches.open(IG_QUEUE);
++  const res = await cache.match('/__ig_queue__');
++  if (!res) return [];
++  try { return await res.json(); } catch { return []; }
++}
++async function writeQueue(items) {
++  const cache = await caches.open(IG_QUEUE);
++  await cache.put('/__ig_queue__', new Response(JSON.stringify(items.slice(-40)), { headers: { 'Content-Type': 'application/json' } }));
++}
++
++async function flushIgQueue() {
++  const q = await readQueue();
++  if (!q.length) return;
++  const left = [];
++  for (const item of q) {
++    try {
++      const res = await fetch('/api/incidents/public-report', {
++        method: 'POST',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify(item.body || item),
++      });
++      if (!res.ok) throw new Error('fail');
++    } catch {
++      left.push(item);
++    }
++  }
++  await writeQueue(left);
++}
++
++self.addEventListener('sync', (e) => {
++  if (e.tag === 'ig-public-report') e.waitUntil(flushIgQueue());
++});
++
+ self.addEventListener('fetch', (e) => {
+   const req = e.request;
+-  if (req.method !== 'GET') return;
+   const url = new URL(req.url);
+-  // Never intercept API or HTML app shell — always use live network (avoids stale blank pages).
++
++  // Queue failed public incident reports for later sync
++  if (req.method === 'POST' && url.pathname === '/api/incidents/public-report') {
++    e.respondWith((async () => {
++      try {
++        const res = await fetch(req.clone());
++        if (res.ok) return res;
++        throw new Error('bad status');
++      } catch {
++        try {
++          const body = await req.clone().json();
++          const q = await readQueue();
++          q.push({ at: new Date().toISOString(), body });
++          await writeQueue(q);
++          if (self.registration && self.registration.sync) {
++            try { await self.registration.sync.register('ig-public-report'); } catch {}
++          }
++        } catch {}
++        return new Response(JSON.stringify({ ok: true, queued: true, offline: true }), {
++          status: 202,
++          headers: { 'Content-Type': 'application/json' },
++        });
++      }
++    })());
++    return;
++  }
++
++  if (req.method !== 'GET') return;
++  // Never intercept API (except handled above) or HTML app shell — always use live network.
+   if (url.pathname.startsWith('/api/')) return;
+   if (url.pathname === '/app' || url.pathname.startsWith('/app/')) return;
+   if (url.pathname === '/' || url.pathname.endsWith('.html')) return;
+   if (url.origin !== self.location.origin) return;
+ 
+-  // Static assets only: network-first, cache as fallback
+   const isStatic = /^\/(js|css)\//.test(url.pathname) || /kiteline-logo\.png/.test(url.pathname);
+   if (!isStatic) return;
+ 
 -- 
 2.43.0
 
