@@ -14,6 +14,7 @@ from docx.shared import Cm, Inches, Pt, RGBColor
 IMG_DIR = "/workspace/vedanta-risk-assessments/images"
 BRAND_DIR = f"{IMG_DIR}/brand"
 PRODUCT_DIR = f"{IMG_DIR}/products"
+STEPS_DIR = f"{IMG_DIR}/steps"
 
 # Brand colours — The Vedanta Way (thevedanta.org)
 NAVY = RGBColor(0x1A, 0x1A, 0x1A)  # charcoal / near-black
@@ -166,6 +167,7 @@ def add_picture(doc, filename, width_inches=6.3, *, folder=None):
             f"{IMG_DIR}/{filename}",
             f"{BRAND_DIR}/{filename}",
             f"{PRODUCT_DIR}/{filename}",
+            f"{STEPS_DIR}/{filename}",
         ):
             if os.path.exists(candidate):
                 path = candidate
@@ -177,6 +179,14 @@ def add_picture(doc, filename, width_inches=6.3, *, folder=None):
     run = p.add_run()
     run.add_picture(path, width=Inches(width_inches))
     return p
+
+
+def add_steps_guide(doc, filename, caption="Step-by-step visual guide"):
+    add_heading_styled(doc, caption, 2)
+    try:
+        add_picture(doc, filename, width_inches=6.4)
+    except Exception:
+        add_body(doc, f"(Step guide image unavailable: {filename})", size=9)
 
 
 def cover_page(doc):
@@ -271,8 +281,11 @@ def equipment_section(
     ppe,
     *,
     extra_notes=None,
+    steps_image=None,
 ):
     add_heading_styled(doc, title, 1)
+    if steps_image:
+        add_steps_guide(doc, steps_image, "Step-by-step safe use")
     add_heading_styled(doc, "1. Equipment Information", 2)
     info_table(
         doc,
@@ -384,6 +397,7 @@ def trk70_section(doc):
         add_picture(doc, "trk70-do-dont-care.png")
     except Exception:
         pass
+    add_steps_guide(doc, "steps-trk70.png", "TRK70 — Step-by-step safe use")
     add_do_dont_care(
         doc,
         [
@@ -841,6 +855,7 @@ def rational_oven_section(doc):
         add_picture(doc, "rational-oven-do-dont-care.png")
     except Exception:
         pass
+    add_steps_guide(doc, "steps-rational-oven.png", "Rational oven — Step-by-step safe use")
     add_do_dont_care(
         doc,
         [
@@ -1062,6 +1077,7 @@ def chemical_risk_section(doc):
         add_picture(doc, "chemicals-coshh-do-dont-care.png")
     except Exception:
         pass
+    add_steps_guide(doc, "steps-chemicals.png", "Kitchen chemicals — Step-by-step safe use")
     add_do_dont_care(
         doc,
         [
@@ -1341,7 +1357,7 @@ def sign_off(doc):
             ("Approved by", ""),
             ("Approval date", ""),
             ("Next review", "27/07/2027"),
-            ("Version", "2.1 Vedanta-branded brochure + original SK product photos"),
+            ("Version", "2.2 Full step-by-step visuals for all equipment"),
         ],
     )
     add_heading_styled(doc, "Staff acknowledgement", 2)
@@ -1462,6 +1478,7 @@ def build():
             "Non-slip footwear",
             "Heat-resistant gloves or cloths when handling hot bowls / steam",
         ],
+        steps_image="steps-thermomix.png",
     )
 
     # --- Caso Ice Creamer ---
@@ -1525,6 +1542,7 @@ def build():
             "Non-slip footwear",
             "Protective gloves when handling frozen canisters",
         ],
+        steps_image="steps-caso-icecreamer.png",
     )
 
     # --- Ninja Hand Blender ---
@@ -1588,6 +1606,7 @@ def build():
             "Non-slip footwear",
             "Cut-resistant glove recommended when washing the blade",
         ],
+        steps_image="steps-ninja-blender.png",
     )
 
     # --- Mixers & blenders visual guide ---
@@ -1680,6 +1699,7 @@ def build():
             "Non-slip footwear",
             "Heat-resistant gloves (when working with warm mixtures)",
         ],
+        steps_image="steps-kitchenaid.png",
     )
 
     # --- Waring Stick Blender ---
@@ -1746,6 +1766,7 @@ def build():
         extra_notes=[
             "This section consolidates Risk_Assessment_Waring_Stick_Blender.docx and the duplicate “(1)” file.",
         ],
+        steps_image="steps-waring-blender.png",
     )
 
     # --- Knives visual guide ---
@@ -1754,6 +1775,7 @@ def build():
         add_picture(doc, "knives-do-dont-care.png")
     except Exception:
         pass
+    add_steps_guide(doc, "steps-knives-peelers.png", "Knives & peelers — Step-by-step safe use")
     add_do_dont_care(
         doc,
         [
