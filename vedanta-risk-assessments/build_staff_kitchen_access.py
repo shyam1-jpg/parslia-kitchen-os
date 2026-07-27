@@ -647,7 +647,7 @@ def build():
     page_break(doc)
 
     # 10 Emergency
-    add_heading(doc, "10. Emergency & reporting", 1)
+    add_heading(doc, "11. Emergency & reporting", 1)
     for item in [
         "Burns/scalds: cool under lukewarm running water for at least 20 minutes; seek first aid; call 999 for serious burns.",
         "Cuts: apply pressure with a clean dressing; seek first aid; do not continue food handling with an uncovered wound.",
