@@ -285,17 +285,29 @@ def build():
 
     # 2 PPE
     add_heading(doc, "2. Mandatory PPE before entering the kitchen", 1)
-    add_picture(doc, "staff-ppe-entry.png")
+    add_picture(doc, "staff-ppe-with-tissue.png")
     add_body(doc, "No person may enter the kitchen food area without the following:", bold=True)
     add_numbered(
         doc,
         [
             "Anti-slip / non-slip health & safety footwear — mandatory. No open sandals, flip-flops or smooth soles.",
             "Hair net — all hair must be fully covered. Long hair secured under the net.",
-            "Chef’s tissue / neck tissue (or site-approved disposable alternative) when entering the kitchen.",
+            "Chef’s tissue / neck tissue — must be worn (not carried in a pocket). Put it on before you enter the kitchen.",
             "Clean apron or designated kitchen outerwear if provided / required for the task.",
             "Remove loose jewellery, dangling lanyards and scarves that can catch on equipment.",
             "Wash or sanitise hands before touching food, trays, utensils or storage shelves.",
+        ],
+    )
+    add_heading(doc, "How to wear chef’s tissue (brochure guide)", 2)
+    add_picture(doc, "staff-chefs-tissue-how-to.png")
+    add_numbered(
+        doc,
+        [
+            "Take a clean chef’s tissue from the supply at the kitchen entrance.",
+            "Place it around the neck as a catering neckerchief / tissue and secure it neatly.",
+            "Put on your hair net and anti-slip shoes at the same time — all three are required together.",
+            "Do not enter the kitchen with the tissue in your pocket, bag or hand unused.",
+            "Replace with a clean tissue if it becomes dirty or damaged during the shift.",
         ],
     )
     add_do_dont_care(
@@ -303,19 +315,22 @@ def build():
         [
             "Wear anti-slip shoes every time",
             "Cover hair fully with a hair net",
-            "Wear chef’s tissue when entering the kitchen",
+            "Wear chef’s tissue on your neck before entering",
             "Wash / sanitise hands before touching food or trays",
         ],
         [
             "Don’t enter in open shoes or smooth soles",
             "Don’t leave hair uncovered",
+            "Don’t enter without wearing chef’s tissue",
+            "Don’t keep the tissue in your pocket unused",
             "Don’t wear outdoor coats over food-contact work",
             "Don’t touch food with unwashed hands",
         ],
         [
-            "Keep spare hair nets and tissues near the kitchen entrance",
+            "Keep spare hair nets and chef’s tissues near the kitchen entrance",
             "Replace damaged PPE immediately",
             "Managers enforce the PPE gate — no exceptions for “quick visits”",
+            "No tissue worn = no kitchen entry",
         ],
     )
     page_break(doc)
@@ -692,7 +707,7 @@ def build():
             ("Document owner", "Shyam Prasad"),
             ("Approved by", ""),
             ("Approval date", ""),
-            ("Version", "1.2 Staff Kitchen Access Pack — dates aligned to 27 June 2026"),
+            ("Version", "1.3 Staff Kitchen Access Pack — chef’s tissue shown on brochure visuals"),
             ("Related document", "Vedanta_Kitchen_Safety_Brochure_Risk_Pack.docx (equipment only)"),
         ],
     )
