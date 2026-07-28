@@ -12,6 +12,22 @@ git push -u origin cursor/kiteline-incidentguard-18ca
 
 Hard refresh (**Ctrl+Shift+R**).
 
+## Clock PIN (included in this patch)
+
+Sidebar **Clock In/Out** + **Rota**. Demo PINs are restored on load (login password `demo1234` is **not** a clock PIN):
+
+| Person | Clock PIN |
+|--------|-----------|
+| Sarah Mitchell | `1234` |
+| James Okafor | `2345` |
+| Lena Park | `3456` |
+| Marco Rossi | `4567` |
+| Owner (Shyam) | `1001` |
+
+- Tap a PIN chip or type on the pad to clock in/out
+- Signed-in **Admin / Manager**: use **Clock me in** (no PIN) or tap staff cards without PIN
+- Edit PINs on **Team**
+
 ## Included
 
 ### Marketing
