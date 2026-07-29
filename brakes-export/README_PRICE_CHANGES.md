@@ -1,30 +1,33 @@
-# Brakes price changes since account start
+# Brakes — all food bought + real price changes
 
 **Account:** 1832142 — The Vedanta Way Ltd  
-**Period:** 2024-07-13 to 2026-07-11 (from invoice line items)  
-**File:** `Brakes_Price_Changes_Since_Account_Start.xlsx`
+**Period:** 2024-07-13 to 2026-07-11  
+**Main file:** `Brakes_All_Food_Bought_And_Price_Changes.xlsx`
 
 ## Verdict
 
-Yes — Brakes unit prices have changed since invoices began.
+Yes — Brakes **food** unit prices have changed on real invoices.
 
 | Metric | Value |
 |--------|------:|
-| Unique products ordered | 1,039 |
-| Products with at least 1 price change | 485 |
-| Total price-change events | 1,026 |
-| Products ending higher than first price | 360 |
-| Products ending lower than first price | 119 |
+| Food purchase lines (invoice + credit) | 5,189 |
+| Unique food products bought | 968 |
+| Food products with a real price change | **453** |
+| Total real price-change events | **971** |
+| Food net spend | **£132,479.52** |
+
+Non-food (gloves, napkins, labels, etc.) is excluded.
 
 ## Excel sheets
 
-1. **Overview** — summary answer + top movers  
-2. **Products With Changes** — every product that changed (filterable)  
-3. **Price Change Events** — each old→new price move with date  
-4. **Price History** — chronological price runs per product  
-5. **All Products Prices** — all products including unchanged  
-6. **Changes By Month** — how many increases/decreases each month  
+1. **Overview** — totals, category spend, top price movers with full price history  
+2. **All Food Bought (Lines)** — every food line from every invoice/credit (what you bought)  
+3. **All Food Products** — every food product with first/last/min/max prices and spend  
+4. **Food Price Changes** — only products whose unit price really moved  
+5. **Each Price Change Event** — each old → new price with the invoice date  
+6. **Food Price History** — chronological price runs per product  
+7. **By Month** — food spend + how many increases/decreases each month  
 
 ## Method
 
-Unit price on invoice lines compared over time per Brakes product code. Credits excluded. Consecutive identical prices are not counted as a change.
+Real unit prices from Brakes portal invoice CSVs (and credit PDFs). A “price change” is counted when a later invoice charges a different unit price for the same Brakes product code.
