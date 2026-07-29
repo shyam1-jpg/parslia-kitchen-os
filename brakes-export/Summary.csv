@@ -1,0 +1,30 @@
+Brakes spend by category,,,,
+Account,1832142 — The Vedanta Way Ltd,,,
+Period,2024-07-13 to 2026-07-13,,,
+Note,Line nets from invoice CSVs + credit PDFs. Document totals sheet uses portal invoice/credit totals.,,,
+,,,,
+Document-level totals (portal),,,,
+Invoice total,136150.7,,,
+Credit total,3703.34,,,
+Net total,132447.36,,,
+Yearly avg,66223.68000000001,,,
+Monthly avg,5518.64,,,
+Weekly avg,1268.305772913817,,,
+Daily avg,181.1865389876881,,,
+,,,,
+Category,Invoices,Credits,Net,Lines
+Plant-based milk,4111.920000000001,406.56,3705.360000000001,207
+Alpro yoghurt,1026.64,19.86,1006.78,106
+Yoghurt & milk,7520.300000000002,258.0099999999999,7262.290000000003,345
+Biscuits,6585.919999999999,133.09,6452.829999999999,232
+Drinks,2425.569999999999,105.27,2320.299999999999,136
+Non-food,3978.000000000001,61.59,3916.410000000001,234
+Other food,107316.4400000002,2569.940000000001,104746.5000000001,4163
+TOTAL (line-item net),,,129410.4700000001,
+,,,,
+Requested splits,,,,
+Plant-based milk = Alpro/Oatly/Plenish/Glebe/MOMA etc barista drinks + plant cream alternatives (not cooking coconut milk cans).,,,,
+Alpro yoghurt = Alpro Simply Plain / Alpro soya yoghurt only.,,,,
+"Yoghurt & milk = dairy milk + dairy yoghurt (Ubley, Yeo, Brakes yogurt, whole milk, etc).",,,,
+"Drinks = orange/apple/cranberry/grapefruit/pineapple juices + water + lemonade/cordial (not cooking lemon/lime juice, not tinned tomatoes in juice).",,,,
+"Non-food = gloves, napkins, bags, cling film, labels, cleaning items, etc.",,,,
