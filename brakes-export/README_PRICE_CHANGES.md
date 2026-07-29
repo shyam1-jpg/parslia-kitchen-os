@@ -1,33 +1,31 @@
-# Brakes — all food bought + real price changes
+# Brakes food price-change dashboard
 
+**Main file:** `Brakes_Food_Price_Change_Dashboard.xlsx`  
 **Account:** 1832142 — The Vedanta Way Ltd  
-**Period:** 2024-07-13 to 2026-07-11  
-**Main file:** `Brakes_All_Food_Bought_And_Price_Changes.xlsx`
+**Period:** 13 Jul 2024 → 11 Jul 2026 (food only)
 
-## Verdict
+## What it answers
 
-Yes — Brakes **food** unit prices have changed on real invoices.
+- How often each product’s price changed (week / month / every ~3 months, etc.)
+- Price path examples like yoghurt **£17.31 → £28.19**
+- Dashboard for **every 3 months (quarters)** and **each year**
+- £ effect of those changes
 
-| Metric | Value |
-|--------|------:|
-| Food purchase lines (invoice + credit) | 5,189 |
-| Unique food products bought | 968 |
-| Food products with a real price change | **453** |
-| Total real price-change events | **971** |
-| Food net spend | **£132,479.52** |
+## Sheets
 
-Non-food (gloves, napkins, labels, etc.) is excluded.
+| Sheet | Purpose |
+|-------|---------|
+| Dashboard | KPIs, frequency buckets, quarterly + yearly summary, charts, yoghurt examples |
+| How Often Per Product | Every food product — how often, last change, full journey, £ impact |
+| Changed Products Detail | Only products that moved |
+| Each Change + £ Effect | Every old→new move with days between and £ effect |
+| Every 3 Months | Quarterly dashboard + all changes in each quarter |
+| Each Year | Yearly dashboard + detail |
+| Yoghurt Example | Yoghurt / Alpro-style products |
+| All Food Bought (Lines) | Every food invoice/credit line |
+| How to read this | Plain-English guide |
 
-## Excel sheets
+## Headline numbers
 
-1. **Overview** — totals, category spend, top price movers with full price history  
-2. **All Food Bought (Lines)** — every food line from every invoice/credit (what you bought)  
-3. **All Food Products** — every food product with first/last/min/max prices and spend  
-4. **Food Price Changes** — only products whose unit price really moved  
-5. **Each Price Change Event** — each old → new price with the invoice date  
-6. **Food Price History** — chronological price runs per product  
-7. **By Month** — food spend + how many increases/decreases each month  
-
-## Method
-
-Real unit prices from Brakes portal invoice CSVs (and credit PDFs). A “price change” is counted when a later invoice charges a different unit price for the same Brakes product code.
+- 968 food products · **453** changed price · **971** change events
+- Common pattern for multi-change products: about every 3–6 months
