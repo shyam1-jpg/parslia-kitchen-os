@@ -1,0 +1,249 @@
+--- a/site/menu-creator/index.html
++++ b/site/menu-creator/index.html
+@@ -258,6 +258,49 @@
+   .page.tpl-rustic .info-title{color:#5c3d1e;font-family:"Palatino Linotype",Palatino,serif;}
+   .page.tpl-rustic .info-list{background:#f5ebe0;}
+ 
++  
++  /* ---------- Text alignment control ---------- */
++  .align-row{display:flex;gap:8px;flex-wrap:wrap;}
++  .align-btn{
++    flex:1;min-width:72px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;
++    background:#fff;cursor:pointer;font-size:13px;font-weight:700;font-family:var(--sans);
++    color:var(--ink);transition:.12s;
++  }
++  .align-btn:hover{border-color:var(--accent);}
++  .align-btn.on{background:var(--accent);color:#fff;border-color:var(--accent);}
++
++  /* Override template alignment — user choice wins */
++  .page.align-center .menu-head,
++  .page.align-center .dish,
++  .page.align-center .info-title,
++  .page.align-center .info-sub,
++  .page.align-center .empty-note{text-align:center !important;}
++  .page.align-center .dish{padding-left:0 !important;border-left:none !important;}
++  .page.align-center .dish-desc{margin-left:auto !important;margin-right:auto !important;max-width:540px;}
++  .page.align-center .dish-sep{margin-left:auto !important;margin-right:auto !important;}
++  .page.align-center .menu-logo,
++  .page.align-center .menu-logo-text{margin-left:auto;margin-right:auto;}
++  .page.align-center .menu-title::after{margin-left:auto !important;margin-right:auto !important;}
++
++  .page.align-left .menu-head,
++  .page.align-left .dish,
++  .page.align-left .info-title,
++  .page.align-left .info-sub,
++  .page.align-left .empty-note{text-align:left !important;}
++  .page.align-left .dish-desc{margin-left:0 !important;margin-right:0 !important;max-width:none;}
++  .page.align-left .dish-sep{margin-left:0 !important;margin-right:auto !important;}
++  .page.align-left .menu-title::after{margin-left:0 !important;margin-right:auto !important;}
++
++  .page.align-right .menu-head,
++  .page.align-right .dish,
++  .page.align-right .info-title,
++  .page.align-right .info-sub,
++  .page.align-right .empty-note{text-align:right !important;}
++  .page.align-right .dish{padding-left:0 !important;border-left:none !important;padding-right:0;}
++  .page.align-right .dish-desc{margin-left:auto !important;margin-right:0 !important;max-width:540px;}
++  .page.align-right .dish-sep{margin-left:auto !important;margin-right:0 !important;}
++  .page.align-right .menu-title::after{margin-left:auto !important;margin-right:0 !important;}
++
+   /* template picker */
+   .tpl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+   .tpl-card{
+@@ -800,6 +843,17 @@
+     </div>
+ 
+     <div class="group">
++      <label>Menu text alignment</label>
++      <div class="align-row" id="alignRow" role="group" aria-label="Menu text alignment">
++        <button type="button" class="align-btn" data-align="left">Left</button>
++        <button type="button" class="align-btn on" data-align="center">Center</button>
++        <button type="button" class="align-btn" data-align="right">Right</button>
++      </div>
++      <div class="hint">Centre, left, or right for titles and dish text. Works with every menu style (including Modern).</div>
++    </div>
++
++
++    <div class="group">
+       <label>Logo</label>
+       <div class="logo-box">
+         <div class="logo-prev" id="logoPrev">No logo</div>
+@@ -958,7 +1012,7 @@
+ function newMenu(label){ return { id:uid(), label:label||"New Day", title:"DINNER MENU", sub:"", dishes:[] }; }
+ const TEMPLATES={
+   classic:{name:"Classic Gold",desc:"Double gold border, elegant centre",swatch:"linear-gradient(135deg,#fff 40%,#b08a3e)"},
+-  modern:{name:"Modern Minimal",desc:"Clean black lines, left-aligned",swatch:"linear-gradient(135deg,#fafafa,#111 90%)"},
++  modern:{name:"Modern Minimal",desc:"Clean black lines, sharp edges",swatch:"linear-gradient(135deg,#fafafa,#111 90%)"},
+   luxury:{name:"Luxury Dark",desc:"Dark navy with gold accents",swatch:"linear-gradient(135deg,#1a1f2e,#c9a84c)"},
+   botanical:{name:"Botanical",desc:"Soft sage green, organic feel",swatch:"linear-gradient(135deg,#f7f9f4,#5a7d5a)"},
+   artdeco:{name:"Art Deco",desc:"Bold 1920s geometric style",swatch:"linear-gradient(135deg,#fff8f0,#1a1a1a)"},
+@@ -966,7 +1020,7 @@
+ };
+ function makeDefault(){
+   return { logoText:"", logoImg:null, infoText:DEFAULT_INFO, infoAllergens:DEFAULT_INFO_ALLERGENS,
+-           template:"classic", menus:[ newMenu("Day 1") ], currentId:null };
++           template:"classic", textAlign:"center", menus:[ newMenu("Day 1") ], currentId:null };
+ }
+ function migrate(old){
+   if(!old) return null;
+@@ -981,8 +1035,9 @@
+ if(!data.currentId || !data.menus.some(m=>m.id===data.currentId)) data.currentId = data.menus[0].id;
+ if(["", OLD_INFO_ALLERGENS, "Soya, Sulphur Dioxide"].includes((data.infoAllergens||"").trim())){ data.infoAllergens = DEFAULT_INFO_ALLERGENS; }
+ if(!data.template) data.template="classic";
+-
+-const SHARED = ["logoText","logoImg","infoText","infoAllergens","template"];
++if(!data.textAlign || !["left","center","right"].includes(data.textAlign)) data.textAlign="center";
++
++const SHARED = ["logoText","logoImg","infoText","infoAllergens","template","textAlign"];
+ function menuQrUrl(){
+   let u = (MENU_QR_URL || "").trim();
+   if(!u) return "";
+@@ -990,6 +1045,13 @@
+   return u;
+ }
+ function tplClass(){ return " tpl-"+(data.template||"classic"); }
++function alignClass(){
++  const a = (data.textAlign==="left"||data.textAlign==="right") ? data.textAlign : "center";
++  return " align-"+a;
++}
++function currentAlign(){
++  return (data.textAlign==="left"||data.textAlign==="right") ? data.textAlign : "center";
++}
+ function current(){ return data.menus.find(m=>m.id===data.currentId) || data.menus[0]; }
+ const state = new Proxy({}, {
+   get(_,k){ return SHARED.includes(k) ? data[k] : current()[k]; },
+@@ -1201,7 +1263,7 @@
+   return {
+     logoText:data.logoText||"", logoImg:data.logoImg||null,
+     infoText:data.infoText||"", infoAllergens:data.infoAllergens||"",
+-    template:data.template||"classic",
++    template:data.template||"classic", textAlign:currentAlign(),
+     title:m.title||"", sub:m.sub||"",
+     dishes:JSON.parse(JSON.stringify(m.dishes||[]))
+   };
+@@ -1209,7 +1271,9 @@
+ function applyArchiveSnapshot(snap){
+   data.logoText=snap.logoText||""; data.logoImg=snap.logoImg||null;
+   data.infoText=snap.infoText||DEFAULT_INFO; data.infoAllergens=snap.infoAllergens||"";
+-  data.template=snap.template||data.template||"classic"; buildTplGrid();
++  data.template=snap.template||data.template||"classic";
++  data.textAlign=["left","center","right"].includes(snap.textAlign)?snap.textAlign:(data.textAlign||"center");
++  buildTplGrid(); buildAlignRow();
+   const m=current();
+   m.title=snap.title||"DINNER MENU"; m.sub=snap.sub||"";
+   m.dishes=JSON.parse(JSON.stringify(snap.dishes||[]));
+@@ -1224,7 +1288,7 @@
+   return {
+     logoText:proj.logoText||"", logoImg:proj.logoImg||null,
+     infoText:proj.infoText||DEFAULT_INFO, infoAllergens:proj.infoAllergens||"",
+-    template:proj.template||"classic",
++    template:proj.template||"classic", textAlign:["left","center","right"].includes(proj.textAlign)?proj.textAlign:"center",
+     title:pick.title||"DINNER MENU", sub:pick.sub||"",
+     dishes:JSON.parse(JSON.stringify(pick.dishes||[]))
+   };
+@@ -1675,7 +1739,7 @@
+ $("resetAll").onclick = ()=>{
+   if(!confirm("Clear everything (all days)?")) return;
+   data = makeDefault(); data.currentId=data.menus[0].id;
+-  save(); resetForm(); syncInputs(); render();
++  save(); resetForm(); syncInputs(); buildTplGrid(); buildAlignRow(); render();
+ };
+ $("printBtn").onclick = ()=>{ preparePrint(); window.print(); };
+ 
+@@ -1917,6 +1981,29 @@
+ };
+ 
+ /* ---------------- Word export styles per template ---------------- */
++
++function applyWordAlign(s){
++  const a = currentAlign();
++  const align = "text-align:"+a+";";
++  const stripPad = a!=="left";
++  const fix = (css)=>{
++    let out = (css||"").replace(/text-align\s*:\s*(left|center|right)\s*;?/gi, "");
++    out = align + out;
++    if(stripPad){
++      out = out.replace(/border-left\s*:[^;]+;?/gi, "").replace(/padding-left\s*:[^;]+;?/gi, "");
++    }
++    return out;
++  };
++  return Object.assign({}, s, {
++    title: fix(s.title),
++    logo: fix(s.logo),
++    dish: fix(s.dish),
++    desc: fix(s.desc),
++    allg: fix(s.allg),
++    diet: fix(s.diet)
++  });
++}
++
+ function wordTpl(tpl){
+   const t=tpl||data.template||"classic";
+   const map={
+@@ -1930,14 +2017,16 @@
+   return map[t]||map.classic;
+ }
+ function buildWordPage(m, snap, idx, tpl){
+-  const s=wordTpl(tpl);
++  const s=applyWordAlign(wordTpl(tpl));
+   const items=(snap?.infoAllergens||data.infoAllergens||"").split(",").map(x=>x.trim()).filter(Boolean);
+   const infoBody=(snap?.infoText||data.infoText||"").split(/\n{2,}/)
+     .map(p=>`<p style="font-size:8.5pt;line-height:1.35;${s.body||'color:#3c463f;'}margin:0 0 4pt;">${esc(p).replace(/\n/g,"<br>")}</p>`).join("");
+   const listHTML=items.length?`<p style="font-size:8.5pt;${s.body||'color:#3c463f;'}"><b>You can request more information on:</b> ${items.map(esc).join(" &bull; ")}</p>`:"";
+   const logo=snap||data;
+-  const logoHead=logo.logoImg?`<p style="text-align:center;margin:0 0 4pt;"><img src="${logo.logoImg}" alt="logo" style="display:block;margin:0 auto;max-height:78px;max-width:220px;"/></p>`
+-    :(logo.logoText?`<p style="text-align:center;${s.logo}margin:0 0 4pt;">${esc(logo.logoText)}</p>`:"");
++  const wa=currentAlign();
++  const logoMargin=wa==="left"?"margin:0;":(wa==="right"?"margin:0 0 0 auto;":"margin:0 auto;");
++  const logoHead=logo.logoImg?`<p style="text-align:${wa};margin:0 0 4pt;"><img src="${logo.logoImg}" alt="logo" style="display:block;${logoMargin}max-height:78px;max-width:220px;"/></p>`
++    :(logo.logoText?`<p style="text-align:${wa};${s.logo}margin:0 0 4pt;">${esc(logo.logoText)}</p>`:"");
+   const dishes=(m.dishes||[]);
+   const dishesHTML=dishes.map(d=>`
+     <p style="${s.dish}margin:9pt 0 2pt;">${esc(formatDishName(d.name))}</p>
+@@ -2114,7 +2203,7 @@
+   // preview: one page per day
+   const pages = $("pagesOut");
+   pages.innerHTML = data.menus.map(m=>
+-    `<section class="page${tplClass()}${m.id===data.currentId?' current':''}" data-id="${m.id}">
++    `<section class="page${tplClass()}${alignClass()}${m.id===data.currentId?' current':''}" data-id="${m.id}">
+        ${menuHeaderHTML(m)}
+        <div class="page-inner">${pageHTML(m)}</div>
+        <div class="page-foot">${esc(data.logoText || m.title || "")}</div>
+@@ -2148,6 +2237,19 @@
+   $("infoText").value=state.infoText||"";
+   $("infoAllergens").value=state.infoAllergens||"";
+ }
++
++function buildAlignRow(){
++  const row=$("alignRow"); if(!row) return;
++  const cur=currentAlign();
++  row.querySelectorAll(".align-btn").forEach(btn=>{
++    btn.classList.toggle("on", btn.dataset.align===cur);
++    btn.onclick=()=>{
++      data.textAlign=btn.dataset.align;
++      save(); buildAlignRow(); render();
++    };
++  });
++}
++
+ function buildTplGrid(){
+   const g=$("tplGrid"); if(!g) return;
+   g.innerHTML=Object.entries(TEMPLATES).map(([id,t])=>
+@@ -2192,7 +2294,7 @@
+     el.style.width="794px"; el.style.height="1123px";
+     el.innerHTML=ebCoverHTML();
+   } else {
+-    el.className="page ebook-page"+tplClass();
++    el.className="page ebook-page"+tplClass()+alignClass();
+     el.style.cursor="default";
+     el.innerHTML=`${menuHeaderHTML(slide.m)}
+                   <div class="page-inner">${pageHTML(slide.m)}</div>
+@@ -2375,7 +2477,7 @@
+ 
+ /* ---------------- Init ---------------- */
+ buildChips();
+-buildTplGrid();
++buildTplGrid(); buildAlignRow();
+ syncInputs();
+ render();
+ detectArchiveStorage().then(async ()=>{
