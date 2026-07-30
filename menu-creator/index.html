@@ -294,17 +294,20 @@
   .page.align-center .menu-logo-text{margin-left:auto;margin-right:auto;}
   .page.align-center .menu-title::after{margin-left:auto !important;margin-right:auto !important;}
 
+  .page.align-center .info-block,
   .page.align-center .info-body,
-  .page.align-center .info-body p,
-  .page.align-center .info-list{text-align:center !important;}
+  .page.align-center .info-body p{text-align:center !important;}
+  .page.align-center .info-list{justify-content:center !important;}
+  .page.align-left .info-block,
   .page.align-left .info-body,
-  .page.align-left .info-body p,
-  .page.align-left .info-list{text-align:left !important;}
+  .page.align-left .info-body p{text-align:left !important;}
+  .page.align-left .info-body{margin-left:0;margin-right:auto;}
+  .page.align-left .info-list{justify-content:flex-start !important;}
+  .page.align-right .info-block,
   .page.align-right .info-body,
-  .page.align-right .info-body p,
-  .page.align-right .info-list{text-align:right !important;}
-  .page.align-center .info-list{justify-content:center;}
-  .page.align-right .info-list{justify-content:flex-end;}
+  .page.align-right .info-body p{text-align:right !important;}
+  .page.align-right .info-body{margin-left:auto;margin-right:0;}
+  .page.align-right .info-list{justify-content:flex-end !important;}
 
 
   .page.align-left .menu-head,
@@ -364,25 +367,31 @@
 
   /* allergen info block (same page, below dishes) */
   .info-block{
-    margin-top:22px;padding-top:14px;border-top:2px solid var(--gold);
+    margin-top:22px;padding:16px 10px 4px;border-top:2px solid var(--gold);
+    text-align:center;
   }
   .info-title{
     font-family:var(--serif);font-size:18px;letter-spacing:.1em;text-transform:uppercase;
-    text-align:center;color:var(--accent);margin-bottom:2px;
+    text-align:center;color:var(--accent);margin:0 0 2px;
   }
-  .info-sub{text-align:center;color:var(--muted);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;}
-  .info-body p{font-size:10.5px;line-height:1.45;color:#3c463f;margin:0 0 7px;}
+  .info-sub{text-align:center;color:var(--muted);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;margin:0 0 12px;}
+  .info-body{
+    max-width:480px;margin:0 auto 8px;text-align:center;
+  }
+  .info-body p{
+    font-size:10.5px;line-height:1.55;color:#3c463f;margin:0 0 8px;text-align:center;
+  }
   .info-list{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:3px 16px;margin-top:10px;
-    padding:12px 16px;background:var(--accent-soft);border-radius:10px;
+    display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin:10px auto 0;
+    max-width:520px;padding:12px 16px;background:var(--accent-soft);border-radius:10px;
   }
-  .info-list span{font-size:10.5px;display:flex;align-items:center;gap:6px;}
+  .info-list span{font-size:10.5px;display:inline-flex;align-items:center;gap:6px;text-align:left;}
   .info-list span::before{content:"•";color:var(--gold);font-size:14px;}
-  .page-foot{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:var(--muted);font-size:10px;letter-spacing:.1em;}
-  .menu-qr-wrap{text-align:center;margin-top:10px;padding-top:8px;}
+  .menu-qr-wrap{clear:both;display:block;width:100%;text-align:center;margin-top:12px;padding-top:8px;}
   .menu-qr-wrap img{display:block;margin:0 auto;background:#fff;}
   .menu-qr-caption{font-family:var(--serif);font-size:9px;text-align:center;color:var(--muted);margin:6px 0 0;letter-spacing:.04em;font-style:italic;line-height:1.45;}
   .page.tpl-luxury .menu-qr-caption{color:#c4b89a;}
+  .page-foot{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:var(--muted);font-size:10px;letter-spacing:.1em;}
 
   .empty-note{color:var(--muted);text-align:center;font-style:italic;padding:30px;}
 
@@ -928,8 +937,8 @@
     <div class="group">
       <label>Allergen information text</label>
       <textarea id="infoText" style="min-height:120px"></textarea>
-      <div class="hint">Legal allergen blurb only — not dishes. If dishes got pasted here by mistake, use the button below.</div>
-      <button class="btn btn-primary btn-sm" id="fixMixedInfo" style="margin-top:8px" type="button">Fix: move dishes out of Allergen info</button>
+      <div class="hint">Short allergen blurb only (centred under the menu). Do not paste dishes here — use <b>Paste full menu</b> above. If the bottom looks messy, click the button below.</div>
+      <button class="btn btn-primary btn-sm" id="fixMixedInfo" style="margin-top:8px" type="button">Fix allergen footer layout</button>
       <div class="hint">List of allergens you can inform about (comma separated):</div>
       <textarea id="infoAllergens" style="min-height:70px;margin-top:6px"></textarea>
     </div>
@@ -1771,10 +1780,25 @@ $("loadSample").onclick = ()=>{
   save(); resetForm(); syncInputs(); render();
 };
 $("fixMixedInfo") && ($("fixMixedInfo").onclick = ()=>{
-  const r=rescueDishesFromInfo({replaceDishes:false});
+  const info=data.infoText||"";
+  if(!looksLikeDishDump(info) && !looksLikeDishDump(data.infoAllergens||"")){
+    // Still restore a clean centred blurb if user wants
+    data.infoText = DEFAULT_INFO; save(); syncInputs(); render();
+    alert("Allergen Information footer restored to the normal centred blurb.");
+    return;
+  }
+  const m=current();
+  if(m.dishes && m.dishes.length){
+    data.infoText = DEFAULT_INFO; save(); syncInputs(); render();
+    alert("Cleared the Allergen Information footer. Your menu dishes above are unchanged.");
+    return;
+  }
+  const r=rescueDishesFromInfo({replaceDishes:true});
   if(r.moved) alert("Moved "+r.moved+" dishes into the menu and restored the allergen blurb.");
-  else if(r.reason==="clean") alert("Allergen Information looks fine — no dishes found mixed in.");
-  else alert("Couldn't pull dishes from Allergen Information. Paste the menu into “Paste full menu” and press Generate menu instead.");
+  else {
+    data.infoText = DEFAULT_INFO; save(); syncInputs(); render();
+    alert("Allergen Information footer restored.");
+  }
 });
 $("resetAll").onclick = ()=>{
   if(!confirm("Clear everything (all days)?")) return;
@@ -2016,6 +2040,50 @@ function parseBulk(text){
   return { title, dishes, infoText: infoLines.length? infoLines.join("\n\n"):null, infoAllergens };
 }
 
+
+function cleanAllergenInfoText(raw){
+  const t=(raw||"").trim();
+  if(!t) return DEFAULT_INFO;
+  if(looksLikeDishDump(t)) return DEFAULT_INFO;
+  if(/^contains\s*:?/im.test(t) && (t.match(/^contains\s*:?/gim)||[]).length>=1) return DEFAULT_INFO;
+  // Strip accidental CAPS dish blocks that slipped into the blurb
+  const lines=t.split(/\r?\n/);
+  const kept=[];
+  let skipping=false;
+  for(const line of lines){
+    const rawLine=line.trim();
+    const low=rawLine.toLowerCase();
+    const caps = (()=>{ const L=rawLine.replace(/[^a-zA-Z]/g,""); return L.length>=6 && rawLine===rawLine.toUpperCase() && /[A-Z]/.test(rawLine); })();
+    if(/^contains\s*:?/i.test(rawLine) || /^suitable\s+for\b/i.test(rawLine)){ skipping=true; continue; }
+    if(caps && !/allergen|dietary|information|menu\s*$/i.test(rawLine)){ skipping=true; continue; }
+    if(skipping){
+      if(!rawLine){ skipping=false; }
+      continue;
+    }
+    kept.push(line);
+  }
+  const out=kept.join("\n").trim();
+  if(!out || looksLikeDishDump(out)) return DEFAULT_INFO;
+  return out;
+}
+function sanitizeInfoText(saveIt){
+  const cleaned=cleanAllergenInfoText(data.infoText);
+  if(cleaned !== (data.infoText||"").trim() && cleaned === DEFAULT_INFO && looksLikeDishDump(data.infoText||"")){
+    // full dump → restore default
+    data.infoText = DEFAULT_INFO;
+    if(saveIt!==false) save();
+    const inp=$("infoText"); if(inp) inp.value=data.infoText;
+    return true;
+  }
+  if(cleaned !== (data.infoText||"").trim() && cleaned !== (data.infoText||"")){
+    data.infoText = cleaned;
+    if(saveIt!==false) save();
+    const inp=$("infoText"); if(inp) inp.value=data.infoText;
+    return true;
+  }
+  return false;
+}
+
 function looksLikeDishDump(text){
   const t=(text||"").trim();
   if(!t) return false;
@@ -2067,16 +2135,27 @@ function autoRescueMixedInfo(){
   try{
     const m=current();
     const info=data.infoText||"";
-    if(!looksLikeDishDump(info)) return;
-    // If dish list empty OR info clearly has Contains: dish lines, rescue
-    const containsN=(info.match(/^contains\s*:?/gim)||[]).length;
-    if(!m.dishes.length || containsN>=1){
-      const r=rescueDishesFromInfo({replaceDishes:!m.dishes.length});
+    if(looksLikeDishDump(info)){
+      // If this menu already has dishes, only clear the allergen footer
+      // (do not append leftover dinner dishes into today's lunch).
+      if(m.dishes && m.dishes.length){
+        data.infoText = DEFAULT_INFO; save();
+        const inp=$("infoText"); if(inp) inp.value=data.infoText;
+        const st=$("archiveStatus");
+        if(st) st.textContent="Cleared dishes from Allergen Information — footer restored.";
+        return;
+      }
+      const r=rescueDishesFromInfo({replaceDishes:true});
       if(r.moved){
         const st=$("archiveStatus");
         if(st) st.textContent="Moved "+r.moved+" dishes out of Allergen Information into the menu.";
+      } else {
+        data.infoText = DEFAULT_INFO; save();
+        const inp=$("infoText"); if(inp) inp.value=data.infoText;
       }
+      return;
     }
+    sanitizeInfoText(true);
   }catch(e){}
 }
 
@@ -2144,7 +2223,7 @@ function wordTpl(tpl){
 function buildWordPage(m, snap, idx, tpl){
   const s=applyWordAlign(wordTpl(tpl));
   const items=(snap?.infoAllergens||data.infoAllergens||"").split(",").map(x=>x.trim()).filter(Boolean);
-  const infoBody=(snap?.infoText||data.infoText||"").split(/\n{2,}/)
+  const infoBody=cleanAllergenInfoText(snap?.infoText||data.infoText||"").split(/\n{2,}/)
     .map(p=>`<p style="font-size:8.5pt;line-height:1.35;${s.body||'color:#3c463f;'}margin:0 0 4pt;">${esc(p).replace(/\n/g,"<br>")}</p>`).join("");
   const listHTML=items.length?`<p style="font-size:8.5pt;${s.body||'color:#3c463f;'}"><b>You can request more information on:</b> ${items.map(esc).join(" &bull; ")}</p>`:"";
   const logo=snap||data;
@@ -2313,7 +2392,9 @@ function pageHTML(m){
           ${d.diet&&d.diet.length?`<div class="dish-diet">${esc(dietLine(d.diet))}</div>`:""}
         </div>`).join("")
     : `<div class="empty-note">No dishes yet — add one on the left, or click “Load sample”.</div>`;
-  const infoBody = (data.infoText||"").split(/\n{2,}/).map(p=>`<p>${esc(p).replace(/\n/g,"<br>")}</p>`).join("");
+  // Never render a dish dump in the allergen footer — keeps layout calm and centred
+  const infoTextSafe = cleanAllergenInfoText(data.infoText);
+  const infoBody = infoTextSafe.split(/\n{2,}/).map(p=>`<p>${esc(p).replace(/\n/g,"<br>")}</p>`).join("");
   const items = (data.infoAllergens||"").split(",").map(s=>s.trim()).filter(Boolean);
   const infoList = items.length? `<div class="info-list">${items.map(i=>`<span>${esc(i)}</span>`).join("")}</div>` : "";
   return `
@@ -2329,6 +2410,9 @@ function pageHTML(m){
 
 function render(){
   renderTabs();
+  // Keep allergen footer clean so the bottom layout stays nice
+  if(looksLikeDishDump(data.infoText||"")) autoRescueMixedInfo();
+  else sanitizeInfoText(false);
 
   // editor logo preview (shared)
   $("logoPrev").innerHTML = data.logoImg ? `<img src="${data.logoImg}">` : (data.logoText? esc(data.logoText): "No logo");

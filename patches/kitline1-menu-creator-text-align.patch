@@ -25,7 +25,7 @@
  
    /* ---------- Template: Luxury Dark ---------- */
    .page.tpl-luxury{background:linear-gradient(165deg,#1a1f2e 0%,#0d1117 100%);color:#f5e6c8;border-color:#3d3528;}
-@@ -257,6 +261,70 @@
+@@ -257,6 +261,73 @@
    .page.tpl-rustic .info-block{border-top:2px wavy #8b5a2b;background:#fff9f2;padding:12px 16px;border-radius:8px;}
    .page.tpl-rustic .info-title{color:#5c3d1e;font-family:"Palatino Linotype",Palatino,serif;}
    .page.tpl-rustic .info-list{background:#f5ebe0;}
@@ -62,17 +62,20 @@
 +  .page.align-center .menu-logo-text{margin-left:auto;margin-right:auto;}
 +  .page.align-center .menu-title::after{margin-left:auto !important;margin-right:auto !important;}
 +
++  .page.align-center .info-block,
 +  .page.align-center .info-body,
-+  .page.align-center .info-body p,
-+  .page.align-center .info-list{text-align:center !important;}
++  .page.align-center .info-body p{text-align:center !important;}
++  .page.align-center .info-list{justify-content:center !important;}
++  .page.align-left .info-block,
 +  .page.align-left .info-body,
-+  .page.align-left .info-body p,
-+  .page.align-left .info-list{text-align:left !important;}
++  .page.align-left .info-body p{text-align:left !important;}
++  .page.align-left .info-body{margin-left:0;margin-right:auto;}
++  .page.align-left .info-list{justify-content:flex-start !important;}
++  .page.align-right .info-block,
 +  .page.align-right .info-body,
-+  .page.align-right .info-body p,
-+  .page.align-right .info-list{text-align:right !important;}
-+  .page.align-center .info-list{justify-content:center;}
-+  .page.align-right .info-list{justify-content:flex-end;}
++  .page.align-right .info-body p{text-align:right !important;}
++  .page.align-right .info-body{margin-left:auto;margin-right:0;}
++  .page.align-right .info-list{justify-content:flex-end !important;}
 +
 +
 +  .page.align-left .menu-head,
@@ -96,7 +99,50 @@
  
    /* template picker */
    .tpl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-@@ -800,6 +868,17 @@
+@@ -296,25 +367,31 @@
+ 
+   /* allergen info block (same page, below dishes) */
+   .info-block{
+-    margin-top:22px;padding-top:14px;border-top:2px solid var(--gold);
++    margin-top:22px;padding:16px 10px 4px;border-top:2px solid var(--gold);
++    text-align:center;
+   }
+   .info-title{
+     font-family:var(--serif);font-size:18px;letter-spacing:.1em;text-transform:uppercase;
+-    text-align:center;color:var(--accent);margin-bottom:2px;
+-  }
+-  .info-sub{text-align:center;color:var(--muted);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;}
+-  .info-body p{font-size:10.5px;line-height:1.45;color:#3c463f;margin:0 0 7px;}
++    text-align:center;color:var(--accent);margin:0 0 2px;
++  }
++  .info-sub{text-align:center;color:var(--muted);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;margin:0 0 12px;}
++  .info-body{
++    max-width:480px;margin:0 auto 8px;text-align:center;
++  }
++  .info-body p{
++    font-size:10.5px;line-height:1.55;color:#3c463f;margin:0 0 8px;text-align:center;
++  }
+   .info-list{
+-    display:grid;grid-template-columns:repeat(3,1fr);gap:3px 16px;margin-top:10px;
+-    padding:12px 16px;background:var(--accent-soft);border-radius:10px;
+-  }
+-  .info-list span{font-size:10.5px;display:flex;align-items:center;gap:6px;}
++    display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin:10px auto 0;
++    max-width:520px;padding:12px 16px;background:var(--accent-soft);border-radius:10px;
++  }
++  .info-list span{font-size:10.5px;display:inline-flex;align-items:center;gap:6px;text-align:left;}
+   .info-list span::before{content:"•";color:var(--gold);font-size:14px;}
+-  .page-foot{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:var(--muted);font-size:10px;letter-spacing:.1em;}
+-  .menu-qr-wrap{text-align:center;margin-top:10px;padding-top:8px;}
++  .menu-qr-wrap{clear:both;display:block;width:100%;text-align:center;margin-top:12px;padding-top:8px;}
+   .menu-qr-wrap img{display:block;margin:0 auto;background:#fff;}
+   .menu-qr-caption{font-family:var(--serif);font-size:9px;text-align:center;color:var(--muted);margin:6px 0 0;letter-spacing:.04em;font-style:italic;line-height:1.45;}
+   .page.tpl-luxury .menu-qr-caption{color:#c4b89a;}
++  .page-foot{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:var(--muted);font-size:10px;letter-spacing:.1em;}
+ 
+   .empty-note{color:var(--muted);text-align:center;font-style:italic;padding:30px;}
+ 
+@@ -800,6 +877,17 @@
      </div>
  
      <div class="group">
@@ -114,16 +160,16 @@
        <label>Logo</label>
        <div class="logo-box">
          <div class="logo-prev" id="logoPrev">No logo</div>
-@@ -849,6 +928,8 @@
+@@ -849,6 +937,8 @@
      <div class="group">
        <label>Allergen information text</label>
        <textarea id="infoText" style="min-height:120px"></textarea>
-+      <div class="hint">Legal allergen blurb only — not dishes. If dishes got pasted here by mistake, use the button below.</div>
-+      <button class="btn btn-primary btn-sm" id="fixMixedInfo" style="margin-top:8px" type="button">Fix: move dishes out of Allergen info</button>
++      <div class="hint">Short allergen blurb only (centred under the menu). Do not paste dishes here — use <b>Paste full menu</b> above. If the bottom looks messy, click the button below.</div>
++      <button class="btn btn-primary btn-sm" id="fixMixedInfo" style="margin-top:8px" type="button">Fix allergen footer layout</button>
        <div class="hint">List of allergens you can inform about (comma separated):</div>
        <textarea id="infoAllergens" style="min-height:70px;margin-top:6px"></textarea>
      </div>
-@@ -860,6 +941,12 @@
+@@ -860,6 +950,12 @@
    <main class="preview-wrap">
      <div class="toolbar">
        <strong class="grow">Live preview</strong>
@@ -136,7 +182,7 @@
        <button class="btn btn-install hidden" id="installBtn" title="Install Menu Creator as an app">⬇ Install App</button>
        <button class="btn btn-ghost" id="loadSample">Load sample</button>
        <button class="btn btn-line" id="saveProject">Save project</button>
-@@ -958,7 +1045,7 @@
+@@ -958,7 +1054,7 @@
  function newMenu(label){ return { id:uid(), label:label||"New Day", title:"DINNER MENU", sub:"", dishes:[] }; }
  const TEMPLATES={
    classic:{name:"Classic Gold",desc:"Double gold border, elegant centre",swatch:"linear-gradient(135deg,#fff 40%,#b08a3e)"},
@@ -145,7 +191,7 @@
    luxury:{name:"Luxury Dark",desc:"Dark navy with gold accents",swatch:"linear-gradient(135deg,#1a1f2e,#c9a84c)"},
    botanical:{name:"Botanical",desc:"Soft sage green, organic feel",swatch:"linear-gradient(135deg,#f7f9f4,#5a7d5a)"},
    artdeco:{name:"Art Deco",desc:"Bold 1920s geometric style",swatch:"linear-gradient(135deg,#fff8f0,#1a1a1a)"},
-@@ -966,7 +1053,7 @@
+@@ -966,7 +1062,7 @@
  };
  function makeDefault(){
    return { logoText:"", logoImg:null, infoText:DEFAULT_INFO, infoAllergens:DEFAULT_INFO_ALLERGENS,
@@ -154,7 +200,7 @@
  }
  function migrate(old){
    if(!old) return null;
-@@ -981,8 +1068,9 @@
+@@ -981,8 +1077,9 @@
  if(!data.currentId || !data.menus.some(m=>m.id===data.currentId)) data.currentId = data.menus[0].id;
  if(["", OLD_INFO_ALLERGENS, "Soya, Sulphur Dioxide"].includes((data.infoAllergens||"").trim())){ data.infoAllergens = DEFAULT_INFO_ALLERGENS; }
  if(!data.template) data.template="classic";
@@ -166,7 +212,7 @@
  function menuQrUrl(){
    let u = (MENU_QR_URL || "").trim();
    if(!u) return "";
-@@ -990,6 +1078,13 @@
+@@ -990,6 +1087,13 @@
    return u;
  }
  function tplClass(){ return " tpl-"+(data.template||"classic"); }
@@ -180,7 +226,7 @@
  function current(){ return data.menus.find(m=>m.id===data.currentId) || data.menus[0]; }
  const state = new Proxy({}, {
    get(_,k){ return SHARED.includes(k) ? data[k] : current()[k]; },
-@@ -1201,7 +1296,7 @@
+@@ -1201,7 +1305,7 @@
    return {
      logoText:data.logoText||"", logoImg:data.logoImg||null,
      infoText:data.infoText||"", infoAllergens:data.infoAllergens||"",
@@ -189,7 +235,7 @@
      title:m.title||"", sub:m.sub||"",
      dishes:JSON.parse(JSON.stringify(m.dishes||[]))
    };
-@@ -1209,7 +1304,10 @@
+@@ -1209,7 +1313,10 @@
  function applyArchiveSnapshot(snap){
    data.logoText=snap.logoText||""; data.logoImg=snap.logoImg||null;
    data.infoText=snap.infoText||DEFAULT_INFO; data.infoAllergens=snap.infoAllergens||"";
@@ -201,7 +247,7 @@
    const m=current();
    m.title=snap.title||"DINNER MENU"; m.sub=snap.sub||"";
    m.dishes=JSON.parse(JSON.stringify(snap.dishes||[]));
-@@ -1224,7 +1322,7 @@
+@@ -1224,7 +1331,7 @@
    return {
      logoText:proj.logoText||"", logoImg:proj.logoImg||null,
      infoText:proj.infoText||DEFAULT_INFO, infoAllergens:proj.infoAllergens||"",
@@ -210,15 +256,30 @@
      title:pick.title||"DINNER MENU", sub:pick.sub||"",
      dishes:JSON.parse(JSON.stringify(pick.dishes||[]))
    };
-@@ -1672,10 +1770,16 @@
+@@ -1672,10 +1779,31 @@
    m.dishes=JSON.parse(JSON.stringify(SAMPLE.dishes));
    save(); resetForm(); syncInputs(); render();
  };
 +$("fixMixedInfo") && ($("fixMixedInfo").onclick = ()=>{
-+  const r=rescueDishesFromInfo({replaceDishes:false});
++  const info=data.infoText||"";
++  if(!looksLikeDishDump(info) && !looksLikeDishDump(data.infoAllergens||"")){
++    // Still restore a clean centred blurb if user wants
++    data.infoText = DEFAULT_INFO; save(); syncInputs(); render();
++    alert("Allergen Information footer restored to the normal centred blurb.");
++    return;
++  }
++  const m=current();
++  if(m.dishes && m.dishes.length){
++    data.infoText = DEFAULT_INFO; save(); syncInputs(); render();
++    alert("Cleared the Allergen Information footer. Your menu dishes above are unchanged.");
++    return;
++  }
++  const r=rescueDishesFromInfo({replaceDishes:true});
 +  if(r.moved) alert("Moved "+r.moved+" dishes into the menu and restored the allergen blurb.");
-+  else if(r.reason==="clean") alert("Allergen Information looks fine — no dishes found mixed in.");
-+  else alert("Couldn't pull dishes from Allergen Information. Paste the menu into “Paste full menu” and press Generate menu instead.");
++  else {
++    data.infoText = DEFAULT_INFO; save(); syncInputs(); render();
++    alert("Allergen Information footer restored.");
++  }
 +});
  $("resetAll").onclick = ()=>{
    if(!confirm("Clear everything (all days)?")) return;
@@ -228,7 +289,7 @@
  };
  $("printBtn").onclick = ()=>{ preparePrint(); window.print(); };
  
-@@ -1846,9 +1950,17 @@
+@@ -1846,9 +1974,17 @@
      if(mode==="info"){
        if(!raw) continue;
        const m = low.match(/request more information\s*(?:on|about)?\s*[:\-]?\s*(.*)/);
@@ -249,7 +310,7 @@
      }
  
      // blank line = boundary: next content line starts a new dish
-@@ -1883,6 +1995,15 @@
+@@ -1883,6 +2019,15 @@
      }
  
      if(expectName || !cur){
@@ -265,10 +326,54 @@
        push();
        cur = newDish();
        cur.name = isCaps(raw) ? toTitle(raw) : raw;   // keep normal-case names as typed
-@@ -1894,11 +2015,79 @@
+@@ -1894,11 +2039,134 @@
    push();
    return { title, dishes, infoText: infoLines.length? infoLines.join("\n\n"):null, infoAllergens };
  }
++
++
++function cleanAllergenInfoText(raw){
++  const t=(raw||"").trim();
++  if(!t) return DEFAULT_INFO;
++  if(looksLikeDishDump(t)) return DEFAULT_INFO;
++  if(/^contains\s*:?/im.test(t) && (t.match(/^contains\s*:?/gim)||[]).length>=1) return DEFAULT_INFO;
++  // Strip accidental CAPS dish blocks that slipped into the blurb
++  const lines=t.split(/\r?\n/);
++  const kept=[];
++  let skipping=false;
++  for(const line of lines){
++    const rawLine=line.trim();
++    const low=rawLine.toLowerCase();
++    const caps = (()=>{ const L=rawLine.replace(/[^a-zA-Z]/g,""); return L.length>=6 && rawLine===rawLine.toUpperCase() && /[A-Z]/.test(rawLine); })();
++    if(/^contains\s*:?/i.test(rawLine) || /^suitable\s+for\b/i.test(rawLine)){ skipping=true; continue; }
++    if(caps && !/allergen|dietary|information|menu\s*$/i.test(rawLine)){ skipping=true; continue; }
++    if(skipping){
++      if(!rawLine){ skipping=false; }
++      continue;
++    }
++    kept.push(line);
++  }
++  const out=kept.join("\n").trim();
++  if(!out || looksLikeDishDump(out)) return DEFAULT_INFO;
++  return out;
++}
++function sanitizeInfoText(saveIt){
++  const cleaned=cleanAllergenInfoText(data.infoText);
++  if(cleaned !== (data.infoText||"").trim() && cleaned === DEFAULT_INFO && looksLikeDishDump(data.infoText||"")){
++    // full dump → restore default
++    data.infoText = DEFAULT_INFO;
++    if(saveIt!==false) save();
++    const inp=$("infoText"); if(inp) inp.value=data.infoText;
++    return true;
++  }
++  if(cleaned !== (data.infoText||"").trim() && cleaned !== (data.infoText||"")){
++    data.infoText = cleaned;
++    if(saveIt!==false) save();
++    const inp=$("infoText"); if(inp) inp.value=data.infoText;
++    return true;
++  }
++  return false;
++}
 +
 +function looksLikeDishDump(text){
 +  const t=(text||"").trim();
@@ -321,16 +426,27 @@
 +  try{
 +    const m=current();
 +    const info=data.infoText||"";
-+    if(!looksLikeDishDump(info)) return;
-+    // If dish list empty OR info clearly has Contains: dish lines, rescue
-+    const containsN=(info.match(/^contains\s*:?/gim)||[]).length;
-+    if(!m.dishes.length || containsN>=1){
-+      const r=rescueDishesFromInfo({replaceDishes:!m.dishes.length});
++    if(looksLikeDishDump(info)){
++      // If this menu already has dishes, only clear the allergen footer
++      // (do not append leftover dinner dishes into today's lunch).
++      if(m.dishes && m.dishes.length){
++        data.infoText = DEFAULT_INFO; save();
++        const inp=$("infoText"); if(inp) inp.value=data.infoText;
++        const st=$("archiveStatus");
++        if(st) st.textContent="Cleared dishes from Allergen Information — footer restored.";
++        return;
++      }
++      const r=rescueDishesFromInfo({replaceDishes:true});
 +      if(r.moved){
 +        const st=$("archiveStatus");
 +        if(st) st.textContent="Moved "+r.moved+" dishes out of Allergen Information into the menu.";
++      } else {
++        data.infoText = DEFAULT_INFO; save();
++        const inp=$("infoText"); if(inp) inp.value=data.infoText;
 +      }
++      return;
 +    }
++    sanitizeInfoText(true);
 +  }catch(e){}
 +}
 +
@@ -346,7 +462,7 @@
    if(replace && r.infoAllergens) data.infoAllergens = r.infoAllergens;
    save(); resetForm(); syncInputs(); render();
    saveToArchive(true).catch(()=>{});
-@@ -1917,6 +2106,29 @@
+@@ -1917,6 +2185,29 @@
  };
  
  /* ---------------- Word export styles per template ---------------- */
@@ -376,14 +492,15 @@
  function wordTpl(tpl){
    const t=tpl||data.template||"classic";
    const map={
-@@ -1930,14 +2142,16 @@
+@@ -1930,14 +2221,16 @@
    return map[t]||map.classic;
  }
  function buildWordPage(m, snap, idx, tpl){
 -  const s=wordTpl(tpl);
 +  const s=applyWordAlign(wordTpl(tpl));
    const items=(snap?.infoAllergens||data.infoAllergens||"").split(",").map(x=>x.trim()).filter(Boolean);
-   const infoBody=(snap?.infoText||data.infoText||"").split(/\n{2,}/)
+-  const infoBody=(snap?.infoText||data.infoText||"").split(/\n{2,}/)
++  const infoBody=cleanAllergenInfoText(snap?.infoText||data.infoText||"").split(/\n{2,}/)
      .map(p=>`<p style="font-size:8.5pt;line-height:1.35;${s.body||'color:#3c463f;'}margin:0 0 4pt;">${esc(p).replace(/\n/g,"<br>")}</p>`).join("");
    const listHTML=items.length?`<p style="font-size:8.5pt;${s.body||'color:#3c463f;'}"><b>You can request more information on:</b> ${items.map(esc).join(" &bull; ")}</p>`:"";
    const logo=snap||data;
@@ -396,7 +513,7 @@
    const dishes=(m.dishes||[]);
    const dishesHTML=dishes.map(d=>`
      <p style="${s.dish}margin:9pt 0 2pt;">${esc(formatDishName(d.name))}</p>
-@@ -2043,6 +2257,9 @@
+@@ -2043,6 +2336,9 @@
      if(!inner) return;
      // reset before measuring
      inner.style.transform = "none";
@@ -406,7 +523,7 @@
      inner.style.zoom = "";
      inner.style.height = "auto";
      inner.classList.remove("fill");
-@@ -2052,8 +2269,13 @@
+@@ -2052,8 +2348,13 @@
      const natural = inner.scrollHeight;
      if(natural > avail){
        const ratio = avail / natural;
@@ -422,7 +539,28 @@
      } else {
        inner.style.height = avail + "px";                    // fill the page
        inner.classList.add("fill");                          // pin allergen info to bottom
-@@ -2114,7 +2336,7 @@
+@@ -2091,7 +2392,9 @@
+           ${d.diet&&d.diet.length?`<div class="dish-diet">${esc(dietLine(d.diet))}</div>`:""}
+         </div>`).join("")
+     : `<div class="empty-note">No dishes yet — add one on the left, or click “Load sample”.</div>`;
+-  const infoBody = (data.infoText||"").split(/\n{2,}/).map(p=>`<p>${esc(p).replace(/\n/g,"<br>")}</p>`).join("");
++  // Never render a dish dump in the allergen footer — keeps layout calm and centred
++  const infoTextSafe = cleanAllergenInfoText(data.infoText);
++  const infoBody = infoTextSafe.split(/\n{2,}/).map(p=>`<p>${esc(p).replace(/\n/g,"<br>")}</p>`).join("");
+   const items = (data.infoAllergens||"").split(",").map(s=>s.trim()).filter(Boolean);
+   const infoList = items.length? `<div class="info-list">${items.map(i=>`<span>${esc(i)}</span>`).join("")}</div>` : "";
+   return `
+@@ -2107,6 +2410,9 @@
+ 
+ function render(){
+   renderTabs();
++  // Keep allergen footer clean so the bottom layout stays nice
++  if(looksLikeDishDump(data.infoText||"")) autoRescueMixedInfo();
++  else sanitizeInfoText(false);
+ 
+   // editor logo preview (shared)
+   $("logoPrev").innerHTML = data.logoImg ? `<img src="${data.logoImg}">` : (data.logoText? esc(data.logoText): "No logo");
+@@ -2114,7 +2420,7 @@
    // preview: one page per day
    const pages = $("pagesOut");
    pages.innerHTML = data.menus.map(m=>
@@ -431,7 +569,7 @@
         ${menuHeaderHTML(m)}
         <div class="page-inner">${pageHTML(m)}</div>
         <div class="page-foot">${esc(data.logoText || m.title || "")}</div>
-@@ -2148,6 +2370,23 @@
+@@ -2148,6 +2454,23 @@
    $("infoText").value=state.infoText||"";
    $("infoAllergens").value=state.infoAllergens||"";
  }
@@ -455,7 +593,7 @@
  function buildTplGrid(){
    const g=$("tplGrid"); if(!g) return;
    g.innerHTML=Object.entries(TEMPLATES).map(([id,t])=>
-@@ -2192,7 +2431,7 @@
+@@ -2192,7 +2515,7 @@
      el.style.width="794px"; el.style.height="1123px";
      el.innerHTML=ebCoverHTML();
    } else {
@@ -464,7 +602,7 @@
      el.style.cursor="default";
      el.innerHTML=`${menuHeaderHTML(slide.m)}
                    <div class="page-inner">${pageHTML(slide.m)}</div>
-@@ -2210,7 +2449,7 @@
+@@ -2210,7 +2533,7 @@
    const headerH=header?header.offsetHeight:0;
    const avail=1123 - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 18 - headerH;
    const natural=inner.scrollHeight;
@@ -473,7 +611,7 @@
    else { inner.style.height=avail+"px"; inner.classList.add("fill"); }
  }
  
-@@ -2375,7 +2614,7 @@
+@@ -2375,7 +2698,7 @@
  
  /* ---------------- Init ---------------- */
  buildChips();
