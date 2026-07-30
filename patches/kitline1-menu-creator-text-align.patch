@@ -1,9 +1,35 @@
 --- a/site/menu-creator/index.html
 +++ b/site/menu-creator/index.html
-@@ -258,6 +258,49 @@
+@@ -158,17 +158,21 @@
+   /* ---------- Template: Modern Minimal ---------- */
+   .page.tpl-modern{background:#fafafa;padding:52px 64px;}
+   .page.tpl-modern::before{display:none;}
+-  .page.tpl-modern .menu-head{border-bottom:1px solid #111;text-align:left;padding-bottom:10px;}
++  .page.tpl-modern .menu-head{border-bottom:1px solid #111;padding-bottom:10px;}
+   .page.tpl-modern .menu-title{font-family:var(--sans);font-size:28px;letter-spacing:.22em;font-weight:300;}
+   .page.tpl-modern .menu-logo-text{font-family:var(--sans);color:#111;font-weight:700;letter-spacing:.12em;}
+-  .page.tpl-modern .dish{text-align:left;margin-bottom:18px;padding-left:14px;border-left:3px solid #111;}
+-  .page.tpl-modern .dish-desc{margin:0;max-width:none;font-style:normal;color:#444;}
++  .page.tpl-modern .dish{margin-bottom:18px;}
++  .page.tpl-modern .dish-desc{font-style:normal;color:#444;}
+   .page.tpl-modern .dish-contains{color:#111;}
+   .page.tpl-modern .dish-diet{color:#555;}
+   .page.tpl-modern .dish-sep{display:none;}
+   .page.tpl-modern .info-block{border-top:1px solid #111;}
+   .page.tpl-modern .info-title{font-family:var(--sans);color:#111;letter-spacing:.18em;}
+   .page.tpl-modern .info-list{background:#eee;border-radius:0;}
++  /* Modern left accent only when user chooses Left alignment */
++  .page.tpl-modern.align-left .menu-head{text-align:left;}
++  .page.tpl-modern.align-left .dish{text-align:left;padding-left:14px;border-left:3px solid #111;}
++  .page.tpl-modern.align-left .dish-desc{margin:0;max-width:none;}
+ 
+   /* ---------- Template: Luxury Dark ---------- */
+   .page.tpl-luxury{background:linear-gradient(165deg,#1a1f2e 0%,#0d1117 100%);color:#f5e6c8;border-color:#3d3528;}
+@@ -257,6 +261,57 @@
+   .page.tpl-rustic .info-block{border-top:2px wavy #8b5a2b;background:#fff9f2;padding:12px 16px;border-radius:8px;}
    .page.tpl-rustic .info-title{color:#5c3d1e;font-family:"Palatino Linotype",Palatino,serif;}
    .page.tpl-rustic .info-list{background:#f5ebe0;}
- 
++
 +  
 +  /* ---------- Text alignment control ---------- */
 +  .align-row{display:flex;gap:8px;flex-wrap:wrap;}
@@ -14,6 +40,14 @@
 +  }
 +  .align-btn:hover{border-color:var(--accent);}
 +  .align-btn.on{background:var(--accent);color:#fff;border-color:var(--accent);}
++
++  .toolbar-align{
++    display:inline-flex;align-items:center;gap:4px;margin-left:4px;
++    padding:3px;border:1px solid var(--line);border-radius:10px;background:#fff;
++  }
++  .toolbar-align span{font-size:11px;font-weight:700;color:var(--muted);padding:0 6px;letter-spacing:.04em;text-transform:uppercase;}
++  .toolbar-align .align-btn{flex:0 0 auto;min-width:0;padding:7px 10px;font-size:12px;border-radius:8px;}
++
 +
 +  /* Override template alignment — user choice wins */
 +  .page.align-center .menu-head,
@@ -46,11 +80,10 @@
 +  .page.align-right .dish-desc{margin-left:auto !important;margin-right:0 !important;max-width:540px;}
 +  .page.align-right .dish-sep{margin-left:auto !important;margin-right:0 !important;}
 +  .page.align-right .menu-title::after{margin-left:auto !important;margin-right:0 !important;}
-+
+ 
    /* template picker */
    .tpl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-   .tpl-card{
-@@ -800,6 +843,17 @@
+@@ -800,6 +855,17 @@
      </div>
  
      <div class="group">
@@ -60,7 +93,7 @@
 +        <button type="button" class="align-btn on" data-align="center">Center</button>
 +        <button type="button" class="align-btn" data-align="right">Right</button>
 +      </div>
-+      <div class="hint">Centre, left, or right for titles and dish text. Works with every menu style (including Modern).</div>
++      <div class="hint">Use <b>Center</b> to put titles and dishes in the middle of the page. Also available in the Live preview toolbar (Align).</div>
 +    </div>
 +
 +
@@ -68,16 +101,29 @@
        <label>Logo</label>
        <div class="logo-box">
          <div class="logo-prev" id="logoPrev">No logo</div>
-@@ -958,7 +1012,7 @@
+@@ -860,6 +926,12 @@
+   <main class="preview-wrap">
+     <div class="toolbar">
+       <strong class="grow">Live preview</strong>
++      <div class="toolbar-align" id="toolbarAlign" role="group" aria-label="Menu text alignment">
++        <span>Align</span>
++        <button type="button" class="align-btn" data-align="left" title="Left align">Left</button>
++        <button type="button" class="align-btn on" data-align="center" title="Centre align">Center</button>
++        <button type="button" class="align-btn" data-align="right" title="Right align">Right</button>
++      </div>
+       <button class="btn btn-install hidden" id="installBtn" title="Install Menu Creator as an app">⬇ Install App</button>
+       <button class="btn btn-ghost" id="loadSample">Load sample</button>
+       <button class="btn btn-line" id="saveProject">Save project</button>
+@@ -958,7 +1030,7 @@
  function newMenu(label){ return { id:uid(), label:label||"New Day", title:"DINNER MENU", sub:"", dishes:[] }; }
  const TEMPLATES={
    classic:{name:"Classic Gold",desc:"Double gold border, elegant centre",swatch:"linear-gradient(135deg,#fff 40%,#b08a3e)"},
 -  modern:{name:"Modern Minimal",desc:"Clean black lines, left-aligned",swatch:"linear-gradient(135deg,#fafafa,#111 90%)"},
-+  modern:{name:"Modern Minimal",desc:"Clean black lines, sharp edges",swatch:"linear-gradient(135deg,#fafafa,#111 90%)"},
++  modern:{name:"Modern Minimal",desc:"Clean black lines (use Align for centre/left)",swatch:"linear-gradient(135deg,#fafafa,#111 90%)"},
    luxury:{name:"Luxury Dark",desc:"Dark navy with gold accents",swatch:"linear-gradient(135deg,#1a1f2e,#c9a84c)"},
    botanical:{name:"Botanical",desc:"Soft sage green, organic feel",swatch:"linear-gradient(135deg,#f7f9f4,#5a7d5a)"},
    artdeco:{name:"Art Deco",desc:"Bold 1920s geometric style",swatch:"linear-gradient(135deg,#fff8f0,#1a1a1a)"},
-@@ -966,7 +1020,7 @@
+@@ -966,7 +1038,7 @@
  };
  function makeDefault(){
    return { logoText:"", logoImg:null, infoText:DEFAULT_INFO, infoAllergens:DEFAULT_INFO_ALLERGENS,
@@ -86,7 +132,7 @@
  }
  function migrate(old){
    if(!old) return null;
-@@ -981,8 +1035,9 @@
+@@ -981,8 +1053,9 @@
  if(!data.currentId || !data.menus.some(m=>m.id===data.currentId)) data.currentId = data.menus[0].id;
  if(["", OLD_INFO_ALLERGENS, "Soya, Sulphur Dioxide"].includes((data.infoAllergens||"").trim())){ data.infoAllergens = DEFAULT_INFO_ALLERGENS; }
  if(!data.template) data.template="classic";
@@ -98,7 +144,7 @@
  function menuQrUrl(){
    let u = (MENU_QR_URL || "").trim();
    if(!u) return "";
-@@ -990,6 +1045,13 @@
+@@ -990,6 +1063,13 @@
    return u;
  }
  function tplClass(){ return " tpl-"+(data.template||"classic"); }
@@ -112,7 +158,7 @@
  function current(){ return data.menus.find(m=>m.id===data.currentId) || data.menus[0]; }
  const state = new Proxy({}, {
    get(_,k){ return SHARED.includes(k) ? data[k] : current()[k]; },
-@@ -1201,7 +1263,7 @@
+@@ -1201,7 +1281,7 @@
    return {
      logoText:data.logoText||"", logoImg:data.logoImg||null,
      infoText:data.infoText||"", infoAllergens:data.infoAllergens||"",
@@ -121,7 +167,7 @@
      title:m.title||"", sub:m.sub||"",
      dishes:JSON.parse(JSON.stringify(m.dishes||[]))
    };
-@@ -1209,7 +1271,9 @@
+@@ -1209,7 +1289,9 @@
  function applyArchiveSnapshot(snap){
    data.logoText=snap.logoText||""; data.logoImg=snap.logoImg||null;
    data.infoText=snap.infoText||DEFAULT_INFO; data.infoAllergens=snap.infoAllergens||"";
@@ -132,7 +178,7 @@
    const m=current();
    m.title=snap.title||"DINNER MENU"; m.sub=snap.sub||"";
    m.dishes=JSON.parse(JSON.stringify(snap.dishes||[]));
-@@ -1224,7 +1288,7 @@
+@@ -1224,7 +1306,7 @@
    return {
      logoText:proj.logoText||"", logoImg:proj.logoImg||null,
      infoText:proj.infoText||DEFAULT_INFO, infoAllergens:proj.infoAllergens||"",
@@ -141,7 +187,7 @@
      title:pick.title||"DINNER MENU", sub:pick.sub||"",
      dishes:JSON.parse(JSON.stringify(pick.dishes||[]))
    };
-@@ -1675,7 +1739,7 @@
+@@ -1675,7 +1757,7 @@
  $("resetAll").onclick = ()=>{
    if(!confirm("Clear everything (all days)?")) return;
    data = makeDefault(); data.currentId=data.menus[0].id;
@@ -150,7 +196,7 @@
  };
  $("printBtn").onclick = ()=>{ preparePrint(); window.print(); };
  
-@@ -1917,6 +1981,29 @@
+@@ -1917,6 +1999,29 @@
  };
  
  /* ---------------- Word export styles per template ---------------- */
@@ -180,7 +226,7 @@
  function wordTpl(tpl){
    const t=tpl||data.template||"classic";
    const map={
-@@ -1930,14 +2017,16 @@
+@@ -1930,14 +2035,16 @@
    return map[t]||map.classic;
  }
  function buildWordPage(m, snap, idx, tpl){
@@ -200,7 +246,28 @@
    const dishes=(m.dishes||[]);
    const dishesHTML=dishes.map(d=>`
      <p style="${s.dish}margin:9pt 0 2pt;">${esc(formatDishName(d.name))}</p>
-@@ -2114,7 +2203,7 @@
+@@ -2043,6 +2150,9 @@
+     if(!inner) return;
+     // reset before measuring
+     inner.style.transform = "none";
++    inner.style.transformOrigin = "top center";
++    inner.style.marginLeft = "";
++    inner.style.marginRight = "";
+     inner.style.zoom = "";
+     inner.style.height = "auto";
+     inner.classList.remove("fill");
+@@ -2053,6 +2163,10 @@
+     if(natural > avail){
+       const ratio = avail / natural;
+       /* scale dishes/info only — logo in .menu-head stays full size for print */
++      /* top center origin prevents content sticking to the left half of the page */
++      inner.style.transformOrigin = "top center";
++      inner.style.marginLeft = "auto";
++      inner.style.marginRight = "auto";
+       inner.style.transform = `scale(${ratio})`;
+     } else {
+       inner.style.height = avail + "px";                    // fill the page
+@@ -2114,7 +2228,7 @@
    // preview: one page per day
    const pages = $("pagesOut");
    pages.innerHTML = data.menus.map(m=>
@@ -209,27 +276,31 @@
         ${menuHeaderHTML(m)}
         <div class="page-inner">${pageHTML(m)}</div>
         <div class="page-foot">${esc(data.logoText || m.title || "")}</div>
-@@ -2148,6 +2237,19 @@
+@@ -2148,6 +2262,23 @@
    $("infoText").value=state.infoText||"";
    $("infoAllergens").value=state.infoAllergens||"";
  }
 +
 +function buildAlignRow(){
-+  const row=$("alignRow"); if(!row) return;
 +  const cur=currentAlign();
-+  row.querySelectorAll(".align-btn").forEach(btn=>{
-+    btn.classList.toggle("on", btn.dataset.align===cur);
-+    btn.onclick=()=>{
-+      data.textAlign=btn.dataset.align;
-+      save(); buildAlignRow(); render();
-+    };
-+  });
++  const wire = (root)=>{
++    if(!root) return;
++    root.querySelectorAll(".align-btn").forEach(btn=>{
++      btn.classList.toggle("on", btn.dataset.align===cur);
++      btn.onclick=()=>{
++        data.textAlign=btn.dataset.align;
++        save(); buildAlignRow(); render();
++      };
++    });
++  };
++  wire($("alignRow"));
++  wire($("toolbarAlign"));
 +}
 +
  function buildTplGrid(){
    const g=$("tplGrid"); if(!g) return;
    g.innerHTML=Object.entries(TEMPLATES).map(([id,t])=>
-@@ -2192,7 +2294,7 @@
+@@ -2192,7 +2323,7 @@
      el.style.width="794px"; el.style.height="1123px";
      el.innerHTML=ebCoverHTML();
    } else {
@@ -238,7 +309,16 @@
      el.style.cursor="default";
      el.innerHTML=`${menuHeaderHTML(slide.m)}
                    <div class="page-inner">${pageHTML(slide.m)}</div>
-@@ -2375,7 +2477,7 @@
+@@ -2210,7 +2341,7 @@
+   const headerH=header?header.offsetHeight:0;
+   const avail=1123 - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 18 - headerH;
+   const natural=inner.scrollHeight;
+-  if(natural>avail){ inner.style.transform=`scale(${avail/natural})`; }
++  if(natural>avail){ inner.style.transformOrigin="top center"; inner.style.transform=`scale(${avail/natural})`; }
+   else { inner.style.height=avail+"px"; inner.classList.add("fill"); }
+ }
+ 
+@@ -2375,7 +2506,7 @@
  
  /* ---------------- Init ---------------- */
  buildChips();

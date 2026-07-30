@@ -1,48 +1,35 @@
-# Fix: Menu Creator text alignment (center / left / right)
+# Fix: Menu Creator text stuck on the left (no way to centre)
 
-## Problem
-Menu Creator had no control for menu text alignment. Some styles (especially **Modern Minimal**) force left-aligned dish text, so titles and dishes look off-centre with no way to fix them.
+## What you are seeing
+On `https://kiteline.uk/menu-creator/` the live preview can show:
 
-## Fix
-Adds a **Menu text alignment** control under **Menu style**:
+- Titles and dishes stuck on the **left**
+- Empty space on the **right**
+- **No Align control** in the top bar
 
-- **Left**
-- **Center** (default)
-- **Right**
+That is the old build. This fix adds **Align: Left / Center / Right** in the Live preview toolbar (and under Menu style). **Center** is the default for every style, including Modern Minimal.
 
-The choice applies to live preview, print/PDF, ebook view, and Word export. It overrides template defaults. **Reset everything** restores center.
+## Fastest fix on the kitchen PC (Kiteline)
+1. Open this folder: `parslia-kitchen-os\patches\`
+2. Double-click **`APPLY-MENU-TEXT-ALIGN.bat`**
+3. Point it at your `kitline1` folder if asked
+4. Restart Kiteline, open Menu Creator, press **Ctrl+Shift+R**
+5. Use the green **Align → Center** buttons next to **Live preview**
 
-## Use now (this repo)
-Open after merge / GitHub Pages deploy:
+Drop-in files (manual copy):
 
-`https://parslia.app/menu-creator/`
+- `patches/menu-creator-dropin/index.html` → `kitline1/site/menu-creator/index.html`
+- `patches/menu-creator-dropin/service-worker.js` → `kitline1/site/menu-creator/service-worker.js`
 
-Or locally:
-
-```bash
-python -m http.server 8000
-# open http://localhost:8000/menu-creator/
-```
-
-Hard-refresh (**Ctrl+Shift+R**) so the service worker picks up the new cache.
-
-## Apply to Kiteline (`kitline1`)
-Cloud Agent cannot push to `kitline1`. From a local `kitline1` clone:
-
+## Git apply (developers)
 ```bash
 cd kitline1
 git apply /path/to/parslia-kitchen-os/patches/kitline1-menu-creator-text-align.patch
-# bump site/menu-creator/service-worker.js CACHE_NAME if needed
-git commit -am "Menu Creator: add text alignment (center/left/right)"
-git push
+# also copy service-worker.js CACHE_NAME bump from menu-creator-dropin/
 ```
 
-Then hard-refresh the kitchen PC / phone.
+## This repo (GitHub Pages)
+After merge: `https://parslia.app/menu-creator/`
 
-## Apply to standalone `menu-creator` repo
-```bash
-cd menu-creator
-git apply /path/to/parslia-kitchen-os/patches/menu-creator-text-align.patch
-git commit -am "Add menu text alignment control (center/left/right)"
-git push
-```
+## Standalone `menu-creator` repo
+Copy `patches/menu-creator-dropin/index.html` over that repo’s `index.html` (Kiteline build is the newer base).
