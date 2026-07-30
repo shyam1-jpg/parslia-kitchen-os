@@ -294,6 +294,19 @@
   .page.align-center .menu-logo-text{margin-left:auto;margin-right:auto;}
   .page.align-center .menu-title::after{margin-left:auto !important;margin-right:auto !important;}
 
+  .page.align-center .info-body,
+  .page.align-center .info-body p,
+  .page.align-center .info-list{text-align:center !important;}
+  .page.align-left .info-body,
+  .page.align-left .info-body p,
+  .page.align-left .info-list{text-align:left !important;}
+  .page.align-right .info-body,
+  .page.align-right .info-body p,
+  .page.align-right .info-list{text-align:right !important;}
+  .page.align-center .info-list{justify-content:center;}
+  .page.align-right .info-list{justify-content:flex-end;}
+
+
   .page.align-left .menu-head,
   .page.align-left .dish,
   .page.align-left .info-title,
@@ -915,6 +928,8 @@
     <div class="group">
       <label>Allergen information text</label>
       <textarea id="infoText" style="min-height:120px"></textarea>
+      <div class="hint">Legal allergen blurb only — not dishes. If dishes got pasted here by mistake, use the button below.</div>
+      <button class="btn btn-primary btn-sm" id="fixMixedInfo" style="margin-top:8px" type="button">Fix: move dishes out of Allergen info</button>
       <div class="hint">List of allergens you can inform about (comma separated):</div>
       <textarea id="infoAllergens" style="min-height:70px;margin-top:6px"></textarea>
     </div>
@@ -1292,6 +1307,7 @@ function applyArchiveSnapshot(snap){
   data.template=snap.template||data.template||"classic";
   data.textAlign=["left","center","right"].includes(snap.textAlign)?snap.textAlign:(data.textAlign||"center");
   buildTplGrid(); buildAlignRow();
+  autoRescueMixedInfo();
   const m=current();
   m.title=snap.title||"DINNER MENU"; m.sub=snap.sub||"";
   m.dishes=JSON.parse(JSON.stringify(snap.dishes||[]));
@@ -1754,6 +1770,12 @@ $("loadSample").onclick = ()=>{
   m.dishes=JSON.parse(JSON.stringify(SAMPLE.dishes));
   save(); resetForm(); syncInputs(); render();
 };
+$("fixMixedInfo") && ($("fixMixedInfo").onclick = ()=>{
+  const r=rescueDishesFromInfo({replaceDishes:false});
+  if(r.moved) alert("Moved "+r.moved+" dishes into the menu and restored the allergen blurb.");
+  else if(r.reason==="clean") alert("Allergen Information looks fine — no dishes found mixed in.");
+  else alert("Couldn't pull dishes from Allergen Information. Paste the menu into “Paste full menu” and press Generate menu instead.");
+});
 $("resetAll").onclick = ()=>{
   if(!confirm("Clear everything (all days)?")) return;
   data = makeDefault(); data.currentId=data.menus[0].id;
@@ -1928,9 +1950,17 @@ function parseBulk(text){
     if(mode==="info"){
       if(!raw) continue;
       const m = low.match(/request more information\s*(?:on|about)?\s*[:\-]?\s*(.*)/);
-      if(m && m[1]) infoAllergens = raw.slice(raw.length-m[1].length).replace(/&/g,",").replace(/\.\s*$/,"").replace(/\s*,\s*/g,", ").trim();
-      else infoLines.push(raw);
-      continue;
+      if(m && m[1]){ infoAllergens = raw.slice(raw.length-m[1].length).replace(/&/g,",").replace(/\.\s*$/,"").replace(/\s*,\s*/g,", ").trim(); continue; }
+      // Dish lines wrongly placed under Allergen Information → parse as dishes again
+      const capsDish = (()=>{ const L=letters(raw); return L.length>=6 && raw===raw.toUpperCase() && /[A-Z]/.test(raw); })();
+      if(low.startsWith("contains") || low.startsWith("suitable") || capsDish){
+        mode="menu";
+        expectName = !low.startsWith("contains") && !low.startsWith("suitable");
+        // fall through into menu parsing below (no continue)
+      } else {
+        infoLines.push(raw);
+        continue;
+      }
     }
 
     // blank line = boundary: next content line starts a new dish
@@ -1965,6 +1995,15 @@ function parseBulk(text){
     }
 
     if(expectName || !cur){
+      // Standalone diet tags (Vegan / Vegetarian) belong on the previous dish — not a new dish
+      const dietsOnly = parseDiets(raw);
+      if(dietsOnly.length && raw.split(/\s+/).length<=4 && letters(raw).length<=24){
+        const target = (cur && cur.name) ? cur : (dishes.length ? dishes[dishes.length-1] : null);
+        if(target){
+          target.diet = [...new Set([...(target.diet||[]), ...dietsOnly])];
+          continue;
+        }
+      }
       push();
       cur = newDish();
       cur.name = isCaps(raw) ? toTitle(raw) : raw;   // keep normal-case names as typed
@@ -1976,11 +2015,79 @@ function parseBulk(text){
   push();
   return { title, dishes, infoText: infoLines.length? infoLines.join("\n\n"):null, infoAllergens };
 }
+
+function looksLikeDishDump(text){
+  const t=(text||"").trim();
+  if(!t) return false;
+  const lines=t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  if(lines.length<2) return false;
+  const containsN=lines.filter(l=>/^contains\s*:?/i.test(l)).length;
+  const capsN=lines.filter(l=>{
+    const L=l.replace(/[^a-zA-Z]/g,"");
+    return L.length>=6 && l===l.toUpperCase() && /[A-Z]/.test(l);
+  }).length;
+  // dish dump if several Contains: lines or several CAPS dish names
+  return containsN>=1 || capsN>=2;
+}
+function isAllergenDisclaimer(text){
+  const t=(text||"").toLowerCase();
+  return t.includes("cross-contamination") || t.includes("shared kitchen") ||
+    t.includes("severe allergy") || t.includes("please speak to a member");
+}
+/** Pull menu dishes that were saved into Allergen Information back into the dish list. */
+function rescueDishesFromInfo(opts){
+  opts=opts||{};
+  const info=(data.infoText||"").trim();
+  if(!info || !looksLikeDishDump(info)) return {moved:0, reason:"clean"};
+  // Don't steal a normal disclaimer that happens to mention allergens
+  if(isAllergenDisclaimer(info) && !/^contains\s*:?/im.test(info) && (info.match(/^contains\s*:?/gim)||[]).length===0){
+    // still allow rescue if CAPS dish names dominate
+    const caps=(info.match(/^[A-Z][A-Z0-9 &'\/\-]{5,}$/gm)||[]).length;
+    if(caps<2) return {moved:0, reason:"disclaimer"};
+  }
+  const parsed=parseBulk(info);
+  if(!parsed.dishes || !parsed.dishes.length) return {moved:0, reason:"parse-empty"};
+  const m=current();
+  if(opts.replaceDishes || !m.dishes.length){
+    m.dishes = parsed.dishes;
+  } else {
+    // append only names not already present
+    const have=new Set(m.dishes.map(d=>(d.name||"").toLowerCase()));
+    for(const d of parsed.dishes){
+      if(!have.has((d.name||"").toLowerCase())) m.dishes.push(d);
+    }
+  }
+  // Restore proper allergen blurb (never keep dish dump in info)
+  data.infoText = DEFAULT_INFO;
+  if(parsed.infoAllergens) data.infoAllergens = parsed.infoAllergens;
+  save(); syncInputs(); render();
+  return {moved:parsed.dishes.length, reason:"rescued"};
+}
+function autoRescueMixedInfo(){
+  try{
+    const m=current();
+    const info=data.infoText||"";
+    if(!looksLikeDishDump(info)) return;
+    // If dish list empty OR info clearly has Contains: dish lines, rescue
+    const containsN=(info.match(/^contains\s*:?/gim)||[]).length;
+    if(!m.dishes.length || containsN>=1){
+      const r=rescueDishesFromInfo({replaceDishes:!m.dishes.length});
+      if(r.moved){
+        const st=$("archiveStatus");
+        if(st) st.textContent="Moved "+r.moved+" dishes out of Allergen Information into the menu.";
+      }
+    }
+  }catch(e){}
+}
+
 function applyParsed(r, replace){
   const m=current();
   if(r.title && (replace || !m.title)) m.title = r.title;
   m.dishes = replace ? r.dishes : m.dishes.concat(r.dishes);
-  if(replace && r.infoText) data.infoText = r.infoText;
+  if(replace && r.infoText){
+    // Keep disclaimer text only — never store a dish dump under Allergen Information
+    data.infoText = looksLikeDishDump(r.infoText) ? DEFAULT_INFO : r.infoText;
+  }
   if(replace && r.infoAllergens) data.infoAllergens = r.infoAllergens;
   save(); resetForm(); syncInputs(); render();
   saveToArchive(true).catch(()=>{});
@@ -2162,12 +2269,13 @@ function fitPages(){
     const natural = inner.scrollHeight;
     if(natural > avail){
       const ratio = avail / natural;
-      /* scale dishes/info only — logo in .menu-head stays full size for print */
-      /* top center origin prevents content sticking to the left half of the page */
-      inner.style.transformOrigin = "top center";
-      inner.style.marginLeft = "auto";
-      inner.style.marginRight = "auto";
-      inner.style.transform = `scale(${ratio})`;
+      /* Scale from top-left, then shift so the scaled block stays page-centred.
+         (top-center + left-aligned lines made dish "tracks" look shoved sideways.) */
+      inner.style.transformOrigin = "top left";
+      const shift = (inner.offsetWidth * (1 - ratio)) / 2;
+      inner.style.marginLeft = "0";
+      inner.style.marginRight = "0";
+      inner.style.transform = `translateX(${shift}px) scale(${ratio})`;
     } else {
       inner.style.height = avail + "px";                    // fill the page
       inner.classList.add("fill");                          // pin allergen info to bottom
@@ -2341,7 +2449,7 @@ function fitEbookInner(el){
   const headerH=header?header.offsetHeight:0;
   const avail=1123 - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 18 - headerH;
   const natural=inner.scrollHeight;
-  if(natural>avail){ inner.style.transformOrigin="top center"; inner.style.transform=`scale(${avail/natural})`; }
+  if(natural>avail){ const ratio=avail/natural; inner.style.transformOrigin="top left"; const shift=(inner.offsetWidth*(1-ratio))/2; inner.style.transform=`translateX(${shift}px) scale(${ratio})`; }
   else { inner.style.height=avail+"px"; inner.classList.add("fill"); }
 }
 

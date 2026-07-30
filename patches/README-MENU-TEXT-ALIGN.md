@@ -3,11 +3,17 @@
 ## What you are seeing
 On `https://kiteline.uk/menu-creator/` the live preview can show:
 
-- Titles and dishes stuck on the **left**
-- Empty space on the **right**
+- Titles and dishes stuck on the **left** / tracks shoved sideways
+- Empty space on one side of the page
 - **No Align control** in the top bar
+- **Dishes mixed under “Allergen Information”** (menu items appear in the allergen block)
 
-That is the old build. This fix adds **Align: Left / Center / Right** in the Live preview toolbar (and under Menu style). **Center** is the default for every style, including Modern Minimal.
+That is the old / broken build. This fix:
+
+- Adds **Align: Left / Center / Right** in the Live preview toolbar (Center default)
+- Stops page fit/scale from shoving left-aligned lines sideways
+- Detects dishes wrongly saved in Allergen Information and moves them back into the menu
+- Adds button **Fix: move dishes out of Allergen info**
 
 ## Fastest fix on the kitchen PC (Kiteline)
 1. Open this folder: `parslia-kitchen-os\patches\`
