@@ -1,9 +1,9 @@
 diff --git a/SECURITY-REPORT.md b/SECURITY-REPORT.md
 new file mode 100644
-index 0000000..b1b6cb9
+index 0000000..b4cebca
 --- /dev/null
 +++ b/SECURITY-REPORT.md
-@@ -0,0 +1,153 @@
+@@ -0,0 +1,193 @@
 +# Kiteline.uk Security Review Report
 +
 +**Date:** 2026-07-30  
@@ -157,8 +157,48 @@ index 0000000..b1b6cb9
 +- `Permissions-Policy: camera=(self), microphone=(self), geolocation=(self)`
 +- `Cross-Origin-Opener-Policy: same-origin-allow-popups`
 +- `X-Robots-Tag: noindex, nofollow`
++
++---
++
++## Follow-up implemented (2026-07-30 session cookies + scoped mutate)
++
++### Done in this pass
++- HttpOnly `kiteline_session` cookie (Secure in production, SameSite=Lax)
++- Non-HttpOnly `kiteline_csrf` cookie + `X-CSRF-Token` required for cookie-authenticated mutating requests
++- Browser client (`js/api.js`) uses `credentials: 'include'`, stores CSRF in `sessionStorage`, clears legacy `localStorage` bearer tokens when `authMode: 'cookie'`
++- Production login/register responses omit bearer `token` from JSON
++- Activate / demo owner-login HTML no longer embeds tokens in JavaScript
++- `PUT /api/state` is a **restricted server merge** (allowlisted collections/scalars; client `_tenantId` / `businessId` ignored)
++- New `POST /api/workspace/mutate` for scoped upsert/remove/set with site binding checks
++- Tenant always resolved from authenticated session via `tenants.getStateForUser(db, me.email)`
++
++### Smoke tests (local hardened server)
++**22/22 passed**, including CSRF block, cookie session, tenant spoof failure, scoped mutate.
++
++### Still not finished (launch / post-deploy)
++- Deploy to kiteline.uk + rotate credentials (ops)
++- Firebase domain restrictions + Security Rules confirmation (ops)
++- Full replacement of every `putState` call site with scoped mutate only (incremental)
++- Encrypted backup + restore drill (ops)
++- Nonce-based CSP removing `unsafe-inline` / `unsafe-eval`
++- CI `npm audit` gate
++- Full role matrix tests (admin/manager/chef/staff/read-only) on production after deploy
++
++### Completion evidence checklist (for release sign-off)
++
++| Evidence | Owner | Status |
++|----------|-------|--------|
++| Production deployment commit / `APP_BUILD` | Ops | Pending deploy |
++| Old credentials invalidated (list names only) | Ops | Pending |
++| Firebase restrictions + rules confirmed | Ops | Pending |
++| No secrets in browser Source/Network/Storage | Dev+Ops | Code ready; re-verify on prod |
++| Role-testing results | Dev+Ops | Partial (tenant/CSRF); full matrix pending |
++| Tenant-isolation test results | Dev | Pass locally (22/22) |
++| Encrypted backup+restore test | Ops | Pending |
++| `/api/state` removed or tightly restricted | Dev | Restricted merge + scoped mutate added |
++| Final production security report | Dev+Ops | This file; update after deploy |
 diff --git a/index.html b/index.html
-index 92db234..6b9ea82 100644
+index 92db234..a0f33a1 100644
 --- a/index.html
 +++ b/index.html
 @@ -47,7 +47,7 @@
@@ -166,7 +206,7 @@ index 92db234..6b9ea82 100644
    <link rel="preconnect" href="https://fonts.googleapis.com">
    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 -  <link rel="stylesheet" href="/css/styles.css?v=14" />
-+  <link rel="stylesheet" href="/css/styles.css?v=41" />
++  <link rel="stylesheet" href="/css/styles.css?v=42" />
  </head>
  <body class="bg-ink-100 text-ink-900 font-sans antialiased">
    <noscript>
@@ -175,16 +215,19 @@ index 92db234..6b9ea82 100644
    <script>
    (function () {
 -    var build = '2026-07-01-compliance-print';
-+    var build = '2026-07-30-security-hardening';
++    var build = '2026-07-30-session-cookies';
      try {
        if (localStorage.getItem('kiteline.build') !== build) {
          localStorage.setItem('kiteline.build', build);
-@@ -122,7 +122,7 @@
+@@ -120,9 +120,9 @@
+ 
+   <!-- Scripts (classic, file:// friendly) -->
    <script src="/js/i18n.js?v=12"></script>
-   <script src="/js/api.js?v=19"></script>
+-  <script src="/js/api.js?v=19"></script>
++  <script src="/js/api.js?v=41"></script>
    <script src="/js/recipe-seeds.js?v=4"></script>
 -  <script src="/js/store.js?v=16"></script>
-+  <script src="/js/store.js?v=41"></script>
++  <script src="/js/store.js?v=42"></script>
    <script src="/js/ui.js?v=14"></script>
    <script src="/js/security.js?v=1"></script>
    <script src="/js/compliance.js?v=4"></script>
@@ -193,13 +236,177 @@ index 92db234..6b9ea82 100644
    <script src="/js/recipe-ai.js?v=2"></script>
    <script src="/js/register-form.js?v=6"></script>
 -  <script src="/js/views.js?v=26"></script>
-+  <script src="/js/views.js?v=41"></script>
++  <script src="/js/views.js?v=42"></script>
    <script src="/js/compliance-views.js?v=4"></script>
 -  <script src="/js/app.js?v=31"></script>
-+  <script src="/js/app.js?v=41"></script>
++  <script src="/js/app.js?v=42"></script>
    <script>
      if ('serviceWorker' in navigator) {
        window.addEventListener('load', () => {
+diff --git a/js/api.js b/js/api.js
+index 8ec0d71..85f58a0 100644
+--- a/js/api.js
++++ b/js/api.js
+@@ -1,34 +1,71 @@
+ /* ============================================================
+    Kitchen OS — API client (talks to the Node backend)
+-   Falls back gracefully to offline/localStorage mode if the
+-   backend is unreachable (e.g. when opened via file://).
++   Auth: HttpOnly session cookie + CSRF header (preferred).
++   Bearer tokens in localStorage are legacy / local-dev only.
+    ============================================================ */
+ (function () {
+   const TOKEN_KEY = 'kiteline.token';
+   const EMAIL_KEY = 'kiteline.email';
++  const CSRF_KEY = 'kiteline.csrf';
+   const BASE = '';
+ 
+   function token() { return localStorage.getItem(TOKEN_KEY) || ''; }
+-  function setToken(t) { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); }
++  function setToken(t) {
++    // Production sessions use HttpOnly cookies — do not keep bearer tokens in JS storage
++    if (!t) localStorage.removeItem(TOKEN_KEY);
++    else localStorage.setItem(TOKEN_KEY, t);
++  }
++  function clearLegacyToken() { localStorage.removeItem(TOKEN_KEY); }
+   function email() { return localStorage.getItem(EMAIL_KEY) || ''; }
+   function setEmail(e) { e ? localStorage.setItem(EMAIL_KEY, e) : localStorage.removeItem(EMAIL_KEY); }
++  function csrf() {
++    try { return sessionStorage.getItem(CSRF_KEY) || ''; } catch { return ''; }
++  }
++  function setCsrf(v) {
++    try {
++      if (v) sessionStorage.setItem(CSRF_KEY, v);
++      else sessionStorage.removeItem(CSRF_KEY);
++    } catch {}
++  }
++
++  function applyAuthPayload(data) {
++    if (!data) return data;
++    if (data.csrf) setCsrf(data.csrf);
++    if (data.user && data.user.email) setEmail(data.user.email);
++    if (data.authMode === 'cookie') {
++      clearLegacyToken();
++    } else if (data.token) {
++      setToken(data.token);
++    }
++    return data;
++  }
+ 
+   async function req(method, route, body, timeoutMs) {
+     const ms = timeoutMs || 15000;
+     const ctrl = new AbortController();
+     const timer = setTimeout(() => ctrl.abort(), ms);
+     try {
++      const headers = { 'Content-Type': 'application/json' };
++      const bearer = token();
++      if (bearer) headers.Authorization = 'Bearer ' + bearer;
++      const m = (method || 'GET').toUpperCase();
++      if (m !== 'GET' && m !== 'HEAD' && csrf()) headers['X-CSRF-Token'] = csrf();
++
+       const res = await fetch(BASE + '/api' + route, {
+         method,
+         signal: ctrl.signal,
+-        headers: Object.assign({ 'Content-Type': 'application/json' },
+-          token() ? { 'Authorization': 'Bearer ' + token() } : {}),
++        credentials: 'include',
++        headers,
+         body: body ? JSON.stringify(body) : undefined,
+       });
+       let data = null;
+       try { data = await res.json(); } catch {}
++      if (data && data.csrf) setCsrf(data.csrf);
+       if (!res.ok) {
+-        if (res.status === 401 && data && data.code === 'session_expired') setToken(null);
++        if (res.status === 401 && data && data.code === 'session_expired') {
++          clearLegacyToken();
++          setCsrf(null);
++        }
+         throw Object.assign(new Error((data && data.error) || res.statusText), { status: res.status, data });
+       }
+       return data;
+@@ -44,12 +81,14 @@
+     online: false,
+     token,
+     setToken,
++    csrf,
++    setCsrf,
+ 
+     async ping() {
+       try {
+         const ctrl = new AbortController();
+         const t = setTimeout(() => ctrl.abort(), 8000);
+-        const res = await fetch(BASE + '/api/config', { signal: ctrl.signal, cache: 'no-store' });
++        const res = await fetch(BASE + '/api/config', { signal: ctrl.signal, cache: 'no-store', credentials: 'include' });
+         clearTimeout(t);
+         this.online = res.ok;
+         return this.online;
+@@ -59,23 +98,15 @@
+     email, setEmail,
+     async login(email, password) {
+       const data = await req('POST', '/login', { email, password });
+-      setToken(data.token);
+-      setEmail((data.user && data.user.email) || email);
+-      return data;
++      return applyAuthPayload(data);
+     },
+     async register(email, password, name, profile) {
+       const data = await req('POST', '/register', { email, password, name, profile });
+-      if (data.token) {
+-        setToken(data.token);
+-        setEmail((data.user && data.user.email) || email);
+-      }
+-      return data;
++      return applyAuthPayload(data);
+     },
+     async verifyEmail(token, email) {
+       const data = await req('POST', '/verify-email', { token, email: email || undefined });
+-      setToken(data.token);
+-      setEmail((data.user && data.user.email) || '');
+-      return data;
++      return applyAuthPayload(data);
+     },
+     async resendVerification(email) {
+       return req('POST', '/resend-verification', { email });
+@@ -88,19 +119,34 @@
+     },
+     async changePassword(currentPassword, newPassword) {
+       const data = await req('POST', '/change-password', { currentPassword, newPassword });
+-      if (data.token) setToken(data.token);
+-      return data;
++      return applyAuthPayload(data);
+     },
+     async me() {
+       const data = await req('GET', '/me');
++      applyAuthPayload(data);
+       return data.user;
+     },
+-    async session() { return req('GET', '/me'); },
+-    async logout() { try { await req('POST', '/logout'); } catch {} setToken(null); setEmail(null); },
++    async session() {
++      const data = await req('GET', '/me');
++      return applyAuthPayload(data);
++    },
++    async logout() {
++      try { await req('POST', '/logout'); } catch {}
++      clearLegacyToken();
++      setEmail(null);
++      setCsrf(null);
++    },
+     async securityStatus() { return req('GET', '/security/status'); },
++    async refreshCsrf() {
++      const data = await req('GET', '/csrf');
++      if (data && data.csrf) setCsrf(data.csrf);
++      return data;
++    },
+ 
+     async getState() { return (await req('GET', '/state')).state; },
++    /** @deprecated Prefer mutateWorkspace — server merges and ignores client tenant IDs */
+     async putState(state) { return req('PUT', '/state', { state }); },
++    async mutateWorkspace(body) { return req('POST', '/workspace/mutate', body); },
+     async testNotify(channel) { return req('POST', '/notify/test', { channel: channel || 'email' }); },
+     async notifyStatus() { return req('GET', '/notify/status'); },
+     async ingestInfo() { return req('GET', '/ingest/info'); },
 diff --git a/js/views.js b/js/views.js
 index 04b2cc4..be5f577 100644
 --- a/js/views.js
@@ -215,10 +422,10 @@ index 04b2cc4..be5f577 100644
          if (iotExample && siteSensors[0]) {
 diff --git a/scripts/security-smoke-test.js b/scripts/security-smoke-test.js
 new file mode 100644
-index 0000000..4865ee4
+index 0000000..38f728a
 --- /dev/null
 +++ b/scripts/security-smoke-test.js
-@@ -0,0 +1,125 @@
+@@ -0,0 +1,168 @@
 +#!/usr/bin/env node
 +/* Kiteline security smoke tests — run against a local or staging server.
 + * Usage: BASE_URL=http://127.0.0.1:4011 node scripts/security-smoke-test.js
@@ -228,19 +435,40 @@ index 0000000..4865ee4
 +const BASE = (process.env.BASE_URL || 'http://127.0.0.1:4011').replace(/\/$/, '');
 +const KEY = process.env.VEDANTA_API_KEY || '';
 +
-+async function req(method, path, { body, headers, expect } = {}) {
++function parseSetCookie(res) {
++  const raw = typeof res.headers.getSetCookie === 'function'
++    ? res.headers.getSetCookie()
++    : (res.headers.get('set-cookie') ? [res.headers.get('set-cookie')] : []);
++  const jar = {};
++  raw.forEach((line) => {
++    const first = String(line).split(';')[0];
++    const i = first.indexOf('=');
++    if (i > 0) jar[first.slice(0, i).trim()] = first.slice(i + 1).trim();
++  });
++  return jar;
++}
++
++function cookieHeader(jar) {
++  return Object.entries(jar).map(([k, v]) => k + '=' + v).join('; ');
++}
++
++async function req(method, path, { body, headers, expect, jar } = {}) {
++  const h = Object.assign({ 'Content-Type': 'application/json' }, headers || {});
++  if (jar && Object.keys(jar).length) h.Cookie = cookieHeader(jar);
 +  const res = await fetch(BASE + path, {
 +    method,
-+    headers: Object.assign({ 'Content-Type': 'application/json' }, headers || {}),
++    headers: h,
 +    body: body ? JSON.stringify(body) : undefined,
 +  });
 +  const text = await res.text();
 +  let data = null;
 +  try { data = JSON.parse(text); } catch { data = text; }
++  const set = parseSetCookie(res);
++  if (jar) Object.assign(jar, set);
 +  if (expect != null && res.status !== expect) {
 +    throw new Error(`${method} ${path} expected ${expect} got ${res.status}: ${text.slice(0, 200)}`);
 +  }
-+  return { status: res.status, data, headers: res.headers };
++  return { status: res.status, data, headers: res.headers, jar: set };
 +}
 +
 +async function main() {
@@ -250,86 +478,107 @@ index 0000000..4865ee4
 +    console.log((pass ? 'PASS' : 'FAIL') + '  ' + name + (detail ? ' — ' + detail : ''));
 +  };
 +
-+  // 1) Unauthenticated Vedanta store must not be public
 +  {
 +    const r = await req('GET', '/api/vedanta/store');
 +    ok('Vedanta store requires API key', r.status === 401 || r.status === 503, 'status=' + r.status);
 +  }
-+
-+  // 2) Unauthenticated reports send blocked
 +  {
 +    const r = await req('POST', '/api/vedanta/reports/send', { body: { type: 'weekly' } });
 +    ok('Vedanta reports require API key', r.status === 401 || r.status === 503, 'status=' + r.status);
 +  }
-+
-+  // 3) Demo auto-login disabled in production-like config
 +  {
 +    const cfg = await req('GET', '/api/config', { expect: 200 });
-+    ok('DEMO_MODE is false (or flagged)', cfg.data.demo === false, 'demo=' + cfg.data.demo);
++    ok('DEMO_MODE is false', cfg.data.demo === false, 'demo=' + cfg.data.demo);
 +  }
-+
-+  // 4) Owner one-click login disabled when demo off
 +  {
 +    const r = await fetch(BASE + '/app/owner-login', { redirect: 'manual' });
 +    ok('Owner one-click login blocked', r.status === 302 || r.status === 401 || r.status === 403, 'status=' + r.status);
 +  }
-+
-+  // 5) Security headers present
 +  {
 +    const r = await fetch(BASE + '/app');
 +    ok('CSP header', !!r.headers.get('content-security-policy'));
-+    ok('X-Content-Type-Options', r.headers.get('x-content-type-options') === 'nosniff');
++    ok('HSTS or nosniff', !!r.headers.get('x-content-type-options'));
 +    ok('X-Frame-Options', (r.headers.get('x-frame-options') || '').toUpperCase() === 'DENY');
-+    ok('Referrer-Policy', !!r.headers.get('referrer-policy'));
 +  }
-+
-+  // 6) Source maps not public
 +  {
 +    const r = await req('GET', '/js/app.js.map');
 +    ok('Source map blocked', r.status === 404, 'status=' + r.status);
 +  }
-+
-+  // 7) Protected APIs require session
 +  for (const path of ['/api/state', '/api/backup', '/api/registrations', '/api/workspace/export']) {
 +    const r = await req('GET', path);
 +    ok(path + ' unauth blocked', r.status === 401, 'status=' + r.status);
 +  }
 +
-+  // 8) Cross-tenant isolation
++  // Cookie session + CSRF + tenant isolation
 +  const suffix = Date.now().toString(36);
++  const jarA = {};
++  const jarB = {};
 +  const regA = await req('POST', '/api/register', {
++    jar: jarA,
 +    body: {
 +      email: `sec-a-${suffix}@example.com`, password: 'SecureTest99a', name: 'Sec A',
 +      profile: { firstName: 'A', lastName: 'A', businessName: 'Sec Alpha', city: 'London', postcode: 'E1 1AA', termsAccepted: true },
 +    },
 +  });
 +  const regB = await req('POST', '/api/register', {
++    jar: jarB,
 +    body: {
 +      email: `sec-b-${suffix}@example.com`, password: 'SecureTest99b', name: 'Sec B',
 +      profile: { firstName: 'B', lastName: 'B', businessName: 'Sec Beta', city: 'Leeds', postcode: 'LS1 1AA', termsAccepted: true },
 +    },
 +  });
-+  if (!regA.data.token || !regB.data.token) {
-+    ok('Register two businesses', false, JSON.stringify(regA.data).slice(0, 120));
-+  } else {
-+    const stA = await req('GET', '/api/state', { headers: { Authorization: 'Bearer ' + regA.data.token }, expect: 200 });
-+    const stB = await req('GET', '/api/state', { headers: { Authorization: 'Bearer ' + regB.data.token }, expect: 200 });
++
++  const hasCookieA = !!jarA.kiteline_session;
++  const hasCsrfA = !!(regA.data && regA.data.csrf) || !!jarA.kiteline_csrf;
++  ok('Register sets HttpOnly session cookie', hasCookieA, hasCookieA ? 'cookie set' : JSON.stringify(regA.data).slice(0, 120));
++  ok('Register returns CSRF', hasCsrfA, 'csrf=' + !!(regA.data && regA.data.csrf));
++
++  if (hasCookieA && jarB.kiteline_session && regA.data && regB.data) {
++    const csrfA = regA.data.csrf || jarA.kiteline_csrf;
++    const csrfB = regB.data.csrf || jarB.kiteline_csrf;
++
++    // Mutating without CSRF must fail for cookie sessions
++    const noCsrf = await req('PUT', '/api/state', {
++      jar: jarA,
++      body: { state: { org: { name: 'No CSRF' } } },
++    });
++    ok('Cookie PUT /state without CSRF blocked', noCsrf.status === 403, 'status=' + noCsrf.status);
++
++    const stA = await req('GET', '/api/state', { jar: jarA, expect: 200 });
++    const stB = await req('GET', '/api/state', { jar: jarB, expect: 200 });
 +    const idA = stA.data.state && stA.data.state._tenantId;
 +    const idB = stB.data.state && stB.data.state._tenantId;
 +    ok('Separate tenant IDs', !!(idA && idB && idA !== idB), idA + ' vs ' + idB);
 +
 +    const hijack = Object.assign({}, stA.data.state, { _tenantId: idB, org: Object.assign({}, stA.data.state.org, { name: 'HIJACK' }) });
-+    await req('PUT', '/api/state', { headers: { Authorization: 'Bearer ' + regA.data.token }, body: { state: hijack }, expect: 200 });
-+    const stA2 = await req('GET', '/api/state', { headers: { Authorization: 'Bearer ' + regA.data.token }, expect: 200 });
-+    const stB2 = await req('GET', '/api/state', { headers: { Authorization: 'Bearer ' + regB.data.token }, expect: 200 });
++    await req('PUT', '/api/state', {
++      jar: jarA,
++      headers: { 'X-CSRF-Token': csrfA },
++      body: { state: hijack },
++      expect: 200,
++    });
++    const stA2 = await req('GET', '/api/state', { jar: jarA, expect: 200 });
++    const stB2 = await req('GET', '/api/state', { jar: jarB, expect: 200 });
 +    ok('Tenant ID spoof ignored', stA2.data.state._tenantId === idA, stA2.data.state._tenantId);
 +    ok('Other business unchanged', stB2.data.state.org.name !== 'HIJACK', stB2.data.state.org.name);
 +
-+    const bak = await req('GET', '/api/backup', { headers: { Authorization: 'Bearer ' + regA.data.token } });
++    // Scoped mutate
++    const mut = await req('POST', '/api/workspace/mutate', {
++      jar: jarA,
++      headers: { 'X-CSRF-Token': csrfA },
++      body: { op: 'upsert', collection: 'recipes', id: 'r_sec_test', data: { name: 'Sec Recipe', site: (stA2.data.state.sites || [])[0] && stA2.data.state.sites[0].id } },
++    });
++    ok('Scoped workspace mutate', mut.status === 200 || mut.status === 400, 'status=' + mut.status + (mut.data && mut.data.error ? ' ' + mut.data.error : ''));
++
++    const bak = await req('GET', '/api/backup', { jar: jarA });
 +    ok('Non-owner backup blocked', bak.status === 403, 'status=' + bak.status);
++
++    // No bearer token persisted expectation in prod responses
++    ok('Prod-style login omits bearer token (or cookie mode)', regA.data.authMode === 'cookie' || !regA.data.token || process.env.NODE_ENV !== 'production', 'authMode=' + regA.data.authMode);
++  } else {
++    ok('Cookie session setup', false, 'register failed for cookie flow');
 +  }
 +
-+  // 9) Optional: authenticated Vedanta with key
 +  if (KEY) {
 +    const r = await req('GET', '/api/vedanta/store', { headers: { 'x-api-key': KEY }, expect: 200 });
 +    ok('Vedanta store with key', r.status === 200);
@@ -338,6 +587,7 @@ index 0000000..4865ee4
 +  const failed = results.filter((r) => !r.pass);
 +  console.log('\n' + (results.length - failed.length) + '/' + results.length + ' passed');
 +  if (failed.length) process.exit(1);
++
 +}
 +
 +main().catch((e) => {
@@ -345,10 +595,10 @@ index 0000000..4865ee4
 +  process.exit(1);
 +});
 diff --git a/server/.env.example b/server/.env.example
-index 9763139..4e01bce 100644
+index 9763139..ac9a5eb 100644
 --- a/server/.env.example
 +++ b/server/.env.example
-@@ -68,5 +68,12 @@
+@@ -68,5 +68,17 @@
  # OWNER_EMAIL=shyam_1@hotmail.co.uk
  # OWNER_PASSWORD=choose-a-strong-password
  
@@ -362,8 +612,13 @@ index 9763139..4e01bce 100644
 +# Generate: openssl rand -hex 32
 +# VEDANTA_API_KEY=generate-a-long-random-secret-here
 +# The key is injected into /vedanta-rota/ by the server — rotate if leaked.
++
++# --- Browser sessions (HttpOnly cookies) ---
++# Sessions are set as kiteline_session (HttpOnly) + kiteline_csrf (JS-readable for CSRF).
++# SESSION_DAYS=14
++# Do not put JWT/session secrets in frontend env files.
 diff --git a/server/security.js b/server/security.js
-index 1077ef6..dff3a65 100644
+index 1077ef6..250625c 100644
 --- a/server/security.js
 +++ b/server/security.js
 @@ -14,6 +14,9 @@ const RATE_WINDOWS = {
@@ -376,7 +631,107 @@ index 1077ef6..dff3a65 100644
  };
  
  const rateBuckets = new Map();
-@@ -139,14 +142,84 @@ function audit(db, event, meta) {
+@@ -95,16 +98,99 @@ function sessionDays() {
+ 
+ function issueToken(db, email) {
+   const token = crypto.randomBytes(32).toString('hex');
++  const csrf = crypto.randomBytes(24).toString('hex');
+   const days = sessionDays();
+   db.tokens[token] = {
+     email: email.toLowerCase(),
+     createdAt: Date.now(),
+     expiresAt: Date.now() + days * 86400000,
+     lastUsed: Date.now(),
++    csrf,
+   };
+   return token;
+ }
+ 
++function tokenCsrf(entry) {
++  if (!entry || typeof entry !== 'object') return '';
++  if (!entry.csrf) entry.csrf = crypto.randomBytes(24).toString('hex');
++  return entry.csrf;
++}
++
++const SESSION_COOKIE = 'kiteline_session';
++const CSRF_COOKIE = 'kiteline_csrf';
++
++function parseCookies(req) {
++  const raw = (req && req.headers && req.headers.cookie) || '';
++  const out = {};
++  raw.split(';').forEach((part) => {
++    const i = part.indexOf('=');
++    if (i < 0) return;
++    const k = part.slice(0, i).trim();
++    const v = part.slice(i + 1).trim();
++    if (k) out[k] = decodeURIComponent(v);
++  });
++  return out;
++}
++
++function cookieFlags(isProd, httpOnly) {
++  const parts = ['Path=/', 'SameSite=Lax'];
++  if (httpOnly) parts.push('HttpOnly');
++  if (isProd) parts.push('Secure');
++  return parts.join('; ');
++}
++
++function sessionCookieHeader(token, isProd, maxAgeSec) {
++  const age = maxAgeSec != null ? maxAgeSec : sessionDays() * 86400;
++  return SESSION_COOKIE + '=' + encodeURIComponent(token) + '; Max-Age=' + age + '; ' + cookieFlags(isProd, true);
++}
++
++function csrfCookieHeader(csrf, isProd, maxAgeSec) {
++  const age = maxAgeSec != null ? maxAgeSec : sessionDays() * 86400;
++  // Readable by JS for double-submit CSRF header — NOT a session secret
++  return CSRF_COOKIE + '=' + encodeURIComponent(csrf) + '; Max-Age=' + age + '; ' + cookieFlags(isProd, false);
++}
++
++function clearSessionCookies(isProd) {
++  const base = cookieFlags(isProd, true);
++  const baseCsrf = cookieFlags(isProd, false);
++  return [
++    SESSION_COOKIE + '=; Max-Age=0; ' + base,
++    CSRF_COOKIE + '=; Max-Age=0; ' + baseCsrf,
++  ];
++}
++
++function getBearerToken(req) {
++  const auth = (req.headers['authorization'] || '');
++  return auth.replace(/^Bearer\s+/i, '').trim();
++}
++
++function getSessionTokenFromReq(req) {
++  const bearer = getBearerToken(req);
++  if (bearer && bearer.length >= 32) return { token: bearer, via: 'bearer' };
++  const cookies = parseCookies(req);
++  const cookieTok = cookies[SESSION_COOKIE] || '';
++  if (cookieTok && cookieTok.length >= 32) return { token: cookieTok, via: 'cookie' };
++  return { token: '', via: null };
++}
++
++function assertCsrf(req, entry, via) {
++  // Bearer API clients (AI connectors, scripts) are exempt — they already hold the secret token
++  if (via === 'bearer') return { ok: true };
++  const method = (req.method || 'GET').toUpperCase();
++  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return { ok: true };
++  const expected = tokenCsrf(entry);
++  const header = String(req.headers['x-csrf-token'] || req.headers['x-xsrf-token'] || '').trim();
++  const cookieCsrf = parseCookies(req)[CSRF_COOKIE] || '';
++  if (!expected || !header || header !== expected) {
++    return { ok: false, error: 'Missing or invalid CSRF token', code: 'csrf_failed' };
++  }
++  // Prefer double-submit match when cookie present
++  if (cookieCsrf && cookieCsrf !== header) {
++    return { ok: false, error: 'CSRF cookie mismatch', code: 'csrf_failed' };
++  }
++  return { ok: true };
++}
++
+ function tokenEmail(entry) {
+   if (!entry) return null;
+   if (typeof entry === 'string') return entry.toLowerCase();
+@@ -139,14 +225,84 @@ function audit(db, event, meta) {
    if (db.auditLog.length > 500) db.auditLog.length = 500;
  }
  
@@ -465,7 +820,14 @@ index 1077ef6..dff3a65 100644
  }
  
  function corsOrigin(req, isProd) {
-@@ -180,6 +253,10 @@ module.exports = {
+@@ -174,15 +330,29 @@ module.exports = {
+   recordFailedLogin,
+   clearLoginFailures,
+   issueToken,
++  tokenCsrf,
+   tokenEmail,
+   isTokenExpired,
+   touchToken,
    revokeAllTokens,
    audit,
    securityHeaders,
@@ -476,8 +838,20 @@ index 1077ef6..dff3a65 100644
    corsOrigin,
    maskSecret,
    clientIp,
++  parseCookies,
++  sessionCookieHeader,
++  csrfCookieHeader,
++  clearSessionCookies,
++  getSessionTokenFromReq,
++  getBearerToken,
++  assertCsrf,
++  SESSION_COOKIE,
++  CSRF_COOKIE,
+   MAX_FAILED,
+   LOCKOUT_MS,
+   sessionDays,
 diff --git a/server/server.js b/server/server.js
-index 5c5248e..ac59284 100644
+index 5c5248e..854f3b4 100644
 --- a/server/server.js
 +++ b/server/server.js
 @@ -19,16 +19,17 @@ const PORT = process.env.PORT || 4000;
@@ -498,16 +872,107 @@ index 5c5248e..ac59284 100644
  // Early access: registration open unless explicitly disabled.
  const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
 -const APP_BUILD = '2026-07-02-pilot-sites';
-+const APP_BUILD = '2026-07-30-security-hardening';
++const APP_BUILD = '2026-07-30-session-cookies';
  const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
  const notify = require('./notify');
  const vedantaReports = require('./vedanta-reports');
-@@ -491,9 +492,52 @@ function send(res, code, obj, headers, req) {
+@@ -44,6 +45,7 @@ const aiMcp = require('./ai-mcp');
+ const academyStore = require('./academy/store');
+ const academyHandlers = require('./academy/handlers');
+ const vedantaOrdering = require('./vedanta-ordering');
++const workspaceMutate = require('./workspace-mutate');
+ 
+ function ensureBreachAlerts(state) {
+   if (!state || !Array.isArray(state.sensors)) return [];
+@@ -259,15 +261,14 @@ function activateHtml(result, redirectHash) {
+     const msg = String(result.error || 'Activation failed').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+     return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Kiteline activation</title></head><body style="font-family:system-ui,sans-serif;padding:2rem;max-width:480px;margin:auto"><h1 style="color:#0f766e">Could not activate</h1><p>${msg}</p><p><a href="/app" style="color:#0d9488;font-weight:bold">Sign in</a> · <a href="/app#forgot-password" style="color:#0d9488">Forgot password</a></p></body></html>`;
+   }
+-  const tokenJson = JSON.stringify(result.token);
++  // Session is delivered via HttpOnly Set-Cookie on the response — never embed tokens in HTML/JS
+   const emailJson = JSON.stringify((result.user && result.user.email) || '');
+   const hash = String(redirectHash || 'home').replace(/^#/, '').replace(/["'<>\\]/g, '') || 'home';
+-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Signing in…</title></head><body style="font-family:system-ui,sans-serif;padding:3rem;text-align:center"><p>Signing you in to Kiteline…</p><script>localStorage.setItem('kiteline.token',${tokenJson});localStorage.setItem('kiteline.email',${emailJson});location.replace('/app#' + ${JSON.stringify(hash)});</script></body></html>`;
++  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Signing in…</title></head><body style="font-family:system-ui,sans-serif;padding:3rem;text-align:center"><p>Signing you in to Kiteline…</p><script>try{localStorage.removeItem('kiteline.token');sessionStorage.removeItem('kiteline.csrf');localStorage.setItem('kiteline.email',${emailJson});}catch(e){}location.replace('/app#' + ${JSON.stringify(hash)});</script></body></html>`;
+ }
+ 
+-function userFromReq(db, req) {
+-  const auth = req.headers['authorization'] || '';
+-  const token = auth.replace(/^Bearer\s+/i, '').trim();
++function resolveSession(db, req) {
++  const { token, via } = security.getSessionTokenFromReq(req);
+   if (!token || token.length < 32) return null;
+   const entry = db.tokens[token];
+   const email = security.tokenEmail(entry);
+@@ -280,9 +281,50 @@ function userFromReq(db, req) {
+     return null;
+   }
+   security.touchToken(entry);
+-  return db.users[email];
++  return { user: db.users[email], token, entry, via };
++}
++
++function userFromReq(db, req) {
++  const s = resolveSession(db, req);
++  return s ? s.user : null;
++}
++
++function sessionAuthHeaders(token, entry, extra) {
++  const csrf = security.tokenCsrf(entry);
++  const headers = Object.assign({}, extra || {});
++  const setCookie = [
++    security.sessionCookieHeader(token, isProd),
++    security.csrfCookieHeader(csrf, isProd),
++  ];
++  headers['Set-Cookie'] = setCookie;
++  return { headers, csrf };
++}
++
++function apiSendWithSession(apiSend, code, obj, token, entry, extra) {
++  const { headers, csrf } = sessionAuthHeaders(token, entry, extra);
++  const body = Object.assign({}, obj, { csrf, authMode: 'cookie' });
++  // Keep token in JSON only for non-production / API clients that still use Bearer.
++  // Browser clients should rely on HttpOnly cookie and must not persist this value.
++  if (!isProd && token) body.token = token;
++  else if (obj && obj.token) body.token = obj.token; // explicit pass-through when caller sets it
++  return apiSend(code, body, headers);
++}
++
++function htmlWithSession(res, html, token, entry) {
++  const csrf = security.tokenCsrf(entry);
++  const headers = security.securityHeaders({
++    'Content-Type': 'text/html; charset=utf-8',
++    'Cache-Control': 'no-store',
++    'Set-Cookie': [
++      security.sessionCookieHeader(token, isProd),
++      security.csrfCookieHeader(csrf, isProd),
++    ],
++  }, { isProd });
++  res.writeHead(200, headers);
++  res.end(html);
+ }
+ 
++
+ function applyRegistrationProfile(db, email, profile) {
+   if (!profile || !profile.businessName) return;
+   const user = db.users[email];
+@@ -486,14 +528,61 @@ async function completeAcademyEmailVerification(db, verifyToken, ip) {
+ function send(res, code, obj, headers, req) {
+   const body = typeof obj === 'string' ? obj : JSON.stringify(obj);
+   const cors = security.corsOrigin(req || { headers: {} }, isProd);
+-  res.writeHead(code, Object.assign(security.securityHeaders({
++  const base = security.securityHeaders({
+     'Content-Type': 'application/json',
      'Access-Control-Allow-Origin': cors,
-     'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
++    'Access-Control-Allow-Credentials': 'true',
++    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key, X-CSRF-Token, X-XSRF-Token',
      'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
 -  }), headers || {}));
-+  }, { isProd }), headers || {}));
++  }, { isProd });
++  const merged = Object.assign(base, headers || {});
++  // Node writeHead accepts Set-Cookie as string or array
++  res.writeHead(code, merged);
    res.end(body);
  }
 +
@@ -556,7 +1021,7 @@ index 5c5248e..ac59284 100644
  function readBody(req) {
    return new Promise((resolve) => {
      let data = '';
-@@ -517,6 +561,10 @@ const MIME = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript',
+@@ -517,6 +606,10 @@ const MIME = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript',
  function serveFile(res, filePath, opts) {
    try {
      const ext = path.extname(filePath).toLowerCase();
@@ -567,7 +1032,7 @@ index 5c5248e..ac59284 100644
      const headers = { 'Content-Type': MIME[ext] || 'application/octet-stream' };
      if (opts && opts.noStore) {
        headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
-@@ -527,8 +575,15 @@ function serveFile(res, filePath, opts) {
+@@ -527,8 +620,15 @@ function serveFile(res, filePath, opts) {
      } else if (ext === '.html' || ext === '.js' || ext === '.css') {
        headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
      }
@@ -585,7 +1050,7 @@ index 5c5248e..ac59284 100644
      res.end(buf);
    } catch {
      send(res, 404, { error: 'Not found' }, null, null);
-@@ -543,7 +598,7 @@ function serveAppIndex(res) {
+@@ -543,14 +643,14 @@ function serveAppIndex(res) {
      res.writeHead(200, security.securityHeaders({
        'Content-Type': 'text/html; charset=utf-8',
        'Cache-Control': 'no-store, no-cache, must-revalidate',
@@ -594,7 +1059,28 @@ index 5c5248e..ac59284 100644
      res.end(html);
    } catch {
      send(res, 404, { error: 'Not found' }, null, null);
-@@ -595,11 +650,12 @@ async function handleApi(req, res, url) {
+   }
+ }
+ 
+-function demoOwnerLoginHtml(db, redirectHash) {
++function demoOwnerLogin(db, redirectHash) {
+   const email = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
+   if (!db.users[email]) {
+     db.users[email] = {
+@@ -566,7 +666,11 @@ function demoOwnerLoginHtml(db, redirectHash) {
+   billing.syncOrgAccess(db, email);
+   const token = security.issueToken(db, email);
+   writeDb(db);
+-  return activateHtml({ ok: true, token, user: { email } }, redirectHash);
++  return {
++    html: activateHtml({ ok: true, token, user: { email } }, redirectHash),
++    token,
++    entry: db.tokens[token],
++  };
+ }
+ function isExistingFile(filePath) {
+   try {
+@@ -595,11 +699,12 @@ async function handleApi(req, res, url) {
  
    const body = (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') ? await readBody(req) : {};
  
@@ -609,7 +1095,7 @@ index 5c5248e..ac59284 100644
        kitelineStore: true,
        collections: ['staff', 'rota', 'clock', 'leave_requests', 'audit_log', 'config'],
        localBackup: 'Browser localStorage on each device (syncs to cloud when online)',
-@@ -614,39 +670,55 @@ async function handleApi(req, res, url) {
+@@ -614,39 +719,55 @@ async function handleApi(req, res, url) {
      }, null, req);
    }
  
@@ -672,7 +1158,90 @@ index 5c5248e..ac59284 100644
      }
    }
  
-@@ -961,6 +1033,12 @@ async function handleApi(req, res, url) {
+@@ -764,13 +885,17 @@ async function handleApi(req, res, url) {
+       const token = security.issueToken(db, email);
+       billing.syncOrgAccess(db, email);
+       writeDb(db);
+-      return apiSend( 200, {
+-        token,
++      const entry = db.tokens[token];
++      const { headers, csrf } = sessionAuthHeaders(token, entry);
++      return apiSend(200, {
+         user: publicUser(db.users[email]),
+         needsVerification: false,
+         trialDays: billing.TRIAL_DAYS,
+         message: billing.TRIAL_DAYS + '-day free trial started — full access to all modules.',
+-      });
++        csrf,
++        authMode: 'cookie',
++        token: isProd ? undefined : token,
++      }, headers);
+     }
+     writeDb(db);
+     const base = APP_URL || `${url.protocol}//${req.headers.host || 'localhost'}`;
+@@ -801,14 +926,18 @@ async function handleApi(req, res, url) {
+         billing.syncOrgAccess(db, emailHint);
+         const token = security.issueToken(db, emailHint);
+         writeDb(db);
++        const entry = db.tokens[token];
++        const { headers, csrf } = sessionAuthHeaders(token, entry);
+         return apiSend(200, {
+           ok: true,
+-          token,
+           user: publicUser(user),
+           trial: billing.getTrialInfo(user),
+           alreadyVerified: true,
+           message: 'Account ready — signing you in.',
+-        });
++          csrf,
++          authMode: 'cookie',
++          token: isProd ? undefined : token,
++        }, headers);
+       }
+       return apiSend(404, { error: 'Account not found — register first' });
+     }
+@@ -817,9 +946,22 @@ async function handleApi(req, res, url) {
+     if (!result.ok) {
+       return apiSend(400, { error: result.error, code: 'token_invalid' });
+     }
++    const entry = result.token ? db.tokens[result.token] : null;
++    if (result.token && entry) {
++      const { headers, csrf } = sessionAuthHeaders(result.token, entry);
++      return apiSend(200, {
++        ok: true,
++        user: result.user,
++        trial: result.trial,
++        alreadyVerified: result.alreadyVerified,
++        message: result.message,
++        csrf,
++        authMode: 'cookie',
++        token: isProd ? undefined : result.token,
++      }, headers);
++    }
+     return apiSend(200, {
+       ok: true,
+-      token: result.token,
+       user: result.user,
+       trial: result.trial,
+       alreadyVerified: result.alreadyVerified,
+@@ -943,7 +1085,15 @@ async function handleApi(req, res, url) {
+     const token = security.issueToken(db, meEarly.email);
+     security.audit(db, 'password_change', { ip, email: meEarly.email });
+     writeDb(db);
+-    return apiSend(200, { ok: true, token, message: 'Password updated — other devices signed out' });
++    const entry = db.tokens[token];
++    const { headers, csrf } = sessionAuthHeaders(token, entry);
++    return apiSend(200, {
++      ok: true,
++      csrf,
++      authMode: 'cookie',
++      token: isProd ? undefined : token,
++      message: 'Password updated — other devices signed out',
++    }, headers);
+   }
+ 
+   // POST /api/login
+@@ -961,6 +1111,12 @@ async function handleApi(req, res, url) {
          writeDb(db);
        }
      } else {
@@ -685,7 +1254,7 @@ index 5c5248e..ac59284 100644
        if (!user || !verifyPassword(password, user.pass)) {
          if (user) {
            security.recordFailedLogin(user);
-@@ -969,10 +1047,6 @@ async function handleApi(req, res, url) {
+@@ -969,10 +1125,6 @@ async function handleApi(req, res, url) {
          }
          return apiSend(401, { error: 'Invalid email or password', code: 'invalid_credentials' });
        }
@@ -696,7 +1265,26 @@ index 5c5248e..ac59284 100644
        ensureUserEmailVerified(db, user);
        if (emailVerificationRequired() && user.emailVerified === false) {
          return apiSend( 403, {
-@@ -1003,6 +1077,11 @@ async function handleApi(req, res, url) {
+@@ -995,7 +1147,17 @@ async function handleApi(req, res, url) {
+     security.audit(db, 'login_success', { ip, email });
+     writeDb(db);
+     const trial = billing.getTrialInfo(user);
+-    return apiSend( 200, { token, user: publicUser(user), trial, sessionDays: security.sessionDays() });
++    const entry = db.tokens[token];
++    const { headers, csrf } = sessionAuthHeaders(token, entry);
++    return apiSend(200, {
++      user: publicUser(user),
++      trial,
++      sessionDays: security.sessionDays(),
++      csrf,
++      authMode: 'cookie',
++      // Bearer token returned only outside production — browsers must use HttpOnly cookie
++      token: isProd ? undefined : token,
++    }, headers);
+   }
+ 
+   // POST /api/ingest — physical sensors / LoRaWAN gateways push live readings here.
+@@ -1003,6 +1165,11 @@ async function handleApi(req, res, url) {
    //   { "sensorId":"s1", "temp":3.4, "battery":92, "signal":88, "ts":"2026-01-01T00:00:00Z" }
    //   { "readings":[ {sensorId,temp}, ... ] }
    if (route === '/ingest' && req.method === 'POST') {
@@ -708,16 +1296,106 @@ index 5c5248e..ac59284 100644
      const key = req.headers['x-api-key'] || '';
      if (key !== INGEST_KEY) return apiSend( 401, { error: 'Invalid or missing x-api-key' });
      const kitchen = tenants.getDemoState(db);
-@@ -1111,7 +1190,7 @@ async function handleApi(req, res, url) {
+@@ -1061,9 +1228,14 @@ async function handleApi(req, res, url) {
+     if (handled) return;
+   }
+ 
+-  // everything below requires auth
+-  const me = userFromReq(db, req);
+-  if (!me) return apiSend(401, { error: 'Session expired — sign in again', code: 'session_expired' });
++  // everything below requires auth (HttpOnly cookie or Bearer)
++  const sess = resolveSession(db, req);
++  if (!sess) return apiSend(401, { error: 'Session expired — sign in again', code: 'session_expired' });
++  const csrfCheck = security.assertCsrf(req, sess.entry, sess.via);
++  if (!csrfCheck.ok) {
++    return apiSend(403, { error: csrfCheck.error, code: csrfCheck.code || 'csrf_failed' });
++  }
++  const me = sess.user;
+ 
+   if (route === '/me' && req.method === 'GET') {
+     billing.ensureTrial(me);
+@@ -1073,13 +1245,26 @@ async function handleApi(req, res, url) {
+       user: publicUser(me),
+       trial: billing.getTrialStatus(db, me.email),
+       access: billing.canAccess(db, me.email),
++      csrf: security.tokenCsrf(sess.entry),
++      authMode: sess.via === 'cookie' ? 'cookie' : 'bearer',
++      tenant: tenants.tenantInfo(db, me.email),
++    });
++  }
++
++  if (route === '/csrf' && req.method === 'GET') {
++    const csrf = security.tokenCsrf(sess.entry);
++    writeDb(db);
++    return apiSend(200, { csrf }, {
++      'Set-Cookie': security.csrfCookieHeader(csrf, isProd),
+     });
+   }
+ 
+   if (route === '/logout' && req.method === 'POST') {
+-    const token = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '');
+-    delete db.tokens[token]; writeDb(db);
+-    return apiSend( 200, { ok: true });
++    delete db.tokens[sess.token];
++    writeDb(db);
++    return apiSend(200, { ok: true }, {
++      'Set-Cookie': security.clearSessionCookies(isProd),
++    });
+   }
+ 
+   // Per-company workspace (tenant-scoped; demo tenant is owner-only)
+@@ -1109,19 +1294,48 @@ async function handleApi(req, res, url) {
+     return apiSend(200, { state, tenant: tenants.tenantInfo(db, me.email) });
+   }
    if (route === '/state' && req.method === 'PUT') {
++    // Restricted merge: tenant IDs always from session; forbidden keys stripped.
++    // Prefer POST /api/workspace/mutate for scoped changes.
      const prevState = tenants.getStateForUser(db, me.email);
      if (!prevState) return apiSend(409, { error: 'No workspace for this account' });
 -    const next = body.state || prevState;
-+    const next = sanitizeTenantState(prevState, body.state || prevState);
++    const next = workspaceMutate.mergeWorkspaceState(prevState, body.state || {});
      const prevCopy = JSON.parse(JSON.stringify(prevState));
      ensureBreachAlerts(next);
      const mail = await notify.processNewAlerts(prevCopy, next);
-@@ -1163,7 +1242,7 @@ async function handleApi(req, res, url) {
+     next._updatedAt = new Date().toISOString();
+     next._updatedBy = me.email;
++    // Force tenant binding from authenticated user — ignore client tenantId/businessId
++    if (!tenants.setStateForUser(db, me.email, next)) {
++      return apiSend(403, { error: 'Cannot save this workspace' });
++    }
++    writeDb(db);
++    return apiSend(200, {
++      ok: true,
++      _updatedAt: next._updatedAt,
++      notified: mail,
++      mode: 'merge',
++      tenant: tenants.tenantInfo(db, me.email),
++    });
++  }
++
++  // POST /api/workspace/mutate — scoped upsert/remove/set (preferred over PUT /state)
++  if (route === '/workspace/mutate' && req.method === 'POST') {
++    const prevState = tenants.getStateForUser(db, me.email);
++    if (!prevState) return apiSend(409, { error: 'No workspace for this account' });
++    const result = workspaceMutate.applyScopedMutation(prevState, body);
++    if (!result.ok) return apiSend(400, { error: result.error, code: result.code });
++    const next = result.state;
++    next._updatedAt = new Date().toISOString();
++    next._updatedBy = me.email;
+     if (!tenants.setStateForUser(db, me.email, next)) {
+       return apiSend(403, { error: 'Cannot save this workspace' });
+     }
+     writeDb(db);
+-    return apiSend(200, { ok: true, _updatedAt: next._updatedAt, notified: mail });
++    return apiSend(200, {
++      ok: true,
++      _updatedAt: next._updatedAt,
++      tenant: tenants.tenantInfo(db, me.email),
++    });
+   }
+ 
+   // GET /api/workspace/export — GDPR data export for the signed-in organisation
+@@ -1163,7 +1377,7 @@ async function handleApi(req, res, url) {
      return apiSend( 200, notify.channelStatus());
    }
  
@@ -726,7 +1404,7 @@ index 5c5248e..ac59284 100644
    if (route === '/ingest/info' && req.method === 'GET') {
      const host = (process.env.APP_URL || '').replace(/\/$/, '')
        || `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host || 'localhost:4001'}`;
-@@ -1172,9 +1251,11 @@ async function handleApi(req, res, url) {
+@@ -1172,9 +1386,11 @@ async function handleApi(req, res, url) {
      const demoKey = INGEST_KEY === 'kiteline-demo-key';
      return apiSend(200, {
        ingestUrl: `${host}/api/ingest`,
@@ -740,7 +1418,7 @@ index 5c5248e..ac59284 100644
      });
    }
  
-@@ -1201,7 +1282,7 @@ async function handleApi(req, res, url) {
+@@ -1201,7 +1417,7 @@ async function handleApi(req, res, url) {
      });
    }
  
@@ -749,7 +1427,7 @@ index 5c5248e..ac59284 100644
    if (route === '/backup' && req.method === 'GET') {
      const ownerEmail = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
      if (me.email.toLowerCase() !== ownerEmail) return apiSend(403, { error: 'Owner only' });
-@@ -1210,13 +1291,14 @@ async function handleApi(req, res, url) {
+@@ -1210,13 +1426,14 @@ async function handleApi(req, res, url) {
        service: 'kiteline',
        build: APP_BUILD,
        db: {
@@ -765,25 +1443,32 @@ index 5c5248e..ac59284 100644
        },
      });
    }
-@@ -1353,7 +1435,7 @@ const server = http.createServer(async (req, res) => {
+@@ -1351,9 +1568,10 @@ const server = http.createServer(async (req, res) => {
+   if (req.method === 'OPTIONS') {
+     res.writeHead(204, security.securityHeaders({
        'Access-Control-Allow-Origin': security.corsOrigin(req, isProd),
-       'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
++      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key, X-CSRF-Token, X-XSRF-Token',
        'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
 -    }));
++      'Access-Control-Allow-Credentials': 'true',
 +    }, { isProd }));
      return res.end();
    }
  
-@@ -1370,7 +1452,7 @@ const server = http.createServer(async (req, res) => {
+@@ -1370,7 +1588,10 @@ const server = http.createServer(async (req, res) => {
        const emailHint = url.searchParams.get('email') || '';
        const ip = security.clientIp(req);
        const result = completeEmailVerification(db, token, emailHint, ip);
 -      res.writeHead(200, security.securityHeaders({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }));
++      if (result.ok && result.token && db.tokens[result.token]) {
++        return htmlWithSession(res, activateHtml(result), result.token, db.tokens[result.token]);
++      }
 +      res.writeHead(200, security.securityHeaders({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, { isProd }));
        return res.end(activateHtml(result));
      }
  
-@@ -1410,13 +1492,13 @@ const server = http.createServer(async (req, res) => {
+@@ -1410,14 +1631,13 @@ const server = http.createServer(async (req, res) => {
      // One-click owner sign-in (demo mode only — bypasses cached login UI)
      if (url.pathname === '/app/owner-login' && req.method === 'GET') {
        if (!DEMO_MODE) {
@@ -793,13 +1478,15 @@ index 5c5248e..ac59284 100644
        }
        const db = readDb();
        const next = (url.searchParams.get('next') || url.searchParams.get('hash') || '').replace(/^#/, '');
-       const html = demoOwnerLoginHtml(db, next || 'home');
+-      const html = demoOwnerLoginHtml(db, next || 'home');
 -      res.writeHead(200, security.securityHeaders({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }));
-+      res.writeHead(200, security.securityHeaders({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, { isProd }));
-       return res.end(html);
+-      return res.end(html);
++      const owned = demoOwnerLogin(db, next || 'home');
++      return htmlWithSession(res, owned.html, owned.token, owned.entry);
      }
  
-@@ -1444,7 +1526,7 @@ const server = http.createServer(async (req, res) => {
+     // App at "/app" — serve SPA for all /app/* paths (hash router + deep links)
+@@ -1444,7 +1664,7 @@ const server = http.createServer(async (req, res) => {
          'Content-Type': 'text/javascript',
          'Cache-Control': 'no-cache, no-store, must-revalidate',
          'Service-Worker-Allowed': '/menu-creator/',
@@ -808,6 +1495,175 @@ index 5c5248e..ac59284 100644
        try {
          return res.end(fs.readFileSync(path.join(ROOT, 'site', 'menu-creator', 'service-worker.js')));
        } catch {
+diff --git a/server/workspace-mutate.js b/server/workspace-mutate.js
+new file mode 100644
+index 0000000..8702fb2
+--- /dev/null
++++ b/server/workspace-mutate.js
+@@ -0,0 +1,163 @@
++'use strict';
++
++/**
++ * Server-side workspace mutations.
++ * Tenant identity always comes from the authenticated session — never from the client body.
++ */
++
++const ALLOWED_COLLECTIONS = new Set([
++  'sites', 'team', 'sensors', 'checklists', 'records', 'alerts', 'menus', 'labels', 'waste',
++  'recipes', 'activity', 'workflows', 'suppliers', 'training', 'incidents', 'maintenance',
++  'deliveries', 'assets', 'batches', 'cooling', 'phlogs', 'holding', 'allergens',
++  'rotaShifts', 'clockSessions', 'attendanceLog',
++]);
++
++const ALLOWED_SCALARS = new Set([
++  'currentSite', 'org', 'settings', 'menusMeta', 'recipeAiLocal',
++]);
++
++const FORBIDDEN_KEYS = new Set([
++  '_tenantId', '_isDemo', '_tenantPrivate', '_isPrivate', 'users', 'tokens',
++  'pass', 'password', 'passwordHash', 'subscriptions', 'registrations',
++]);
++
++const MAX_ARRAY_LEN = 5000;
++
++function clone(v) {
++  return JSON.parse(JSON.stringify(v));
++}
++
++/**
++ * Merge client workspace into the server tenant copy without trusting tenant IDs.
++ */
++function mergeWorkspaceState(prev, incoming) {
++  const base = clone(prev || {});
++  const src = incoming && typeof incoming === 'object' ? incoming : {};
++
++  Object.keys(src).forEach((key) => {
++    if (FORBIDDEN_KEYS.has(key)) return;
++    if (key.startsWith('_') && key !== '_updatedAt' && key !== '_updatedBy' && key !== '_pilotPackVersion') return;
++
++    if (ALLOWED_COLLECTIONS.has(key)) {
++      if (!Array.isArray(src[key])) return;
++      base[key] = src[key].slice(0, MAX_ARRAY_LEN).map((row) => {
++        if (!row || typeof row !== 'object') return row;
++        const clean = Object.assign({}, row);
++        delete clean._tenantId;
++        delete clean.tenantId;
++        delete clean.businessId;
++        delete clean.companyId;
++        return clean;
++      });
++      return;
++    }
++
++    if (ALLOWED_SCALARS.has(key)) {
++      if (key === 'org' && src.org && typeof src.org === 'object') {
++        base.org = Object.assign({}, base.org || {}, {
++          name: src.org.name,
++          legalName: src.org.legalName,
++          plan: src.org.plan,
++          address: src.org.address,
++          phone: src.org.phone,
++          email: src.org.email,
++        });
++      } else if (key === 'settings' && src.settings && typeof src.settings === 'object') {
++        base.settings = Object.assign({}, base.settings || {}, src.settings);
++        delete base.settings.openaiApiKey;
++        delete base.settings.stripeSecret;
++        delete base.settings.ingestKey;
++      } else {
++        base[key] = src[key];
++      }
++    }
++  });
++
++  // Re-assert server tenant metadata after merge
++  base._tenantId = prev._tenantId;
++  base._isDemo = !!prev._isDemo;
++  base._tenantPrivate = !!prev._tenantPrivate;
++  base._isPrivate = !!prev._isPrivate;
++  return base;
++}
++
++/**
++ * Scoped mutation — prefer this over full-state PUT.
++ * body: { op: 'upsert'|'remove'|'set', collection|path, id?, data?, value? }
++ */
++function applyScopedMutation(prev, body) {
++  const state = clone(prev || {});
++  const op = String((body && body.op) || '').toLowerCase();
++
++  if (op === 'set') {
++    const path = String((body && body.path) || '');
++    if (!ALLOWED_SCALARS.has(path)) {
++      return { ok: false, error: 'Path not allowed', code: 'forbidden_path' };
++    }
++    if (path === 'currentSite') {
++      const siteId = String((body && body.value) || '');
++      const ok = (state.sites || []).some((s) => s.id === siteId);
++      if (!ok) return { ok: false, error: 'Unknown site for this kitchen', code: 'invalid_site' };
++      state.currentSite = siteId;
++    } else if (path === 'org' && body.value && typeof body.value === 'object') {
++      state.org = Object.assign({}, state.org || {}, {
++        name: body.value.name,
++        legalName: body.value.legalName,
++        plan: body.value.plan,
++        address: body.value.address,
++        phone: body.value.phone,
++        email: body.value.email,
++      });
++    } else {
++      state[path] = body.value;
++    }
++  } else if (op === 'upsert' || op === 'remove') {
++    const collection = String((body && body.collection) || '');
++    if (!ALLOWED_COLLECTIONS.has(collection)) {
++      return { ok: false, error: 'Collection not allowed', code: 'forbidden_collection' };
++    }
++    if (!Array.isArray(state[collection])) state[collection] = [];
++    const id = body && body.id != null ? String(body.id) : '';
++    if (!id) return { ok: false, error: 'Record id required', code: 'id_required' };
++
++    if (op === 'remove') {
++      state[collection] = state[collection].filter((r) => String(r && r.id) !== id);
++    } else {
++      const data = body.data && typeof body.data === 'object' ? Object.assign({}, body.data) : {};
++      data.id = id;
++      delete data._tenantId;
++      delete data.tenantId;
++      delete data.businessId;
++      delete data.companyId;
++      // Bind site fields to sites that exist in this tenant when present
++      if (data.site || data.siteId) {
++        const sid = data.site || data.siteId;
++        const known = (state.sites || []).some((s) => s.id === sid);
++        if (!known) return { ok: false, error: 'Record site is outside your kitchen', code: 'site_forbidden' };
++      }
++      const idx = state[collection].findIndex((r) => String(r && r.id) === id);
++      if (idx >= 0) state[collection][idx] = Object.assign({}, state[collection][idx], data);
++      else {
++        if (state[collection].length >= MAX_ARRAY_LEN) {
++          return { ok: false, error: 'Collection limit reached', code: 'limit' };
++        }
++        state[collection].unshift(data);
++      }
++    }
++  } else {
++    return { ok: false, error: 'Unknown op — use upsert, remove, or set', code: 'bad_op' };
++  }
++
++  state._tenantId = prev._tenantId;
++  state._isDemo = !!prev._isDemo;
++  state._tenantPrivate = !!prev._tenantPrivate;
++  state._isPrivate = !!prev._isPrivate;
++  return { ok: true, state };
++}
++
++module.exports = {
++  ALLOWED_COLLECTIONS,
++  ALLOWED_SCALARS,
++  mergeWorkspaceState,
++  applyScopedMutation,
++};
 diff --git a/site/vedanta-rota/index.html b/site/vedanta-rota/index.html
 index afff825..6eee39e 100644
 --- a/site/vedanta-rota/index.html

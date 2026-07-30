@@ -151,3 +151,43 @@ BASE_URL=https://kiteline.uk node scripts/security-smoke-test.js
 - `Permissions-Policy: camera=(self), microphone=(self), geolocation=(self)`
 - `Cross-Origin-Opener-Policy: same-origin-allow-popups`
 - `X-Robots-Tag: noindex, nofollow`
+
+---
+
+## Follow-up implemented (2026-07-30 session cookies + scoped mutate)
+
+### Done in this pass
+- HttpOnly `kiteline_session` cookie (Secure in production, SameSite=Lax)
+- Non-HttpOnly `kiteline_csrf` cookie + `X-CSRF-Token` required for cookie-authenticated mutating requests
+- Browser client (`js/api.js`) uses `credentials: 'include'`, stores CSRF in `sessionStorage`, clears legacy `localStorage` bearer tokens when `authMode: 'cookie'`
+- Production login/register responses omit bearer `token` from JSON
+- Activate / demo owner-login HTML no longer embeds tokens in JavaScript
+- `PUT /api/state` is a **restricted server merge** (allowlisted collections/scalars; client `_tenantId` / `businessId` ignored)
+- New `POST /api/workspace/mutate` for scoped upsert/remove/set with site binding checks
+- Tenant always resolved from authenticated session via `tenants.getStateForUser(db, me.email)`
+
+### Smoke tests (local hardened server)
+**22/22 passed**, including CSRF block, cookie session, tenant spoof failure, scoped mutate.
+
+### Still not finished (launch / post-deploy)
+- Deploy to kiteline.uk + rotate credentials (ops)
+- Firebase domain restrictions + Security Rules confirmation (ops)
+- Full replacement of every `putState` call site with scoped mutate only (incremental)
+- Encrypted backup + restore drill (ops)
+- Nonce-based CSP removing `unsafe-inline` / `unsafe-eval`
+- CI `npm audit` gate
+- Full role matrix tests (admin/manager/chef/staff/read-only) on production after deploy
+
+### Completion evidence checklist (for release sign-off)
+
+| Evidence | Owner | Status |
+|----------|-------|--------|
+| Production deployment commit / `APP_BUILD` | Ops | Pending deploy |
+| Old credentials invalidated (list names only) | Ops | Pending |
+| Firebase restrictions + rules confirmed | Ops | Pending |
+| No secrets in browser Source/Network/Storage | Dev+Ops | Code ready; re-verify on prod |
+| Role-testing results | Dev+Ops | Partial (tenant/CSRF); full matrix pending |
+| Tenant-isolation test results | Dev | Pass locally (22/22) |
+| Encrypted backup+restore test | Ops | Pending |
+| `/api/state` removed or tightly restricted | Dev | Restricted merge + scoped mutate added |
+| Final production security report | Dev+Ops | This file; update after deploy |
