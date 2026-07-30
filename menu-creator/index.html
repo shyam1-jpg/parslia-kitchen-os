@@ -379,8 +379,10 @@
     max-width:480px;margin:0 auto 8px;text-align:center;
   }
   .info-body p{
-    font-size:10.5px;line-height:1.55;color:#3c463f;margin:0 0 8px;text-align:center;
+    font-size:11px;line-height:1.55;color:#3c463f;margin:0 0 8px;text-align:center;
   }
+  /* Allergen footer stays full size — never shrink with dish fit */
+  .page-inner .info-block{transform:none !important;zoom:normal !important;}
   .info-list{
     display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin:10px auto 0;
     max-width:520px;padding:12px 16px;background:var(--accent-soft);border-radius:10px;
@@ -2333,31 +2335,50 @@ function fitPages(){
   document.querySelectorAll("#pagesOut .page").forEach(pg=>{
     const inner = pg.querySelector(".page-inner");
     const header = pg.querySelector(".menu-head");
+    const dishes = pg.querySelector(".dishes-wrap");
+    const info = pg.querySelector(".info-block");
     if(!inner) return;
-    // reset before measuring
+    // reset — never shrink the allergen footer; only compress dishes if needed
     inner.style.transform = "none";
-    inner.style.transformOrigin = "top center";
+    inner.style.transformOrigin = "";
     inner.style.marginLeft = "";
     inner.style.marginRight = "";
     inner.style.zoom = "";
     inner.style.height = "auto";
     inner.classList.remove("fill");
+    if(dishes){
+      dishes.style.transform = "none";
+      dishes.style.transformOrigin = "";
+      dishes.style.marginLeft = "";
+      dishes.style.marginRight = "";
+      dishes.style.height = "auto";
+    }
     const cs = getComputedStyle(pg);
     const headerH = header ? header.offsetHeight : 0;
-    const avail = PAGE_H - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 18 - headerH; // footer + header
-    const natural = inner.scrollHeight;
-    if(natural > avail){
-      const ratio = avail / natural;
-      /* Scale from top-left, then shift so the scaled block stays page-centred.
-         (top-center + left-aligned lines made dish "tracks" look shoved sideways.) */
-      inner.style.transformOrigin = "top left";
-      const shift = (inner.offsetWidth * (1 - ratio)) / 2;
-      inner.style.marginLeft = "0";
-      inner.style.marginRight = "0";
-      inner.style.transform = `translateX(${shift}px) scale(${ratio})`;
-    } else {
-      inner.style.height = avail + "px";                    // fill the page
-      inner.classList.add("fill");                          // pin allergen info to bottom
+    const pagePad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + 18;
+    const availPage = PAGE_H - pagePad - headerH;
+    const infoH = info ? info.offsetHeight : 0;
+    // Space left for dishes after keeping allergen block at full readable size
+    const availDishes = Math.max(120, availPage - infoH - 8);
+    if(dishes){
+      const naturalDishes = dishes.scrollHeight;
+      if(naturalDishes > availDishes){
+        const ratio = availDishes / naturalDishes;
+        dishes.style.transformOrigin = "top left";
+        const shift = (dishes.offsetWidth * (1 - ratio)) / 2;
+        dishes.style.transform = `translateX(${shift}px) scale(${ratio})`;
+        // Keep layout height matching the scaled visual so the footer sits correctly
+        dishes.style.height = (naturalDishes * ratio) + "px";
+        dishes.style.overflow = "hidden";
+      } else {
+        dishes.style.overflow = "";
+      }
+    }
+    // Pin allergen footer toward the bottom when there is spare room
+    const used = (dishes ? dishes.offsetHeight : 0) + infoH;
+    if(used < availPage - 4){
+      inner.style.height = availPage + "px";
+      inner.classList.add("fill");
     }
   });
 }
@@ -2528,13 +2549,25 @@ function makePageEl(slide, anim){
 function fitEbookInner(el){
   const inner=el.querySelector(".page-inner"); if(!inner) return;
   const header=el.querySelector(".menu-head");
+  const dishes=el.querySelector(".dishes-wrap");
+  const info=el.querySelector(".info-block");
   inner.style.transform="none"; inner.style.zoom=""; inner.style.height="auto"; inner.classList.remove("fill");
+  if(dishes){ dishes.style.transform="none"; dishes.style.height="auto"; dishes.style.overflow=""; }
   const cs=getComputedStyle(el);
   const headerH=header?header.offsetHeight:0;
-  const avail=1123 - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 18 - headerH;
-  const natural=inner.scrollHeight;
-  if(natural>avail){ const ratio=avail/natural; inner.style.transformOrigin="top left"; const shift=(inner.offsetWidth*(1-ratio))/2; inner.style.transform=`translateX(${shift}px) scale(${ratio})`; }
-  else { inner.style.height=avail+"px"; inner.classList.add("fill"); }
+  const availPage=1123 - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 18 - headerH;
+  const infoH=info?info.offsetHeight:0;
+  const availDishes=Math.max(120, availPage - infoH - 8);
+  if(dishes && dishes.scrollHeight>availDishes){
+    const ratio=availDishes/dishes.scrollHeight;
+    dishes.style.transformOrigin="top left";
+    const shift=(dishes.offsetWidth*(1-ratio))/2;
+    dishes.style.transform=`translateX(${shift}px) scale(${ratio})`;
+    dishes.style.height=(dishes.scrollHeight*ratio)+"px";
+    dishes.style.overflow="hidden";
+  }
+  const used=(dishes?dishes.offsetHeight:0)+infoH;
+  if(used<availPage-4){ inner.style.height=availPage+"px"; inner.classList.add("fill"); }
 }
 
 function fitBook(){

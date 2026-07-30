@@ -99,7 +99,7 @@
  
    /* template picker */
    .tpl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-@@ -296,25 +367,31 @@
+@@ -296,25 +367,33 @@
  
    /* allergen info block (same page, below dishes) */
    .info-block{
@@ -120,8 +120,10 @@
 +    max-width:480px;margin:0 auto 8px;text-align:center;
 +  }
 +  .info-body p{
-+    font-size:10.5px;line-height:1.55;color:#3c463f;margin:0 0 8px;text-align:center;
++    font-size:11px;line-height:1.55;color:#3c463f;margin:0 0 8px;text-align:center;
 +  }
++  /* Allergen footer stays full size — never shrink with dish fit */
++  .page-inner .info-block{transform:none !important;zoom:normal !important;}
    .info-list{
 -    display:grid;grid-template-columns:repeat(3,1fr);gap:3px 16px;margin-top:10px;
 -    padding:12px 16px;background:var(--accent-soft);border-radius:10px;
@@ -142,7 +144,7 @@
  
    .empty-note{color:var(--muted);text-align:center;font-style:italic;padding:30px;}
  
-@@ -800,6 +877,17 @@
+@@ -800,6 +879,17 @@
      </div>
  
      <div class="group">
@@ -160,7 +162,7 @@
        <label>Logo</label>
        <div class="logo-box">
          <div class="logo-prev" id="logoPrev">No logo</div>
-@@ -849,6 +937,8 @@
+@@ -849,6 +939,8 @@
      <div class="group">
        <label>Allergen information text</label>
        <textarea id="infoText" style="min-height:120px"></textarea>
@@ -169,7 +171,7 @@
        <div class="hint">List of allergens you can inform about (comma separated):</div>
        <textarea id="infoAllergens" style="min-height:70px;margin-top:6px"></textarea>
      </div>
-@@ -860,6 +950,12 @@
+@@ -860,6 +952,12 @@
    <main class="preview-wrap">
      <div class="toolbar">
        <strong class="grow">Live preview</strong>
@@ -182,7 +184,7 @@
        <button class="btn btn-install hidden" id="installBtn" title="Install Menu Creator as an app">⬇ Install App</button>
        <button class="btn btn-ghost" id="loadSample">Load sample</button>
        <button class="btn btn-line" id="saveProject">Save project</button>
-@@ -958,7 +1054,7 @@
+@@ -958,7 +1056,7 @@
  function newMenu(label){ return { id:uid(), label:label||"New Day", title:"DINNER MENU", sub:"", dishes:[] }; }
  const TEMPLATES={
    classic:{name:"Classic Gold",desc:"Double gold border, elegant centre",swatch:"linear-gradient(135deg,#fff 40%,#b08a3e)"},
@@ -191,7 +193,7 @@
    luxury:{name:"Luxury Dark",desc:"Dark navy with gold accents",swatch:"linear-gradient(135deg,#1a1f2e,#c9a84c)"},
    botanical:{name:"Botanical",desc:"Soft sage green, organic feel",swatch:"linear-gradient(135deg,#f7f9f4,#5a7d5a)"},
    artdeco:{name:"Art Deco",desc:"Bold 1920s geometric style",swatch:"linear-gradient(135deg,#fff8f0,#1a1a1a)"},
-@@ -966,7 +1062,7 @@
+@@ -966,7 +1064,7 @@
  };
  function makeDefault(){
    return { logoText:"", logoImg:null, infoText:DEFAULT_INFO, infoAllergens:DEFAULT_INFO_ALLERGENS,
@@ -200,7 +202,7 @@
  }
  function migrate(old){
    if(!old) return null;
-@@ -981,8 +1077,9 @@
+@@ -981,8 +1079,9 @@
  if(!data.currentId || !data.menus.some(m=>m.id===data.currentId)) data.currentId = data.menus[0].id;
  if(["", OLD_INFO_ALLERGENS, "Soya, Sulphur Dioxide"].includes((data.infoAllergens||"").trim())){ data.infoAllergens = DEFAULT_INFO_ALLERGENS; }
  if(!data.template) data.template="classic";
@@ -212,7 +214,7 @@
  function menuQrUrl(){
    let u = (MENU_QR_URL || "").trim();
    if(!u) return "";
-@@ -990,6 +1087,13 @@
+@@ -990,6 +1089,13 @@
    return u;
  }
  function tplClass(){ return " tpl-"+(data.template||"classic"); }
@@ -226,7 +228,7 @@
  function current(){ return data.menus.find(m=>m.id===data.currentId) || data.menus[0]; }
  const state = new Proxy({}, {
    get(_,k){ return SHARED.includes(k) ? data[k] : current()[k]; },
-@@ -1201,7 +1305,7 @@
+@@ -1201,7 +1307,7 @@
    return {
      logoText:data.logoText||"", logoImg:data.logoImg||null,
      infoText:data.infoText||"", infoAllergens:data.infoAllergens||"",
@@ -235,7 +237,7 @@
      title:m.title||"", sub:m.sub||"",
      dishes:JSON.parse(JSON.stringify(m.dishes||[]))
    };
-@@ -1209,7 +1313,10 @@
+@@ -1209,7 +1315,10 @@
  function applyArchiveSnapshot(snap){
    data.logoText=snap.logoText||""; data.logoImg=snap.logoImg||null;
    data.infoText=snap.infoText||DEFAULT_INFO; data.infoAllergens=snap.infoAllergens||"";
@@ -247,7 +249,7 @@
    const m=current();
    m.title=snap.title||"DINNER MENU"; m.sub=snap.sub||"";
    m.dishes=JSON.parse(JSON.stringify(snap.dishes||[]));
-@@ -1224,7 +1331,7 @@
+@@ -1224,7 +1333,7 @@
    return {
      logoText:proj.logoText||"", logoImg:proj.logoImg||null,
      infoText:proj.infoText||DEFAULT_INFO, infoAllergens:proj.infoAllergens||"",
@@ -256,7 +258,7 @@
      title:pick.title||"DINNER MENU", sub:pick.sub||"",
      dishes:JSON.parse(JSON.stringify(pick.dishes||[]))
    };
-@@ -1672,10 +1779,31 @@
+@@ -1672,10 +1781,31 @@
    m.dishes=JSON.parse(JSON.stringify(SAMPLE.dishes));
    save(); resetForm(); syncInputs(); render();
  };
@@ -289,7 +291,7 @@
  };
  $("printBtn").onclick = ()=>{ preparePrint(); window.print(); };
  
-@@ -1846,9 +1974,17 @@
+@@ -1846,9 +1976,17 @@
      if(mode==="info"){
        if(!raw) continue;
        const m = low.match(/request more information\s*(?:on|about)?\s*[:\-]?\s*(.*)/);
@@ -310,7 +312,7 @@
      }
  
      // blank line = boundary: next content line starts a new dish
-@@ -1883,6 +2019,15 @@
+@@ -1883,6 +2021,15 @@
      }
  
      if(expectName || !cur){
@@ -326,7 +328,7 @@
        push();
        cur = newDish();
        cur.name = isCaps(raw) ? toTitle(raw) : raw;   // keep normal-case names as typed
-@@ -1894,11 +2039,134 @@
+@@ -1894,11 +2041,134 @@
    push();
    return { title, dishes, infoText: infoLines.length? infoLines.join("\n\n"):null, infoAllergens };
  }
@@ -462,7 +464,7 @@
    if(replace && r.infoAllergens) data.infoAllergens = r.infoAllergens;
    save(); resetForm(); syncInputs(); render();
    saveToArchive(true).catch(()=>{});
-@@ -1917,6 +2185,29 @@
+@@ -1917,6 +2187,29 @@
  };
  
  /* ---------------- Word export styles per template ---------------- */
@@ -492,7 +494,7 @@
  function wordTpl(tpl){
    const t=tpl||data.template||"classic";
    const map={
-@@ -1930,14 +2221,16 @@
+@@ -1930,14 +2223,16 @@
    return map[t]||map.classic;
  }
  function buildWordPage(m, snap, idx, tpl){
@@ -513,33 +515,68 @@
    const dishes=(m.dishes||[]);
    const dishesHTML=dishes.map(d=>`
      <p style="${s.dish}margin:9pt 0 2pt;">${esc(formatDishName(d.name))}</p>
-@@ -2043,6 +2336,9 @@
+@@ -2040,23 +2335,50 @@
+   document.querySelectorAll("#pagesOut .page").forEach(pg=>{
+     const inner = pg.querySelector(".page-inner");
+     const header = pg.querySelector(".menu-head");
++    const dishes = pg.querySelector(".dishes-wrap");
++    const info = pg.querySelector(".info-block");
      if(!inner) return;
-     // reset before measuring
+-    // reset before measuring
++    // reset — never shrink the allergen footer; only compress dishes if needed
      inner.style.transform = "none";
-+    inner.style.transformOrigin = "top center";
++    inner.style.transformOrigin = "";
 +    inner.style.marginLeft = "";
 +    inner.style.marginRight = "";
      inner.style.zoom = "";
      inner.style.height = "auto";
      inner.classList.remove("fill");
-@@ -2052,8 +2348,13 @@
-     const natural = inner.scrollHeight;
-     if(natural > avail){
-       const ratio = avail / natural;
++    if(dishes){
++      dishes.style.transform = "none";
++      dishes.style.transformOrigin = "";
++      dishes.style.marginLeft = "";
++      dishes.style.marginRight = "";
++      dishes.style.height = "auto";
++    }
+     const cs = getComputedStyle(pg);
+     const headerH = header ? header.offsetHeight : 0;
+-    const avail = PAGE_H - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 18 - headerH; // footer + header
+-    const natural = inner.scrollHeight;
+-    if(natural > avail){
+-      const ratio = avail / natural;
 -      /* scale dishes/info only — logo in .menu-head stays full size for print */
 -      inner.style.transform = `scale(${ratio})`;
-+      /* Scale from top-left, then shift so the scaled block stays page-centred.
-+         (top-center + left-aligned lines made dish "tracks" look shoved sideways.) */
-+      inner.style.transformOrigin = "top left";
-+      const shift = (inner.offsetWidth * (1 - ratio)) / 2;
-+      inner.style.marginLeft = "0";
-+      inner.style.marginRight = "0";
-+      inner.style.transform = `translateX(${shift}px) scale(${ratio})`;
-     } else {
-       inner.style.height = avail + "px";                    // fill the page
-       inner.classList.add("fill");                          // pin allergen info to bottom
-@@ -2091,7 +2392,9 @@
+-    } else {
+-      inner.style.height = avail + "px";                    // fill the page
+-      inner.classList.add("fill");                          // pin allergen info to bottom
++    const pagePad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + 18;
++    const availPage = PAGE_H - pagePad - headerH;
++    const infoH = info ? info.offsetHeight : 0;
++    // Space left for dishes after keeping allergen block at full readable size
++    const availDishes = Math.max(120, availPage - infoH - 8);
++    if(dishes){
++      const naturalDishes = dishes.scrollHeight;
++      if(naturalDishes > availDishes){
++        const ratio = availDishes / naturalDishes;
++        dishes.style.transformOrigin = "top left";
++        const shift = (dishes.offsetWidth * (1 - ratio)) / 2;
++        dishes.style.transform = `translateX(${shift}px) scale(${ratio})`;
++        // Keep layout height matching the scaled visual so the footer sits correctly
++        dishes.style.height = (naturalDishes * ratio) + "px";
++        dishes.style.overflow = "hidden";
++      } else {
++        dishes.style.overflow = "";
++      }
++    }
++    // Pin allergen footer toward the bottom when there is spare room
++    const used = (dishes ? dishes.offsetHeight : 0) + infoH;
++    if(used < availPage - 4){
++      inner.style.height = availPage + "px";
++      inner.classList.add("fill");
+     }
+   });
+ }
+@@ -2091,7 +2413,9 @@
            ${d.diet&&d.diet.length?`<div class="dish-diet">${esc(dietLine(d.diet))}</div>`:""}
          </div>`).join("")
      : `<div class="empty-note">No dishes yet — add one on the left, or click “Load sample”.</div>`;
@@ -550,7 +587,7 @@
    const items = (data.infoAllergens||"").split(",").map(s=>s.trim()).filter(Boolean);
    const infoList = items.length? `<div class="info-list">${items.map(i=>`<span>${esc(i)}</span>`).join("")}</div>` : "";
    return `
-@@ -2107,6 +2410,9 @@
+@@ -2107,6 +2431,9 @@
  
  function render(){
    renderTabs();
@@ -560,7 +597,7 @@
  
    // editor logo preview (shared)
    $("logoPrev").innerHTML = data.logoImg ? `<img src="${data.logoImg}">` : (data.logoText? esc(data.logoText): "No logo");
-@@ -2114,7 +2420,7 @@
+@@ -2114,7 +2441,7 @@
    // preview: one page per day
    const pages = $("pagesOut");
    pages.innerHTML = data.menus.map(m=>
@@ -569,7 +606,7 @@
         ${menuHeaderHTML(m)}
         <div class="page-inner">${pageHTML(m)}</div>
         <div class="page-foot">${esc(data.logoText || m.title || "")}</div>
-@@ -2148,6 +2454,23 @@
+@@ -2148,6 +2475,23 @@
    $("infoText").value=state.infoText||"";
    $("infoAllergens").value=state.infoAllergens||"";
  }
@@ -593,7 +630,7 @@
  function buildTplGrid(){
    const g=$("tplGrid"); if(!g) return;
    g.innerHTML=Object.entries(TEMPLATES).map(([id,t])=>
-@@ -2192,7 +2515,7 @@
+@@ -2192,7 +2536,7 @@
      el.style.width="794px"; el.style.height="1123px";
      el.innerHTML=ebCoverHTML();
    } else {
@@ -602,16 +639,37 @@
      el.style.cursor="default";
      el.innerHTML=`${menuHeaderHTML(slide.m)}
                    <div class="page-inner">${pageHTML(slide.m)}</div>
-@@ -2210,7 +2533,7 @@
+@@ -2205,13 +2549,25 @@
+ function fitEbookInner(el){
+   const inner=el.querySelector(".page-inner"); if(!inner) return;
+   const header=el.querySelector(".menu-head");
++  const dishes=el.querySelector(".dishes-wrap");
++  const info=el.querySelector(".info-block");
+   inner.style.transform="none"; inner.style.zoom=""; inner.style.height="auto"; inner.classList.remove("fill");
++  if(dishes){ dishes.style.transform="none"; dishes.style.height="auto"; dishes.style.overflow=""; }
+   const cs=getComputedStyle(el);
    const headerH=header?header.offsetHeight:0;
-   const avail=1123 - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 18 - headerH;
-   const natural=inner.scrollHeight;
+-  const avail=1123 - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 18 - headerH;
+-  const natural=inner.scrollHeight;
 -  if(natural>avail){ inner.style.transform=`scale(${avail/natural})`; }
-+  if(natural>avail){ const ratio=avail/natural; inner.style.transformOrigin="top left"; const shift=(inner.offsetWidth*(1-ratio))/2; inner.style.transform=`translateX(${shift}px) scale(${ratio})`; }
-   else { inner.style.height=avail+"px"; inner.classList.add("fill"); }
+-  else { inner.style.height=avail+"px"; inner.classList.add("fill"); }
++  const availPage=1123 - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 18 - headerH;
++  const infoH=info?info.offsetHeight:0;
++  const availDishes=Math.max(120, availPage - infoH - 8);
++  if(dishes && dishes.scrollHeight>availDishes){
++    const ratio=availDishes/dishes.scrollHeight;
++    dishes.style.transformOrigin="top left";
++    const shift=(dishes.offsetWidth*(1-ratio))/2;
++    dishes.style.transform=`translateX(${shift}px) scale(${ratio})`;
++    dishes.style.height=(dishes.scrollHeight*ratio)+"px";
++    dishes.style.overflow="hidden";
++  }
++  const used=(dishes?dishes.offsetHeight:0)+infoH;
++  if(used<availPage-4){ inner.style.height=availPage+"px"; inner.classList.add("fill"); }
  }
  
-@@ -2375,7 +2698,7 @@
+ function fitBook(){
+@@ -2375,7 +2731,7 @@
  
  /* ---------------- Init ---------------- */
  buildChips();

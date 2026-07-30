@@ -1,4 +1,4 @@
-const CACHE_NAME = "menu-creator-text-align-v6";
+const CACHE_NAME = "menu-creator-text-align-v7";
 const ASSETS = [
   "/menu-creator/",
   "/menu-creator/index.html",

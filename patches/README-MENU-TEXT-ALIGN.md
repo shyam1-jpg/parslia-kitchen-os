@@ -1,41 +1,37 @@
-# Fix: Menu Creator text stuck on the left (no way to centre)
+# Fix: Menu Creator layout (centre text + clean allergen footer)
 
 ## What you are seeing
 On `https://kiteline.uk/menu-creator/` the live preview can show:
 
-- Titles and dishes stuck on the **left** / tracks shoved sideways
-- Empty space on one side of the page
+- Titles/dishes stuck left, or text tracks shoved sideways
 - **No Align control** in the top bar
-- **Dishes mixed under “Allergen Information”** (menu items appear in the allergen block)
+- **Messy bottom section**: dishes dumped under **Allergen Information**, tiny left-aligned text, QR looking off to the side
 
-That is the old / broken build. This fix:
+That is the old / broken build (or leftover dish text saved in the allergen box).
 
-- Adds **Align: Left / Center / Right** in the Live preview toolbar (Center default)
-- Stops page fit/scale from shoving left-aligned lines sideways
-- Detects dishes wrongly saved in Allergen Information and moves them back into the menu
-- Adds button **Fix: move dishes out of Allergen info**
+## What this fix does
+- **Align: Left / Center / Right** next to Live preview (Center default)
+- Page fit no longer shoves text tracks sideways
+- Allergen footer stays a **short centred blurb + centred QR** (never a second dish list)
+- Allergen text **does not shrink** when the dish list is long (only dishes are compressed to fit)
+- Auto-clears dish dumps pasted into Allergen Information
+- Button: **Fix allergen footer layout**
 
 ## Fastest fix on the kitchen PC (Kiteline)
-1. Open this folder: `parslia-kitchen-os\patches\`
+1. Open `parslia-kitchen-os\patches\`
 2. Double-click **`APPLY-MENU-TEXT-ALIGN.bat`**
 3. Point it at your `kitline1` folder if asked
-4. Restart Kiteline, open Menu Creator, press **Ctrl+Shift+R**
-5. Use the green **Align → Center** buttons next to **Live preview**
+4. Restart Kiteline → open Menu Creator → **Ctrl+Shift+R**
+5. Use **Align → Center** in the top bar
+6. If the bottom is still messy, click **Fix allergen footer layout** (left panel)
 
 Drop-in files (manual copy):
 
 - `patches/menu-creator-dropin/index.html` → `kitline1/site/menu-creator/index.html`
 - `patches/menu-creator-dropin/service-worker.js` → `kitline1/site/menu-creator/service-worker.js`
 
-## Git apply (developers)
-```bash
-cd kitline1
-git apply /path/to/parslia-kitchen-os/patches/kitline1-menu-creator-text-align.patch
-# also copy service-worker.js CACHE_NAME bump from menu-creator-dropin/
-```
+## Tip
+Paste full menus into **Paste full menu — auto generate**, not into **Allergen information text**.
 
 ## This repo (GitHub Pages)
 After merge: `https://parslia.app/menu-creator/`
-
-## Standalone `menu-creator` repo
-Copy `patches/menu-creator-dropin/index.html` over that repo’s `index.html` (Kiteline build is the newer base).
