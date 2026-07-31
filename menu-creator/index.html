@@ -937,11 +937,11 @@
     <div class="divider"></div>
 
     <div class="group">
-      <label>Allergen information text</label>
+      <label>Allergen information text (footer only — not dishes)</label>
       <textarea id="infoText" style="min-height:120px"></textarea>
-      <div class="hint">Short allergen blurb only (centred under the menu). Do not paste dishes here — use <b>Paste full menu</b> above. If the bottom looks messy, click the button below.</div>
-      <button class="btn btn-primary btn-sm" id="fixMixedInfo" style="margin-top:8px" type="button">Fix allergen footer layout</button>
-      <div class="hint">List of allergens you can inform about (comma separated):</div>
+      <div class="hint">Short disclaimer only under the menu. <b>Do not paste dishes here</b> — use <b>Add / edit a dish</b> or <b>Paste full menu</b> above. If dishes appear under Allergen Information, click the button below to move them into the menu.</div>
+      <button class="btn btn-primary btn-sm" id="fixMixedInfo" style="margin-top:8px" type="button">Fix mixed allergens / move dishes to menu</button>
+      <div class="hint">Optional allergen names guests can ask about (comma separated — not dish names):</div>
       <textarea id="infoAllergens" style="min-height:70px;margin-top:6px"></textarea>
     </div>
 
@@ -1763,8 +1763,33 @@ function moveDish(i,dir){
 $("menuTitle").oninput = e=>{ state.title=e.target.value; save(); render(); };
 $("menuSub").oninput   = e=>{ state.sub=e.target.value; save(); render(); };
 $("logoText").oninput  = e=>{ state.logoText=e.target.value; save(); render(); };
-$("infoText").oninput  = e=>{ state.infoText=e.target.value; save(); render(); };
-$("infoAllergens").oninput = e=>{ state.infoAllergens=e.target.value; save(); render(); };
+$("infoText").oninput  = e=>{
+  state.infoText=e.target.value;
+  // Pasting a menu into the allergen box is the main mix-up — rescue immediately
+  if(looksLikeDishDump(e.target.value) || hasInlineDishAllergenLines(e.target.value)){
+    const m=current();
+    if(!m.dishes.length){
+      const r=rescueDishesFromInfo({replaceDishes:true});
+      if(r.moved){
+        const st=$("archiveStatus");
+        if(st) st.textContent="Moved "+r.moved+" dishes out of Allergen Information into the menu.";
+        return;
+      }
+    }
+    data.infoText = DEFAULT_INFO;
+    const inp=$("infoText"); if(inp) inp.value=data.infoText;
+  }
+  save(); render();
+};
+$("infoAllergens").oninput = e=>{
+  let v=e.target.value;
+  if(looksLikeDishDump(v) || hasInlineDishAllergenLines(v)){
+    v=""; e.target.value="";
+    const st=$("archiveStatus");
+    if(st) st.textContent="Cleared dish text from allergen list — add dishes in Add / edit a dish.";
+  }
+  state.infoAllergens=v; save(); render();
+};
 
 $("logoFile").onchange = e=>{
   const f=e.target.files[0]; if(!f) return;
@@ -1783,22 +1808,29 @@ $("loadSample").onclick = ()=>{
 };
 $("fixMixedInfo") && ($("fixMixedInfo").onclick = ()=>{
   const info=data.infoText||"";
-  if(!looksLikeDishDump(info) && !looksLikeDishDump(data.infoAllergens||"")){
-    // Still restore a clean centred blurb if user wants
-    data.infoText = DEFAULT_INFO; save(); syncInputs(); render();
-    alert("Allergen Information footer restored to the normal centred blurb.");
+  const mixed = looksLikeDishDump(info) || hasInlineDishAllergenLines(info) ||
+    looksLikeDishDump(data.infoAllergens||"") || hasInlineDishAllergenLines(data.infoAllergens||"");
+  if(!mixed){
+    data.infoText = DEFAULT_INFO;
+    if(looksLikeDishDump(data.infoAllergens||"") || hasInlineDishAllergenLines(data.infoAllergens||"")) data.infoAllergens = "";
+    save(); syncInputs(); render();
+    alert("Allergen Information footer restored. Add dishes with “Add dish” or Paste full menu — not in this box.");
     return;
   }
   const m=current();
   if(m.dishes && m.dishes.length){
-    data.infoText = DEFAULT_INFO; save(); syncInputs(); render();
-    alert("Cleared the Allergen Information footer. Your menu dishes above are unchanged.");
+    data.infoText = DEFAULT_INFO;
+    if(looksLikeDishDump(data.infoAllergens||"") || hasInlineDishAllergenLines(data.infoAllergens||"")) data.infoAllergens = "";
+    save(); syncInputs(); render();
+    alert("Cleared dishes from Allergen Information. Your menu dishes above are unchanged — you can add more with Add dish.");
     return;
   }
   const r=rescueDishesFromInfo({replaceDishes:true});
-  if(r.moved) alert("Moved "+r.moved+" dishes into the menu and restored the allergen blurb.");
+  if(r.moved) alert("Moved "+r.moved+" dishes into the menu and restored the allergen blurb. You can edit or add more dishes on the left.");
   else {
-    data.infoText = DEFAULT_INFO; save(); syncInputs(); render();
+    data.infoText = DEFAULT_INFO;
+    if(looksLikeDishDump(data.infoAllergens||"") || hasInlineDishAllergenLines(data.infoAllergens||"")) data.infoAllergens = "";
+    save(); syncInputs(); render();
     alert("Allergen Information footer restored.");
   }
 });
@@ -1968,6 +2000,14 @@ function parseBulk(text){
   const isCaps = s => { const L=letters(s); return L.length>=2 && s.toUpperCase()===s && /[A-Z]/.test(s); };
   const newDish = ()=>({name:"",desc:"",allergens:[],diet:[]});
   const push = ()=>{ if(cur && cur.name) dishes.push(cur); cur=null; expectName=true; };
+  const applyInline = (raw)=>{
+    const d=parseInlineDishLine(raw);
+    if(!d) return false;
+    push();
+    cur = Object.assign(newDish(), d);
+    push();
+    return true;
+  };
 
   for(const line of rawLines){
     const raw = line.replace(/\s+/g," ").trim();
@@ -1976,14 +2016,43 @@ function parseBulk(text){
     if(mode==="info"){
       if(!raw) continue;
       const m = low.match(/request more information\s*(?:on|about)?\s*[:\-]?\s*(.*)/);
-      if(m && m[1]){ infoAllergens = raw.slice(raw.length-m[1].length).replace(/&/g,",").replace(/\.\s*$/,"").replace(/\s*,\s*/g,", ").trim(); continue; }
+      if(m && m[1] && !/\bcontains\s*:/i.test(m[1]) && letters(m[1]).length<80){
+        infoAllergens = raw.slice(raw.length-m[1].length).replace(/&/g,",").replace(/\.\s*$/,"").replace(/\s*,\s*/g,", ").trim();
+        continue;
+      }
       // Dish lines wrongly placed under Allergen Information → parse as dishes again
+      if(applyInline(raw)){ mode="menu"; continue; }
       const capsDish = (()=>{ const L=letters(raw); return L.length>=6 && raw===raw.toUpperCase() && /[A-Z]/.test(raw); })();
-      if(low.startsWith("contains") || low.startsWith("suitable") || capsDish){
+      if(low.startsWith("contains") || low.startsWith("suitable") || capsDish || /\bcontains\s*:/i.test(raw)){
         mode="menu";
         expectName = !low.startsWith("contains") && !low.startsWith("suitable");
         // fall through into menu parsing below (no continue)
       } else {
+        // If disclaimer line has dishes appended after "listed below", split them off
+        const cut = splitDisclaimerFromDishes(raw);
+        if(cut.dishesText){
+          if(cut.blurb) infoLines.push(cut.blurb);
+          mode="menu";
+          // re-parse dish chunk as its own lines
+          const extra = cut.dishesText.split(/(?=\b[A-Z][A-Z0-9 &'\/\-]{4,}|\bcontains\s*:)/).map(s=>s.trim()).filter(Boolean);
+          for(const chunk of (extra.length?extra:[cut.dishesText])){
+            if(applyInline(chunk)) continue;
+            // feed through as a synthetic line
+            const fakeLow=chunk.toLowerCase();
+            if(fakeLow.startsWith("contains")){
+              if(!cur) cur=newDish();
+              cur.allergens=parseAllergens(chunk.replace(/^contains\s*:?\s*/i,""));
+              expectName=true;
+            } else if(fakeLow.startsWith("suitable")){
+              if(!cur) cur=newDish();
+              cur.diet=parseDiets(chunk); expectName=true;
+            } else {
+              push(); cur=newDish();
+              cur.name=isCaps(chunk)?toTitle(chunk):chunk; expectName=false;
+            }
+          }
+          continue;
+        }
         infoLines.push(raw);
         continue;
       }
@@ -1994,6 +2063,30 @@ function parseBulk(text){
 
     // allergen information section header (caps or normal case)
     if(/(allergen|dietary)\s*(&|and|information|info)/i.test(raw) || /^allergen\b/i.test(raw)){ push(); mode="info"; continue; }
+
+    // Single-line dish + allergens: "DISH NAME: Contains: Gluten. (Vegan)"
+    if(applyInline(raw)) continue;
+
+    // Never treat allergen disclaimer prose as a dish name
+    if(/cross-contamination|shared kitchen|severe allergy|please speak to a member|carefully select our ingredients|request more information on the allergens listed below/i.test(raw)){
+      // If dishes were appended on the same line after "listed below", peel them off
+      const cut=splitDisclaimerFromDishes(raw);
+      if(cut.dishesText){
+        if(applyInline(cut.dishesText)) continue;
+        // fall through to parse cut.dishesText as name only if needed
+        const chunk=cut.dishesText;
+        const fakeLow=chunk.toLowerCase();
+        if(fakeLow.startsWith("contains")){
+          if(!cur) cur=newDish();
+          cur.allergens=parseAllergens(chunk.replace(/^contains\s*:?\s*/i,""));
+          expectName=true; continue;
+        }
+        push(); cur=newDish();
+        cur.name=isCaps(chunk)?toTitle(chunk):chunk; expectName=false;
+        continue;
+      }
+      continue;
+    }
 
     if(low.startsWith("contains")){
       if(!cur) cur = newDish();
@@ -2010,6 +2103,10 @@ function parseBulk(text){
     // a short standalone diet line (e.g. "Vegan")
     if(cur && cur.name && !expectName && parseDiets(raw).length && raw.split(/\s+/).length<=3){
       cur.diet = [...new Set([...(cur.diet||[]), ...parseDiets(raw)])]; continue;
+    }
+    // parenthetical diets alone: "(Vegan | Gluten-Free)"
+    if(cur && cur.name && /^\(.*\)$/.test(raw) && parseDiets(raw.replace(/[()]/g,"")).length){
+      cur.diet = [...new Set([...(cur.diet||[]), ...parseDiets(raw.replace(/[()|]/g,","))])]; continue;
     }
 
     // menu title (first MENU line at the very top)
@@ -2042,22 +2139,90 @@ function parseBulk(text){
   return { title, dishes, infoText: infoLines.length? infoLines.join("\n\n"):null, infoAllergens };
 }
 
+/** "DISH NAME: Contains: Gluten, Sesame. (Vegan)" → dish object */
+function parseInlineDishLine(raw){
+  const t=(raw||"").replace(/\s+/g," ").trim();
+  if(!t || t.length<8) return null;
+  if(/cross-contamination|shared kitchen|severe allergy|request more information/i.test(t) && !/\bcontains\s*:/i.test(t)) return null;
+  const m=t.match(/^(.+?)\s*[:\-–—]\s*(Contains\s*:?\s*.+)$/i);
+  if(!m) return null;
+  let name=m[1].trim().replace(/[:\-–—]+$/,"").trim();
+  if(!name || name.length<3) return null;
+  if(/^(allergen|dietary|menu|contains|suitable)\b/i.test(name)) return null;
+  let rest=m[2].trim();
+  let diet=[];
+  const dietM=rest.match(/[\(\[]\s*([^\)\]]+)\s*[\)\]]\.?\s*$/);
+  if(dietM){
+    diet=parseDiets(dietM[1].replace(/[|/]/g,","));
+    rest=rest.slice(0, dietM.index).trim();
+  }
+  const allergens=parseAllergens(rest.replace(/^contains\s*:?\s*/i,"").replace(/\.+$/,""));
+  const letters=name.replace(/[^a-zA-Z]/g,"");
+  const isCaps=letters.length>=2 && name===name.toUpperCase() && /[A-Z]/.test(name);
+  return {
+    name: isCaps ? toTitle(name) : name,
+    desc:"",
+    allergens,
+    diet
+  };
+}
+
+function hasInlineDishAllergenLines(text){
+  const lines=(text||"").split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  let n=0;
+  for(const line of lines){
+    if(parseInlineDishLine(line)) n++;
+    else if(/\bcontains\s*:/i.test(line) && !/request more information|cross-contamination|shared kitchen/i.test(line)) n++;
+  }
+  // also "listed below: DISH Contains: ..."
+  const t=text||"";
+  const idx=t.toLowerCase().indexOf("listed below");
+  if(idx>=0){
+    const after=t.slice(idx+"listed below".length).replace(/^[\s.:\-–—]+/,"").trim();
+    if(after.length>30 && (/\bcontains\s*:/i.test(after) || parseInlineDishLine(after) || /[A-Z]{5,}.+\bcontains\s*:/i.test(after))) return true;
+  }
+  return n>=1;
+}
+
+/** Split a disclaimer line that had dishes appended after "listed below". */
+function splitDisclaimerFromDishes(raw){
+  const t=(raw||"").trim();
+  const low=t.toLowerCase();
+  const marker="listed below";
+  const idx=low.indexOf(marker);
+  if(idx<0) return {blurb:t, dishesText:""};
+  const afterStart=idx+marker.length;
+  let after=t.slice(afterStart).replace(/^[\s.:\-–—]+/,"").trim();
+  if(!after) return {blurb:t, dishesText:""};
+  if(!/\bcontains\s*:/i.test(after) && !/^[A-Z][A-Z0-9 &'\/\-]{5,}/.test(after) && !parseInlineDishLine(after)){
+    // short allergen name list — keep with blurb
+    if(after.length<80 && !/\n/.test(after)) return {blurb:t, dishesText:""};
+  }
+  const blurb=t.slice(0, afterStart).replace(/[\s.:\-–—]+$/,"").trim();
+  return {blurb, dishesText:after};
+}
 
 function cleanAllergenInfoText(raw){
   const t=(raw||"").trim();
   if(!t) return DEFAULT_INFO;
-  if(looksLikeDishDump(t)) return DEFAULT_INFO;
-  if(/^contains\s*:?/im.test(t) && (t.match(/^contains\s*:?/gim)||[]).length>=1) return DEFAULT_INFO;
-  // Strip accidental CAPS dish blocks that slipped into the blurb
+  if(looksLikeDishDump(t) || hasInlineDishAllergenLines(t)) return DEFAULT_INFO;
+  if(/\bcontains\s*:/i.test(t) && !isAllergenDisclaimer(t)) return DEFAULT_INFO;
+  // Strip accidental CAPS / inline dish blocks that slipped into the blurb
   const lines=t.split(/\r?\n/);
   const kept=[];
   let skipping=false;
   for(const line of lines){
     const rawLine=line.trim();
-    const low=rawLine.toLowerCase();
     const caps = (()=>{ const L=rawLine.replace(/[^a-zA-Z]/g,""); return L.length>=6 && rawLine===rawLine.toUpperCase() && /[A-Z]/.test(rawLine); })();
-    if(/^contains\s*:?/i.test(rawLine) || /^suitable\s+for\b/i.test(rawLine)){ skipping=true; continue; }
+    if(parseInlineDishLine(rawLine)){ skipping=true; continue; }
+    if(/\bcontains\s*:?/i.test(rawLine) || /^suitable\s+for\b/i.test(rawLine)){ skipping=true; continue; }
     if(caps && !/allergen|dietary|information|menu\s*$/i.test(rawLine)){ skipping=true; continue; }
+    const split=splitDisclaimerFromDishes(rawLine);
+    if(split.dishesText){
+      if(split.blurb) kept.push(split.blurb);
+      skipping=true;
+      continue;
+    }
     if(skipping){
       if(!rawLine){ skipping=false; }
       continue;
@@ -2065,13 +2230,13 @@ function cleanAllergenInfoText(raw){
     kept.push(line);
   }
   const out=kept.join("\n").trim();
-  if(!out || looksLikeDishDump(out)) return DEFAULT_INFO;
+  if(!out || looksLikeDishDump(out) || hasInlineDishAllergenLines(out)) return DEFAULT_INFO;
   return out;
 }
 function sanitizeInfoText(saveIt){
   const cleaned=cleanAllergenInfoText(data.infoText);
-  if(cleaned !== (data.infoText||"").trim() && cleaned === DEFAULT_INFO && looksLikeDishDump(data.infoText||"")){
-    // full dump → restore default
+  const dirty = looksLikeDishDump(data.infoText||"") || hasInlineDishAllergenLines(data.infoText||"");
+  if(cleaned !== (data.infoText||"").trim() && (cleaned === DEFAULT_INFO) && dirty){
     data.infoText = DEFAULT_INFO;
     if(saveIt!==false) save();
     const inp=$("infoText"); if(inp) inp.value=data.infoText;
@@ -2090,14 +2255,20 @@ function looksLikeDishDump(text){
   const t=(text||"").trim();
   if(!t) return false;
   const lines=t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-  if(lines.length<2) return false;
-  const containsN=lines.filter(l=>/^contains\s*:?/i.test(l)).length;
+  if(!lines.length) return false;
+  const containsStart=lines.filter(l=>/^contains\s*:?/i.test(l)).length;
+  const containsAny=(t.match(/\bcontains\s*:/gi)||[]).length;
+  const inlineN=lines.filter(l=>!!parseInlineDishLine(l)).length;
   const capsN=lines.filter(l=>{
     const L=l.replace(/[^a-zA-Z]/g,"");
-    return L.length>=6 && l===l.toUpperCase() && /[A-Z]/.test(l);
+    return L.length>=6 && l===l.toUpperCase() && /[A-Z]/.test(l) && !/allergen|dietary|information|menu\s*$/i.test(l);
   }).length;
-  // dish dump if several Contains: lines or several CAPS dish names
-  return containsN>=1 || capsN>=2;
+  const dietParen=lines.filter(l=>
+    /\((?:vegan|vegetarian|gluten-?free|dairy-?free|halal|nut-?free)(?:\s*[|/|,]\s*(?:vegan|vegetarian|gluten-?free|dairy-?free|halal|nut-?free))*\)/i.test(l)
+  ).length;
+  if(hasInlineDishAllergenLines(t)) return true;
+  // dish dump if Contains lines, inline "Name: Contains:", several CAPS names, or diet tags with dish noise
+  return containsStart>=1 || containsAny>=2 || inlineN>=1 || capsN>=2 || (dietParen>=2 && containsAny>=1);
 }
 function isAllergenDisclaimer(text){
   const t=(text||"").toLowerCase();
@@ -2105,46 +2276,69 @@ function isAllergenDisclaimer(text){
     t.includes("severe allergy") || t.includes("please speak to a member");
 }
 /** Pull menu dishes that were saved into Allergen Information back into the dish list. */
+let _rescueLock=false;
 function rescueDishesFromInfo(opts){
   opts=opts||{};
+  if(_rescueLock) return {moved:0, reason:"busy"};
   const info=(data.infoText||"").trim();
-  if(!info || !looksLikeDishDump(info)) return {moved:0, reason:"clean"};
+  const mixed = looksLikeDishDump(info) || hasInlineDishAllergenLines(info);
+  if(!info || !mixed) return {moved:0, reason:"clean"};
   // Don't steal a normal disclaimer that happens to mention allergens
-  if(isAllergenDisclaimer(info) && !/^contains\s*:?/im.test(info) && (info.match(/^contains\s*:?/gim)||[]).length===0){
-    // still allow rescue if CAPS dish names dominate
+  if(isAllergenDisclaimer(info) && !/\bcontains\s*:/i.test(info) && !hasInlineDishAllergenLines(info)){
     const caps=(info.match(/^[A-Z][A-Z0-9 &'\/\-]{5,}$/gm)||[]).length;
     if(caps<2) return {moved:0, reason:"disclaimer"};
   }
-  const parsed=parseBulk(info);
-  if(!parsed.dishes || !parsed.dishes.length) return {moved:0, reason:"parse-empty"};
-  const m=current();
-  if(opts.replaceDishes || !m.dishes.length){
-    m.dishes = parsed.dishes;
-  } else {
-    // append only names not already present
-    const have=new Set(m.dishes.map(d=>(d.name||"").toLowerCase()));
-    for(const d of parsed.dishes){
-      if(!have.has((d.name||"").toLowerCase())) m.dishes.push(d);
-    }
+  // Prefer parsing only the dish portion when dishes were appended after the disclaimer
+  let parseSource=info;
+  const parts=info.split(/\n+/);
+  const dishStart=parts.findIndex(p=>parseInlineDishLine(p.trim()) || /^contains\s*:/i.test(p.trim()) ||
+    (()=>{ const L=p.trim().replace(/[^a-zA-Z]/g,""); return L.length>=6 && p.trim()===p.trim().toUpperCase() && /[A-Z]/.test(p) && !/allergen|dietary|information|menu\s*$/i.test(p); })());
+  if(dishStart>0) parseSource = parts.slice(dishStart).join("\n");
+  else {
+    const split=splitDisclaimerFromDishes(info);
+    if(split.dishesText) parseSource = split.dishesText;
   }
-  // Restore proper allergen blurb (never keep dish dump in info)
-  data.infoText = DEFAULT_INFO;
-  if(parsed.infoAllergens) data.infoAllergens = parsed.infoAllergens;
-  save(); syncInputs(); render();
-  return {moved:parsed.dishes.length, reason:"rescued"};
+  const parsed=parseBulk(parseSource);
+  if(!parsed.dishes || !parsed.dishes.length){
+    // still clear the dump so the footer is usable
+    return {moved:0, reason:"parse-empty", dishes:[]};
+  }
+  const m=current();
+  _rescueLock=true;
+  try{
+    if(opts.replaceDishes || !m.dishes.length){
+      m.dishes = parsed.dishes;
+    } else {
+      // append only names not already present
+      const have=new Set(m.dishes.map(d=>(d.name||"").toLowerCase()));
+      for(const d of parsed.dishes){
+        if(!have.has((d.name||"").toLowerCase())) m.dishes.push(d);
+      }
+    }
+    // Restore proper allergen blurb (never keep dish dump in info)
+    data.infoText = DEFAULT_INFO;
+    if(parsed.infoAllergens && !looksLikeDishDump(parsed.infoAllergens) && !hasInlineDishAllergenLines(parsed.infoAllergens)){
+      data.infoAllergens = parsed.infoAllergens;
+    }
+    save(); syncInputs(); render();
+    return {moved:parsed.dishes.length, reason:"rescued"};
+  } finally {
+    _rescueLock=false;
+  }
 }
 function autoRescueMixedInfo(){
   try{
+    if(_rescueLock) return;
     const m=current();
     const info=data.infoText||"";
-    if(looksLikeDishDump(info)){
+    if(looksLikeDishDump(info) || hasInlineDishAllergenLines(info)){
       // If this menu already has dishes, only clear the allergen footer
       // (do not append leftover dinner dishes into today's lunch).
       if(m.dishes && m.dishes.length){
         data.infoText = DEFAULT_INFO; save();
         const inp=$("infoText"); if(inp) inp.value=data.infoText;
         const st=$("archiveStatus");
-        if(st) st.textContent="Cleared dishes from Allergen Information — footer restored.";
+        if(st) st.textContent="Cleared dishes from Allergen Information — footer restored. Add more dishes with Add dish.";
         return;
       }
       const r=rescueDishesFromInfo({replaceDishes:true});
@@ -2167,9 +2361,11 @@ function applyParsed(r, replace){
   m.dishes = replace ? r.dishes : m.dishes.concat(r.dishes);
   if(replace && r.infoText){
     // Keep disclaimer text only — never store a dish dump under Allergen Information
-    data.infoText = looksLikeDishDump(r.infoText) ? DEFAULT_INFO : r.infoText;
+    data.infoText = (looksLikeDishDump(r.infoText) || hasInlineDishAllergenLines(r.infoText)) ? DEFAULT_INFO : r.infoText;
   }
-  if(replace && r.infoAllergens) data.infoAllergens = r.infoAllergens;
+  if(replace && r.infoAllergens){
+    data.infoAllergens = (looksLikeDishDump(r.infoAllergens) || hasInlineDishAllergenLines(r.infoAllergens)) ? "" : r.infoAllergens;
+  }
   save(); resetForm(); syncInputs(); render();
   saveToArchive(true).catch(()=>{});
 }
@@ -2431,8 +2627,8 @@ function pageHTML(m){
 
 function render(){
   renderTabs();
-  // Keep allergen footer clean so the bottom layout stays nice
-  if(looksLikeDishDump(data.infoText||"")) autoRescueMixedInfo();
+  // Keep allergen footer clean so dishes never sit under Allergen Information
+  if(looksLikeDishDump(data.infoText||"") || hasInlineDishAllergenLines(data.infoText||"")) autoRescueMixedInfo();
   else sanitizeInfoText(false);
 
   // editor logo preview (shared)

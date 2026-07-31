@@ -2,8 +2,8 @@
 setlocal
 title Apply Menu Creator text-align fix
 echo.
-echo  Menu Creator — center text + Align Left/Center/Right
-echo  =====================================================
+echo  Menu Creator — fix allergens mixed with menus + align text
+echo  ==========================================================
 echo.
 echo  This updates Kiteline's Menu Creator on this PC.
 echo.
@@ -42,7 +42,9 @@ echo  Next:
 echo   1. Restart Kiteline if it is running
 echo   2. Open Menu Creator
 echo   3. Hard refresh: Ctrl+Shift+R
-echo   4. In the top bar use Align: Left / Center / Right
-echo      (Center is the default)
+echo   4. If dishes show under Allergen Information, click:
+echo        Fix mixed allergens / move dishes to menu
+echo   5. Add dishes with Add dish or Paste full menu
+echo      (not into the allergen text box)
 echo.
 pause

@@ -1,29 +1,29 @@
-# Fix: Menu Creator layout (centre text + clean allergen footer)
+# Fix: Menu Creator — allergens mixed with menus + centre text
 
 ## What you are seeing
-On `https://kiteline.uk/menu-creator/` the live preview can show:
+On Menu Creator the live preview can show:
 
-- Titles/dishes stuck left, or text tracks shoved sideways
-- **No Align control** in the top bar
-- **Messy bottom section**: dishes dumped under **Allergen Information**, tiny left-aligned text, QR looking off to the side
+- **Dinner menu empty** (“No dishes yet”) while **Allergen Information** lists real dishes
+- Dishes stuck under the allergen footer so you cannot manage them as menu items
+- Titles/dishes not centred / no Align control (older builds)
 
-That is the old / broken build (or leftover dish text saved in the allergen box).
+That happens when dish lines (e.g. `DISH NAME: Contains: Gluten. (Vegan)`) were saved into **Allergen information text** instead of the dish list.
 
 ## What this fix does
-- **Align: Left / Center / Right** next to Live preview (Center default)
-- Page fit no longer shoves text tracks sideways
-- Allergen footer stays a **short centred blurb + centred QR** (never a second dish list)
-- Allergen text **does not shrink** when the dish list is long (only dishes are compressed to fit)
-- Auto-clears dish dumps pasted into Allergen Information
-- Button: **Fix allergen footer layout**
+- Detects dish dumps in the allergen box (including `Name: Contains: …` lines)
+- **Moves those dishes into the menu** and restores the normal allergen blurb
+- Blocks pasting menus into the allergen footer (auto-rescue)
+- Button: **Fix mixed allergens / move dishes to menu**
+- Align: Left / Center / Right (Center default)
+- Allergen footer stays full size; only the dish list compresses if needed
 
 ## Fastest fix on the kitchen PC (Kiteline)
 1. Open `parslia-kitchen-os\patches\`
 2. Double-click **`APPLY-MENU-TEXT-ALIGN.bat`**
 3. Point it at your `kitline1` folder if asked
 4. Restart Kiteline → open Menu Creator → **Ctrl+Shift+R**
-5. Use **Align → Center** in the top bar
-6. If the bottom is still messy, click **Fix allergen footer layout** (left panel)
+5. If dishes still sit under Allergen Information, click **Fix mixed allergens / move dishes to menu**
+6. Add further dishes with **Add dish** or **Paste full menu** (not the allergen box)
 
 Drop-in files (manual copy):
 
