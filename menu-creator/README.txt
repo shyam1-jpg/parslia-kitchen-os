@@ -1,19 +1,23 @@
-Menu Creator — printable restaurant menus
-========================================
+Menu Creator — fresh rebuild
+============================
 
 Open index.html (or https://parslia.app/menu-creator/ after deploy).
 
-Allergens vs dishes
--------------------
-Dishes belong in Add dish / Paste full menu.
-Allergen information text is the short footer disclaimer only.
-If dishes appear under Allergen Information, click
-"Fix mixed allergens / move dishes to menu".
+Design rules
+------------
+- Dishes live only in the dish list / menu body
+- Allergen Information is a short disclaimer footer only
+- Pasting dish text into the allergen box is blocked
+- Calendar library uses the same storage keys as before, so existing
+  saved menus stay available
 
-Menu text alignment
--------------------
-Under "Menu style", use Left / Center / Right to align titles and dish text.
-Center is the default. Works with every template, including Modern Minimal.
-"Reset everything" restores center alignment.
+Toolbar should show: Build fresh-v1
 
-Also: paste menus, save to library, print/PDF, Word export, ebook view.
+Legacy
+------
+index.legacy.html is the previous complex build (kept for reference).
+
+Kiteline apply
+--------------
+Use patches/APPLY-MENU-TEXT-ALIGN.bat (copies menu-creator-dropin/).
+Then Ctrl+Shift+R and confirm Build fresh-v1.

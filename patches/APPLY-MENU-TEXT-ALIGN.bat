@@ -1,11 +1,12 @@
 @echo off
 setlocal
-title Apply Menu Creator text-align fix
+title Apply Menu Creator fresh rebuild
 echo.
-echo  Menu Creator — fix allergens mixed with menus + align text
-echo  ==========================================================
+echo  Menu Creator — fresh rebuild (keeps calendar menus)
+echo  ===================================================
 echo.
 echo  This updates Kiteline's Menu Creator on this PC.
+echo  Your calendar / library menus are kept (same storage keys).
 echo.
 
 set "KITELINE="
@@ -42,9 +43,9 @@ echo  Next:
 echo   1. Restart Kiteline if it is running
 echo   2. Open Menu Creator
 echo   3. Hard refresh: Ctrl+Shift+R
-echo   4. If dishes show under Allergen Information, click:
-echo        Fix mixed allergens / move dishes to menu
-echo   5. Add dishes with Add dish or Paste full menu
-echo      (not into the allergen text box)
+echo   4. Confirm you see: Build fresh-v1
+echo   5. Browse library — calendar menus are still there
+echo   6. Add dishes with Add dish or Paste full menu
+echo      (not into the allergen disclaimer box)
 echo.
 pause
