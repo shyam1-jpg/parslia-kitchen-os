@@ -1,8 +1,8 @@
 @echo off
 setlocal
-title Apply Menu Creator fresh rebuild
+title Apply Menu Creator Generate fix (Build fix-v3)
 echo.
-echo  Menu Creator — fresh rebuild (keeps calendar menus)
+echo  Menu Creator — Generate fix (Build fix-v3) (keeps calendar menus)
 echo  ===================================================
 echo.
 echo  This updates Kiteline's Menu Creator on this PC.
@@ -43,7 +43,7 @@ echo  Next:
 echo   1. Restart Kiteline if it is running
 echo   2. Open Menu Creator
 echo   3. Hard refresh: Ctrl+Shift+R
-echo   4. Confirm you see: Build fresh-v2
+echo   4. Confirm you see: Build fix-v3
 echo   5. Browse library — calendar menus are still there
 echo   6. Generate menu puts dishes into Dishes only
 echo      (Allergen Information stays the disclaimer)

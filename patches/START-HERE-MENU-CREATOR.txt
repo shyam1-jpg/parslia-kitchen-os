@@ -1,37 +1,26 @@
-START HERE — Menu Creator Generate fix
-======================================
+START HERE — print menus today
+==============================
 
-Your screenshot is still the OLD Menu Creator
-(it says "Paste full menu — auto generate" and "Reset everything").
+Your Kiteline Menu Creator screenshot is still the OLD broken app
+(dishes jumping under ALLERGEN INFORMATION).
 
-The fixed app shows:  Build fresh-v2
-
-WHY Generate puts dishes into Allergen Information
---------------------------------------------------
-Old bug: Generate could save pasted dish text into the
-"Allergen information text" box. That is fixed in Build fresh-v2.
-
-INSTALL ON THE KITCHEN PC (Kiteline)
-------------------------------------
+DO THIS NOW (fastest — no Kiteline update needed)
+-------------------------------------------------
 1. Open folder:  parslia-kitchen-os\patches\
-2. Double-click: APPLY-MENU-TEXT-ALIGN.bat
-3. If asked, choose your kitline1 folder
-4. Restart Kiteline
-5. Open Menu Creator
-6. Press Ctrl+Shift+R  (hard refresh)
-7. Check the top of the left panel says:  Build fresh-v2
+2. Double-click: OPEN-PRINT-MENU-NOW.bat
+3. Paste your menu
+4. Click Make menu
+5. Click Print / Save PDF
 
-THEN TEST
----------
-1. Click "Reset disclaimer" if Allergen box still has dish names
-2. Paste a dish into "Paste full menu → Generate dishes"
-3. Click Generate menu
-4. Dishes appear under DISHES / in the preview
-5. Allergen Information stays the short disclaimer only
+Dishes cannot jump into Allergen Information in this tool.
 
-OR OPEN WITHOUT KITELINE
-------------------------
-Double-click:  parslia-kitchen-os\menu-creator\index.html
-(Chrome / Edge). You should see Build fresh-v2.
-Calendar menus still load from the same browser storage
-if you use the same browser profile.
+THEN fix Kiteline Menu Creator
+------------------------------
+1. Double-click: APPLY-MENU-TEXT-ALIGN.bat
+2. Restart Kiteline
+3. Open Menu Creator
+4. Press Ctrl+Shift+R
+5. Confirm you see: Build fix-v3  (green banner at top left)
+
+If you still do NOT see Build fix-v3, Kiteline is reading a different
+folder. Tell us the path shown in Kiteline for Menu Creator.
