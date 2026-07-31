@@ -2410,12 +2410,12 @@ function applyParsed(r, replace){
   const m=current();
   if(r.title && (replace || !m.title)) m.title = r.title;
   m.dishes = replace ? r.dishes : m.dishes.concat(r.dishes);
-  if(replace && r.infoText){
-    // Keep disclaimer text only — never store a dish dump under Allergen Information
-    data.infoText = (looksLikeDishDump(r.infoText) || hasInlineDishAllergenLines(r.infoText)) ? DEFAULT_INFO : r.infoText;
-  }
-  if(replace && r.infoAllergens){
-    data.infoAllergens = (looksLikeDishDump(r.infoAllergens) || hasInlineDishAllergenLines(r.infoAllergens)) ? "" : r.infoAllergens;
+  // CRITICAL FIX: Generate/paste must NEVER write into Allergen Information.
+  // Old bug: dish lines after an "Allergen Information" header were saved into infoText.
+  data.infoText = DEFAULT_INFO;
+  if(replace) data.infoAllergens = data.infoAllergens || "";
+  if(looksLikeDishDump(data.infoAllergens||"") || (typeof hasInlineDishAllergenLines==="function" && hasInlineDishAllergenLines(data.infoAllergens||""))){
+    data.infoAllergens = "";
   }
   save(); resetForm(); syncInputs(); render();
   saveToArchive(true).catch(()=>{});
@@ -2425,12 +2425,16 @@ $("genBtn").onclick = ()=>{
   const r=parseBulk(txt);
   if(!r.dishes.length){ alert("Couldn't find any dishes. Make sure each dish name is on its own line and allergens start with \"Contains:\"."); return; }
   applyParsed(r, true);
+  $("bulkText").value="";
+  alert("Added "+r.dishes.length+" dishes to the Dishes list.\n\nThey are NOT saved into Allergen Information.");
 };
 $("appendBtn").onclick = ()=>{
   const txt=$("bulkText").value; if(!txt.trim()) return;
   const r=parseBulk(txt);
   if(!r.dishes.length){ alert("Couldn't find any dishes to add."); return; }
   applyParsed(r, false);
+  $("bulkText").value="";
+  alert("Added "+r.dishes.length+" dishes to the existing menu.");
 };
 
 /* ---------------- Word export styles per template ---------------- */

@@ -43,9 +43,9 @@ echo  Next:
 echo   1. Restart Kiteline if it is running
 echo   2. Open Menu Creator
 echo   3. Hard refresh: Ctrl+Shift+R
-echo   4. Confirm you see: Build fresh-v1
+echo   4. Confirm you see: Build fresh-v2
 echo   5. Browse library — calendar menus are still there
-echo   6. Add dishes with Add dish or Paste full menu
-echo      (not into the allergen disclaimer box)
+echo   6. Generate menu puts dishes into Dishes only
+echo      (Allergen Information stays the disclaimer)
 echo.
 pause

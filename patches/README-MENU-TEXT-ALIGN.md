@@ -14,9 +14,9 @@ Replaces Menu Creator with a **clean rebuild** (`Build fresh-v1`):
 - Loads existing bank from `imports/menu-calendar-bundle.json`
 
 ## How to tell you have the new build
-Toolbar / sidebar shows **Build fresh-v1**.
+Left panel shows **Build fresh-v2**.
 
-If you still see the old messy allergen mix and no `Build fresh-v1`, Kiteline has not been updated yet.
+If you still see "Paste full menu — auto generate" / "Reset everything" and no Build fresh-v2, Kiteline is still on the old broken app.
 
 ## Apply on kitchen PC (Kiteline)
 1. Open `parslia-kitchen-os\patches\`

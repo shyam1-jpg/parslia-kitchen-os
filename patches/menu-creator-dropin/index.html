@@ -118,7 +118,7 @@ textarea{min-height:90px;resize:vertical}
         <h1>Menu Creator</h1>
         <div class="hint">Fresh rebuild — dishes in the menu, allergens only as a footer note.</div>
       </div>
-      <span class="build" id="buildTag">Build fresh-v1</span>
+      <span class="build" id="buildTag">Build fresh-v2</span>
     </div>
 
     <div class="group">
@@ -152,13 +152,13 @@ textarea{min-height:90px;resize:vertical}
     <div class="divider"></div>
 
     <div class="group" style="background:var(--accent-soft);padding:12px;border-radius:12px">
-      <label>Paste full menu → dishes only</label>
+      <label>Paste full menu → Generate dishes</label>
       <textarea id="bulkText" placeholder="DINNER MENU&#10;&#10;DISH NAME&#10;Description&#10;Contains: Gluten, Dairy&#10;Vegan"></textarea>
       <div class="row" style="margin-top:8px">
         <button class="btn btn-primary" id="genBtn" type="button">Generate menu</button>
         <button class="btn btn-line" id="appendBtn" type="button">Add to existing</button>
       </div>
-      <div class="hint">This fills the dish list. It never writes into Allergen Information.</div>
+      <div class="hint"><b>Generate puts dishes only into Dishes</b> — never into Allergen Information. Allergen Information stays the short disclaimer.</div>
     </div>
 
     <div class="group">
@@ -854,17 +854,36 @@ $("logoFile").onchange=e=>{
 };
 $("clearLogo").onclick=()=>{ state.logoImg=null; state.logoText=""; $("logoText").value=""; $("logoFile").value=""; save(); render(); };
 $("genBtn").onclick=()=>{
-  const r=parseBulk($("bulkText").value||"");
-  if(!r.dishes.length){ alert("No dishes found. Put each dish name on its own line and use Contains: for allergens."); return; }
-  const m=current(); if(r.title) m.title=r.title; m.dishes=r.dishes;
-  // never touch infoText from paste
+  const raw=($("bulkText").value||"").trim();
+  if(!raw){ alert("Paste your menu text first."); return; }
+  const r=parseBulk(raw);
+  if(!r.dishes.length){
+    alert("No dishes found.\n\nPut each DISH NAME on its own line,\nthen description,\nthen Contains: Gluten, Dairy");
+    return;
+  }
+  const m=current();
+  if(r.title) m.title=r.title;
+  m.dishes=r.dishes;
+  // Generate NEVER writes into Allergen Information — only the dish list
+  data.infoText=DEFAULT_INFO;
+  if(looksLikeDishContent(data.infoAllergens||"")) data.infoAllergens="";
+  $("bulkText").value="";
   save(); resetForm(); syncInputs(); render();
+  $("archiveStatus").textContent="Generate put "+r.dishes.length+" dishes into the Dishes list (not Allergen Information).";
+  alert("Added "+r.dishes.length+" dishes to the menu.\n\nThey are in Dishes / the preview — not in Allergen Information.");
+  const list=$("dishList"); if(list) list.scrollIntoView({behavior:"smooth",block:"nearest"});
 };
 $("appendBtn").onclick=()=>{
-  const r=parseBulk($("bulkText").value||"");
+  const raw=($("bulkText").value||"").trim();
+  if(!raw){ alert("Paste your menu text first."); return; }
+  const r=parseBulk(raw);
   if(!r.dishes.length){ alert("No dishes found."); return; }
   current().dishes=current().dishes.concat(r.dishes);
-  save(); resetForm(); render();
+  data.infoText=DEFAULT_INFO;
+  $("bulkText").value="";
+  save(); resetForm(); syncInputs(); render();
+  $("archiveStatus").textContent="Added "+r.dishes.length+" more dishes to the Dishes list.";
+  alert("Added "+r.dishes.length+" dishes to the existing menu.");
 };
 $("loadSample").onclick=()=>{
   const m=current(); m.title=SAMPLE.title; m.sub=SAMPLE.sub; m.dishes=JSON.parse(JSON.stringify(SAMPLE.dishes));
