@@ -1,12 +1,12 @@
 @echo off
 setlocal
-title Apply Menu Creator Generate fix (Build fix-v3)
+title Apply Menu Creator simple-v1
 echo.
-echo  Menu Creator — Generate fix (Build fix-v3) (keeps calendar menus)
-echo  ===================================================
+echo  Menu Creator — simple mode (weekly menu removed)
+echo  ================================================
 echo.
-echo  This updates Kiteline's Menu Creator on this PC.
-echo  Your calendar / library menus are kept (same storage keys).
+echo  Updates Kiteline Menu Creator on this PC.
+echo  Calendar lunch/dinner saves are kept.
 echo.
 
 set "KITELINE="
@@ -31,6 +31,7 @@ echo  Target: %KITELINE%\site\menu-creator\
 echo.
 copy /Y "%~dp0menu-creator-dropin\index.html" "%KITELINE%\site\menu-creator\index.html" >nul
 copy /Y "%~dp0menu-creator-dropin\service-worker.js" "%KITELINE%\site\menu-creator\service-worker.js" >nul
+if exist "%~dp0..\menu-creator\PRINT-NOW.html" copy /Y "%~dp0..\menu-creator\PRINT-NOW.html" "%KITELINE%\site\menu-creator\PRINT-NOW.html" >nul
 if errorlevel 1 (
   echo  Copy failed.
   pause
@@ -40,12 +41,12 @@ if errorlevel 1 (
 echo  Done.
 echo.
 echo  Next:
-echo   1. Restart Kiteline if it is running
+echo   1. Restart Kiteline
 echo   2. Open Menu Creator
-echo   3. Hard refresh: Ctrl+Shift+R
-echo   4. Confirm you see: Build fix-v3
-echo   5. Browse library — calendar menus are still there
-echo   6. Generate menu puts dishes into Dishes only
-echo      (Allergen Information stays the disclaimer)
+echo   3. Ctrl+Shift+R
+echo   4. Confirm: Build simple-v1
+echo   5. Paste menu - Generate - Print
+echo.
+echo  Or open PRINT-NOW.html in the menu-creator folder to print now.
 echo.
 pause

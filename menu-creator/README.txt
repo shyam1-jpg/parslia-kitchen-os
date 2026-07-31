@@ -1,23 +1,23 @@
-Menu Creator — fresh rebuild
-============================
+Menu Creator — simple mode (Build simple-v1)
+============================================
 
-Open index.html (or https://parslia.app/menu-creator/ after deploy).
+Weekly / multi-day menus are removed.
 
-Design rules
+What you get
 ------------
-- Dishes live only in the dish list / menu body
-- Allergen Information is a short disclaimer footer only
-- Pasting dish text into the allergen box is blocked
-- Calendar library uses the same storage keys as before, so existing
-  saved menus stay available
+- One menu at a time
+- Paste menu → dishes only
+- Allergen Information is a locked disclaimer (no paste box)
+- Save/load by date: Breakfast / Lunch / Dinner
+- Print / Save PDF and Word
 
-Toolbar should show: Build fresh-v1
+Urgent print (no Kiteline)
+--------------------------
+Open PRINT-NOW.html
+or run patches\OPEN-PRINT-MENU-NOW.bat
 
-Legacy
-------
-index.legacy.html is the previous complex build (kept for reference).
-
-Kiteline apply
---------------
-Use patches/APPLY-MENU-TEXT-ALIGN.bat (copies menu-creator-dropin/).
-Then Ctrl+Shift+R and confirm Build fresh-v1.
+Kiteline install
+----------------
+Run patches\APPLY-MENU-TEXT-ALIGN.bat
+Restart Kiteline → Ctrl+Shift+R
+Confirm: Build simple-v1

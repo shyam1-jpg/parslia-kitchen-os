@@ -1,19 +1,16 @@
-# Menu Creator — Generate fix + Print Now
+# Menu Creator — simple mode (weekly removed)
 
-## If you need to print today
-1. Run `patches/OPEN-PRINT-MENU-NOW.bat`
-2. Or open `menu-creator/PRINT-NOW.html` in Chrome
-3. Paste → Make menu → Print / Save PDF
+## Change
+- Removed weekly / multi-day menu UI
+- One menu at a time
+- Generate writes **dishes only**
+- Allergen Information is a **locked disclaimer** (no paste box for dishes)
+- Calendar lunch/dinner save kept (same storage keys)
 
-Dishes cannot jump into Allergen Information in that tool.
+## Print today
+Run `patches/OPEN-PRINT-MENU-NOW.bat` or open `menu-creator/PRINT-NOW.html`.
 
-## Fix Kiteline Menu Creator
-1. Run `patches/APPLY-MENU-TEXT-ALIGN.bat`
-2. Restart Kiteline → Menu Creator → Ctrl+Shift+R
-3. Confirm green banner **Generate fix active** / **Build fix-v3**
-
-## What was wrong
-Old Generate could save pasted dishes into Allergen Information text.
-Build fix-v3: Generate writes dishes only into Dishes, allergen footer stays the disclaimer.
-
-Calendar / library menus are kept (same storage keys).
+## Fix Kiteline
+1. Run `APPLY-MENU-TEXT-ALIGN.bat`
+2. Restart Kiteline → Ctrl+Shift+R
+3. Confirm **Build simple-v1**

@@ -1,29 +1,25 @@
-START HERE — print menus today
-==============================
+START HERE — simple Menu Creator
+================================
 
-Your Kiteline screenshot is still the OLD broken Menu Creator
-(dishes under ALLERGEN INFORMATION, no "Build fix-v3").
+Weekly menu removed. One menu at a time.
+Allergen footer is locked so dishes cannot jump there.
 
-FASTEST WAY TO PRINT RIGHT NOW
-------------------------------
-1. Open:  parslia-kitchen-os\patches\
-2. Double-click:  OPEN-PRINT-MENU-NOW.bat
-3. Paste your menu
-4. Click Make menu
-5. Click Print / Save PDF
+PRINT RIGHT NOW
+---------------
+1. Double-click: OPEN-PRINT-MENU-NOW.bat
+2. Paste menu → Make menu → Print / Save PDF
 
-OR double-click:
-  parslia-kitchen-os\menu-creator\PRINT-NOW.html
-
-Dishes cannot jump into Allergen Information in this tool.
-
-FIX KITELINE MENU CREATOR
--------------------------
+OR FIX KITELINE
+---------------
 1. Double-click: APPLY-MENU-TEXT-ALIGN.bat
 2. Restart Kiteline
 3. Open Menu Creator
 4. Press Ctrl+Shift+R
-5. You must see a green banner: "Generate fix active" / Build fix-v3
+5. Confirm left panel shows: Build simple-v1
 
-If Build fix-v3 is missing, Kiteline is still using the old files.
-Then keep using PRINT-NOW.html to print today.
+Then:
+- Paste into "Paste menu → dishes"
+- Click Generate menu
+- Dishes appear in Dishes / preview
+- Allergen Information stays the disclaimer
+- Print / Save PDF
