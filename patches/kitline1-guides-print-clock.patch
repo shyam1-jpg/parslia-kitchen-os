@@ -1,8 +1,8 @@
 From 61d6938f39b1a9f9ecb0d1489bcd24f18af35c2a Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Thu, 30 Jul 2026 22:49:24 +0000
-Subject: [PATCH] Add how-to guides, richer HACCP prints, and clock PIN kiosk
- fix
+Subject: [PATCH 1/2] Add how-to guides, richer HACCP prints, and clock PIN
+ kiosk fix
 
 Restore demo kitchen PINs (login password is not the clock PIN), add
 Clock/Rota to nav with pad + chips, searchable User Manual guides, and
@@ -1163,6 +1163,238 @@ index 0000000..6f468fe
 +assert.ok(cv.includes('Print detailed record'), 'detailed record print');
 +
 +console.log('test-guides-clock-print: OK');
+-- 
+2.43.0
+
+
+From 1a27271f244cda7e934ff2bc7878af745a745e8a Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Fri, 31 Jul 2026 00:08:35 +0000
+Subject: [PATCH 2/2] Improve Clock/Rota nav placement and print CTAs
+
+Move Clock In/Out and Rota higher under Live Ops, and surface Print
+detailed report buttons on Cleaning and HACCP status pages.
+---
+ js/app.js         |   4 +-
+ js/views.js       |  16 ++++--
+ package-lock.json | 129 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 143 insertions(+), 6 deletions(-)
+
+diff --git a/js/app.js b/js/app.js
+index acf742e..dcdf2f0 100644
+--- a/js/app.js
++++ b/js/app.js
+@@ -14,6 +14,8 @@
+     { id:'wfout', label:'Outstanding', icon:'layers' },
+     { id:'wfod', label:'Overdue', icon:'alert' },
+     { id:'wfstaff', label:'Staff Working', icon:'team' },
++    { id:'clock', label:'Clock In/Out', icon:'clock' },
++    { id:'rota', label:'Rota & Shifts', icon:'team' },
+     { id:'wfdel', label:'Deliveries Today', icon:'truck' },
+     { id:'wfprod', label:'Food Production', icon:'recipe' },
+     { id:'wfclean', label:'Cleaning Status', icon:'check' },
+@@ -22,8 +24,6 @@
+     { id:'dashboard', label:'Dashboard', icon:'dashboard' },
+     { id:'taskoverview', label:'Task Overview', icon:'check' },
+     { id:'temps', label:'Fridge & Freezer Temps', icon:'temp' },
+-    { id:'clock', label:'Clock In/Out', icon:'clock' },
+-    { id:'rota', label:'Rota & Shifts', icon:'team' },
+     { id:'alerts', label:'Alerts & SMS', icon:'alert' },
+     { id:'haccp', label:'HACCP & Checklists', icon:'check' },
+     { sep:'Kitchen Compliance', sepKey:'complianceSec' },
+diff --git a/js/views.js b/js/views.js
+index 97733ed..701fe20 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -2421,23 +2421,31 @@
+   function wfclean() {
+     const { cleaningTasks, cleaningPct } = wfStats();
+     const extra = `<div class="kpi mb-4 max-w-xs"><div class="text-xs text-ink-500">Cleaning complete</div><div class="v text-brand-600">${cleaningPct}%</div></div>`;
+-    return workflowListPage('wfclean', 'Cleaning Status', 'Deep cleans, daily logs and hygiene tasks', 'check', cleaningTasks, extra, {
++    const printBar = `<div class="flex flex-wrap gap-2 mb-4">
++      <button type="button" class="btn btn-primary btn-sm" data-wf-print="wfclean">${icon('print','ico')} Print detailed report</button>
++      <a href="#manual" class="btn btn-ghost btn-sm">${icon('help','ico')} How-to guide</a>
++    </div>`;
++    return workflowListPage('wfclean', 'Cleaning Status', 'Deep cleans, daily logs and hygiene tasks', 'check', cleaningTasks, printBar + extra, {
+       detailedPrint: true,
+       howtoIds: ['cleaning-status'],
+-      openHowto: true,
++      openHowto: false,
+       printNotes: 'Include this sheet in the hygiene folder. Mark overdue items and manager sign-off at the bottom.',
+     });
+   }
+   function wfhaccp() {
+     const { haccpTasks, haccpPct, tempCompliance } = wfStats();
++    const printBar = `<div class="flex flex-wrap gap-2 mb-4">
++      <button type="button" class="btn btn-primary btn-sm" data-wf-print="wfhaccp">${icon('print','ico')} Print detailed report</button>
++      <a href="#compliance" class="btn btn-ghost btn-sm">${icon('shield','ico')} Full compliance pack</a>
++    </div>`;
+     const extra = `<div class="grid sm:grid-cols-2 gap-4 mb-4">
+       <div class="kpi"><div class="text-xs text-ink-500">HACCP checks done</div><div class="v text-brand-600">${haccpPct}%</div></div>
+       <div class="kpi"><div class="text-xs text-ink-500">Temperature compliance</div><div class="v">${tempCompliance}%</div></div>
+     </div>`;
+-    return workflowListPage('wfhaccp', 'HACCP Compliance Status', 'Temperature logs, CCP checks and audit trail', 'shield', haccpTasks, extra, {
++    return workflowListPage('wfhaccp', 'HACCP Compliance Status', 'Temperature logs, CCP checks and audit trail', 'shield', haccpTasks, printBar + extra, {
+       detailedPrint: true,
+       howtoIds: ['haccp-print'],
+-      openHowto: true,
++      openHowto: false,
+       printNotes: 'Daily CCP / temp compliance snapshot. For full HACCP plan samples open Kitchen Compliance → HACCP Plan.',
+     });
+   }
+diff --git a/package-lock.json b/package-lock.json
+index 5b65941..9511dc1 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -9,12 +9,42 @@
+       "version": "1.0.0",
+       "license": "UNLICENSED",
+       "dependencies": {
++        "@neondatabase/serverless": "^0.10.4",
+         "nodemailer": "^6.9.16"
+       },
+       "engines": {
+         "node": ">=16"
+       }
+     },
++    "node_modules/@neondatabase/serverless": {
++      "version": "0.10.4",
++      "resolved": "https://registry.npmjs.org/@neondatabase/serverless/-/serverless-0.10.4.tgz",
++      "integrity": "sha512-2nZuh3VUO9voBauuh+IGYRhGU/MskWHt1IuZvHcJw6GLjDgtqj/KViKo7SIrLdGLdot7vFbiRRw+BgEy3wT9HA==",
++      "license": "MIT",
++      "dependencies": {
++        "@types/pg": "8.11.6"
++      }
++    },
++    "node_modules/@types/node": {
++      "version": "26.1.2",
++      "resolved": "https://registry.npmjs.org/@types/node/-/node-26.1.2.tgz",
++      "integrity": "sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==",
++      "license": "MIT",
++      "dependencies": {
++        "undici-types": "~8.3.0"
++      }
++    },
++    "node_modules/@types/pg": {
++      "version": "8.11.6",
++      "resolved": "https://registry.npmjs.org/@types/pg/-/pg-8.11.6.tgz",
++      "integrity": "sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==",
++      "license": "MIT",
++      "dependencies": {
++        "@types/node": "*",
++        "pg-protocol": "*",
++        "pg-types": "^4.0.1"
++      }
++    },
+     "node_modules/nodemailer": {
+       "version": "6.10.1",
+       "resolved": "https://registry.npmjs.org/nodemailer/-/nodemailer-6.10.1.tgz",
+@@ -23,6 +53,105 @@
+       "engines": {
+         "node": ">=6.0.0"
+       }
++    },
++    "node_modules/obuf": {
++      "version": "1.1.2",
++      "resolved": "https://registry.npmjs.org/obuf/-/obuf-1.1.2.tgz",
++      "integrity": "sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==",
++      "license": "MIT"
++    },
++    "node_modules/pg-int8": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/pg-int8/-/pg-int8-1.0.1.tgz",
++      "integrity": "sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==",
++      "license": "ISC",
++      "engines": {
++        "node": ">=4.0.0"
++      }
++    },
++    "node_modules/pg-numeric": {
++      "version": "1.0.2",
++      "resolved": "https://registry.npmjs.org/pg-numeric/-/pg-numeric-1.0.2.tgz",
++      "integrity": "sha512-BM/Thnrw5jm2kKLE5uJkXqqExRUY/toLHda65XgFTBTFYZyopbKjBe29Ii3RbkvlsMoFwD+tHeGaCjjv0gHlyw==",
++      "license": "ISC",
++      "engines": {
++        "node": ">=4"
++      }
++    },
++    "node_modules/pg-protocol": {
++      "version": "1.15.0",
++      "resolved": "https://registry.npmjs.org/pg-protocol/-/pg-protocol-1.15.0.tgz",
++      "integrity": "sha512-cq9sECI5s0+uPUXjbz8ioyPJni6RzsRib0US67i5IoTZKw8fNeYlVE7u8F4dG7vEJJtc5wdD1K189lCCUwqWTQ==",
++      "license": "MIT"
++    },
++    "node_modules/pg-types": {
++      "version": "4.1.0",
++      "resolved": "https://registry.npmjs.org/pg-types/-/pg-types-4.1.0.tgz",
++      "integrity": "sha512-o2XFanIMy/3+mThw69O8d4n1E5zsLhdO+OPqswezu7Z5ekP4hYDqlDjlmOpYMbzY2Br0ufCwJLdDIXeNVwcWFg==",
++      "license": "MIT",
++      "dependencies": {
++        "pg-int8": "1.0.1",
++        "pg-numeric": "1.0.2",
++        "postgres-array": "~3.0.1",
++        "postgres-bytea": "~3.0.0",
++        "postgres-date": "~2.1.0",
++        "postgres-interval": "^3.0.0",
++        "postgres-range": "^1.1.1"
++      },
++      "engines": {
++        "node": ">=10"
++      }
++    },
++    "node_modules/postgres-array": {
++      "version": "3.0.4",
++      "resolved": "https://registry.npmjs.org/postgres-array/-/postgres-array-3.0.4.tgz",
++      "integrity": "sha512-nAUSGfSDGOaOAEGwqsRY27GPOea7CNipJPOA7lPbdEpx5Kg3qzdP0AaWC5MlhTWV9s4hFX39nomVZ+C4tnGOJQ==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/postgres-bytea": {
++      "version": "3.0.0",
++      "resolved": "https://registry.npmjs.org/postgres-bytea/-/postgres-bytea-3.0.0.tgz",
++      "integrity": "sha512-CNd4jim9RFPkObHSjVHlVrxoVQXz7quwNFpz7RY1okNNme49+sVyiTvTRobiLV548Hx/hb1BG+iE7h9493WzFw==",
++      "license": "MIT",
++      "dependencies": {
++        "obuf": "~1.1.2"
++      },
++      "engines": {
++        "node": ">= 6"
++      }
++    },
++    "node_modules/postgres-date": {
++      "version": "2.1.0",
++      "resolved": "https://registry.npmjs.org/postgres-date/-/postgres-date-2.1.0.tgz",
++      "integrity": "sha512-K7Juri8gtgXVcDfZttFKVmhglp7epKb1K4pgrkLxehjqkrgPhfG6OO8LHLkfaqkbpjNRnra018XwAr1yQFWGcA==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/postgres-interval": {
++      "version": "3.0.0",
++      "resolved": "https://registry.npmjs.org/postgres-interval/-/postgres-interval-3.0.0.tgz",
++      "integrity": "sha512-BSNDnbyZCXSxgA+1f5UU2GmwhoI0aU5yMxRGO8CdFEcY2BQF9xm/7MqKnYoM1nJDk8nONNWDk9WeSmePFhQdlw==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/postgres-range": {
++      "version": "1.1.4",
++      "resolved": "https://registry.npmjs.org/postgres-range/-/postgres-range-1.1.4.tgz",
++      "integrity": "sha512-i/hbxIE9803Alj/6ytL7UHQxRvZkI9O4Sy+J3HGc4F4oo/2eQAjTSNJ0bfxyse3bH0nuVesCk+3IRLaMtG3H6w==",
++      "license": "MIT"
++    },
++    "node_modules/undici-types": {
++      "version": "8.3.0",
++      "resolved": "https://registry.npmjs.org/undici-types/-/undici-types-8.3.0.tgz",
++      "integrity": "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==",
++      "license": "MIT"
+     }
+   }
+ }
 -- 
 2.43.0
 
