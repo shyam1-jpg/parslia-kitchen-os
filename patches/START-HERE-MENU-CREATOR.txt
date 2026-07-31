@@ -1,26 +1,29 @@
 START HERE — print menus today
 ==============================
 
-Your Kiteline Menu Creator screenshot is still the OLD broken app
-(dishes jumping under ALLERGEN INFORMATION).
+Your Kiteline screenshot is still the OLD broken Menu Creator
+(dishes under ALLERGEN INFORMATION, no "Build fix-v3").
 
-DO THIS NOW (fastest — no Kiteline update needed)
--------------------------------------------------
-1. Open folder:  parslia-kitchen-os\patches\
-2. Double-click: OPEN-PRINT-MENU-NOW.bat
+FASTEST WAY TO PRINT RIGHT NOW
+------------------------------
+1. Open:  parslia-kitchen-os\patches\
+2. Double-click:  OPEN-PRINT-MENU-NOW.bat
 3. Paste your menu
 4. Click Make menu
 5. Click Print / Save PDF
 
+OR double-click:
+  parslia-kitchen-os\menu-creator\PRINT-NOW.html
+
 Dishes cannot jump into Allergen Information in this tool.
 
-THEN fix Kiteline Menu Creator
-------------------------------
+FIX KITELINE MENU CREATOR
+-------------------------
 1. Double-click: APPLY-MENU-TEXT-ALIGN.bat
 2. Restart Kiteline
 3. Open Menu Creator
 4. Press Ctrl+Shift+R
-5. Confirm you see: Build fix-v3  (green banner at top left)
+5. You must see a green banner: "Generate fix active" / Build fix-v3
 
-If you still do NOT see Build fix-v3, Kiteline is reading a different
-folder. Tell us the path shown in Kiteline for Menu Creator.
+If Build fix-v3 is missing, Kiteline is still using the old files.
+Then keep using PRINT-NOW.html to print today.
