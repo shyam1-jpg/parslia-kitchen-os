@@ -9,7 +9,12 @@ On Menu Creator the live preview can show:
 
 That happens when dish lines (e.g. `DISH NAME: Contains: Gluten. (Vegan)`) were saved into **Allergen information text** instead of the dish list.
 
-## What this fix does
+## How to tell you have the new build
+In the Live preview toolbar you should see:
+- **Build v9**
+- **Align** Left / Center / Right
+
+If those are missing, Kiteline is still on the old Menu Creator — run the bat file below.
 - Detects dish dumps in the allergen box (including `Name: Contains: …` lines)
 - **Moves those dishes into the menu** and restores the normal allergen blurb
 - Blocks pasting menus into the allergen footer (auto-rescue)
