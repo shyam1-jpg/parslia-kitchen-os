@@ -396,6 +396,18 @@
   .page-foot{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:var(--muted);font-size:10px;letter-spacing:.1em;}
 
   .empty-note{color:var(--muted);text-align:center;font-style:italic;padding:30px;}
+  .mix-banner{
+    display:none;width:100%;max-width:794px;margin:0 auto 12px;padding:12px 14px;
+    background:#fff4e5;border:1px solid #e0a354;border-radius:12px;color:#5c3d1e;
+    font-size:13px;line-height:1.45;
+  }
+  .mix-banner.on{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+  .mix-banner strong{display:block;font-size:13.5px;margin-bottom:2px;}
+  .mix-banner .btn{flex:0 0 auto;}
+  .build-tag{
+    font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+    padding:4px 8px;border:1px dashed var(--line);border-radius:999px;white-space:nowrap;
+  }
 
   /* day tabs */
   .day-tabs{display:flex;flex-wrap:wrap;gap:6px;}
@@ -952,6 +964,7 @@
   <main class="preview-wrap">
     <div class="toolbar">
       <strong class="grow">Live preview</strong>
+      <span class="build-tag" id="buildTag" title="Menu Creator build">Build v9</span>
       <div class="toolbar-align" id="toolbarAlign" role="group" aria-label="Menu text alignment">
         <span>Align</span>
         <button type="button" class="align-btn" data-align="left" title="Left align">Left</button>
@@ -966,6 +979,14 @@
       <button class="btn btn-line" id="wordBtn">Word (all days)</button>
       <button class="btn btn-ebook" id="ebookBtn">📖 View as Ebook</button>
       <button class="btn btn-primary" id="printBtn">Print / Save PDF</button>
+    </div>
+
+    <div class="mix-banner" id="mixBanner" role="status">
+      <div class="grow">
+        <strong>Dishes are mixed into Allergen Information</strong>
+        Move them into this day’s menu, then keep the allergen box as the short disclaimer only.
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" id="mixBannerFix">Move dishes to menu now</button>
     </div>
 
     <div id="pagesOut"></div>
@@ -1806,7 +1827,8 @@ $("loadSample").onclick = ()=>{
   m.dishes=JSON.parse(JSON.stringify(SAMPLE.dishes));
   save(); resetForm(); syncInputs(); render();
 };
-$("fixMixedInfo") && ($("fixMixedInfo").onclick = ()=>{
+$("fixMixedInfo") && ($("fixMixedInfo").onclick = ()=> fixMixedAllergens(true));
+function fixMixedAllergens(showAlert){
   const info=data.infoText||"";
   const mixed = looksLikeDishDump(info) || hasInlineDishAllergenLines(info) ||
     looksLikeDishDump(data.infoAllergens||"") || hasInlineDishAllergenLines(data.infoAllergens||"");
@@ -1814,26 +1836,23 @@ $("fixMixedInfo") && ($("fixMixedInfo").onclick = ()=>{
     data.infoText = DEFAULT_INFO;
     if(looksLikeDishDump(data.infoAllergens||"") || hasInlineDishAllergenLines(data.infoAllergens||"")) data.infoAllergens = "";
     save(); syncInputs(); render();
-    alert("Allergen Information footer restored. Add dishes with “Add dish” or Paste full menu — not in this box.");
-    return;
+    if(showAlert) alert("Allergen Information footer restored. Add dishes with “Add dish” or Paste full menu — not in this box.");
+    return {moved:0};
   }
-  const m=current();
-  if(m.dishes && m.dishes.length){
-    data.infoText = DEFAULT_INFO;
-    if(looksLikeDishDump(data.infoAllergens||"") || hasInlineDishAllergenLines(data.infoAllergens||"")) data.infoAllergens = "";
-    save(); syncInputs(); render();
-    alert("Cleared dishes from Allergen Information. Your menu dishes above are unchanged — you can add more with Add dish.");
-    return;
+  // Always MERGE dishes into the current day (keep Soup of the Day etc.), never throw them away
+  const r=rescueDishesFromInfo({replaceDishes:false});
+  if(looksLikeDishDump(data.infoAllergens||"") || hasInlineDishAllergenLines(data.infoAllergens||"")){
+    data.infoAllergens = ""; save();
   }
-  const r=rescueDishesFromInfo({replaceDishes:true});
-  if(r.moved) alert("Moved "+r.moved+" dishes into the menu and restored the allergen blurb. You can edit or add more dishes on the left.");
-  else {
-    data.infoText = DEFAULT_INFO;
-    if(looksLikeDishDump(data.infoAllergens||"") || hasInlineDishAllergenLines(data.infoAllergens||"")) data.infoAllergens = "";
-    save(); syncInputs(); render();
-    alert("Allergen Information footer restored.");
+  if(r.moved){
+    if(showAlert) alert("Moved "+r.moved+" dishes into the menu and restored the allergen blurb. You can edit or add more dishes on the left.");
+  } else {
+    data.infoText = DEFAULT_INFO; save(); syncInputs(); render();
+    if(showAlert) alert("Allergen Information footer restored.");
   }
-});
+  return r;
+}
+$("mixBannerFix") && ($("mixBannerFix").onclick = ()=> fixMixedAllergens(true));
 $("resetAll").onclick = ()=>{
   if(!confirm("Clear everything (all days)?")) return;
   data = makeDefault(); data.currentId=data.menus[0].id;
@@ -1989,7 +2008,8 @@ function normDiet(x){
 }
 function parseDiets(s){
   s = s.replace(/^suitable\s+for\s*:?\s*/i,"");
-  const parts = s.split(/,|&|\band\b/i).map(x=>normDiet(x)).filter(Boolean);
+  // Accept "Vegan | Gluten-Free", commas, ampersands, and "and"
+  const parts = s.split(/,|&|\||\band\b/i).map(x=>normDiet(x)).filter(Boolean);
   return [...new Set(parts)];
 }
 function parseBulk(text){
@@ -2091,7 +2111,8 @@ function parseBulk(text){
     if(low.startsWith("contains")){
       if(!cur) cur = newDish();
       cur.allergens = parseAllergens(raw.replace(/^contains\s*:?\s*/i,""));
-      expectName = true;                       // dish finished; next line is a new dish
+      // Keep attaching diet tags that often follow Contains on the next line
+      expectName = false;
       continue;
     }
     if(low.startsWith("suitable")){
@@ -2100,13 +2121,28 @@ function parseBulk(text){
       expectName = true;
       continue;
     }
-    // a short standalone diet line (e.g. "Vegan")
+    // Diet-only line after a dish / Contains: (e.g. "Vegan", "Gluten-Free | Vegetarian")
+    {
+      const dietsOnly = parseDiets(raw.replace(/[()]/g,""));
+      const wordCount = raw.replace(/[|/(),]/g," ").trim().split(/\s+/).filter(Boolean).length;
+      if(dietsOnly.length && wordCount<=6 && raw.replace(/[^a-zA-Z]/g,"").length<=40){
+        const target = (cur && cur.name) ? cur : (dishes.length ? dishes[dishes.length-1] : null);
+        if(target){
+          target.diet = [...new Set([...(target.diet||[]), ...dietsOnly])];
+          expectName = true;
+          continue;
+        }
+      }
+    }
+    // a short standalone diet line (e.g. "Vegan") — legacy path
     if(cur && cur.name && !expectName && parseDiets(raw).length && raw.split(/\s+/).length<=3){
       cur.diet = [...new Set([...(cur.diet||[]), ...parseDiets(raw)])]; continue;
     }
     // parenthetical diets alone: "(Vegan | Gluten-Free)"
     if(cur && cur.name && /^\(.*\)$/.test(raw) && parseDiets(raw.replace(/[()]/g,"")).length){
-      cur.diet = [...new Set([...(cur.diet||[]), ...parseDiets(raw.replace(/[()|]/g,","))])]; continue;
+      cur.diet = [...new Set([...(cur.diet||[]), ...parseDiets(raw.replace(/[()|]/g,","))])];
+      expectName = true;
+      continue;
     }
 
     // menu title (first MENU line at the very top)
@@ -2119,11 +2155,12 @@ function parseBulk(text){
 
     if(expectName || !cur){
       // Standalone diet tags (Vegan / Vegetarian) belong on the previous dish — not a new dish
-      const dietsOnly = parseDiets(raw);
-      if(dietsOnly.length && raw.split(/\s+/).length<=4 && letters(raw).length<=24){
+      const dietsOnly = parseDiets(raw.replace(/[()|/]/g,","));
+      if(dietsOnly.length && raw.split(/\s+/).length<=6 && raw.replace(/[^a-zA-Z]/g,"").length<=40){
         const target = (cur && cur.name) ? cur : (dishes.length ? dishes[dishes.length-1] : null);
         if(target){
           target.diet = [...new Set([...(target.diet||[]), ...dietsOnly])];
+          expectName = true;
           continue;
         }
       }
@@ -2277,6 +2314,17 @@ function isAllergenDisclaimer(text){
 }
 /** Pull menu dishes that were saved into Allergen Information back into the dish list. */
 let _rescueLock=false;
+function extractDishParseSource(info){
+  const t=(info||"").trim();
+  if(!t) return "";
+  const parts=t.split(/\n+/);
+  const dishStart=parts.findIndex(p=>parseInlineDishLine(p.trim()) || /^contains\s*:/i.test(p.trim()) ||
+    (()=>{ const L=p.trim().replace(/[^a-zA-Z]/g,""); return L.length>=6 && p.trim()===p.trim().toUpperCase() && /[A-Z]/.test(p) && !/allergen|dietary|information|menu\s*$/i.test(p); })());
+  if(dishStart>=0) return parts.slice(dishStart).join("\n");
+  const split=splitDisclaimerFromDishes(t);
+  if(split.dishesText) return split.dishesText;
+  return t;
+}
 function rescueDishesFromInfo(opts){
   opts=opts||{};
   if(_rescueLock) return {moved:0, reason:"busy"};
@@ -2288,31 +2336,30 @@ function rescueDishesFromInfo(opts){
     const caps=(info.match(/^[A-Z][A-Z0-9 &'\/\-]{5,}$/gm)||[]).length;
     if(caps<2) return {moved:0, reason:"disclaimer"};
   }
-  // Prefer parsing only the dish portion when dishes were appended after the disclaimer
-  let parseSource=info;
-  const parts=info.split(/\n+/);
-  const dishStart=parts.findIndex(p=>parseInlineDishLine(p.trim()) || /^contains\s*:/i.test(p.trim()) ||
-    (()=>{ const L=p.trim().replace(/[^a-zA-Z]/g,""); return L.length>=6 && p.trim()===p.trim().toUpperCase() && /[A-Z]/.test(p) && !/allergen|dietary|information|menu\s*$/i.test(p); })());
-  if(dishStart>0) parseSource = parts.slice(dishStart).join("\n");
-  else {
-    const split=splitDisclaimerFromDishes(info);
-    if(split.dishesText) parseSource = split.dishesText;
-  }
+  const parseSource=extractDishParseSource(info);
   const parsed=parseBulk(parseSource);
   if(!parsed.dishes || !parsed.dishes.length){
-    // still clear the dump so the footer is usable
+    // Clear unparseable dump so the footer is usable
+    _rescueLock=true;
+    try{
+      data.infoText = DEFAULT_INFO; save(); syncInputs(); render();
+    } finally { _rescueLock=false; }
     return {moved:0, reason:"parse-empty", dishes:[]};
   }
   const m=current();
   _rescueLock=true;
   try{
+    let added=0;
     if(opts.replaceDishes || !m.dishes.length){
       m.dishes = parsed.dishes;
+      added = parsed.dishes.length;
     } else {
-      // append only names not already present
+      // MERGE — keep existing dishes (e.g. Soup of the Day) and append rescued ones
       const have=new Set(m.dishes.map(d=>(d.name||"").toLowerCase()));
       for(const d of parsed.dishes){
-        if(!have.has((d.name||"").toLowerCase())) m.dishes.push(d);
+        const key=(d.name||"").toLowerCase();
+        if(!key || have.has(key)) continue;
+        m.dishes.push(d); have.add(key); added++;
       }
     }
     // Restore proper allergen blurb (never keep dish dump in info)
@@ -2321,37 +2368,41 @@ function rescueDishesFromInfo(opts){
       data.infoAllergens = parsed.infoAllergens;
     }
     save(); syncInputs(); render();
-    return {moved:parsed.dishes.length, reason:"rescued"};
+    return {moved:added, reason:"rescued", total:parsed.dishes.length};
   } finally {
     _rescueLock=false;
   }
 }
+function infoIsMixed(){
+  return looksLikeDishDump(data.infoText||"") || hasInlineDishAllergenLines(data.infoText||"") ||
+    looksLikeDishDump(data.infoAllergens||"") || hasInlineDishAllergenLines(data.infoAllergens||"");
+}
+function updateMixBanner(){
+  const banner=$("mixBanner");
+  if(!banner) return;
+  if(infoIsMixed()) banner.classList.add("on");
+  else banner.classList.remove("on");
+}
 function autoRescueMixedInfo(){
   try{
     if(_rescueLock) return;
-    const m=current();
-    const info=data.infoText||"";
-    if(looksLikeDishDump(info) || hasInlineDishAllergenLines(info)){
-      // If this menu already has dishes, only clear the allergen footer
-      // (do not append leftover dinner dishes into today's lunch).
-      if(m.dishes && m.dishes.length){
-        data.infoText = DEFAULT_INFO; save();
-        const inp=$("infoText"); if(inp) inp.value=data.infoText;
-        const st=$("archiveStatus");
-        if(st) st.textContent="Cleared dishes from Allergen Information — footer restored. Add more dishes with Add dish.";
-        return;
-      }
-      const r=rescueDishesFromInfo({replaceDishes:true});
+    if(infoIsMixed()){
+      // Always merge dishes into the current day, then clear the allergen footer.
+      // (Old behaviour cleared the dump when Soup of the Day already existed — dishes vanished.)
+      const r=rescueDishesFromInfo({replaceDishes:false});
+      const st=$("archiveStatus");
       if(r.moved){
-        const st=$("archiveStatus");
         if(st) st.textContent="Moved "+r.moved+" dishes out of Allergen Information into the menu.";
       } else {
         data.infoText = DEFAULT_INFO; save();
         const inp=$("infoText"); if(inp) inp.value=data.infoText;
+        if(st) st.textContent="Cleared dishes from Allergen Information — footer restored.";
       }
+      updateMixBanner();
       return;
     }
     sanitizeInfoText(true);
+    updateMixBanner();
   }catch(e){}
 }
 
@@ -2630,6 +2681,7 @@ function render(){
   // Keep allergen footer clean so dishes never sit under Allergen Information
   if(looksLikeDishDump(data.infoText||"") || hasInlineDishAllergenLines(data.infoText||"")) autoRescueMixedInfo();
   else sanitizeInfoText(false);
+  updateMixBanner();
 
   // editor logo preview (shared)
   $("logoPrev").innerHTML = data.logoImg ? `<img src="${data.logoImg}">` : (data.logoText? esc(data.logoText): "No logo");

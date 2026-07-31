@@ -1,4 +1,4 @@
-const CACHE_NAME = "menu-creator-allergen-mix-v8";
+const CACHE_NAME = "menu-creator-allergen-mix-v9";
 const ASSETS = [
   "/menu-creator/",
   "/menu-creator/index.html",
