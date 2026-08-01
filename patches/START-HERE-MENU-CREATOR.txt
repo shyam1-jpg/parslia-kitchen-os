@@ -15,11 +15,12 @@ OR FIX KITELINE
 2. Restart Kiteline
 3. Open Menu Creator
 4. Press Ctrl+Shift+R
-5. Confirm left panel shows: Build simple-v1.1
+5. Confirm left panel shows: Build simple-v1.2
 
 Then:
 - Paste into "Paste menu → dishes"
 - Click Generate menu
 - Dishes appear in Dishes / preview
 - Allergen Information stays the disclaimer
-- Print / Save PDF
+- Use Normal / Compact spacing if needed
+- Print / Save PDF or Copy text

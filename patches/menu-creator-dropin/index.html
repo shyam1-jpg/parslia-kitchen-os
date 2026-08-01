@@ -42,7 +42,8 @@ textarea{min-height:120px;resize:vertical}
 .meal-tab.on,.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .status{font-size:12px;color:var(--muted);margin-top:6px}
 .dish-card{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:#fff}
-.dish-card h4{margin:0 0 4px;font-size:14px}
+.dish-card h4{margin:0 0 4px;font-size:15px;font-family:var(--serif);line-height:1.25}
+.dish-card .desc{font-size:12px;font-style:italic;color:var(--muted);margin:0 0 4px;line-height:1.35}
 .dish-card .meta{font-size:11.5px;color:var(--muted)}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;position:sticky;top:0;background:var(--bg);padding-bottom:10px;z-index:2}
 .toolbar strong{flex:1}
@@ -55,12 +56,18 @@ textarea{min-height:120px;resize:vertical}
 .menu-logo-text{font-family:var(--serif);font-size:20px;color:var(--accent);margin-bottom:4px}
 .menu-title{font-family:var(--serif);font-size:28px;letter-spacing:.14em;text-transform:uppercase;margin:0}
 .menu-sub{color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-top:4px}
-.dish{text-align:center;margin:0 0 20px}
+.dish{text-align:center;margin:0 0 20px;page-break-inside:avoid;break-inside:avoid}
 .dish-name{font-family:var(--serif);font-size:22px;font-weight:700;line-height:1.25;letter-spacing:.02em;margin:0 0 6px;color:var(--ink)}
 .dish-desc{font-family:"Segoe UI",system-ui,sans-serif;font-size:12px;font-weight:400;font-style:italic;line-height:1.45;color:var(--muted);max-width:520px;margin:0 auto 6px}
 .dish-contains{font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase}
 .dish-diet{font-size:10.5px;color:var(--accent);font-weight:600;text-transform:uppercase;margin-top:2px}
-.info{margin-top:28px;padding-top:14px;border-top:2px solid var(--gold);text-align:center}
+.page.compact .menu-head{margin-bottom:12px;padding-bottom:8px}
+.page.compact .menu-title{font-size:24px}
+.page.compact .dish{margin:0 0 12px}
+.page.compact .dish-name{font-size:18px;margin:0 0 3px}
+.page.compact .dish-desc{font-size:11px;margin:0 auto 3px}
+.page.compact .info{margin-top:18px;padding-top:10px}
+.info{margin-top:28px;padding-top:14px;border-top:2px solid var(--gold);text-align:center;page-break-inside:avoid;break-inside:avoid}
 .info h2{font-family:var(--serif);color:var(--accent);letter-spacing:.1em;text-transform:uppercase;font-size:18px;margin:0 0 6px}
 .info .sub{font-size:10.5px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin:0 0 10px}
 .info p{font-size:11px;line-height:1.55;max-width:480px;margin:0 auto 8px;color:#3c463f}
@@ -69,10 +76,15 @@ textarea{min-height:120px;resize:vertical}
 .qr img{display:block;margin:0 auto;background:#fff}
 .qr p{font-size:9px;color:var(--muted);font-style:italic;margin:6px 0 0}
 .info-locked{background:#f7f3ea;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;line-height:1.45;color:#3c463f;white-space:pre-wrap}
+.recent{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.recent button{text-align:left;width:100%;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 10px;cursor:pointer;font:inherit}
+.recent button:hover{background:#f7f3ea}
+.recent .r-title{font-size:12.5px;font-weight:700}
+.recent .r-meta{font-size:11px;color:var(--muted);margin-top:2px}
 @media print{
   .side,.toolbar,.banner,.tag{display:none!important}
   .preview{padding:0;max-height:none;overflow:visible}
-  .page{box-shadow:none;width:100%}
+  .page{box-shadow:none;width:100%;min-height:auto}
 }
 </style>
 </head>
@@ -81,16 +93,21 @@ textarea{min-height:120px;resize:vertical}
   <aside class="side">
     <div class="brand">
       <h1>Menu Creator</h1>
-      <span class="tag">Build simple-v1.1</span>
+      <span class="tag">Build simple-v1.2</span>
     </div>
     <div class="banner">
-      <b>Simple mode — weekly menu removed</b><br>
-      One menu at a time. Paste → dishes only. Allergen footer is locked disclaimer (dishes cannot jump there).
+      <b>Ready to print</b><br>
+      Paste → Generate → Print. Dish names stay large; descriptions stay smaller. Allergen footer stays locked.
     </div>
 
     <div class="group">
       <label>Save by date</label>
       <input type="date" id="archiveDate"/>
+      <div class="row" style="margin-top:8px">
+        <button class="btn btn-line btn-sm" id="dateToday" type="button">Today</button>
+        <button class="btn btn-line btn-sm" id="dateTomorrow" type="button">Tomorrow</button>
+        <button class="btn btn-line btn-sm" id="fillSubDate" type="button">Use date as subtitle</button>
+      </div>
       <div class="meal-tabs" style="margin-top:8px">
         <button type="button" class="meal-tab" data-meal="breakfast">Breakfast</button>
         <button type="button" class="meal-tab" data-meal="lunch">Lunch</button>
@@ -101,6 +118,8 @@ textarea{min-height:120px;resize:vertical}
         <button class="btn btn-line btn-sm" id="loadLib" type="button">Load from library</button>
       </div>
       <div class="status" id="status">Ready</div>
+      <label style="margin-top:12px">Recent saved menus</label>
+      <div class="recent" id="recentList"><div class="hint">No recent saves yet.</div></div>
     </div>
 
     <div class="divider"></div>
@@ -126,6 +145,12 @@ Vegetarian"></textarea>
       <input type="text" id="logoText" placeholder="Logo text (optional)" style="margin-top:8px"/>
       <input type="text" id="menuTitle" placeholder="DINNER MENU" style="margin-top:8px"/>
       <input type="text" id="menuSub" placeholder="Subtitle / day" style="margin-top:8px"/>
+      <label style="margin-top:12px">Print spacing</label>
+      <div class="meal-tabs">
+        <button type="button" class="meal-tab on" id="spaceNormal" data-space="normal">Normal</button>
+        <button type="button" class="meal-tab" id="spaceCompact" data-space="compact">Compact</button>
+      </div>
+      <div class="hint">Compact fits more dishes on one printed page.</div>
       <button class="btn btn-line btn-sm" id="clearLogo" type="button" style="margin-top:8px">Remove logo</button>
     </div>
 
@@ -161,12 +186,14 @@ Vegetarian"></textarea>
     </div>
 
     <button class="btn btn-danger btn-block" id="resetAll" type="button">Clear this menu</button>
+    <button class="btn btn-line btn-block" id="undoClear" type="button" style="margin-top:8px;display:none">Undo clear</button>
   </aside>
 
   <main class="preview">
     <div class="toolbar">
       <strong>Live preview</strong>
       <button class="btn btn-line" id="loadSample" type="button">Load sample</button>
+      <button class="btn btn-line" id="copyTextBtn" type="button">Copy text</button>
       <button class="btn btn-line" id="wordBtn" type="button">Word</button>
       <button class="btn btn-primary" id="printBtn" type="button">Print / Save PDF</button>
     </div>
@@ -195,12 +222,14 @@ let data={
   title:"DINNER MENU", sub:"",
   dishes:[],
   infoText:DEFAULT_INFO,
-  template:"classic", textAlign:"center"
+  template:"classic", textAlign:"center",
+  spacing:"normal"
 };
 let archiveCtx={date:todayISO(), meal:"dinner"};
 let editIndex=-1;
 let selectedAllergens=new Set();
 let selectedDiets=new Set();
+let undoSnap=null;
 
 function loadEditor(){
   try{
@@ -213,11 +242,13 @@ function loadEditor(){
       data.title=cur.title||"DINNER MENU"; data.sub=cur.sub||"";
       data.dishes=Array.isArray(cur.dishes)?cur.dishes:[];
       data.infoText=DEFAULT_INFO; // always clean on migrate
+      data.spacing=raw.spacing==="compact"?"compact":"normal";
     } else {
       data.logoText=raw.logoText||""; data.logoImg=raw.logoImg||null;
       data.title=raw.title||"DINNER MENU"; data.sub=raw.sub||"";
       data.dishes=Array.isArray(raw.dishes)?raw.dishes:[];
       data.infoText=DEFAULT_INFO;
+      data.spacing=raw.spacing==="compact"?"compact":"normal";
     }
   }catch(e){}
 }
@@ -227,12 +258,36 @@ function saveEditor(){
     logoText:data.logoText, logoImg:data.logoImg,
     infoText:DEFAULT_INFO, infoAllergens:"",
     template:"classic", textAlign:"center",
+    spacing:data.spacing||"normal",
     title:data.title, sub:data.sub, dishes:data.dishes,
     menus:[{id:"m1", label:"Menu", title:data.title, sub:data.sub, dishes:data.dishes}],
     currentId:"m1"
   };
   localStorage.setItem("menuCreator", JSON.stringify(payload));
   scheduleArchiveSave();
+}
+function formatMenuDate(dateStr){
+  try{
+    return new Date(dateStr+"T12:00:00").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  }catch(e){ return dateStr; }
+}
+function shiftISO(days){
+  const d=new Date(); d.setDate(d.getDate()+days); return todayISO(d);
+}
+function menuPlainText(){
+  const lines=[data.title||"DINNER MENU"];
+  if(data.sub) lines.push(data.sub);
+  lines.push("");
+  data.dishes.forEach(d=>{
+    lines.push(d.name||"");
+    if(d.desc) lines.push(d.desc);
+    const c=containsLine(d.allergens); if(c) lines.push(c);
+    const diet=dietLine(d.diet); if(diet) lines.push(diet);
+    lines.push("");
+  });
+  lines.push("Allergen Information");
+  lines.push(DEFAULT_INFO);
+  return lines.join("\n").trim()+"\n";
 }
 
 /* Library — same keys as before */
@@ -276,11 +331,42 @@ async function dbGet(id){
     r.onsuccess=()=>resolve(r.result||null); r.onerror=()=>reject(r.error);
   });
 }
+async function dbAll(){
+  if(archiveStorage==="ls") return lsAll();
+  const db=await openDb();
+  return new Promise((resolve,reject)=>{
+    const r=db.transaction(STORE,"readonly").objectStore(STORE).getAll();
+    r.onsuccess=()=>resolve(r.result||[]); r.onerror=()=>reject(r.error);
+  });
+}
+async function renderRecent(){
+  const el=$("recentList"); if(!el) return;
+  try{
+    const all=await dbAll();
+    const sorted=[...all].sort((a,b)=>String(b.savedAt||"").localeCompare(String(a.savedAt||""))).slice(0,8);
+    if(!sorted.length){ el.innerHTML=`<div class="hint">No recent saves yet.</div>`; return; }
+    el.innerHTML=sorted.map(r=>{
+      const n=(r.snap&&r.snap.dishes&&r.snap.dishes.length)||0;
+      return `<button type="button" data-rid="${esc(r.id)}">
+        <div class="r-title">${esc(mealLabel(r.meal))} · ${esc(r.date)}</div>
+        <div class="r-meta">${n} dish${n===1?"":"es"}${r.snap&&r.snap.title?" · "+esc(r.snap.title):""}</div>
+      </button>`;
+    }).join("");
+    el.querySelectorAll("[data-rid]").forEach(b=>b.onclick=async()=>{
+      const rec=await dbGet(b.dataset.rid);
+      if(!rec||!rec.snap) return;
+      archiveCtx.date=rec.date; archiveCtx.meal=rec.meal;
+      applySnap(rec.snap);
+      $("status").textContent="Loaded: "+rec.date+" · "+mealLabel(rec.meal);
+    });
+  }catch(e){ el.innerHTML=`<div class="hint">Library unavailable.</div>`; }
+}
 function snapshot(){
   return {
     logoText:data.logoText||"", logoImg:data.logoImg||null,
     infoText:DEFAULT_INFO, infoAllergens:"",
     template:"classic", textAlign:"center",
+    spacing:data.spacing||"normal",
     title:data.title||"DINNER MENU", sub:data.sub||"", dishes:data.dishes||[]
   };
 }
@@ -289,8 +375,9 @@ function applySnap(snap){
   data.logoText=snap.logoText||""; data.logoImg=snap.logoImg||null;
   data.title=snap.title||"DINNER MENU"; data.sub=snap.sub||"";
   data.dishes=Array.isArray(snap.dishes)?snap.dishes:[];
+  data.spacing=snap.spacing==="compact"?"compact":(data.spacing||"normal");
   data.infoText=DEFAULT_INFO;
-  saveEditor(); syncInputs(); render();
+  saveEditor(); syncInputs(); render(); renderRecent();
 }
 function scheduleArchiveSave(){
   clearTimeout(archiveTimer);
@@ -308,6 +395,7 @@ async function saveToLibrary(silent){
   };
   await dbPut(rec);
   if(!silent) $("status").textContent="Saved: "+date+" · "+mealLabel(meal)+" ("+data.dishes.length+" dishes)";
+  renderRecent();
 }
 async function loadFromLibrary(){
   const rec=await dbGet(archiveKey(archiveCtx.date, archiveCtx.meal));
@@ -421,9 +509,11 @@ function render(){
   $("dishList").innerHTML=data.dishes.length? data.dishes.map((d,i)=>`
     <div class="dish-card">
       <h4>${esc(d.name)}</h4>
+      ${d.desc?`<div class="desc">${esc(d.desc)}</div>`:""}
       <div class="meta">${esc(containsLine(d.allergens)||"No allergens set")}${d.diet&&d.diet.length?" · "+esc(dietLine(d.diet)):""}</div>
       <div class="row" style="margin-top:8px">
         <button class="btn btn-line btn-sm" data-edit="${i}" type="button">Edit</button>
+        <button class="btn btn-line btn-sm" data-dup="${i}" type="button">Duplicate</button>
         <button class="btn btn-line btn-sm" data-up="${i}" type="button">↑</button>
         <button class="btn btn-line btn-sm" data-down="${i}" type="button">↓</button>
         <button class="btn btn-danger btn-sm" data-del="${i}" type="button">Delete</button>
@@ -436,6 +526,11 @@ function render(){
     const custom=[]; (d.allergens||[]).forEach(a=>ALLERGENS.includes(a)?selectedAllergens.add(a):custom.push(a));
     $("dCustom").value=custom.join(", "); editIndex=+b.dataset.edit;
     $("saveDish").textContent="Update dish"; $("cancelEdit").style.display="inline-block"; buildChips();
+  });
+  $("dishList").querySelectorAll("[data-dup]").forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.dup; const src=data.dishes[i]; if(!src) return;
+    data.dishes.splice(i+1,0,{name:src.name, desc:src.desc||"", allergens:[...(src.allergens||[])], diet:[...(src.diet||[])]});
+    saveEditor(); render(); $("status").textContent="Duplicated dish.";
   });
   $("dishList").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ data.dishes.splice(+b.dataset.del,1); saveEditor(); render(); });
   $("dishList").querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.up; if(i>0){ [data.dishes[i-1],data.dishes[i]]=[data.dishes[i],data.dishes[i-1]]; saveEditor(); render(); }});
@@ -450,8 +545,9 @@ function render(){
     </div>`).join("") : `<div class="empty">No dishes yet — paste a menu or add a dish.</div>`;
   const info=DEFAULT_INFO.split(/\n{2,}/).map(p=>`<p>${esc(p)}</p>`).join("");
   const logo=data.logoImg?`<img class="menu-logo" src="${data.logoImg}" alt="logo"/>`:(data.logoText?`<div class="menu-logo-text">${esc(data.logoText)}</div>`:"");
+  const spaceClass=data.spacing==="compact"?" compact":"";
   $("pageOut").innerHTML=`
-    <section class="page">
+    <section class="page${spaceClass}">
       <div class="menu-head">
         ${logo}
         <h1 class="menu-title">${esc(data.title||"DINNER MENU")}</h1>
@@ -471,12 +567,13 @@ function syncInputs(){
   $("menuSub").value=data.sub||"";
   $("logoText").value=data.logoText||"";
   $("archiveDate").value=archiveCtx.date;
-  document.querySelectorAll(".meal-tab").forEach(t=>t.classList.toggle("on", t.dataset.meal===archiveCtx.meal));
+  document.querySelectorAll(".meal-tab[data-meal]").forEach(t=>t.classList.toggle("on", t.dataset.meal===archiveCtx.meal));
+  document.querySelectorAll("[data-space]").forEach(t=>t.classList.toggle("on", t.dataset.space===(data.spacing||"normal")));
   $("infoLocked").textContent=DEFAULT_INFO;
 }
 function setMeal(meal){
   archiveCtx.meal=meal;
-  document.querySelectorAll(".meal-tab").forEach(t=>t.classList.toggle("on", t.dataset.meal===meal));
+  document.querySelectorAll(".meal-tab[data-meal]").forEach(t=>t.classList.toggle("on", t.dataset.meal===meal));
 }
 
 /* Wire */
@@ -521,12 +618,20 @@ $("logoFile").onchange=e=>{
 $("clearLogo").onclick=()=>{ data.logoImg=null; data.logoText=""; $("logoText").value=""; $("logoFile").value=""; saveEditor(); render(); };
 $("resetInfo").onclick=()=>{ data.infoText=DEFAULT_INFO; saveEditor(); render(); $("status").textContent="Disclaimer reset."; };
 $("resetAll").onclick=()=>{
-  if(!confirm("Clear this menu? Library saves are kept.")) return;
-  data={logoText:"",logoImg:null,title:mealLabel(archiveCtx.meal).toUpperCase()+" MENU",sub:"",dishes:[],infoText:DEFAULT_INFO,template:"classic",textAlign:"center"};
+  if(!confirm("Clear this menu? Library saves are kept. You can Undo once.")) return;
+  undoSnap=snapshot();
+  data={logoText:"",logoImg:null,title:mealLabel(archiveCtx.meal).toUpperCase()+" MENU",sub:"",dishes:[],infoText:DEFAULT_INFO,template:"classic",textAlign:"center",spacing:data.spacing||"normal"};
   resetForm(); saveEditor(); syncInputs(); render();
+  $("status").textContent="Menu cleared. Click Undo clear to restore.";
+  $("undoClear").style.display="inline-block";
+};
+$("undoClear").onclick=()=>{
+  if(!undoSnap){ $("status").textContent="Nothing to undo."; return; }
+  applySnap(undoSnap); undoSnap=null; $("undoClear").style.display="none";
+  $("status").textContent="Cleared menu restored.";
 };
 $("loadSample").onclick=()=>{
-  data.title="DINNER MENU"; data.sub=""; data.logoText="vedanta.org"; data.infoText=DEFAULT_INFO;
+  data.title="DINNER MENU"; data.sub=formatMenuDate(archiveCtx.date); data.logoText="vedanta.org"; data.infoText=DEFAULT_INFO;
   data.dishes=[
     {name:"High Protein Lasagne with Beluga Lentil",desc:"Layered pasta with tomato ragu and plant-based cheese",allergens:["Gluten","Dairy","Celery"],diet:["Vegetarian"]},
     {name:"Tuscany Salad",desc:"Mixed greens, cherry tomatoes, olives and balsamic",allergens:["None"],diet:["Vegan","Gluten-Free"]},
@@ -535,10 +640,56 @@ $("loadSample").onclick=()=>{
   saveEditor(); syncInputs(); render();
 };
 $("printBtn").onclick=()=>window.print();
+$("copyTextBtn").onclick=async()=>{
+  const text=menuPlainText();
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText) await navigator.clipboard.writeText(text);
+    else {
+      const ta=document.createElement("textarea"); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+    }
+    $("status").textContent="Menu text copied.";
+  }catch(e){ alert(text); }
+};
+document.querySelectorAll("[data-space]").forEach(b=>b.onclick=()=>{
+  data.spacing=b.dataset.space==="compact"?"compact":"normal";
+  saveEditor(); syncInputs(); render();
+  $("status").textContent=data.spacing==="compact"?"Compact spacing on":"Normal spacing on";
+});
+$("dateToday").onclick=async()=>{
+  await saveToLibrary(true).catch(()=>{});
+  archiveCtx.date=todayISO();
+  const rec=await dbGet(archiveKey(archiveCtx.date, archiveCtx.meal));
+  if(rec&&rec.snap) applySnap(rec.snap);
+  else {
+    data.dishes=[]; data.sub=""; data.title=mealLabel(archiveCtx.meal).toUpperCase()+" MENU";
+    saveEditor(); syncInputs(); render();
+    $("status").textContent="Today · "+mealLabel(archiveCtx.meal);
+  }
+};
+$("dateTomorrow").onclick=async()=>{
+  await saveToLibrary(true).catch(()=>{});
+  archiveCtx.date=shiftISO(1);
+  const rec=await dbGet(archiveKey(archiveCtx.date, archiveCtx.meal));
+  if(rec&&rec.snap) applySnap(rec.snap);
+  else {
+    data.dishes=[]; data.sub=""; data.title=mealLabel(archiveCtx.meal).toUpperCase()+" MENU";
+    saveEditor(); syncInputs(); render();
+    $("status").textContent="Tomorrow · "+mealLabel(archiveCtx.meal);
+  }
+};
+$("fillSubDate").onclick=()=>{
+  data.sub=formatMenuDate(archiveCtx.date);
+  saveEditor(); syncInputs(); render();
+  $("status").textContent="Subtitle set to "+data.sub;
+};
 $("wordBtn").onclick=()=>{
+  const compact=data.spacing==="compact";
+  const nameSize=compact?"13pt":"16pt";
+  const descSize=compact?"8.5pt":"9pt";
+  const nameMargin=compact?"7pt 0 2pt":"11pt 0 3pt";
   const dishes=data.dishes.map(d=>`
-    <p style="text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:16pt;font-weight:bold;margin:11pt 0 3pt;line-height:1.25;">${esc(d.name)}</p>
-    ${d.desc?`<p style="text-align:center;font-family:'Segoe UI',Arial,sans-serif;font-style:italic;font-size:9pt;font-weight:normal;color:#6b7770;margin:0 0 4pt;line-height:1.4;">${esc(d.desc)}</p>`:""}
+    <p style="text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:${nameSize};font-weight:bold;margin:${nameMargin};line-height:1.25;">${esc(d.name)}</p>
+    ${d.desc?`<p style="text-align:center;font-family:'Segoe UI',Arial,sans-serif;font-style:italic;font-size:${descSize};font-weight:normal;color:#6b7770;margin:0 0 3pt;line-height:1.4;">${esc(d.desc)}</p>`:""}
     ${d.allergens&&d.allergens.length?`<p style="text-align:center;font-size:8pt;color:#b08a3e;font-weight:bold;margin:0;">${esc(containsLine(d.allergens))}</p>`:""}
     ${d.diet&&d.diet.length?`<p style="text-align:center;font-size:8pt;color:#2f6b4f;font-weight:bold;margin:0;">${esc(dietLine(d.diet))}</p>`:""}
   `).join("");
@@ -547,6 +698,7 @@ $("wordBtn").onclick=()=>{
     <div style="border:3px double #b08a3e;padding:20pt 18pt;">
       ${data.logoImg?`<p style="text-align:center"><img src="${data.logoImg}" style="max-height:78px"/></p>`:(data.logoText?`<p style="text-align:center;font-family:Georgia;color:#2f6b4f;font-size:15pt;">${esc(data.logoText)}</p>`:"")}
       <h1 style="text-align:center;font-family:Georgia;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;">${esc(data.title||"DINNER MENU")}</h1>
+      ${data.sub?`<p style="text-align:center;font-size:10pt;color:#6b7770;letter-spacing:1px;text-transform:uppercase;">${esc(data.sub)}</p>`:""}
       ${dishes}
       <div style="border-top:2px solid #b08a3e;margin-top:14pt;padding-top:8pt;"></div>
       <h2 style="text-align:center;font-family:Georgia;color:#2f6b4f;">Allergen Information</h2>
@@ -570,7 +722,7 @@ $("archiveDate").onchange=async e=>{
     $("status").textContent="New blank menu for "+archiveCtx.date+" · "+mealLabel(archiveCtx.meal);
   }
 };
-document.querySelectorAll(".meal-tab").forEach(t=>t.onclick=async()=>{
+document.querySelectorAll(".meal-tab[data-meal]").forEach(t=>t.onclick=async()=>{
   await saveToLibrary(true).catch(()=>{});
   setMeal(t.dataset.meal);
   const rec=await dbGet(archiveKey(archiveCtx.date, archiveCtx.meal));
@@ -586,8 +738,9 @@ buildChips(); syncInputs(); render();
 detectStorage().then(async()=>{
   const rec=await dbGet(archiveKey(archiveCtx.date, archiveCtx.meal));
   if(rec&&rec.snap && (!data.dishes||!data.dishes.length)) applySnap(rec.snap);
-  $("status").textContent="Simple Menu Creator ready · library connected";
-}).catch(()=>{});
+  await renderRecent();
+  $("status").textContent="Menu Creator ready · Build simple-v1.2";
+}).catch(()=>renderRecent());
 if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
   window.addEventListener("load", ()=>navigator.serviceWorker.register("/menu-creator/service-worker.js",{scope:"/menu-creator/"}).catch(()=>{}));
 }
