@@ -7,13 +7,15 @@
 
 | File | Purpose |
 |------|---------|
-| `index.html` | Full landing page |
+| `index.html` | Full landing page (**Parslia only** — do not link other brands here) |
 | `styles.css` | Styling |
 | `script.js` | Menu + early access form |
-| `menu-creator/` | Printable Menu Creator (text align: left / center / right) |
+| `menu-creator/` | **Separate product** — printable Menu Creator (not part of Parslia UI) |
 | `patches/README-MENU-TEXT-ALIGN.md` | How to apply the same fix in Kiteline / menu-creator repos |
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
 | `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
+
+**Brand rule:** Menu Creator is standalone (Pure Prasad / kitchen print tool). Never put it in the Parslia nav, hero, or feature cards.
 
 ## Preview locally (Windows)
 

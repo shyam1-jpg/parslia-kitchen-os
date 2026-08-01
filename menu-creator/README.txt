@@ -1,7 +1,14 @@
-Menu Creator — simple mode (Build simple-v1)
-============================================
+Menu Creator — standalone printable menus (Build simple-v1.2)
+============================================================
 
-Weekly / multi-day menus are removed.
+THIS IS NOT PARSLIA.
+Do not put Menu Creator links in the Parslia landing page nav or feature cards.
+
+Brand fit
+---------
+- Menu Creator is a separate kitchen print tool
+- QR / recipe brand points at Pure Prasad Kitchen (pureprasadkitchen.com)
+- Parslia Kitchen OS is a different product
 
 What you get
 ------------
@@ -11,13 +18,13 @@ What you get
 - Save/load by date: Breakfast / Lunch / Dinner
 - Print / Save PDF and Word
 
-Urgent print (no Kiteline)
---------------------------
-Open PRINT-NOW.html
-or run patches\OPEN-PRINT-MENU-NOW.bat
+Open it
+-------
+Open menu-creator/index.html
+or PRINT-NOW.html for urgent print
 
-Kiteline install
-----------------
+Kiteline install (optional patch)
+---------------------------------
 Run patches\APPLY-MENU-TEXT-ALIGN.bat
 Restart Kiteline → Ctrl+Shift+R
-Confirm: Build simple-v1
+Confirm: Build simple-v1.2
