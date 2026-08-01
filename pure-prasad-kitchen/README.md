@@ -2,10 +2,13 @@
 
 Everyday Ayurvedic kitchen ideas — **something new each day**.
 
+**Separate brand.** Not Parslia. Not Menu Creator. Do not add Parslia logos, nav, or “Kitchen OS” copy here.
+
 ## Live page
 
-- Path: `/pure-prasad-kitchen/`
-- Local: open `pure-prasad-kitchen/index.html` or run a static server from the repo root
+- Intended domain: `pureprasadkitchen.com`
+- Path in this monorepo: `/pure-prasad-kitchen/`
+- Local: open `pure-prasad-kitchen/index.html` or run a static server from this folder
 
 ## How “auto every day” works
 

@@ -83,7 +83,6 @@ a { color: inherit; text-decoration: none; }
   color: var(--ppk-muted);
 }
 .ppk-nav a:hover { color: var(--ppk-deep); }
-.ppk-nav .ppk-link-home { color: var(--ppk-leaf); }
 
 /* Hero — one composition */
 .ppk-hero {

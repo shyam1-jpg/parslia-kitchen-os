@@ -6,7 +6,7 @@ Use this at [cursor.com/automations](https://cursor.com/automations).
 
 - **Type:** Scheduled
 - **Cron:** `0 7 * * *` (07:00 UTC daily — change to your local morning)
-- **Repository:** `shyam1-jpg/parslia-kitchen-os` (required so the agent can edit files / open a PR)
+- **Repository:** whatever hosts Pure Prasad Kitchen files (currently monorepo path `pure-prasad-kitchen/` — do **not** edit Parslia or Menu Creator)
 
 ## Prompt (copy everything below)
 
@@ -27,7 +27,7 @@ Rules:
 5. Append the same tip object into `pure-prasad-kitchen/content/tips.json` (increment count / updated fields).
 6. Keep tone aligned with Pure Prasad Kitchen: calm, home-kitchen, prasad-minded, Indian / Ayurvedic inspired.
 7. Open a PR titled: `Pure Prasad Kitchen: daily Ayurvedic idea YYYY-MM-DD`
-8. Do not change unrelated Parslia / Libraix product code.
+8. Do not change Parslia, Menu Creator, Kiteline, or Libraix files. Pure Prasad only.
 
 Quality bar: if you cannot create a meaningfully new tip, do nothing and explain why.
 ```

@@ -1,14 +1,14 @@
 {
   "date": "2026-08-01",
-  "source": "github-action",
+  "source": "launch",
   "tip": {
-    "id": 93,
-    "theme": "Morning ritual",
-    "title": "Make your bed, then make tea",
-    "idea": "A tiny completed task settles the mind before caffeine.",
-    "action": "Smooth the bed, then prepare your morning drink.",
+    "id": 90,
+    "theme": "Kitchen wisdom",
+    "title": "Offer the first serving as prasad mindset",
+    "idea": "Even a home meal can be cooked as an offering — care first, rush second. That is the heart of Pure Prasad Kitchen.",
+    "action": "Plate the first serving neatly as if for a guest, then eat mindfully.",
     "season": "all",
-    "dosha_focus": "kapha"
+    "dosha_focus": "all"
   },
-  "note": "Auto-rotated by GitHub Action from the Pure Prasad tip bank."
+  "note": "Launch day tip. From tomorrow, the page auto-rotates a new idea each calendar day, and the Cursor daily automation can write a fresh tip into this file."
 }
