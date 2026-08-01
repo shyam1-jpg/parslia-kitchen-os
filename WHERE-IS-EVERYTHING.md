@@ -1,5 +1,8 @@
 # Parslia Kitchen OS — where everything is
 
+**ALWAYS keep products separate.** See `PRODUCTS.md` and `AGENTS.md`.  
+Parslia, Pure Prasad Kitchen, Menu Creator, Kiteline, and Libraix must never be mixed in nav, logos, or marketing.
+
 ## The real landing page (Hercules / GitHub)
 
 | Item | Location |
