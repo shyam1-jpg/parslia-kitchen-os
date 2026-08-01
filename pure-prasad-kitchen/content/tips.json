@@ -1,0 +1,1089 @@
+{
+  "brand": "Pure Prasad Kitchen",
+  "description": "Everyday Ayurvedic kitchen ideas — something new each day.",
+  "disclaimer": "Educational kitchen wellness ideas inspired by Ayurvedic traditions. Not medical advice. Adapt to your body, culture, and clinician guidance.",
+  "updated": "2026-08-01",
+  "count": 120,
+  "tips": [
+    {
+      "id": 1,
+      "theme": "Morning ritual",
+      "title": "Sip warm water before anything else",
+      "idea": "Start the day with a cup of warm water — plain or with a squeeze of lemon. Ayurveda sees this as a gentle wake-up for digestion (agni) after the night’s rest.",
+      "action": "Drink 1 cup of warm water within 10 minutes of waking, before tea or coffee.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 2,
+      "theme": "Morning ritual",
+      "title": "Tongue scrape before brushing",
+      "idea": "A soft tongue scraper clears overnight residue (ama) and freshens taste so the first meal is more satisfying.",
+      "action": "Gently scrape the tongue 5–7 strokes, then brush teeth as usual.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 3,
+      "theme": "Morning ritual",
+      "title": "Oil pull for oral calm",
+      "idea": "Swishing a spoon of sesame or coconut oil for a few minutes supports oral hygiene and a grounded start.",
+      "action": "Swish 1 tsp oil for 3–5 minutes, spit into a bin (not the sink), rinse with warm water.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 4,
+      "theme": "Morning ritual",
+      "title": "Face the morning light",
+      "idea": "A few minutes of natural light after sunrise helps settle the body clock and lifts morning dullness.",
+      "action": "Stand near a window or step outside for 5 minutes without sunglasses if comfortable.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 5,
+      "theme": "Morning ritual",
+      "title": "Dry brush before the shower",
+      "idea": "Light dry brushing toward the heart wakes circulation and feels refreshing before warm water.",
+      "action": "Use a soft natural brush for 2–3 minutes on dry skin, then shower.",
+      "season": "autumn,winter",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 6,
+      "theme": "Digestion",
+      "title": "Eat your biggest meal at midday",
+      "idea": "Digestive fire is strongest when the sun is high. Make lunch the most substantial meal when you can.",
+      "action": "Shift a little protein and warm cooked food into lunch; keep dinner lighter.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 7,
+      "theme": "Digestion",
+      "title": "Chew until the food softens",
+      "idea": "Digestion begins in the mouth. Slow chewing reduces bloating and helps you notice fullness sooner.",
+      "action": "Put the fork down between bites for one meal today.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 8,
+      "theme": "Digestion",
+      "title": "Ginger before a heavy meal",
+      "idea": "A thin slice of fresh ginger with a pinch of salt and lemon wakes appetite without forcing it.",
+      "action": "Chew a small ginger bite 10 minutes before lunch or dinner.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 9,
+      "theme": "Digestion",
+      "title": "Leave a little space after eating",
+      "idea": "Ayurveda recommends stopping before stuffed. A palm of space in the stomach keeps energy light.",
+      "action": "At your next meal, stop when you feel about 80% full.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 10,
+      "theme": "Digestion",
+      "title": "Warm spices for slow evenings",
+      "idea": "Cumin, coriander, and fennel tea soothes after a rich day and supports evening digestion.",
+      "action": "Simmer ½ tsp each cumin, coriander, and fennel seeds in 2 cups water for 5 minutes; sip warm.",
+      "season": "all",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 11,
+      "theme": "Digestion",
+      "title": "Skip ice with meals",
+      "idea": "Very cold drinks can dampen digestive fire. Prefer room-temperature or warm liquids with food.",
+      "action": "Replace iced drinks at one meal with warm water or herbal tea.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 12,
+      "theme": "Digestion",
+      "title": "Cumin–coriander–fennel after lunch",
+      "idea": "This classic trio is a kitchen-friendly digestive that is gentle enough for daily use.",
+      "action": "Brew a small cup after lunch instead of dessert coffee.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 13,
+      "theme": "Kitchen wisdom",
+      "title": "Cook with ghee for calm heat",
+      "idea": "A spoon of ghee carries spices and softens dry meals — especially helpful when the weather or mood feels rough.",
+      "action": "Finish one dal or sabzi with ½ tsp ghee today.",
+      "season": "autumn,winter",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 14,
+      "theme": "Kitchen wisdom",
+      "title": "Temper spices in oil first",
+      "idea": "Blooming cumin or mustard seeds in warm oil releases aroma and makes spices easier to digest.",
+      "action": "Start tonight’s tadka with oil, then seeds, then aromatics.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 15,
+      "theme": "Kitchen wisdom",
+      "title": "Add a squeeze of lime at the end",
+      "idea": "Acid at the finish brightens taste and can help heavy legumes feel lighter.",
+      "action": "Finish chana, rajma, or khichdi with fresh lime just before serving.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 16,
+      "theme": "Kitchen wisdom",
+      "title": "Khichdi as a reset bowl",
+      "idea": "Rice and moong with gentle spices is classic comfort when the gut needs a quiet day.",
+      "action": "Make a simple moong khichdi with cumin, turmeric, and ginger for one meal.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 17,
+      "theme": "Kitchen wisdom",
+      "title": "Turmeric milk in the evening",
+      "idea": "Warm milk with a pinch of turmeric and black pepper is a soothing wind-down when dairy suits you.",
+      "action": "Heat milk gently; whisk turmeric + pinch pepper; sip 30–60 minutes before bed.",
+      "season": "autumn,winter",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 18,
+      "theme": "Kitchen wisdom",
+      "title": "Favour cooked breakfasts in cool weather",
+      "idea": "Cold smoothies can feel harsh when mornings are damp. Warm porridge or upma lands softer.",
+      "action": "Swap one cold breakfast for warm oats, porridge, or vegetable upma.",
+      "season": "autumn,winter",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 19,
+      "theme": "Kitchen wisdom",
+      "title": "Use fresh coriander stems",
+      "idea": "Stems carry aroma too — chop them into dals and chutneys instead of discarding.",
+      "action": "Wash and finely chop coriander stems into today’s curry or raita.",
+      "season": "all",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 20,
+      "theme": "Kitchen wisdom",
+      "title": "Soak legumes overnight",
+      "idea": "Soaking reduces cooking time and can make beans easier on digestion.",
+      "action": "Soak chickpeas or whole moong tonight for tomorrow’s cook.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 21,
+      "theme": "Kitchen wisdom",
+      "title": "One-pot stew for busy nights",
+      "idea": "When time is short, a single pot of vegetables, lentils, and spices still counts as real nourishment.",
+      "action": "Build a pot: oil, cumin, onion, veg, dal or lentils, water, salt — simmer until soft.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 22,
+      "theme": "Kitchen wisdom",
+      "title": "Taste for the six tastes",
+      "idea": "Ayurveda looks for sweet, sour, salty, bitter, pungent, and astringent across the day for balance.",
+      "action": "At dinner, notice which tastes are missing and add a leaf of greens, lemon, or spice.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 23,
+      "theme": "Spices",
+      "title": "Black pepper wakes turmeric",
+      "idea": "A pinch of black pepper with turmeric supports how the body uses curcumin-rich dishes.",
+      "action": "Add 2–3 cracks of pepper whenever you use turmeric today.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 24,
+      "theme": "Spices",
+      "title": "Cardamom in tea for sweetness without sugar",
+      "idea": "Crushed green cardamom gives fragrance and a naturally sweet finish.",
+      "action": "Crush 1 cardamom pod into your tea or warm milk.",
+      "season": "all",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 25,
+      "theme": "Spices",
+      "title": "Fennel after spicy food",
+      "idea": "Chewing a few fennel seeds cools the mouth and settles the stomach after heat.",
+      "action": "Keep a small jar of fennel by the table and take a pinch after a spicy meal.",
+      "season": "summer",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 26,
+      "theme": "Spices",
+      "title": "Cinnamon in morning porridge",
+      "idea": "Cinnamon adds warmth and comfort without needing extra sugar.",
+      "action": "Stir ¼ tsp cinnamon into warm oats or semolina.",
+      "season": "autumn,winter",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 27,
+      "theme": "Spices",
+      "title": "Asafoetida for bean dishes",
+      "idea": "A tiny pinch of hing in the tadka can ease the heaviness of lentils and cabbage.",
+      "action": "Add a rice-grain pinch of hing to oil before adding onions for dal.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 28,
+      "theme": "Spices",
+      "title": "Mustard seeds for spark",
+      "idea": "When they pop, mustard seeds perfume the whole kitchen and lift mild vegetables.",
+      "action": "Pop ½ tsp mustard seeds in oil for today’s sabzi.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 29,
+      "theme": "Drinks",
+      "title": "Herbal water bottle for the desk",
+      "idea": "Infusing warm water with cumin or mint keeps sipping interesting without caffeine spikes.",
+      "action": "Fill a flask with warm water + ½ tsp cumin or a few mint leaves.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 30,
+      "theme": "Drinks",
+      "title": "Cooling cucumber-mint in heat",
+      "idea": "When days run hot, a light cucumber-mint drink cools without heavy sweetness.",
+      "action": "Blend cucumber + mint + pinch salt + water; drink at room temperature.",
+      "season": "summer",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 31,
+      "theme": "Drinks",
+      "title": "Tulsi tea for a clear head",
+      "idea": "Holy basil tea is a simple kitchen ritual for mental freshness.",
+      "action": "Steep 4–5 tulsi leaves (fresh or dried) for 5 minutes; sip mid-afternoon.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 32,
+      "theme": "Drinks",
+      "title": "Avoid gulping large cold drinks",
+      "idea": "Slow sips of warm liquid support digestion better than big icy gulps with meals.",
+      "action": "Take small sips with lunch instead of a large cold glass.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 33,
+      "theme": "Daily rhythm",
+      "title": "Keep a steady meal time",
+      "idea": "The body likes rhythm. Eating around the same hours trains hunger and energy.",
+      "action": "Pick one meal and take it within a 30-minute window today and tomorrow.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 34,
+      "theme": "Daily rhythm",
+      "title": "A short walk after lunch",
+      "idea": "A gentle 10-minute walk helps food settle and clears post-meal fog.",
+      "action": "Walk slowly after lunch — no need to rush or power-walk.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 35,
+      "theme": "Daily rhythm",
+      "title": "Screen-free first 20 minutes",
+      "idea": "Starting the day in the body, not the phone, keeps the nervous system quieter.",
+      "action": "Delay phone checks until after water, scrape, and a few breaths.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 36,
+      "theme": "Daily rhythm",
+      "title": "Wind down with dimmer light",
+      "idea": "Softer evening light signals the body to prepare for rest.",
+      "action": "One hour before bed, switch to warmer lamps and reduce bright overheads.",
+      "season": "all",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 37,
+      "theme": "Daily rhythm",
+      "title": "Early light dinner when possible",
+      "idea": "Giving digestion a longer night rest often means better sleep and clearer mornings.",
+      "action": "Aim to finish dinner at least 2–3 hours before sleep tonight.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 38,
+      "theme": "Daily rhythm",
+      "title": "Nap only if truly needed",
+      "idea": "Long daytime sleep can increase heaviness. If you nap, keep it short.",
+      "action": "Limit any nap to 20 minutes before mid-afternoon.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 39,
+      "theme": "Self-care",
+      "title": "Warm oil on the feet at night",
+      "idea": "A little sesame oil on the soles settles restless energy before bed.",
+      "action": "Warm a teaspoon of oil in your palms; massage feet; wear socks if you like.",
+      "season": "autumn,winter",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 40,
+      "theme": "Self-care",
+      "title": "Cool rose water for heated days",
+      "idea": "A mist of rose water on the face softens heat and irritability.",
+      "action": "Keep rose water in the fridge and mist midday if you run hot.",
+      "season": "summer",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 41,
+      "theme": "Self-care",
+      "title": "Three slow breaths before cooking",
+      "idea": "The kitchen mood becomes the food’s mood. Arrive before you chop.",
+      "action": "Stand at the counter, inhale for 4, exhale for 6 — three times — then begin.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 42,
+      "theme": "Self-care",
+      "title": "Sit to eat without multitasking",
+      "idea": "Eating while scrolling or standing confuses fullness signals.",
+      "action": "For one meal, sit at a table with no phone.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 43,
+      "theme": "Self-care",
+      "title": "Gratitude before the first bite",
+      "idea": "A pause of thanks shifts the meal from rush to ritual.",
+      "action": "Silently thank the ingredients and the cook — even if that’s you — before eating.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 44,
+      "theme": "Self-care",
+      "title": "Ear oiling for windy seasons",
+      "idea": "A drop of warm sesame oil at the outer ear opening can feel grounding when weather is dry and windy.",
+      "action": "Warm a drop of oil between fingers; massage outer ear gently (not deep inside).",
+      "season": "autumn",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 45,
+      "theme": "Seasonal",
+      "title": "Favour soups as evenings cool",
+      "idea": "As nights chill, warm liquid meals protect against dryness and stiffness.",
+      "action": "Make a vegetable or lentil soup for dinner tonight.",
+      "season": "autumn,winter",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 46,
+      "theme": "Seasonal",
+      "title": "Bitter greens in spring",
+      "idea": "Light bitter tastes (methi, rocket, kale) help after heavier winter eating.",
+      "action": "Add a handful of sautéed bitter greens to lunch.",
+      "season": "spring",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 47,
+      "theme": "Seasonal",
+      "title": "Coconut and mint in high summer",
+      "idea": "Cooling flavours balance sharp heat without needing ice cream every day.",
+      "action": "Make a coconut-mint chutney or raita for today’s meal.",
+      "season": "summer",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 48,
+      "theme": "Seasonal",
+      "title": "Root vegetables for deep autumn",
+      "idea": "Beet, carrot, and sweet potato bring sweetness and steadiness as days shorten.",
+      "action": "Roast a tray of roots with cumin and a drizzle of oil.",
+      "season": "autumn",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 49,
+      "theme": "Seasonal",
+      "title": "Lighter breakfasts in muggy weather",
+      "idea": "When air is heavy, a warm but light breakfast (steamed idli, fruit + spice) feels clearer than fried starts.",
+      "action": "Choose steamed or gently cooked breakfast once this week.",
+      "season": "spring,summer",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 50,
+      "theme": "Seasonal",
+      "title": "Honey only in warm — never boiling — drinks",
+      "idea": "Ayurveda treats honey as a special sweetener: add it after drinks cool slightly.",
+      "action": "Stir honey into warm (not boiling) tea or water today.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 51,
+      "theme": "Mind & mood",
+      "title": "Sweet taste for comfort — in wise amounts",
+      "idea": "Naturally sweet foods (rice, dates, cooked roots) calm and nourish when life feels sharp.",
+      "action": "Include one naturally sweet cooked food instead of a sugary snack.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 52,
+      "theme": "Mind & mood",
+      "title": "Reduce leftovers for clearer energy",
+      "idea": "Freshly cooked food is prized in Ayurveda. Reheating once is fine; endless reheats less so.",
+      "action": "Cook a smaller fresh batch rather than a huge pot for many days.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 53,
+      "theme": "Mind & mood",
+      "title": "Quiet lunch once this week",
+      "idea": "Eating in silence for even five minutes deepens satisfaction.",
+      "action": "Take the first five minutes of lunch without conversation or media.",
+      "season": "all",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 54,
+      "theme": "Mind & mood",
+      "title": "Saffron milk for a special evening",
+      "idea": "A few strands of saffron in warm milk turn an ordinary night into a ritual.",
+      "action": "Soak 3–4 saffron strands in warm milk for 10 minutes; sip slowly.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 55,
+      "theme": "Mind & mood",
+      "title": "Share one homemade dish",
+      "idea": "Prasad is food offered with care. Sharing amplifies the kitchen’s purpose.",
+      "action": "Cook a little extra of something simple and offer it to someone today.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 56,
+      "theme": "Kitchen habits",
+      "title": "Wash produce with intention",
+      "idea": "Rinsing vegetables is also a moment to arrive in the kitchen.",
+      "action": "Wash greens leaf by leaf under cool water; shake dry before cooking.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 57,
+      "theme": "Kitchen habits",
+      "title": "Keep a spice tadka jar ready",
+      "idea": "Pre-mix a small jar of cumin + coriander + turmeric for rushed nights.",
+      "action": "Fill a small jar with your three go-to ground spices for weeknights.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 58,
+      "theme": "Kitchen habits",
+      "title": "Use cast iron or heavy pans when you can",
+      "idea": "Steady heat cooks more evenly and suits slow vegetable dishes.",
+      "action": "Cook today’s sabzi in your heaviest pan on medium-low.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 59,
+      "theme": "Kitchen habits",
+      "title": "Salt in layers",
+      "idea": "Season early and adjust at the end so food tastes awake, not flat.",
+      "action": "Salt onions as they soften, then taste again before serving.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 60,
+      "theme": "Kitchen habits",
+      "title": "Rest dough and rest yourself",
+      "idea": "Waiting is part of cooking — use resting time for a stretch or a breath.",
+      "action": "While dough or batter rests, do 5 shoulder rolls instead of scrolling.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 61,
+      "theme": "Digestion",
+      "title": "Buttermilk (chaas) after lunch",
+      "idea": "Spiced buttermilk can feel lighter than a second helping of rice when lunch was rich.",
+      "action": "Whisk yogurt with water, roasted cumin, salt, and coriander; sip after lunch.",
+      "season": "summer,spring",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 62,
+      "theme": "Kitchen wisdom",
+      "title": "Ajwain for heavy bread days",
+      "idea": "Carom seeds in paratha dough or tadka help when meals feel dense.",
+      "action": "Add a pinch of ajwain to dough or temper oil for vegetables.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 63,
+      "theme": "Morning ritual",
+      "title": "Warm sesame oil self-massage (abhyanga)",
+      "idea": "Even a 5-minute arm and leg oil massage before showering softens dryness.",
+      "action": "Warm oil slightly; massage limbs toward the heart; shower with warm water.",
+      "season": "autumn,winter",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 64,
+      "theme": "Drinks",
+      "title": "Jeera water mid-morning",
+      "idea": "Cumin water is a simple desk drink that supports digestion between meals.",
+      "action": "Soak 1 tsp cumin overnight or simmer 5 minutes; sip mid-morning.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 65,
+      "theme": "Seasonal",
+      "title": "Sesame and jaggery in winter",
+      "idea": "Til-gud combinations bring warmth and sweetness when cold settles in.",
+      "action": "Enjoy a small piece of sesame-jaggery as an afternoon bite.",
+      "season": "winter",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 66,
+      "theme": "Self-care",
+      "title": "Nasya with plain sesame (tiny amount)",
+      "idea": "A micro-drop of oil at the nostrils can ease dry winter air — only if it suits you.",
+      "action": "Warm a drop of sesame oil; dab gently at nostril openings (skip if congested or unsure).",
+      "season": "autumn,winter",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 67,
+      "theme": "Kitchen wisdom",
+      "title": "Fresh ginger-garlic paste weekly",
+      "idea": "A small jar of paste saves time and keeps flavour bright for tadkas.",
+      "action": "Blend equal ginger and garlic with a splash of oil; refrigerate up to a week.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 68,
+      "theme": "Digestion",
+      "title": "Avoid stacking heavy + heavy",
+      "idea": "Cheese with deep-fried food or ice cream after a big curry often overwhelms digestion.",
+      "action": "Pair one rich item with light sides (salad, broth, steamed veg).",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 69,
+      "theme": "Daily rhythm",
+      "title": "Same wake time, even on weekends",
+      "idea": "A steady wake-up anchors appetite and mood across the week.",
+      "action": "Set tomorrow’s wake time within 30 minutes of today’s.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 70,
+      "theme": "Spices",
+      "title": "Clove in rice water for aroma",
+      "idea": "One clove in the rice pot perfumes the grain without overpowering.",
+      "action": "Add 1 clove when cooking rice; remove before serving if you prefer.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 71,
+      "theme": "Mind & mood",
+      "title": "Cook barefoot if the floor is safe",
+      "idea": "Feeling the ground can settle scattered energy while you prepare food.",
+      "action": "Try cooking one meal barefoot on a clean mat or warm floor.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 72,
+      "theme": "Kitchen wisdom",
+      "title": "Lemon pickle as a tiny digestive",
+      "idea": "A small piece of homemade lemon pickle can spark appetite before a meal.",
+      "action": "Serve a pea-sized piece with lunch — not a large salty heap.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 73,
+      "theme": "Seasonal",
+      "title": "Mango in season, mindfully",
+      "idea": "Ripe mango is prized — enjoy at peak season, preferably at lunch, not late night.",
+      "action": "Have mango as a midday treat, not right before sleep.",
+      "season": "summer",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 74,
+      "theme": "Drinks",
+      "title": "Coriander seed tea for heat",
+      "idea": "Coriander tea is mild, aromatic, and cooling when days feel sharp.",
+      "action": "Simmer 1 tsp coriander seeds 5 minutes; strain and sip.",
+      "season": "summer",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 75,
+      "theme": "Self-care",
+      "title": "Stretch the spine after sitting",
+      "idea": "Kitchen and desk work compress the body; a simple stretch restores flow.",
+      "action": "Stand, reach arms up, then fold gently for 3 breaths after cooking.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 76,
+      "theme": "Kitchen habits",
+      "title": "Label spice jars by Sanskrit or Hindi too",
+      "idea": "Connecting names (haldi, jeera, dhania) keeps tradition alive in a modern kitchen.",
+      "action": "Add a second label to three jars with the Indian name you use at home.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 77,
+      "theme": "Digestion",
+      "title": "Fruit alone or before other food",
+      "idea": "Many Ayurvedic kitchens prefer fruit away from heavy meals to avoid sluggishness.",
+      "action": "Have fruit mid-morning instead of as dessert after a large dinner.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 78,
+      "theme": "Morning ritual",
+      "title": "Neti only when trained and needed",
+      "idea": "Nasal rinsing can help some people in dusty seasons — learn proper method first.",
+      "action": "If you already use neti, keep water lukewarm and saline correct; otherwise skip today.",
+      "season": "spring",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 79,
+      "theme": "Kitchen wisdom",
+      "title": "Jaggery instead of refined sugar once",
+      "idea": "A small swap toward less-processed sweetness for tea or desserts.",
+      "action": "Sweetened one drink or dish with jaggery today.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 80,
+      "theme": "Daily rhythm",
+      "title": "Protect the lunch break",
+      "idea": "A real pause midday is medicine for busy kitchens and busy minds.",
+      "action": "Block 20 minutes for lunch away from work chat if you can.",
+      "season": "all",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 81,
+      "theme": "Spices",
+      "title": "Curry leaves in every south-leaning tadka",
+      "idea": "Fresh curry leaves add aroma and a living green note to oil.",
+      "action": "Crackle 6–8 curry leaves in oil for today’s dal or vegetables.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 82,
+      "theme": "Self-care",
+      "title": "Cool the eyes with palms",
+      "idea": "After screen time or chopping onions, cupping warm palms over closed eyes rests the senses.",
+      "action": "Rub palms together; cup over eyes for 5 breaths.",
+      "season": "all",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 83,
+      "theme": "Kitchen wisdom",
+      "title": "Ferments in small daily amounts",
+      "idea": "Idli, dosa batter, or homemade yogurt in modest portions can support the gut.",
+      "action": "Include one small fermented item with a meal today.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 84,
+      "theme": "Seasonal",
+      "title": "Pomegranate in transitional weather",
+      "idea": "The astringent-sweet bite of anar freshens when seasons shift.",
+      "action": "Scatter pomegranate seeds over raita, salad, or warm grain bowls.",
+      "season": "autumn,spring",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 85,
+      "theme": "Drinks",
+      "title": "Ginger-tulsi for damp mornings",
+      "idea": "When the air feels heavy, a pungent herbal tea clears the path to breakfast.",
+      "action": "Steep ginger slices with tulsi; sip before eating.",
+      "season": "spring",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 86,
+      "theme": "Mind & mood",
+      "title": "Cook music or silence — choose on purpose",
+      "idea": "Either can be right. The key is choosing, not defaulting to noise.",
+      "action": "Decide before you start: quiet kitchen or one calm playlist.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 87,
+      "theme": "Kitchen habits",
+      "title": "Mise en place for calmer cooking",
+      "idea": "Chopping before the pan heats reduces stress and burning.",
+      "action": "Prep all ingredients into bowls before turning on the flame.",
+      "season": "all",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 88,
+      "theme": "Digestion",
+      "title": "Hing water for stubborn fullness",
+      "idea": "A pinch of asafoetida in warm water is an old home remedy after overeating.",
+      "action": "Stir a tiny pinch of hing into warm water; sip slowly after a heavy meal.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 89,
+      "theme": "Daily rhythm",
+      "title": "Bedtime closer to 10 when you can",
+      "idea": "Sleep before the deepest night hours often feels more restorative.",
+      "action": "Set a gentle reminder to begin wind-down by 9:30 tonight.",
+      "season": "all",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 90,
+      "theme": "Kitchen wisdom",
+      "title": "Offer the first serving as prasad mindset",
+      "idea": "Even a home meal can be cooked as an offering — care first, rush second.",
+      "action": "Plate the first serving neatly as if for a guest, then eat mindfully.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 91,
+      "theme": "Kitchen wisdom",
+      "title": "Toast spices whole before grinding",
+      "idea": "Light dry-toasting wakes essential oils so home-ground masala tastes brighter.",
+      "action": "Toast 1 tsp cumin until fragrant; cool; crush; use in today’s dish.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 92,
+      "theme": "Digestion",
+      "title": "Sip warm water through the afternoon",
+      "idea": "Steady warm sips keep digestion moving without filling the stomach.",
+      "action": "Keep a thermos at your desk and finish it before evening.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 93,
+      "theme": "Morning ritual",
+      "title": "Make your bed, then make tea",
+      "idea": "A tiny completed task settles the mind before caffeine.",
+      "action": "Smooth the bed, then prepare your morning drink.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 94,
+      "theme": "Spices",
+      "title": "Star anise in vegetable broth",
+      "idea": "One star anise pod gives depth to soups without meat stock.",
+      "action": "Simmer 1 star anise in today’s soup; remove before serving.",
+      "season": "autumn,winter",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 95,
+      "theme": "Self-care",
+      "title": "Wash hands as a reset ritual",
+      "idea": "Warm water and a slow wash between tasks marks a clean mental slate.",
+      "action": "Wash hands slowly before cooking and before eating.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 96,
+      "theme": "Seasonal",
+      "title": "Bottle gourd (lauki) for light dinners",
+      "idea": "Lauki dishes are classic when you want dinner to feel soft and easy.",
+      "action": "Cook lauki with cumin and tomato for a light evening meal.",
+      "season": "summer",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 97,
+      "theme": "Kitchen habits",
+      "title": "Keep a scrap pot for stock",
+      "idea": "Onion ends, herb stems, and clean veg peels become tomorrow’s broth.",
+      "action": "Save clean scraps in a box; simmer into stock at week’s end.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 98,
+      "theme": "Drinks",
+      "title": "Fennel-coriander cooler",
+      "idea": "A light seed infusion refreshes without caffeine.",
+      "action": "Steep fennel and coriander 1:1; drink at room temperature.",
+      "season": "summer",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 99,
+      "theme": "Mind & mood",
+      "title": "Name three flavours on the plate",
+      "idea": "Noticing taste trains presence and slows eating.",
+      "action": "Before the second bite, name three flavours you can detect.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 100,
+      "theme": "Daily rhythm",
+      "title": "Stretch hips after long standing",
+      "idea": "Chefs and home cooks stand for hours — hips hold the strain.",
+      "action": "Figure-four stretch against a counter for 30 seconds each side.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 101,
+      "theme": "Kitchen wisdom",
+      "title": "Use mustard oil carefully for punch",
+      "idea": "A little mustard oil in tadka gives bold character to greens and potatoes.",
+      "action": "Heat mustard oil until it just smokes lightly, cool a moment, then cook.",
+      "season": "winter",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 102,
+      "theme": "Digestion",
+      "title": "Papaya or pineapple as a midday fruit",
+      "idea": "Naturally enzyme-rich fruits can feel helpful after heavier weeks.",
+      "action": "Have a small bowl of ripe papaya mid-morning or after light lunch.",
+      "season": "summer,spring",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 103,
+      "theme": "Spices",
+      "title": "Nutmeg micro-pinch in evening milk",
+      "idea": "A tiny grating of nutmeg is traditional for night calm — less is more.",
+      "action": "Grate a dusting of nutmeg into warm milk; avoid large amounts.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 104,
+      "theme": "Self-care",
+      "title": "Foot soak after kitchen service",
+      "idea": "Warm water with a pinch of salt eases feet after long prep.",
+      "action": "Soak feet 10 minutes; dry; oil lightly.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 105,
+      "theme": "Morning ritual",
+      "title": "Open a window while the kettle boils",
+      "idea": "Fresh air with morning tea clears overnight staleness.",
+      "action": "Crack a window for the few minutes it takes water to heat.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 106,
+      "theme": "Kitchen wisdom",
+      "title": "Sprout moong for a living salad",
+      "idea": "Home sprouts bring crunch and lightness when digestion feels dull.",
+      "action": "Soak moong overnight; drain; sprout 1–2 days; toss with lemon and salt.",
+      "season": "spring",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 107,
+      "theme": "Seasonal",
+      "title": "Pumpkin with mild spices in autumn",
+      "idea": "Sweet squash with cumin and a touch of chilli balances cool weather.",
+      "action": "Cube pumpkin; cook with cumin, turmeric, and salt until soft.",
+      "season": "autumn",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 108,
+      "theme": "Drinks",
+      "title": "Cinnamon stick in the water jug",
+      "idea": "A stick of cinnamon gently flavours water all afternoon.",
+      "action": "Drop 1 cinnamon stick into your water jug today.",
+      "season": "autumn,winter",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 109,
+      "theme": "Daily rhythm",
+      "title": "No heavy snacks after sunset",
+      "idea": "Late heavy snacks tax sleep. Prefer herbal tea if hunger visits.",
+      "action": "After dinner, choose herbal tea over fried or sweet snacks.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 110,
+      "theme": "Mind & mood",
+      "title": "Write tomorrow’s meal in one line",
+      "idea": "A single planned meal reduces decision fatigue and waste.",
+      "action": "Write tomorrow’s lunch on a sticky note before bed.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 111,
+      "theme": "Kitchen habits",
+      "title": "Sharpen one knife this week",
+      "idea": "A sharp knife is safer and calmer than forcing a dull blade.",
+      "action": "Hone your main chef’s knife before the next prep session.",
+      "season": "all",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 112,
+      "theme": "Digestion",
+      "title": "Yogurt at lunch, not late night",
+      "idea": "Many Ayurvedic kitchens prefer yogurt earlier in the day.",
+      "action": "Move raita or yogurt to lunch instead of a late evening bowl.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 113,
+      "theme": "Spices",
+      "title": "Bay leaf in dal for quiet depth",
+      "idea": "One bay leaf adds a soft background note without chilli heat.",
+      "action": "Add 1 bay leaf to simmering dal; remove before serving.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 114,
+      "theme": "Self-care",
+      "title": "Shoulder rolls between chopping batches",
+      "idea": "Micro-breaks prevent the cook’s hunch.",
+      "action": "Every time you finish a chopping board, do 5 slow shoulder rolls.",
+      "season": "all",
+      "dosha_focus": "vata"
+    },
+    {
+      "id": 115,
+      "theme": "Kitchen wisdom",
+      "title": "Amla when you find it fresh",
+      "idea": "Indian gooseberry is prized for its tart brightness — enjoy in season.",
+      "action": "If available, add grated amla to chutney or a small pickle serving.",
+      "season": "winter",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 116,
+      "theme": "Morning ritual",
+      "title": "Stand and stretch before coffee",
+      "idea": "Move first, stimulate second — the day opens softer.",
+      "action": "Reach for the sky and touch your toes (gently) before the first caffeine.",
+      "season": "all",
+      "dosha_focus": "kapha"
+    },
+    {
+      "id": 117,
+      "theme": "Seasonal",
+      "title": "Cooling cucumber raita in heatwaves",
+      "idea": "Raita beside a spicy main keeps the plate balanced.",
+      "action": "Grate cucumber into yogurt with roasted cumin and salt.",
+      "season": "summer",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 118,
+      "theme": "Drinks",
+      "title": "Pandey / mint lemonade without ice crush",
+      "idea": "A room-temp lemon-mint drink cools without shocking digestion.",
+      "action": "Mix lemon, mint, pinch salt, water; serve cool, not iced.",
+      "season": "summer",
+      "dosha_focus": "pitta"
+    },
+    {
+      "id": 119,
+      "theme": "Daily rhythm",
+      "title": "Batch-chop once, cook twice",
+      "idea": "One prep session can feed two calm dinners.",
+      "action": "Chop onions and peppers for tonight and tomorrow in one go.",
+      "season": "all",
+      "dosha_focus": "all"
+    },
+    {
+      "id": 120,
+      "theme": "Mind & mood",
+      "title": "Serve food on a real plate",
+      "idea": "Eating from packaging keeps the mind in hurry mode.",
+      "action": "Plate leftovers properly before reheating and sitting down.",
+      "season": "all",
+      "dosha_focus": "all"
+    }
+  ]
+}

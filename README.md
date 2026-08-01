@@ -10,8 +10,16 @@
 | `index.html` | Full landing page |
 | `styles.css` | Styling |
 | `script.js` | Menu + early access form |
+| `pure-prasad-kitchen/` | **Pure Prasad Kitchen** — daily Ayurvedic idea (auto) |
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
 | `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
+
+## Pure Prasad Kitchen (daily Ayurveda)
+
+Open [`pure-prasad-kitchen/`](pure-prasad-kitchen/) for a **new Ayurvedic kitchen idea every day**.
+
+- Auto rotation is built into the page + GitHub Action (`.github/workflows/pure-prasad-daily.yml`)
+- Optional AI refresh: paste `.cursor/automations/pure-prasad-daily.md` into [cursor.com/automations](https://cursor.com/automations)
 
 ## Preview locally (Windows)
 
