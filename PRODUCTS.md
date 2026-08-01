@@ -1,19 +1,28 @@
-# Products map — keep these SEPARATE
+# PRODUCTS — always keep separate
 
-This monorepo is only storage. **Do not mix brands in UI, nav, or marketing copy.**
+> **Rule for humans and agents:** files, nav, logos, domains, and PR copy for each product must stay separate. Forever. No mixing.
 
-| Product | What it is | Where it should live |
-|---------|------------|----------------------|
-| **Parslia Kitchen OS** | Professional kitchen software marketing / app | Repo root: `index.html`, `styles.css`, `script.js`, `assets/` — domain `parslia.app` |
-| **Pure Prasad Kitchen** | Home Ayurvedic / chef brand | Own site `pureprasadkitchen.com` (folder `pure-prasad-kitchen/` if present) — **no Parslia nav** |
-| **Menu Creator** | Printable menu / allergen boards (QR → Pure Prasad) | `menu-creator/` only — **never** link from Parslia nav/features |
-| **Kiteline** | Separate kitchen ops product | Separate codebase — not Parslia site |
-| **Libraix / LibriaX** | AI / astrology product | `libraix/` only |
+| Product | What it is | Allowed paths | Domain / brand |
+|---------|------------|---------------|----------------|
+| **Parslia Kitchen OS** | Professional kitchen software | Root `index.html`, `styles.css`, `script.js`, `assets/`, Parslia docs | `parslia.app` |
+| **Pure Prasad Kitchen** | Ayurvedic / chef brand, daily ideas | `pure-prasad-kitchen/` only | `pureprasadkitchen.com` |
+| **Menu Creator** | Printable menus + allergen boards | `menu-creator/`, related `patches/*menu*` only | Standalone tool (QR may point to Pure Prasad) |
+| **Kiteline** | Separate kitchen ops app | Patches only when explicitly requested; not Parslia site | Own app |
+| **Libraix / LibriaX** | AI / astrology product | `libraix/` only | Own product |
 
-## Rules for agents
+## Never do this
 
-1. Never add Pure Prasad, Menu Creator, Kiteline, or Libraix into the Parslia header/hero as if they are one product.
-2. Never brand Menu Creator screens with Parslia logos or “Parslia Kitchen OS”.
-3. Pure Prasad pages must not say “part of the Parslia kitchen family”.
-4. If work is for Menu Creator, change files under `menu-creator/` / patches — not Parslia marketing copy.
-5. Shared monorepo is OK for storage; **brands must stay visually and copy-wise separate**.
+- Put **Menu Creator** or **Pure Prasad** in the Parslia header, hero, modules, or footer
+- Call Menu Creator “Parslia Menu Creator”
+- Say Pure Prasad is “part of the Parslia family”
+- Drop Libraix or Kiteline features onto the Parslia marketing page
+- One PR that rebrands or cross-wires two products “for convenience”
+
+## Always do this
+
+- Change only the product folder the task is about
+- Keep separate README / title / brand voice per product
+- Name PRs after **one** product
+- Read this file before adding any nav link between products
+
+See also: [`AGENTS.md`](./AGENTS.md) and `.cursor/rules/keep-products-separate.mdc`.

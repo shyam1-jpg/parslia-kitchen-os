@@ -15,7 +15,8 @@
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
 | `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
 
-**Brand rule:** Menu Creator is standalone (Pure Prasad / kitchen print tool). Never put it in the Parslia nav, hero, or feature cards.
+**ALWAYS keep products separate.** See `PRODUCTS.md` + `AGENTS.md`.  
+Menu Creator, Pure Prasad Kitchen, Parslia, Kiteline, and Libraix must never share nav, logos, or marketing copy.
 
 ## Preview locally (Windows)
 
