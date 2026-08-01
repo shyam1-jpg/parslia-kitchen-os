@@ -13,4 +13,4 @@ Run `patches/OPEN-PRINT-MENU-NOW.bat` or open `menu-creator/PRINT-NOW.html`.
 ## Fix Kiteline
 1. Run `APPLY-MENU-TEXT-ALIGN.bat`
 2. Restart Kiteline → Ctrl+Shift+R
-3. Confirm **Build simple-v1**
+3. Confirm **Build simple-v1.1**

@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Apply Menu Creator simple-v1
+title Apply Menu Creator simple-v1.1
 echo.
 echo  Menu Creator — simple mode (weekly menu removed)
 echo  ================================================
@@ -44,7 +44,7 @@ echo  Next:
 echo   1. Restart Kiteline
 echo   2. Open Menu Creator
 echo   3. Ctrl+Shift+R
-echo   4. Confirm: Build simple-v1
+echo   4. Confirm: Build simple-v1.1
 echo   5. Paste menu - Generate - Print
 echo.
 echo  Or open PRINT-NOW.html in the menu-creator folder to print now.
