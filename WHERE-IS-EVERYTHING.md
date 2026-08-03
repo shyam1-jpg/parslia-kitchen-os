@@ -18,30 +18,29 @@ This is the **full marketing page** from Hercules:
 
 ---
 
-## Why parslia.app shows the wrong site
+## Domain ownership
 
-**Two hosts are fighting:**
+**Registrar / DNS:** **GoDaddy** (`ns63.domaincontrol.com`, `ns64.domaincontrol.com`).
 
-| Host | What it shows |
-|------|----------------|
-| **GoDaddy DNS** (current) | GoDaddy Website Builder template |
-| **GitHub Pages** (intended) | Your Hercules landing page |
+| Host | Purpose | Status |
+|------|---------|--------|
+| `parslia.app` | Marketing site (this repo / GitHub Pages) | Live |
+| `app.parslia.app` | Working Kitchen OS (Hercules) | DNS not set yet |
+| `parslia-kitchen-os-667132.onhercules.app` | Temporary Kitchen OS URL | Live (use for PWA Builder today) |
 
-GitHub Pages is set to `parslia.app`, but **GoDaddy DNS still points to GoDaddy**, not GitHub.
+Full DNS map + GoDaddy steps: **`APP-DOMAIN-DNS.md`**.
 
-### Fix DNS in GoDaddy (for GitHub Pages)
+---
 
-1. Turn off GoDaddy Website Builder for parslia.app
-2. In DNS, set **A records** for `@`:
+## Apex marketing DNS (already correct)
 
-   - `185.199.108.153`
-   - `185.199.109.153`
-   - `185.199.110.153`
-   - `185.199.111.153`
+`parslia.app` already serves this GitHub Pages landing (`server: GitHub.com`). Keep:
 
-3. Set **CNAME** for `www` → `shyam1-jpg.github.io`
+1. **A** `@` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
+2. **CNAME** `www` → `shyam1-jpg.github.io`
+3. GitHub → Settings → Pages → custom domain `parslia.app` → HTTPS
 
-4. In GitHub → repo **Settings → Pages** → custom domain `parslia.app` → enforce HTTPS
+Do **not** point apex `@` at Hercules — that would replace the marketing site.
 
 ---
 
@@ -64,14 +63,17 @@ GitHub Pages is set to `parslia.app`, but **GoDaddy DNS still points to GoDaddy*
 - [x] Early access form (opens email — **no server**)
 - [x] GitHub Pages deploy workflow
 
-### Missing (backend + product)
+### Missing (backend + branded app host)
 
-- [ ] **Backend API** (Node/Express or similar)
-- [ ] **User registration / login**
+- [ ] **GoDaddy DNS** for `app.parslia.app` → Hercules (owner login required)
+- [ ] **Hercules Domains** entry for `app.parslia.app`
+- [ ] **Backend API** (Node/Express or similar) if not fully on Hercules
+- [ ] **User registration / login** (if still needed beyond Hercules auth)
 - [ ] **Stripe payments**
 - [ ] **Newsletter** (e.g. Mailchimp, Resend, Buttondown)
 - [ ] **Contact form** saved to database (not mailto)
-- [ ] **Parslia Kitchen OS app** (recipes, stock, rota — the tablet UI in your video)
+
+Kitchen OS product is already live on Hercules — package that URL (or `app.parslia.app` after DNS), not the marketing homepage.
 
 ---
 
@@ -95,8 +97,8 @@ Apple submission still needs the owner’s Apple Developer account (Cloud cannot
 
 ## Next steps
 
-1. Fix GoDaddy DNS → GitHub Pages (landing page goes live)
-2. Give `CLOUD-LAUNCH-APP-STORE.md` to Cloud / Hercules
-3. Create full privacy + terms pages before App Store submit
-4. Capacitor iOS wrap + TestFlight + App Store Connect
-5. Add `server/` backend for auth, payments, newsletter
+1. In GoDaddy + Hercules Domains, connect `app.parslia.app` (see `APP-DOMAIN-DNS.md`)
+2. Re-run PWA Builder on `https://app.parslia.app` (or the Hercules URL until DNS propagates)
+3. Give `CLOUD-LAUNCH-APP-STORE.md` to Cloud / Hercules for store packaging
+4. Create full privacy + terms pages before App Store submit
+5. Capacitor iOS wrap + TestFlight + App Store Connect

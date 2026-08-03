@@ -8,7 +8,10 @@ Local marketing page is already updated with launch strips and App Store section
 | Repo | https://github.com/shyam1-jpg/parslia-kitchen-os |
 | Local folder | `C:\Users\shyam prasad\Desktop\parslia-kitchen-os\` |
 | Landing page | `index.html` + `styles.css` + `script.js` |
-| Domain | https://parslia.app |
+| Marketing domain | https://parslia.app (GitHub Pages) |
+| Kitchen OS (temp) | https://parslia-kitchen-os-667132.onhercules.app |
+| Kitchen OS (branded) | https://app.parslia.app — GoDaddy DNS, see `APP-DOMAIN-DNS.md` |
+| DNS registrar | **GoDaddy** (`ns63/ns64.domaincontrol.com`) |
 | Contact | hello@parslia.app |
 | Product | Parslia Kitchen OS |
 | Must advertise | **AI Image** + **AI Voice Finder** |
@@ -185,16 +188,17 @@ Microphone permission is only used for AI Voice Finder.
 
 ## Cloud task E — launch checklist (do in order)
 
-1. DNS → GitHub Pages live on parslia.app  
-2. Full privacy + terms live  
-3. Production app URL stable (HTTPS)  
-4. Capacitor iOS build signed  
-5. Screenshots + listing text uploaded  
-6. TestFlight internal test (AI Image + AI Voice Finder)  
-7. Submit for App Review  
-8. On approval: paste App Store URL into `index.html` store badge  
-9. Push landing update to GitHub  
-10. Announce early-access list via hello@parslia.app  
+1. Marketing DNS → GitHub Pages live on parslia.app *(done)*  
+2. Owner: GoDaddy + Hercules Domains → `app.parslia.app` for Kitchen OS (`APP-DOMAIN-DNS.md`)  
+3. PWA Builder / store package against Kitchen OS URL (not marketing homepage)  
+4. Full privacy + terms live  
+5. Production app URL stable (HTTPS) — prefer `https://app.parslia.app`  
+6. Capacitor iOS build signed  
+7. Screenshots + listing text uploaded  
+8. TestFlight internal test (AI Image + AI Voice Finder)  
+9. Submit for App Review  
+10. On approval: paste App Store URL into `index.html` store badge  
+11. Announce early-access list via hello@parslia.app  
 
 ---
 

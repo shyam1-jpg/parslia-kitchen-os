@@ -1,6 +1,8 @@
 # Parslia Kitchen OS — marketing site
 
-**Live domain (when DNS points to GitHub Pages):** https://parslia.app  
+**Marketing site:** https://parslia.app (GitHub Pages)  
+**Kitchen OS (live):** https://parslia-kitchen-os-667132.onhercules.app  
+**Kitchen OS (branded host):** https://app.parslia.app — needs GoDaddy DNS (see `APP-DOMAIN-DNS.md`)  
 **GitHub:** https://github.com/shyam1-jpg/parslia-kitchen-os
 
 ## Files
@@ -9,7 +11,8 @@
 |------|---------|
 | `index.html` | Full landing page |
 | `styles.css` | Styling |
-| `script.js` | Menu + early access form |
+| `script.js` | Menu + early access form + Kitchen OS CTA URLs |
+| `APP-DOMAIN-DNS.md` | GoDaddy DNS map for `parslia.app` vs `app.parslia.app` |
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
 | `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
 
@@ -36,26 +39,21 @@ Open http://localhost:8000
 - https://cursor.com/artifacts/v/art-a83a6a46-6892-4258-a7e1-e7dec9a979e4
 - https://cursor.com/artifacts/v/art-e15bc4f8-923a-4858-8359-e5baeef338c3
 
-## Go live on parslia.app
+## Domain split (important)
 
-GitHub Pages is already configured with custom domain **parslia.app**.
+| Host | What it is |
+|------|------------|
+| `parslia.app` | Marketing / early access (this repo) |
+| `app.parslia.app` | Working Kitchen OS on Hercules (PWA / store packaging) |
 
-In **GoDaddy DNS**, point `@` to GitHub Pages A records:
+**DNS registrar:** GoDaddy (`ns63/ns64.domaincontrol.com`). Full steps: `APP-DOMAIN-DNS.md`.
 
-- `185.199.108.153`
-- `185.199.109.153`
-- `185.199.110.153`
-- `185.199.111.153`
-
-CNAME `www` → `shyam1-jpg.github.io`
-
-Turn off GoDaddy Website Builder.
+Apex marketing DNS is already on GitHub Pages. Next owner step: add Hercules records for the `app` subdomain only — do not repoint `@` to Hercules.
 
 ## Not included yet (backend)
 
 - User registration / login
 - Stripe payments
 - Newsletter API
-- Kitchen OS app (recipes, stock, rota)
 
-See `WHERE-IS-EVERYTHING.md` for full map.
+Kitchen OS product UI is live on Hercules (link above). See `WHERE-IS-EVERYTHING.md` for full map.

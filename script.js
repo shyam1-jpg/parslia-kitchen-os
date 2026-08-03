@@ -1,6 +1,45 @@
 (function () {
   "use strict";
 
+  // Kitchen OS: temporary Hercules host until GoDaddy CNAME app → Hercules is live.
+  // After DNS: set KITCHEN_OS_URL to "https://app.parslia.app" (see APP-DOMAIN-DNS.md).
+  var KITCHEN_OS_URL = "https://parslia-kitchen-os-667132.onhercules.app";
+  var CANONICAL_APP_URL = "https://app.parslia.app";
+
+  document.querySelectorAll("[data-kitchen-os-url]").forEach(function (link) {
+    link.setAttribute("href", KITCHEN_OS_URL);
+  });
+
+  // When app.parslia.app resolves with the PWA manifest, flip CTAs to the branded host.
+  try {
+    var controller = new AbortController();
+    var timer = setTimeout(function () {
+      controller.abort();
+    }, 2500);
+    fetch(CANONICAL_APP_URL + "/site.webmanifest", {
+      method: "GET",
+      mode: "cors",
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(function (res) {
+        clearTimeout(timer);
+        if (!res.ok) return;
+        return res.json().then(function (manifest) {
+          if (!manifest || !manifest.name) return;
+          KITCHEN_OS_URL = CANONICAL_APP_URL;
+          document.querySelectorAll("[data-kitchen-os-url]").forEach(function (link) {
+            link.setAttribute("href", CANONICAL_APP_URL);
+          });
+        });
+      })
+      .catch(function () {
+        clearTimeout(timer);
+      });
+  } catch (e) {
+    /* ignore — keep Hercules URL */
+  }
+
   // Mobile menu toggle
   var toggle = document.querySelector(".nav-toggle");
   var mobileNav = document.getElementById("mobileNav");
