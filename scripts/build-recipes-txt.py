@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Build a clean, editable plain-text recipe collection from scraped JSON."""
+"""Build a clean, editable plain-text recipe collection from scraped JSON.
+
+Prefer scripts/repair-recipe-ingredients.py when regenerating vegetarian-recipes.txt:
+it rebuilds from data/vegetarian-recipe-parts/ and fixes broken fractions, ranges,
+glued lines, and missing ingredients (including Pesto Khandvi).
+"""
 
 import html
 import json
