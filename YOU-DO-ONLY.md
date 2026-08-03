@@ -10,7 +10,7 @@ Paste fields from **`APP-STORE-CONNECT-PASTE.md`**.
 
 ---
 
-## Checklist
+## Checklist — Apple
 
 - [ ] Apple Developer membership **Active** — https://developer.apple.com/account  
 - [ ] Merge PR #68 (privacy/terms go live)  
@@ -19,4 +19,12 @@ Paste fields from **`APP-STORE-CONNECT-PASTE.md`**.
 - [ ] Screenshots + demo login → **Submit for Review**  
 - [ ] Set price → wait for **Ready for Sale**
 
-Reply **“Active”** or **“Merged”** when those are done and I’ll guide the next screen.
+## Checklist — Google Play (can do while Apple waits)
+
+- [ ] Merge PR #68 (same privacy URL)  
+- [ ] https://play.google.com/console → register (~$25) → Create app  
+- [ ] Paste `GOOGLE-PLAY-CONNECT-PASTE.md` + upload feature graphic  
+- [ ] `cd native && npm i && npx cap sync android && npx cap open android` → signed AAB  
+- [ ] Internal testing → Production → Send for review  
+
+Reply **“Play”** when you’re in Play Console and I’ll guide the next screen.

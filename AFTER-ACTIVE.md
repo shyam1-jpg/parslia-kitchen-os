@@ -62,15 +62,34 @@ When Apple approves → status **Ready for Sale** = live to customers.
 
 ---
 
+## Google Play (while Apple waits)
+
+Full steps: **`GOOGLE-PLAY-GO-LIVE.md`** · paste: **`GOOGLE-PLAY-CONNECT-PASTE.md`**
+
+1. https://play.google.com/console → pay one-time fee if needed → **Create app**  
+2. Paste store listing + upload `assets/parslia-play-feature-1024x500.png`  
+3. On PC/Mac with Android Studio:
+   ```bash
+   cd native
+   npm install
+   npx cap sync android
+   npx cap open android
+   ```
+4. Generate signed **AAB** → Internal testing → Production → Send for review  
+
+---
+
 ## What Cloud already finished
 
 | Item | Location |
 |------|----------|
 | Privacy + Terms pages | `privacy/`, `terms/` |
-| Capacitor iOS app | `native/` (`app.parslia.kitchen`) |
-| 1024 icon | `assets/parslia-app-icon-1024.png` |
-| Listing text | `APP-STORE-CONNECT-PASTE.md` |
-| Mic/camera privacy strings | `native/ios/App/App/Info.plist` |
+| Capacitor iOS app | `native/ios` (`app.parslia.kitchen`) |
+| Capacitor Android app | `native/android` (`app.parslia.kitchen`) |
+| 1024 icon + Play feature graphic | `assets/parslia-app-icon-1024.png`, `assets/parslia-play-feature-1024x500.png` |
+| Apple listing text | `APP-STORE-CONNECT-PASTE.md` |
+| Play listing text | `GOOGLE-PLAY-CONNECT-PASTE.md` |
+| Mic/camera privacy strings | iOS `Info.plist` + Android `AndroidManifest.xml` |
 | Kitchen OS URL wrapped | Hercules live app |
 
-Cloud **cannot**: sign in as you, Archive on your Mac, or click Submit.
+Cloud **cannot**: sign in as you, Archive on your Mac, sign Play keystore, or click Submit.

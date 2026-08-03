@@ -165,13 +165,13 @@ Microphone permission is only used for AI Voice Finder.
 
 ---
 
-## Cloud task C — Google Play (optional, same week)
+## Cloud task C — Google Play (same week / while Apple waits)
 
-1. Create Google Play Console listing.  
-2. Use same icon + feature graphic (1024×500).  
-3. Same description; mention AI Image + AI Voice Finder.  
-4. Build Android with Capacitor (`npx cap add android`) after iOS path works.  
-5. Put Play Store URL into landing badge `store-google`.
+1. ~~Capacitor Android~~ → Done in `native/android` (`app.parslia.kitchen`).  
+2. Feature graphic → `assets/parslia-play-feature-1024x500.png`.  
+3. Paste kit → `GOOGLE-PLAY-CONNECT-PASTE.md` · steps → `GOOGLE-PLAY-GO-LIVE.md`.  
+4. Owner: Play Console (~$25) → create app → signed AAB upload → review.  
+5. After approve: put Play Store URL into landing badge `store-google`.
 
 ---
 

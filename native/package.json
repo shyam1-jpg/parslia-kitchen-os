@@ -6,11 +6,14 @@
   "scripts": {
     "sync": "npx cap sync",
     "sync:ios": "npx cap sync ios",
+    "sync:android": "npx cap sync android",
     "open:ios": "npx cap open ios",
+    "open:android": "npx cap open android",
     "add:ios": "npx cap add ios",
     "add:android": "npx cap add android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
     "@capacitor/app": "^8.1.1",
     "@capacitor/core": "^8.5.0",
     "@capacitor/ios": "^8.5.0",
