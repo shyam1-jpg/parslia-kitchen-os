@@ -1,0 +1,24 @@
+{
+  "name": "parslia-kitchen-os-native",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Capacitor iOS/Android shell for Parslia Kitchen OS (wraps Hercules / app.parslia.app)",
+  "scripts": {
+    "sync": "npx cap sync",
+    "sync:ios": "npx cap sync ios",
+    "open:ios": "npx cap open ios",
+    "add:ios": "npx cap add ios",
+    "add:android": "npx cap add android"
+  },
+  "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
+    "@capacitor/keyboard": "^8.0.5",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.0"
+  }
+}

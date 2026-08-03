@@ -24,6 +24,10 @@ Local marketing page is already updated with launch strips and App Store section
 - [x] Audience strip: kitchens / catering / retreats / hotels / vegetarian / food production  
 - [x] `#get-app` section with App Store + Google Play badges (link to early access until real store URLs exist)  
 - [x] Privacy + Terms stubs (`#privacy`, `#terms`) for store listing readiness  
+- [x] Full legal pages: `/privacy/`, `/terms/` (App Store URLs)  
+- [x] Capacitor iOS shell in `native/` (bundle `app.parslia.kitchen`)  
+- [x] 1024×1024 App Store icon: `assets/parslia-app-icon-1024.png`  
+- [x] Go-live checklist: `APP-STORE-GO-LIVE.md`  
 - [x] Hero / features / modules mention AI Image + AI Voice Finder  
 
 **Cloud task A — publish landing**
@@ -68,29 +72,25 @@ Parslia currently has a web landing + `libraix/` web app. There is **no Capacito
 
 ### B2. Wrap the web app (or PWA) for iOS
 
-1. Choose the app shell to wrap:  
-   - Prefer production web app URL once hosted (e.g. `https://app.parslia.app`), **or**  
-   - Build static/PWA from `libraix/frontend` and point Capacitor at it.  
-2. In the app project root:
+1. Wrap **Kitchen OS** (Hercules), not marketing and not `libraix/`.  
+   Capacitor project already lives in `native/` with `server.url` → Hercules.  
+2. On a Mac:
 
 ```bash
-npm i @capacitor/core @capacitor/cli @capacitor/ios
-npx cap init "Parslia Kitchen OS" app.parslia.kitchen
-npx cap add ios
+cd native
+npm install
 npx cap sync ios
 npx cap open ios
 ```
 
 3. In Xcode:  
    - Set Team = Shyam’s Apple Developer team  
-   - Bundle Identifier = `app.parslia.kitchen`  
-   - Deployment target iOS 15+  
-   - Add App Icon from `assets/USE_THIS_parslia_app_icon_1024.png` (1024×1024, no alpha for App Store)  
-   - Enable capabilities needed: Microphone (AI Voice Finder), Camera/Photos if AI Image uses them  
-4. Add `Info.plist` usage strings:  
-   - `NSMicrophoneUsageDescription` — “Parslia uses the microphone for AI Voice Finder.”  
-   - `NSCameraUsageDescription` / `NSPhotoLibraryUsageDescription` if image capture/upload is used  
-5. Archive → Distribute App → App Store Connect.
+   - Bundle Identifier = `app.parslia.kitchen` (already set)  
+   - Deployment target iOS 15+ (already set)  
+   - App Icon from `assets/parslia-app-icon-1024.png` (already copied into Assets)  
+   - Microphone / Camera / Photos usage strings already in `Info.plist`  
+4. Archive → Distribute App → App Store Connect.  
+5. Full click-path: **`APP-STORE-GO-LIVE.md`**.
 
 ### B3. App Store Connect listing copy (paste this)
 
@@ -177,12 +177,10 @@ Microphone permission is only used for AI Voice Finder.
 
 ## Cloud task D — legal pages before submit
 
-1. Create real pages:  
-   - `privacy.html` or `/privacy`  
-   - `terms.html` or `/terms`  
-2. Cover: account data, kitchen data, AI providers (OpenAI etc.), cookies, contact email, deletion request.  
-3. Link them from footer and App Store Connect.  
-4. Replace the short stubs currently in `index.html` `#privacy` / `#terms` with links to full pages.
+1. ~~Create real pages~~ → Done: `/privacy/`, `/terms/` in repo.  
+2. Merge to `main` so GitHub Pages serves https://parslia.app/privacy/ and `/terms/`.  
+3. In App Store Connect set Privacy Policy URL to `https://parslia.app/privacy/`.  
+4. Footer on landing already links to these pages.
 
 ---
 
@@ -213,7 +211,7 @@ Microphone permission is only used for AI Voice Finder.
 
 ## Hercules thread reference
 
-https://hercules.app/dashboard/app/01KRRZFRR3VVK2SZH1VB8KNXWH?threadId=01KWSDMG33E9MVSWWZZ9XDRBQN
+https://hercules.app/dashboard/app/01KRRZFRR3VVK2SZH1VB8KNXWH?threadId=01KRRZFRVRF2M443ETX6RQ6AK5
 
 ---
 

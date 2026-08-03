@@ -83,7 +83,7 @@ Kitchen OS product is already live on Hercules — package that URL (or `app.par
 
 ## Hercules (online, login required)
 
-https://hercules.app/dashboard/app/01KRRZFRR3VVK2SZH1VB8KNXWH?threadId=01KWSDMG33E9MVSWWZZ9XDRBQN
+https://hercules.app/dashboard/app/01KRRZFRR3VVK2SZH1VB8KNXWH?threadId=01KRRZFRVRF2M443ETX6RQ6AK5
 
 ---
 
@@ -97,8 +97,8 @@ Apple submission still needs the owner’s Apple Developer account (Cloud cannot
 
 ## Next steps
 
-1. In GoDaddy + Hercules Domains, connect `app.parslia.app` (see `APP-DOMAIN-DNS.md`)
-2. Re-run PWA Builder on `https://app.parslia.app` (or the Hercules URL until DNS propagates)
-3. Give `CLOUD-LAUNCH-APP-STORE.md` to Cloud / Hercules for store packaging
-4. Create full privacy + terms pages before App Store submit
-5. Capacitor iOS wrap + TestFlight + App Store Connect
+1. Merge App Store prep → privacy/terms live on `parslia.app` (see `APP-STORE-GO-LIVE.md`)
+2. Owner: Apple Developer + Mac Xcode Archive from `native/`
+3. Owner: App Store Connect listing + screenshots + demo login → Submit
+4. Optional: GoDaddy + Hercules Domains → `app.parslia.app` (`APP-DOMAIN-DNS.md`)
+5. On Ready for Sale: paste App Store URL into landing badges

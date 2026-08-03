@@ -13,6 +13,10 @@
 | `styles.css` | Styling |
 | `script.js` | Menu + early access form + Kitchen OS CTA URLs |
 | `APP-DOMAIN-DNS.md` | GoDaddy DNS map for `parslia.app` vs `app.parslia.app` |
+| `APP-STORE-GO-LIVE.md` | Apple App Store sell / submit checklist |
+| `privacy/` · `terms/` | App Store legal URLs |
+| `native/` | Capacitor iOS shell (`app.parslia.kitchen`) |
+| `assets/parslia-app-icon-1024.png` | App Store 1024×1024 icon |
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
 | `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
 

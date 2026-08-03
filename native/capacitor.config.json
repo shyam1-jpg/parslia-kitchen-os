@@ -1,0 +1,33 @@
+{
+  "appId": "app.parslia.kitchen",
+  "appName": "Parslia Kitchen OS",
+  "webDir": "www",
+  "server": {
+    "url": "https://parslia-kitchen-os-667132.onhercules.app",
+    "cleartext": false,
+    "allowNavigation": [
+      "parslia-kitchen-os-667132.onhercules.app",
+      "app.parslia.app",
+      "*.onhercules.app",
+      "*.hercules-auth.com",
+      "*.hercules.app"
+    ]
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "scheme": "Parslia Kitchen OS",
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "launchAutoHide": true,
+      "backgroundColor": "#063F32",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#063F32"
+    }
+  }
+}
