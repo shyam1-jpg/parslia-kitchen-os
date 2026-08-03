@@ -24,12 +24,14 @@ Sell Parslia on the Apple App Store. This file is the single checklist.
 | Step | Who | Status |
 |------|-----|--------|
 | Marketing site live | — | Done (`parslia.app` → GitHub Pages) |
-| Privacy + Terms pages | Cloud | Done in repo (`/privacy/`, `/terms/`) — live after merge to `main` |
-| Capacitor iOS shell | Cloud | Done scaffolding in `native/` |
+| Privacy + Terms pages | Cloud | Done in repo — **merge PR #68** to go live on parslia.app |
+| Capacitor iOS shell | Cloud | Done in `native/` |
 | 1024 App Store icon | Cloud | Done (`assets/parslia-app-icon-1024.png`) |
-| Listing copy | Cloud | Ready in `CLOUD-LAUNCH-APP-STORE.md` § B3 |
-| `app.parslia.app` DNS | Owner (GoDaddy + Hercules) | Pending |
-| Apple Developer Program ($99/yr) | Owner | Required |
+| Listing paste kit | Cloud | `APP-STORE-CONNECT-PASTE.md` |
+| Post-enrollment steps | Cloud | `AFTER-ACTIVE.md` |
+| `app.parslia.app` DNS | Owner (GoDaddy + Hercules) | Optional |
+| Apple Developer Program ($99/yr) | Owner | Pay / confirm **Active** |
+| Merge PR #68 | Owner | Required (privacy URL) |
 | Mac + Xcode Archive | Owner | Required |
 | App Store Connect app + screenshots | Owner | Required |
 | Demo reviewer login | Owner | Required |
