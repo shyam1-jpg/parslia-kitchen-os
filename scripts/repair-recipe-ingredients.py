@@ -7,7 +7,7 @@ fraction/range data), then:
   - splits glued ingredient lines into separate bullets
   - restores ingredients named in the method but missing from the list
   - strips brand names
-  - adds a complete Pesto Khandvi recipe (was missing / incomplete)
+  - adds a complete onion/garlic-free Pesto Khandvi recipe (Pure Prasad Kitchen)
 """
 
 from __future__ import annotations
@@ -87,14 +87,38 @@ METHOD_INGREDIENT_HINTS = [
 
 # Manual full overrides for recipes that are too broken to auto-repair
 MANUAL_INGREDIENTS: dict[str, list[str]] = {
+    "Burnt Garlic Vegetable Fried Rice": [
+        # Source title; allium-free script renames to Spiced Vegetable Fried Rice
+        "1 cup basmati rice, soaked and drained",
+        "5-6 French beans, finely chopped",
+        "1/4 medium cabbage, finely shredded",
+        "1 medium carrot, peeled and grated",
+        "1 tablespoon oil",
+        "a pinch of hing (asafoetida)",
+        "salt to taste",
+        "1 teaspoon soy sauce",
+        "1 teaspoon vinegar",
+        "spring-onion-free garnish: chopped coriander, optional",
+    ],
+    "Spiced Vegetable Fried Rice": [
+        "1 cup basmati rice, soaked and drained",
+        "5-6 French beans, finely chopped",
+        "1/4 medium cabbage, finely shredded",
+        "1 medium carrot, peeled and grated",
+        "1 tablespoon oil",
+        "a pinch of hing (asafoetida)",
+        "salt to taste",
+        "1 teaspoon soy sauce",
+        "1 teaspoon vinegar",
+        "fresh coriander leaves, chopped, optional",
+    ],
     "Cashew Pesto Pasta": [
         "10-15 cashews",
         "1½ cups fresh basil leaves",
         "8-10 black peppercorns",
-        "10-15 garlic cloves (divided: some for pesto, some chopped for sauté)",
+        "a pinch of hing (asafoetida)",
         "1½ tablespoons parmesan cheese powder, plus grated parmesan to sprinkle",
         "½ cup + 2 tablespoons extra virgin olive oil",
-        "1 tablespoon chopped garlic",
         "4-5 button mushrooms, quartered",
         "¼ cup boiled corn kernels",
         "5-6 cherry tomatoes, halved",
@@ -122,12 +146,12 @@ MANUAL_INGREDIENTS: dict[str, list[str]] = {
     "Pista Chickpea Hummus": [
         "2 cups pistachios",
         "1½ cups boiled chickpeas",
-        "3-4 garlic cloves",
+        "a pinch of hing (asafoetida)",
         "a handful of fresh parsley",
         "salt to taste",
         "crushed black peppercorns to taste",
         "extra virgin olive oil, as required",
-        "pickled carrot, cucumber and onion slices, to serve",
+        "pickled carrot and cucumber slices, to serve",
         "black olives, to serve",
         "cherry tomatoes, quartered, to serve",
         "toasted sourdough bread slices, to serve",
@@ -136,7 +160,7 @@ MANUAL_INGREDIENTS: dict[str, list[str]] = {
         "½ cup roasted salted pistachios, shelled",
         "4 toasted sourdough bread slices",
         "1½ cups fresh basil leaves",
-        "3-4 garlic cloves",
+        "a pinch of hing (asafoetida)",
         "¼ cup extra virgin olive oil",
         "2 tablespoons grated parmesan cheese",
         "halved cherry tomatoes, as required",
@@ -147,7 +171,7 @@ MANUAL_INGREDIENTS: dict[str, list[str]] = {
     "Sundried Tomato Walnut Pesto": [
         "15-20 sundried tomatoes, soaked and drained",
         "8-10 walnuts",
-        "5 garlic cloves",
+        "a pinch of hing (asafoetida)",
         "2 tablespoons parmesan cheese powder",
         "¼ cup extra virgin olive oil",
         "salt to taste",
@@ -173,7 +197,6 @@ MANUAL_INGREDIENTS: dict[str, list[str]] = {
         "cream cheese, for spreading",
         "crushed black peppercorns to taste",
         "salt to taste",
-        "pickled onion rings, for garnish",
         "4 tablespoons mixed seeds",
         "micro greens, for garnish",
         "extra virgin olive oil, for drizzling",
@@ -183,7 +206,7 @@ MANUAL_INGREDIENTS: dict[str, list[str]] = {
         "1/4 teaspoon turmeric powder",
         "1/2 teaspoon red chilli powder",
         "1/2 teaspoon coriander powder",
-        "a pinch of asafoetida (hing)",
+        "a pinch of hing (asafoetida)",
         "salt to taste",
         "2 tablespoons oil, plus more for cooking",
         "1/2 cup yogurt, whisked",
@@ -234,6 +257,7 @@ MANUAL_INGREDIENTS: dict[str, list[str]] = {
         "2 tablespoons chopped fresh coriander",
         "1/4 cup yogurt",
         "1 teaspoon green chilli-ginger paste",
+        "a pinch of hing (asafoetida)",
         "rock salt (sendha namak) to taste",
         "1 tablespoon + ¼ cup ghee",
         "water, as required",
@@ -325,8 +349,9 @@ MANUAL_INGREDIENTS: dict[str, list[str]] = {
 PESTO_KHANDVI = {
     "title": "Pesto Khandvi",
     "description": (
-        "Fusion Gujarati snack: soft gram-flour khandvi rolls filled with "
-        "basil pesto and finished with a garlic–chilli olive oil tadka."
+        "Fusion Gujarati snack for Pure Prasad Kitchen: soft gram-flour khandvi "
+        "rolls filled with onion/garlic-free basil pesto and finished with a "
+        "hing–chilli olive oil tadka."
     ),
     "meta": (
         "Cuisine: Fusion  Course: Snacks and Starters  Prep: 15 minutes  "
@@ -342,16 +367,16 @@ PESTO_KHANDVI = {
         "1/2 teaspoon lemon juice",
         "salt to taste",
         "oil, for greasing the plates",
-        "Basil pesto filling:",
+        "Basil pesto filling (onion/garlic-free):",
         "2 cups fresh basil leaves",
-        "2-3 garlic cloves",
+        "a pinch of hing (asafoetida)",
         "1/4 cup olive oil, plus extra if needed",
         "1/4 cup toasted walnuts or pine nuts",
         "2 tablespoons grated parmesan cheese (or nutritional yeast for a vegetarian hard-cheese swap)",
         "salt and black pepper to taste",
         "Tempering:",
         "2 tablespoons olive oil",
-        "2 garlic cloves, finely chopped",
+        "a pinch of hing (asafoetida)",
         "1 teaspoon red chilli flakes",
         "6-8 fresh basil leaves, shredded",
     ],
@@ -359,13 +384,13 @@ PESTO_KHANDVI = {
         "Whisk the sour yogurt with the water until smooth.",
         "Add the gram flour a little at a time and whisk until completely lump-free.",
         "Mix in the green chilli-ginger paste, turmeric, lemon juice and salt.",
-        "For the pesto, blend basil, garlic, olive oil, toasted nuts, parmesan, salt and pepper to a smooth paste; loosen with a little more oil if needed. Do not add water.",
+        "For the pesto, blend basil, hing, olive oil, toasted nuts, parmesan, salt and pepper to a smooth paste; loosen with a little more oil if needed. Do not add water.",
         "Pour the khandvi batter into a wide non-stick pan and cook on low–medium heat, stirring vigorously the whole time, until thick and glossy (about 12–15 minutes).",
         "Test by spreading a teaspoon on a greased plate — it should set and roll cleanly. If it cracks, cook 1–2 minutes more.",
         "While hot, spread the batter thinly over greased thalis or the back of large plates. Leave until just cool enough to handle.",
         "Spread a thin layer of pesto over the set sheets.",
         "Cut into long strips, roll each strip tightly, and arrange on a serving plate.",
-        "For the tadka, warm olive oil, sauté the chopped garlic until golden, then add chilli flakes and shredded basil until the leaves crisp.",
+        "For the tadka, warm olive oil, bloom a pinch of hing, then add chilli flakes and shredded basil until the leaves crisp.",
         "Pour the tempering over the rolls and serve at room temperature.",
     ],
 }
