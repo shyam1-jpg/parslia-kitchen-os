@@ -40,12 +40,15 @@ Open: https://appstoreconnect.apple.com → **My Apps** → **+** → **New App*
 
 ---
 
-## Description
+## Description (from live Hercules app)
+
+Source: https://parslia-kitchen-os-667132.onhercules.app  
+Manifest name: Parslia Kitchen OS · short: Parslia · theme `#063F32`
 
 ```
-Parslia Kitchen OS is professional kitchen software for chefs, caterers, retreat centres and hospitality teams.
+Parslia Kitchen OS helps professional kitchens manage recipes, menus, allergens, stock, rota and compliance — with AI Image and AI Voice Finder built in.
 
-Plan menus, manage recipes, control allergens, track stock and suppliers, run rota and kitchen logs — all in one calm system.
+Smarter kitchens. Calmer chefs. Recipes, menus, stock, and compliance in one premium workspace.
 
 AI FEATURES
 • AI Image — generate professional dish and recipe photos for menus, boards and training
@@ -64,11 +67,12 @@ Built for vegetarian-friendly and sattvic kitchen operations as well as general 
 
 Website: https://parslia.app
 Support: hello@parslia.app
+App: https://parslia-kitchen-os-667132.onhercules.app
 ```
 
 **Promotional text (170 chars max):**
 ```
-Now with AI Image and AI Voice Finder — create dish photos and find recipes by voice.
+Smarter kitchens. Calmer chefs. AI Image + AI Voice Finder for recipes, menus, allergens, stock and rota.
 ```
 
 **Keywords:**
