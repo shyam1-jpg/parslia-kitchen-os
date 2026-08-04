@@ -211,6 +211,23 @@ h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.12;
 .benefit h3 { font-size: 1.35rem; margin: 8px 0 6px; color: var(--green-deep); }
 .benefit p { margin: 0; color: var(--muted); }
 
+/* Pricing */
+.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: stretch; }
+.price-card {
+  background: var(--card-white); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 28px 24px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px;
+  transition: transform .2s, box-shadow .2s;
+}
+.price-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.price-card.featured { border-color: var(--copper); box-shadow: var(--shadow-lg); transform: translateY(-4px); }
+.price-card.featured:hover { transform: translateY(-6px); }
+.price-card h3 { color: var(--green-deep); font-size: 1.35rem; }
+.price-for { color: var(--muted); margin: 0; font-size: .95rem; }
+.price-amount { font-family: var(--font-head); font-size: 1.4rem; color: var(--copper); font-weight: 600; margin: 4px 0 8px; }
+.price-card ul { margin: 0 0 16px; padding-left: 1.1rem; color: var(--muted); flex: 1; }
+.price-card li { margin-bottom: 6px; }
+.price-card .btn { align-self: stretch; }
+
 /* Early access */
 .early-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
 .early-copy h2 { font-size: clamp(1.9rem, 3.8vw, 2.7rem); }
@@ -247,6 +264,8 @@ h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.12;
   .card-grid, .module-grid { grid-template-columns: repeat(2, 1fr); }
   .steps { grid-template-columns: repeat(2, 1fr); }
   .screen-grid { grid-template-columns: 1fr; gap: 32px; }
+  .pricing-grid { grid-template-columns: 1fr 1fr; }
+  .price-card.featured { transform: none; }
   .early-grid, .get-app-grid { grid-template-columns: 1fr; gap: 32px; }
 }
 @media (max-width: 900px) {
@@ -258,7 +277,7 @@ h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.12;
   .hero { padding: 48px 0 64px; }
   .header-inner { height: 64px; }
   .brand-logo { height: 36px; }
-  .problem-grid, .benefits, .card-grid, .steps, .module-grid { grid-template-columns: 1fr; }
+  .problem-grid, .benefits, .card-grid, .steps, .module-grid, .pricing-grid { grid-template-columns: 1fr; }
   .app-stats { grid-template-columns: repeat(3, 1fr); }
   .footer-inner { flex-direction: column; align-items: flex-start; }
   .strip-inner span:not(:last-child)::after { margin-left: 14px; }
