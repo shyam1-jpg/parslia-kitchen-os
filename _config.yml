@@ -1,0 +1,19 @@
+# GitHub Pages (Jekyll): publish marketing + legal; skip native/app tooling
+exclude:
+  - native
+  - libraix
+  - scripts
+  - node_modules
+  - package.json
+  - package-lock.json
+  - netlify.toml
+  - render.yaml
+  - vegetarian-recipes.txt
+  - PREVIEW.bat
+  - CLOUD-LAUNCH-APP-STORE.md
+  - APP-DOMAIN-DNS.md
+  - APP-STORE-GO-LIVE.md
+  - WHERE-IS-EVERYTHING.md
+  - LIBRAIX_OWNER_DESKTOP_GUIDE.md
+  - README.md
+  - .github

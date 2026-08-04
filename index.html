@@ -14,12 +14,12 @@
   <meta property="og:title" content="Parslia Kitchen OS" />
   <meta property="og:description" content="Smarter kitchens. Calmer chefs. Kitchen OS with AI Image, AI Voice Finder, recipes, menus, allergens, stock and rota." />
   <meta property="og:url" content="https://parslia.app/" />
-  <meta property="og:image" content="assets/USE_THIS_parslia_app_icon_1024.png" />
+  <meta property="og:image" content="https://parslia.app/assets/USE_THIS_parslia_header_logo_clean.png" />
   <meta name="twitter:card" content="summary_large_image" />
 
-  <!-- Favicon / app icon: use ONLY the provided app-icon file -->
-  <link rel="icon" href="assets/USE_THIS_parslia_app_icon_1024.png" />
-  <link rel="apple-touch-icon" href="assets/USE_THIS_parslia_app_icon_1024.png" />
+  <!-- Official outer Parslia Kitchen OS wordmark -->
+  <link rel="icon" href="assets/USE_THIS_parslia_header_logo_clean.png" />
+  <link rel="apple-touch-icon" href="assets/parslia-app-icon-1024.png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -32,9 +32,16 @@
     "@type": "SoftwareApplication",
     "name": "Parslia Kitchen OS",
     "applicationCategory": "BusinessApplication",
-    "operatingSystem": "Web",
+    "operatingSystem": "Web, iOS",
     "description": "Parslia Kitchen OS helps chefs manage recipes, menus, allergens, stock, rota — plus AI Image and AI Voice Finder — in one professional kitchen system.",
-    "url": "https://parslia.app/"
+    "url": "https://parslia.app/",
+    "applicationSubCategory": "Kitchen operations",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "GBP",
+      "description": "Early access / App Store pricing set in App Store Connect"
+    }
   }
   </script>
 </head>
@@ -55,7 +62,7 @@
         <a href="#modules">Modules</a>
         <a href="#get-app">App Store</a>
         <a href="#early-access">Early Access</a>
-        <a class="btn btn-primary btn-sm" href="#get-app">Get the app</a>
+        <a class="btn btn-primary btn-sm" href="https://parslia-kitchen-os-667132.onhercules.app" data-kitchen-os-url rel="noopener">Open Kitchen OS</a>
       </nav>
 
       <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">
@@ -67,7 +74,7 @@
       <a href="#modules">Modules</a>
       <a href="#get-app">App Store</a>
       <a href="#early-access">Early Access</a>
-      <a class="btn btn-primary" href="#get-app">Get the app</a>
+      <a class="btn btn-primary" href="https://parslia-kitchen-os-667132.onhercules.app" data-kitchen-os-url rel="noopener">Open Kitchen OS</a>
     </nav>
   </header>
 
@@ -86,7 +93,7 @@
             in one calm organised system.
           </p>
           <div class="hero-cta">
-            <a class="btn btn-primary" href="#get-app">App Store · coming soon</a>
+            <a class="btn btn-primary" href="https://parslia-kitchen-os-667132.onhercules.app" data-kitchen-os-url rel="noopener">Open Kitchen OS</a>
             <a class="btn btn-outline" href="#early-access">Request Early Access</a>
           </div>
           <p class="trust-line">
@@ -99,7 +106,7 @@
           <div class="app-window">
             <div class="app-topbar">
               <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-              <div class="app-url">parslia.app</div>
+              <div class="app-url">app.parslia.app</div>
             </div>
             <div class="app-body">
               <aside class="app-side">
@@ -334,8 +341,9 @@
           <span class="eyebrow">Launch</span>
           <h2>Parslia on the App Store.</h2>
           <p>
-            The iPhone and iPad app is being prepared for Apple App Store review.
-            Join early access now — you will get the download link the moment it goes live.
+            The web Kitchen OS is live now. The iPhone and iPad app is prepared for Apple App Store
+            submission (bundle id <code>app.parslia.kitchen</code>).
+            Join early access for the download link the moment it is <strong>Ready for Sale</strong>.
             Parslia includes <strong>AI Image</strong> and <strong>AI Voice Finder</strong> alongside
             full kitchen operations.
           </p>
@@ -347,7 +355,13 @@
           </ul>
         </div>
         <div class="get-app-badges">
-          <p class="get-app-label">Coming soon</p>
+          <p class="get-app-label">Web app live · stores coming soon</p>
+          <a class="btn btn-primary" href="https://parslia-kitchen-os-667132.onhercules.app" data-kitchen-os-url rel="noopener">Open Kitchen OS</a>
+          <p class="get-app-note">
+            Working app: <a href="https://parslia-kitchen-os-667132.onhercules.app" data-kitchen-os-url rel="noopener">Hercules URL</a>
+            · Production host: <code>app.parslia.app</code> (GoDaddy DNS — see <code>APP-DOMAIN-DNS.md</code>).
+            Use the Kitchen OS URL in PWA Builder, not the marketing homepage.
+          </p>
           <a class="store-badge store-apple" href="#early-access" aria-label="Download on the App Store — coming soon">
             <span class="store-badge-top">Download on the</span>
             <span class="store-badge-name">App Store</span>
@@ -356,7 +370,7 @@
             <span class="store-badge-top">GET IT ON</span>
             <span class="store-badge-name">Google Play</span>
           </a>
-          <p class="get-app-note">Badges link to early access until store URLs are live. Replace with real App Store / Play links after approval.</p>
+          <p class="get-app-note">Store badges link to early access until App Store / Play URLs are approved.</p>
         </div>
       </div>
     </section>
@@ -406,9 +420,9 @@
         <h2>Privacy</h2>
         <p>
           Parslia Kitchen OS processes account and kitchen operational data to provide the service.
-          We do not sell personal data. For privacy questions or data requests, email
-          <a href="mailto:hello@parslia.app">hello@parslia.app</a>.
-          A full privacy policy page will be published at parslia.app/privacy before App Store launch.
+          We do not sell personal data. Read the full policy at
+          <a href="/privacy/">parslia.app/privacy</a>
+          or email <a href="mailto:hello@parslia.app">hello@parslia.app</a> for data requests.
         </p>
       </div>
     </section>
@@ -417,10 +431,10 @@
         <span class="eyebrow">Legal</span>
         <h2>Terms</h2>
         <p>
-          Early access is provided as-is while Parslia Kitchen OS is in active development.
-          Paid plans, where offered, will be described at checkout or by invoice.
+          Use of Parslia Kitchen OS (web and iOS) is governed by our
+          <a href="/terms/">Terms of Service</a>.
+          Paid plans, where offered, are described at checkout, by invoice, or via the App Store.
           Contact <a href="mailto:hello@parslia.app">hello@parslia.app</a> for commercial terms.
-          Full terms will be published at parslia.app/terms before App Store launch.
         </p>
       </div>
     </section>
@@ -441,8 +455,8 @@
         <a href="#get-app">App Store</a>
         <a href="#early-access">Early Access</a>
         <a href="mailto:hello@parslia.app">Contact</a>
-        <a href="#privacy">Privacy</a>
-        <a href="#terms">Terms</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
       </nav>
     </div>
     <div class="container footer-bottom">

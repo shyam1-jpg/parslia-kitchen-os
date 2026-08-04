@@ -1,3 +1,17 @@
 node_modules/
+native/node_modules/
+native/ios/App/Pods/
+native/ios/App/build/
+native/android/.gradle/
+native/android/app/build/
+native/android/build/
+native/android/captures/
+native/android/local.properties
+*.jks
+*.keystore
+*.aab
+*.apk
 .netlify/
 libraix/frontend/.vite/
+.DS_Store
+*.xcuserstate

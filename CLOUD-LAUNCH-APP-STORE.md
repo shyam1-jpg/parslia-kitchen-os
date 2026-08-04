@@ -8,7 +8,10 @@ Local marketing page is already updated with launch strips and App Store section
 | Repo | https://github.com/shyam1-jpg/parslia-kitchen-os |
 | Local folder | `C:\Users\shyam prasad\Desktop\parslia-kitchen-os\` |
 | Landing page | `index.html` + `styles.css` + `script.js` |
-| Domain | https://parslia.app |
+| Marketing domain | https://parslia.app (GitHub Pages) |
+| Kitchen OS (temp) | https://parslia-kitchen-os-667132.onhercules.app |
+| Kitchen OS (branded) | https://app.parslia.app — GoDaddy DNS, see `APP-DOMAIN-DNS.md` |
+| DNS registrar | **GoDaddy** (`ns63/ns64.domaincontrol.com`) |
 | Contact | hello@parslia.app |
 | Product | Parslia Kitchen OS |
 | Must advertise | **AI Image** + **AI Voice Finder** |
@@ -21,6 +24,10 @@ Local marketing page is already updated with launch strips and App Store section
 - [x] Audience strip: kitchens / catering / retreats / hotels / vegetarian / food production  
 - [x] `#get-app` section with App Store + Google Play badges (link to early access until real store URLs exist)  
 - [x] Privacy + Terms stubs (`#privacy`, `#terms`) for store listing readiness  
+- [x] Full legal pages: `/privacy/`, `/terms/` (App Store URLs)  
+- [x] Capacitor iOS shell in `native/` (bundle `app.parslia.kitchen`)  
+- [x] 1024×1024 App Store icon: `assets/parslia-app-icon-1024.png`  
+- [x] Go-live checklist: `APP-STORE-GO-LIVE.md`  
 - [x] Hero / features / modules mention AI Image + AI Voice Finder  
 
 **Cloud task A — publish landing**
@@ -65,29 +72,25 @@ Parslia currently has a web landing + `libraix/` web app. There is **no Capacito
 
 ### B2. Wrap the web app (or PWA) for iOS
 
-1. Choose the app shell to wrap:  
-   - Prefer production web app URL once hosted (e.g. `https://app.parslia.app`), **or**  
-   - Build static/PWA from `libraix/frontend` and point Capacitor at it.  
-2. In the app project root:
+1. Wrap **Kitchen OS** (Hercules), not marketing and not `libraix/`.  
+   Capacitor project already lives in `native/` with `server.url` → Hercules.  
+2. On a Mac:
 
 ```bash
-npm i @capacitor/core @capacitor/cli @capacitor/ios
-npx cap init "Parslia Kitchen OS" app.parslia.kitchen
-npx cap add ios
+cd native
+npm install
 npx cap sync ios
 npx cap open ios
 ```
 
 3. In Xcode:  
    - Set Team = Shyam’s Apple Developer team  
-   - Bundle Identifier = `app.parslia.kitchen`  
-   - Deployment target iOS 15+  
-   - Add App Icon from `assets/USE_THIS_parslia_app_icon_1024.png` (1024×1024, no alpha for App Store)  
-   - Enable capabilities needed: Microphone (AI Voice Finder), Camera/Photos if AI Image uses them  
-4. Add `Info.plist` usage strings:  
-   - `NSMicrophoneUsageDescription` — “Parslia uses the microphone for AI Voice Finder.”  
-   - `NSCameraUsageDescription` / `NSPhotoLibraryUsageDescription` if image capture/upload is used  
-5. Archive → Distribute App → App Store Connect.
+   - Bundle Identifier = `app.parslia.kitchen` (already set)  
+   - Deployment target iOS 15+ (already set)  
+   - App Icon from `assets/parslia-app-icon-1024.png` (already copied into Assets)  
+   - Microphone / Camera / Photos usage strings already in `Info.plist`  
+4. Archive → Distribute App → App Store Connect.  
+5. Full click-path: **`APP-STORE-GO-LIVE.md`**.
 
 ### B3. App Store Connect listing copy (paste this)
 
@@ -162,39 +165,38 @@ Microphone permission is only used for AI Voice Finder.
 
 ---
 
-## Cloud task C — Google Play (optional, same week)
+## Cloud task C — Google Play (same week / while Apple waits)
 
-1. Create Google Play Console listing.  
-2. Use same icon + feature graphic (1024×500).  
-3. Same description; mention AI Image + AI Voice Finder.  
-4. Build Android with Capacitor (`npx cap add android`) after iOS path works.  
-5. Put Play Store URL into landing badge `store-google`.
+1. ~~Capacitor Android~~ → Done in `native/android` (`app.parslia.kitchen`).  
+2. Feature graphic → `assets/parslia-play-feature-1024x500.png`.  
+3. Paste kit → `GOOGLE-PLAY-CONNECT-PASTE.md` · steps → `GOOGLE-PLAY-GO-LIVE.md`.  
+4. Owner: Play Console (~$25) → create app → signed AAB upload → review.  
+5. After approve: put Play Store URL into landing badge `store-google`.
 
 ---
 
 ## Cloud task D — legal pages before submit
 
-1. Create real pages:  
-   - `privacy.html` or `/privacy`  
-   - `terms.html` or `/terms`  
-2. Cover: account data, kitchen data, AI providers (OpenAI etc.), cookies, contact email, deletion request.  
-3. Link them from footer and App Store Connect.  
-4. Replace the short stubs currently in `index.html` `#privacy` / `#terms` with links to full pages.
+1. ~~Create real pages~~ → Done: `/privacy/`, `/terms/` in repo.  
+2. Merge to `main` so GitHub Pages serves https://parslia.app/privacy/ and `/terms/`.  
+3. In App Store Connect set Privacy Policy URL to `https://parslia.app/privacy/`.  
+4. Footer on landing already links to these pages.
 
 ---
 
 ## Cloud task E — launch checklist (do in order)
 
-1. DNS → GitHub Pages live on parslia.app  
-2. Full privacy + terms live  
-3. Production app URL stable (HTTPS)  
-4. Capacitor iOS build signed  
-5. Screenshots + listing text uploaded  
-6. TestFlight internal test (AI Image + AI Voice Finder)  
-7. Submit for App Review  
-8. On approval: paste App Store URL into `index.html` store badge  
-9. Push landing update to GitHub  
-10. Announce early-access list via hello@parslia.app  
+1. Marketing DNS → GitHub Pages live on parslia.app *(done)*  
+2. Owner: GoDaddy + Hercules Domains → `app.parslia.app` for Kitchen OS (`APP-DOMAIN-DNS.md`)  
+3. PWA Builder / store package against Kitchen OS URL (not marketing homepage)  
+4. Full privacy + terms live  
+5. Production app URL stable (HTTPS) — prefer `https://app.parslia.app`  
+6. Capacitor iOS build signed  
+7. Screenshots + listing text uploaded  
+8. TestFlight internal test (AI Image + AI Voice Finder)  
+9. Submit for App Review  
+10. On approval: paste App Store URL into `index.html` store badge  
+11. Announce early-access list via hello@parslia.app  
 
 ---
 
@@ -209,7 +211,7 @@ Microphone permission is only used for AI Voice Finder.
 
 ## Hercules thread reference
 
-https://hercules.app/dashboard/app/01KRRZFRR3VVK2SZH1VB8KNXWH?threadId=01KWSDMG33E9MVSWWZZ9XDRBQN
+https://hercules.app/dashboard/app/01KRRZFRR3VVK2SZH1VB8KNXWH?threadId=01KRRZFRVRF2M443ETX6RQ6AK5
 
 ---
 
