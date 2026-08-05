@@ -66,9 +66,9 @@ SHOTS = [
     },
     {
         "id": "06-allergens",
-        "tagline": "Allergen control built in",
+        "tagline": "Nutrition & allergens, done right",
         "screen": "allergens",
-        "nav": "Allergens",
+        "nav": "Nutrition & Allergens",
     },
     {
         "id": "07-portions",
@@ -98,13 +98,12 @@ SHOTS = [
 
 NAV = [
     "Home",
-    "Dashboards",
-    "Library",
+    "Dashboard",
     "Recipe Library",
+    "Nutrition & Allergens",
     "AI Image",
     "AI Voice",
     "Menus",
-    "Allergens",
     "Portions",
     "Logs",
     "Stock",
@@ -165,20 +164,22 @@ def wrap_text(draw, text, fnt, max_width):
 
 def draw_background(img: Image.Image):
     w, h = img.size
-    draw = ImageDraw.Draw(img)
+    px = img.load()
+    cx, cy = w // 2, int(h * 0.42)
+    max_d = (cx ** 2 + cy ** 2) ** 0.5
     for y in range(h):
         t = y / max(h - 1, 1)
-        # vertical blend green mid -> deep
-        r = int(GREEN_MID[0] * (1 - t) + GREEN_DEEP[0] * t)
-        g = int(GREEN_MID[1] * (1 - t) + GREEN_DEEP[1] * t)
-        b = int(GREEN_MID[2] * (1 - t) + GREEN_DEEP[2] * t)
-        # copper wash near top
-        if t < 0.35:
-            k = (0.35 - t) / 0.35 * 0.16
-            r = int(r * (1 - k) + COPPER[0] * k)
-            g = int(g * (1 - k) + COPPER[1] * k)
-            b = int(b * (1 - k) + COPPER[2] * k)
-        draw.line([(0, y), (w, y)], fill=(r, g, b))
+        base_r = int(GREEN_MID[0] * (1 - t) + GREEN_DEEP[0] * t)
+        base_g = int(GREEN_MID[1] * (1 - t) + GREEN_DEEP[1] * t)
+        base_b = int(GREEN_MID[2] * (1 - t) + GREEN_DEEP[2] * t)
+        for x in range(w):
+            # soft yellow-green glow behind phone
+            d = ((x - cx) ** 2 + (y - cy) ** 2) ** 0.5 / max_d
+            glow = max(0.0, 1.0 - d * 1.35) ** 2 * 0.22
+            r = int(base_r * (1 - glow) + 180 * glow)
+            g = int(base_g * (1 - glow) + 190 * glow)
+            b = int(base_b * (1 - glow) + 90 * glow)
+            px[x, y] = (r, g, b, 255) if img.mode == "RGBA" else (r, g, b)
 
 
 def draw_phone_chrome(base: Image.Image, phone_box):
@@ -198,13 +199,13 @@ def draw_phone_chrome(base: Image.Image, phone_box):
     draw = ImageDraw.Draw(base)
     # metal frame
     rounded_rect(draw, phone_box, radius, fill=(26, 26, 26))
-    # gold rim
+    # silver rim (App Store marketing frame)
     rounded_rect(
         draw,
         phone_box,
         radius,
         fill=None,
-        outline=(201, 176, 138),
+        outline=(198, 198, 200),
         width=max(3, phone_w // 180),
     )
     inset = max(8, phone_w // 55)
@@ -224,16 +225,17 @@ def draw_phone_chrome(base: Image.Image, phone_box):
 def draw_sidebar(img, box, active: str, scale: float):
     x0, y0, x1, y1 = box
     draw = ImageDraw.Draw(img)
-    # clip-ish by drawing rectangle (screen already cream; we paint left)
     draw.rectangle(box, fill=SIDEBAR)
-    f_brand = font(SERIF, max(16, int(22 * scale)))
-    f_nav = font(SANS, max(12, int(14 * scale)))
-    draw.text((x0 + 12, y0 + 18), "Parslia", font=f_brand, fill=WHITE)
+    f_brand = font(SERIF, max(28, int(40 * scale)))
+    f_nav = font(SANS, max(11, int(13 * scale)))
+    # Large P mark like the marketing frames
+    draw.text((x0 + 14, y0 + int(10 * scale)), "P", font=f_brand, fill=WHITE)
 
-    y = y0 + int(52 * scale)
-    pad = max(4, int(6 * scale))
+    y = y0 + int(70 * scale)
+    pad = max(3, int(5 * scale))
     for item in NAV:
-        h = max(22, int(26 * scale))
+        h = max(24, int(28 * scale))
+        label = item if len(item) < 18 else item[:16] + "…"
         if item == active:
             rounded_rect(
                 draw,
@@ -241,9 +243,9 @@ def draw_sidebar(img, box, active: str, scale: float):
                 8,
                 fill=COPPER,
             )
-            draw.text((x0 + 14, y + h // 2), item, font=f_nav, fill=WHITE, anchor="lm")
+            draw.text((x0 + 12, y + h // 2), label, font=f_nav, fill=WHITE, anchor="lm")
         else:
-            draw.text((x0 + 14, y + h // 2), item, font=f_nav, fill=(210, 225, 218), anchor="lm")
+            draw.text((x0 + 12, y + h // 2), label, font=f_nav, fill=(210, 225, 218), anchor="lm")
         y += h + pad
         if y > y1 - 20:
             break
@@ -448,22 +450,85 @@ def draw_menu(img, box, scale):
             break
 
 
+def draw_allergen_icon(draw, cx, cy, r, kind, style="filled"):
+    """Simple circular nutrition / free-from icons."""
+    if style == "filled":
+        draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=COPPER)
+        ink = WHITE
+    elif style == "outline-brown":
+        draw.ellipse((cx - r, cy - r, cx + r, cy + r), outline=(140, 100, 60), width=max(2, r // 8))
+        ink = (140, 100, 60)
+    else:
+        draw.ellipse((cx - r, cy - r, cx + r, cy + r), outline=(140, 140, 140), width=max(2, r // 8))
+        ink = (120, 120, 120)
+
+    # glyph
+    if kind == "flame":
+        draw.polygon(
+            [(cx, cy - r // 2), (cx - r // 3, cy + r // 5), (cx, cy + r // 2), (cx + r // 3, cy + r // 5)],
+            fill=ink,
+        )
+    elif kind == "grain":
+        draw.ellipse((cx - r // 3, cy - r // 2, cx + r // 3, cy + r // 2), fill=ink)
+    elif kind == "drop":
+        draw.polygon([(cx, cy - r // 2), (cx - r // 3, cy), (cx, cy + r // 2), (cx + r // 3, cy)], fill=ink)
+    elif kind == "slash":
+        # peanut / allergen with diagonal free-from slash
+        draw.ellipse((cx - r // 3, cy - r // 3, cx + r // 3, cy + r // 3), outline=ink, width=max(2, r // 10))
+        draw.line((cx - r // 2, cy + r // 2, cx + r // 2, cy - r // 2), fill=ink, width=max(2, r // 8))
+    else:
+        draw.ellipse((cx - r // 4, cy - r // 4, cx + r // 4, cy + r // 4), fill=ink)
+        if style != "filled":
+            draw.line((cx - r // 2, cy + r // 2, cx + r // 2, cy - r // 2), fill=ink, width=max(2, r // 8))
+
+
 def draw_allergens(img, box, scale):
     x0, y0, x1, y1 = box
     draw = ImageDraw.Draw(img)
-    fh = font(SERIF, max(22, int(30 * scale)))
-    fs = font(SANS, max(12, int(14 * scale)))
-    draw.text((x0, y0), "Allergen control", font=fh, fill=GREEN)
-    draw.text((x0, y0 + int(36 * scale)), "14 allergens · clear flags", font=fs, fill=MUTED)
-    rows = [
-        ("Gluten", "Tracked"),
-        ("Dairy", "Tracked"),
-        ("Nuts", "Present · 2 dishes"),
-        ("Sesame", "Clear"),
-        ("Eggs", "Tracked"),
-        ("Sulphites", "Clear"),
+    fh = font(SERIF, max(20, int(26 * scale)))
+    draw.text((x0, y0), "Nutrition & Allergens", font=fh, fill=GREEN)
+
+    # Nutrition stats card
+    card_y = y0 + int(48 * scale)
+    card_h = int(150 * scale)
+    rounded_rect(draw, (x0, card_y, x1, card_y + card_h), 16, fill=WHITE, outline=(230, 220, 205))
+    stats = [
+        ("Calories", "590 kcal"),
+        ("Protein", "3.3 g"),
+        ("Carbs", "23.0 g"),
+        ("Fat", "0.3 g"),
     ]
-    draw_rows(draw, (x0, y0 + int(70 * scale), x1, y1), rows, scale, accent_idxs={2})
+    fl = font(SANS, max(11, int(13 * scale)))
+    fv = font(SANS_BOLD, max(14, int(18 * scale)))
+    col_w = (x1 - x0) // 2
+    for i, (label, value) in enumerate(stats):
+        col = i % 2
+        row = i // 2
+        cx = x0 + col * col_w + col_w // 2
+        cy = card_y + int(28 * scale) + row * int(60 * scale)
+        draw.text((cx, cy), label, font=fl, fill=MUTED, anchor="mm")
+        draw.text((cx, cy + int(24 * scale)), value, font=fv, fill=GREEN, anchor="mm")
+
+    # Icon grids
+    icons_top = card_y + card_h + int(28 * scale)
+    r = max(16, int(22 * scale))
+    gap_x = (x1 - x0) // 5
+    # Row 1 filled copper nutrition icons
+    row1 = ["flame", "grain", "grain", "drop", "grain"]
+    for i, kind in enumerate(row1):
+        cx = x0 + gap_x // 2 + i * gap_x
+        draw_allergen_icon(draw, cx, icons_top, r, kind, "filled")
+    # Row 2 brown free-from
+    row2_y = icons_top + int(60 * scale)
+    for i in range(5):
+        cx = x0 + gap_x // 2 + i * gap_x
+        draw_allergen_icon(draw, cx, row2_y, r, "slash", "outline-brown")
+    # Row 3 grey free-from
+    row3_y = row2_y + int(60 * scale)
+    if row3_y + r < y1:
+        for i in range(5):
+            cx = x0 + gap_x // 2 + i * gap_x
+            draw_allergen_icon(draw, cx, row3_y, r, "dot", "outline-grey")
 
 
 def draw_portions(img, box, scale):
