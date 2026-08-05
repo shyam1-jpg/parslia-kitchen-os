@@ -1,0 +1,202 @@
+[
+  {
+    "file": "assets/app-store-screenshots/1284x2778/01-recipe-library.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1284x2778/01-recipe-library.png",
+    "size": [
+      1284,
+      2778
+    ],
+    "id": "01-recipe-library",
+    "tagline": "Every recipe, costed & compliant"
+  },
+  {
+    "file": "assets/app-store-screenshots/1284x2778/02-dashboard.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1284x2778/02-dashboard.png",
+    "size": [
+      1284,
+      2778
+    ],
+    "id": "02-dashboard",
+    "tagline": "Today's kitchen at a glance"
+  },
+  {
+    "file": "assets/app-store-screenshots/1284x2778/03-ai-image.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1284x2778/03-ai-image.png",
+    "size": [
+      1284,
+      2778
+    ],
+    "id": "03-ai-image",
+    "tagline": "AI Image for menus & boards"
+  },
+  {
+    "file": "assets/app-store-screenshots/1284x2778/04-ai-voice.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1284x2778/04-ai-voice.png",
+    "size": [
+      1284,
+      2778
+    ],
+    "id": "04-ai-voice",
+    "tagline": "Find recipes by voice"
+  },
+  {
+    "file": "assets/app-store-screenshots/1284x2778/05-menu-planner.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1284x2778/05-menu-planner.png",
+    "size": [
+      1284,
+      2778
+    ],
+    "id": "05-menu-planner",
+    "tagline": "Plan breakfast to events"
+  },
+  {
+    "file": "assets/app-store-screenshots/1284x2778/06-allergens.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1284x2778/06-allergens.png",
+    "size": [
+      1284,
+      2778
+    ],
+    "id": "06-allergens",
+    "tagline": "Allergen control built in"
+  },
+  {
+    "file": "assets/app-store-screenshots/1284x2778/07-portions.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1284x2778/07-portions.png",
+    "size": [
+      1284,
+      2778
+    ],
+    "id": "07-portions",
+    "tagline": "Scale portions with confidence"
+  },
+  {
+    "file": "assets/app-store-screenshots/1284x2778/08-compliance.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1284x2778/08-compliance.png",
+    "size": [
+      1284,
+      2778
+    ],
+    "id": "08-compliance",
+    "tagline": "Logs that keep you audit-ready"
+  },
+  {
+    "file": "assets/app-store-screenshots/1284x2778/09-stock.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1284x2778/09-stock.png",
+    "size": [
+      1284,
+      2778
+    ],
+    "id": "09-stock",
+    "tagline": "Stock & suppliers, calm and clear"
+  },
+  {
+    "file": "assets/app-store-screenshots/1284x2778/10-rota.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1284x2778/10-rota.png",
+    "size": [
+      1284,
+      2778
+    ],
+    "id": "10-rota",
+    "tagline": "Rota that fits the kitchen"
+  },
+  {
+    "file": "assets/app-store-screenshots/1242x2688/01-recipe-library.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1242x2688/01-recipe-library.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "id": "01-recipe-library",
+    "tagline": "Every recipe, costed & compliant"
+  },
+  {
+    "file": "assets/app-store-screenshots/1242x2688/02-dashboard.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1242x2688/02-dashboard.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "id": "02-dashboard",
+    "tagline": "Today's kitchen at a glance"
+  },
+  {
+    "file": "assets/app-store-screenshots/1242x2688/03-ai-image.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1242x2688/03-ai-image.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "id": "03-ai-image",
+    "tagline": "AI Image for menus & boards"
+  },
+  {
+    "file": "assets/app-store-screenshots/1242x2688/04-ai-voice.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1242x2688/04-ai-voice.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "id": "04-ai-voice",
+    "tagline": "Find recipes by voice"
+  },
+  {
+    "file": "assets/app-store-screenshots/1242x2688/05-menu-planner.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1242x2688/05-menu-planner.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "id": "05-menu-planner",
+    "tagline": "Plan breakfast to events"
+  },
+  {
+    "file": "assets/app-store-screenshots/1242x2688/06-allergens.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1242x2688/06-allergens.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "id": "06-allergens",
+    "tagline": "Allergen control built in"
+  },
+  {
+    "file": "assets/app-store-screenshots/1242x2688/07-portions.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1242x2688/07-portions.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "id": "07-portions",
+    "tagline": "Scale portions with confidence"
+  },
+  {
+    "file": "assets/app-store-screenshots/1242x2688/08-compliance.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1242x2688/08-compliance.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "id": "08-compliance",
+    "tagline": "Logs that keep you audit-ready"
+  },
+  {
+    "file": "assets/app-store-screenshots/1242x2688/09-stock.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1242x2688/09-stock.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "id": "09-stock",
+    "tagline": "Stock & suppliers, calm and clear"
+  },
+  {
+    "file": "assets/app-store-screenshots/1242x2688/10-rota.png",
+    "artifact": "/opt/cursor/artifacts/app-store-screenshots/1242x2688/10-rota.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "id": "10-rota",
+    "tagline": "Rota that fits the kitchen"
+  }
+]
