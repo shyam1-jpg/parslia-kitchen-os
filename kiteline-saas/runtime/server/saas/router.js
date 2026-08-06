@@ -4,6 +4,7 @@ const context = require('./context');
 const scope = require('./scope');
 const roles = require('./roles');
 const pg = require('./pg');
+const inventory = require('./inventory');
 
 function readBody(req) {
   return new Promise((resolve) => {
@@ -174,6 +175,90 @@ function createHandler(deps) {
       const expected = String(m.clockPin || m.pin || '');
       if (expected && expected !== pin) return apiSend(401, { ok: false, error: 'Wrong PIN' });
       return apiSend(200, { ok: true });
+    }
+
+    // ---- Phase D: Stock & purchase orders (location-scoped) ----
+    function siteFrom(bodyOrQuery) {
+      return (bodyOrQuery && (bodyOrQuery.siteId || bodyOrQuery.locationId)) || state.currentSite;
+    }
+
+    if (path === '/stock' && req.method === 'GET') {
+      const siteId = siteFrom({ siteId: url.searchParams.get('siteId') });
+      const check = context.assertLocationAllowed(access, siteId);
+      if (!check.ok) return apiSend(403, { error: 'Location not allowed' });
+      if (inventory.seedSiteIfEmpty(state, siteId)) {
+        tenants.setStateForUser(db, me.email, state);
+        writeDb(db);
+      }
+      return apiSend(200, Object.assign({ siteId }, inventory.listStock(state, siteId)));
+    }
+
+    if (path === '/stock/item' && (req.method === 'POST' || req.method === 'PUT')) {
+      if (!access.permissions.manage_stock) return apiSend(403, { error: 'No permission to manage stock' });
+      const siteId = siteFrom(body);
+      const check = context.assertLocationAllowed(access, siteId);
+      if (!check.ok) return apiSend(403, { error: 'Location not allowed' });
+      const result = inventory.upsertItem(state, siteId, body, me.email);
+      if (!result.ok) return apiSend(400, result);
+      if (!tenants.setStateForUser(db, me.email, state)) {
+        return apiSend(403, { error: 'Cannot save this workspace' });
+      }
+      writeDb(db);
+      return apiSend(200, result);
+    }
+
+    if (path === '/stock/move' && req.method === 'POST') {
+      if (!access.permissions.manage_stock) return apiSend(403, { error: 'No permission to manage stock' });
+      const siteId = siteFrom(body);
+      const check = context.assertLocationAllowed(access, siteId);
+      if (!check.ok) return apiSend(403, { error: 'Location not allowed' });
+      const result = inventory.moveStock(state, siteId, body, me.email);
+      if (!result.ok) return apiSend(400, result);
+      if (!tenants.setStateForUser(db, me.email, state)) {
+        return apiSend(403, { error: 'Cannot save this workspace' });
+      }
+      writeDb(db);
+      return apiSend(200, result);
+    }
+
+    if (path === '/orders' && req.method === 'GET') {
+      const siteId = siteFrom({ siteId: url.searchParams.get('siteId') });
+      const check = context.assertLocationAllowed(access, siteId);
+      if (!check.ok) return apiSend(403, { error: 'Location not allowed' });
+      if (inventory.seedSiteIfEmpty(state, siteId)) {
+        tenants.setStateForUser(db, me.email, state);
+        writeDb(db);
+      }
+      const data = inventory.listOrders(state, siteId);
+      return apiSend(200, Object.assign({ siteId, suggestions: inventory.suggestOrderFromLowStock(state, siteId) }, data));
+    }
+
+    if (path === '/orders' && req.method === 'POST') {
+      if (!access.permissions.manage_orders) return apiSend(403, { error: 'No permission to manage orders' });
+      const siteId = siteFrom(body);
+      const check = context.assertLocationAllowed(access, siteId);
+      if (!check.ok) return apiSend(403, { error: 'Location not allowed' });
+      const result = inventory.createOrder(state, siteId, body, me.email);
+      if (!result.ok) return apiSend(400, result);
+      if (!tenants.setStateForUser(db, me.email, state)) {
+        return apiSend(403, { error: 'Cannot save this workspace' });
+      }
+      writeDb(db);
+      return apiSend(200, result);
+    }
+
+    if (path === '/orders' && req.method === 'PATCH') {
+      if (!access.permissions.manage_orders) return apiSend(403, { error: 'No permission to manage orders' });
+      const siteId = siteFrom(body);
+      const check = context.assertLocationAllowed(access, siteId);
+      if (!check.ok) return apiSend(403, { error: 'Location not allowed' });
+      const result = inventory.updateOrder(state, siteId, body, me.email);
+      if (!result.ok) return apiSend(400, result);
+      if (!tenants.setStateForUser(db, me.email, state)) {
+        return apiSend(403, { error: 'Cannot save this workspace' });
+      }
+      writeDb(db);
+      return apiSend(200, result);
     }
 
     return apiSend(404, { error: 'Unknown SaaS route' });

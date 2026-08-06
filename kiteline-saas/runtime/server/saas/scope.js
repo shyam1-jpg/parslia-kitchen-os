@@ -6,6 +6,7 @@ const SITE_SCOPED_KEYS = [
   'sensors', 'checklists', 'records', 'alerts', 'menus', 'labels', 'waste',
   'recipes', 'workflows', 'deliveries', 'batches', 'cooling', 'phlogs',
   'holding', 'incidents', 'maintenance', 'assets', 'training',
+  'stockItems', 'stockMovements', 'purchaseOrders',
 ];
 
 function inAllowed(row, allowed) {

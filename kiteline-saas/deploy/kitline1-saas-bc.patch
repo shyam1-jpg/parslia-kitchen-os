@@ -1,26 +1,48 @@
-diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitline1/index.html kitline1-bc/index.html
+diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=data' '--exclude=*.png' '--exclude=*.jpg' kitline1/index.html kitline1-bcd/index.html
 --- kitline1/index.html	2026-08-06 07:29:35.486570052 +0000
-+++ kitline1-bc/index.html	2026-08-06 07:51:30.166867148 +0000
++++ kitline1-bcd/index.html	2026-08-06 08:02:40.508499458 +0000
 @@ -101,7 +101,7 @@
    <!-- Bust stale service-worker / app shell when build changes -->
    <script>
    (function () {
 -    var build = '2026-07-01-compliance-print';
-+    var build = '2026-08-06-saas-bc';
++    var build = '2026-08-06-saas-bcd';
      try {
        if (localStorage.getItem('kiteline.build') !== build) {
          localStorage.setItem('kiteline.build', build);
-@@ -133,6 +133,7 @@
+@@ -133,6 +133,8 @@
    <script src="/js/views.js?v=26"></script>
    <script src="/js/compliance-views.js?v=4"></script>
    <script src="/js/app.js?v=31"></script>
++  <script src="/js/views-inventory.js?v=1"></script>
 +  <script src="/js/saas.js?v=1"></script>
    <script>
      if ('serviceWorker' in navigator) {
        window.addEventListener('load', () => {
-diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitline1/js/saas.js kitline1-bc/js/saas.js
+diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=data' '--exclude=*.png' '--exclude=*.jpg' kitline1/js/app.js kitline1-bcd/js/app.js
+--- kitline1/js/app.js	2026-08-06 07:29:35.486570052 +0000
++++ kitline1-bcd/js/app.js	2026-08-06 08:02:40.508499458 +0000
+@@ -33,6 +33,8 @@
+     { id:'phlogs', label:'pH Monitor', icon:'droplet' },
+     { id:'batches', label:'Batches', icon:'layers' },
+     { id:'suppliers', label:'Suppliers', icon:'truck' },
++    { id:'stock', label:'Stock', icon:'box' },
++    { id:'orders', label:'Orders', icon:'truck' },
+     { id:'incidents', label:'Incidents', icon:'shield' },
+     { id:'maintenance', label:'Maintenance', icon:'wrench' },
+     { id:'assets', label:'Assets & Equipment', icon:'box' },
+@@ -102,7 +104,7 @@
+   const RANK = { Staff: 1, Manager: 2, Admin: 3 };
+   // Minimum role required per route (anything not listed = Staff/all access)
+   const ROUTE_ROLE = {
+-    suppliers:'Manager', assets:'Manager', sites:'Manager', reports:'Manager',
++    suppliers:'Manager', stock:'Manager', orders:'Manager', assets:'Manager', sites:'Manager', reports:'Manager',
+     team:'Manager', training:'Manager', foodcost:'Manager', settings:'Admin',
+     compliance:'Staff',
+   };
+diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=data' '--exclude=*.png' '--exclude=*.jpg' kitline1/js/saas.js kitline1-bcd/js/saas.js
 --- kitline1/js/saas.js	1970-01-01 00:00:00.000000000 +0000
-+++ kitline1-bc/js/saas.js	2026-08-06 07:51:30.166867148 +0000
++++ kitline1-bcd/js/saas.js	2026-08-06 08:02:40.508499458 +0000
 @@ -0,0 +1,288 @@
 +/* ============================================================
 +   Kiteline SaaS client — Phase B/C
@@ -310,9 +332,393 @@ diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitl
 +
 +  window.KitelineSaas = Saas;
 +})();
-diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitline1/server/saas/context.js kitline1-bc/server/saas/context.js
+diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=data' '--exclude=*.png' '--exclude=*.jpg' kitline1/js/views-inventory.js kitline1-bcd/js/views-inventory.js
+--- kitline1/js/views-inventory.js	1970-01-01 00:00:00.000000000 +0000
++++ kitline1-bcd/js/views-inventory.js	2026-08-06 08:02:40.508499458 +0000
+@@ -0,0 +1,380 @@
++/* ============================================================
++   Kiteline — Stock & Orders views (Phase D)
++   Matches existing card / table / teal brand styling.
++   ============================================================ */
++(function () {
++  const S = () => window.Store;
++  const UI = () => window.UI || {};
++  const escapeHtml = (x) => (UI().escapeHtml ? UI().escapeHtml(x) : String(x ?? ''));
++  const icon = (n, c) => (UI().icon ? UI().icon(n, c) : '');
++  const toast = (m, t) => (UI().toast ? UI().toast(m, t) : console.log(m));
++  const modal = (...a) => (UI().modal ? UI().modal(...a) : null);
++  const closeModal = () => (UI().closeModal ? UI().closeModal() : null);
++
++  function sectionHeader(title, subtitle, actions) {
++    return `<div class="flex flex-wrap items-start justify-between gap-3 mb-5">
++      <div><h2 class="text-xl font-extrabold text-ink-900">${title}</h2>
++      <p class="text-sm text-ink-500 mt-0.5">${subtitle}</p></div>
++      <div class="flex flex-wrap gap-2">${actions || ''}</div>
++    </div>`;
++  }
++
++  function kpi(label, val, tone) {
++    const cls = tone === 'amber' ? 'text-amber-600' : tone === 'red' ? 'text-red-600' : 'text-brand-600';
++    return `<div class="kpi"><div class="text-xs text-ink-500">${label}</div><div class="v ${cls}">${val}</div></div>`;
++  }
++
++  function canManage() {
++    const saas = window.KitelineSaas && (window.KitelineSaas.context || window.KitelineSaas.fromState());
++    if (saas && saas.permissions) return !!saas.permissions.manage_stock;
++    const me = window.App && window.App.currentUser && window.App.currentUser();
++    return !!(me && (me.rank || 0) >= 2);
++  }
++
++  function authHeaders() {
++    const h = { 'Content-Type': 'application/json' };
++    if (window.Api && window.Api.token()) h.Authorization = 'Bearer ' + window.Api.token();
++    return h;
++  }
++
++  async function api(method, route, body) {
++    const res = await fetch('/api/saas' + route, {
++      method,
++      headers: authHeaders(),
++      body: body ? JSON.stringify(body) : undefined,
++    });
++    const data = await res.json().catch(() => ({}));
++    if (!res.ok) throw Object.assign(new Error(data.error || res.statusText), { status: res.status, data });
++    return data;
++  }
++
++  function supplierName(id) {
++    const s = (S().db.suppliers || []).find((x) => x.id === id);
++    return s ? s.name : '—';
++  }
++
++  function stock() {
++    const site = S().db.currentSite;
++    const siteName = S().site(site).name;
++    const manage = canManage();
++    const html = `
++      ${sectionHeader('Stock', escapeHtml(siteName) + ' — live inventory for this kitchen', `
++        <a href="#orders" class="btn btn-ghost btn-sm">${icon('truck', 'ico')} Orders</a>
++        ${manage ? `<button class="btn btn-primary btn-sm" id="stkAdd">${icon('plus', 'ico')} Add item</button>` : ''}
++      `)}
++      <div id="stkKpis" class="grid sm:grid-cols-3 gap-4 mb-5">
++        ${kpi('SKUs', '…')} ${kpi('Low stock', '…', 'amber')} ${kpi('Stock value', '…')}
++      </div>
++      <div class="card overflow-hidden mb-5">
++        <table class="table">
++          <thead><tr><th>Item</th><th>SKU</th><th>On hand</th><th>Reorder</th><th>Unit cost</th><th>Supplier</th><th></th></tr></thead>
++          <tbody id="stkBody"><tr><td colspan="7" class="text-ink-400 text-sm p-4">Loading stock…</td></tr></tbody>
++        </table>
++      </div>
++      <div class="card card-pad">
++        <h3 class="font-bold mb-3">Recent movements</h3>
++        <div id="stkMoves" class="text-sm text-ink-500">—</div>
++      </div>`;
++
++    return {
++      title: 'Stock',
++      html,
++      async mount() {
++        let data;
++        try {
++          data = await api('GET', '/stock?siteId=' + encodeURIComponent(site));
++        } catch (e) {
++          // Offline / demo fallback from local state
++          const items = (S().db.stockItems || []).filter((i) => i.siteId === site);
++          data = {
++            items,
++            movements: (S().db.stockMovements || []).filter((m) => m.siteId === site).slice(0, 40),
++            summary: {
++              skuCount: items.length,
++              lowStock: items.filter((i) => Number(i.qtyOnHand) <= Number(i.reorderLevel || 0)).length,
++              stockValue: items.reduce((n, i) => n + (Number(i.qtyOnHand) || 0) * (Number(i.unitCost) || 0), 0),
++            },
++          };
++          if (!items.length) toast(e.message || 'Could not load stock from server', 'warn');
++        }
++
++        const k = document.getElementById('stkKpis');
++        if (k) {
++          k.innerHTML = [
++            kpi('SKUs', data.summary.skuCount),
++            kpi('Low stock', data.summary.lowStock, data.summary.lowStock ? 'amber' : ''),
++            kpi('Stock value', '£' + (Number(data.summary.stockValue) || 0).toFixed(2)),
++          ].join('');
++        }
++
++        const body = document.getElementById('stkBody');
++        if (!data.items.length) {
++          body.innerHTML = `<tr><td colspan="7" class="text-ink-400 text-sm p-4">No stock items yet.${manage ? ' Add your first item.' : ''}</td></tr>`;
++        } else {
++          body.innerHTML = data.items.map((i) => {
++            const low = Number(i.qtyOnHand) <= Number(i.reorderLevel || 0);
++            return `<tr>
++              <td class="font-semibold">${escapeHtml(i.name)}${low ? ' <span class="badge badge-amber">Low</span>' : ''}</td>
++              <td class="text-xs text-ink-400 font-mono">${escapeHtml(i.sku || '—')}</td>
++              <td>${i.qtyOnHand} <span class="text-ink-400 text-xs">${escapeHtml(i.unit || '')}</span></td>
++              <td>${i.reorderLevel}</td>
++              <td>£${(Number(i.unitCost) || 0).toFixed(2)}</td>
++              <td class="text-xs">${escapeHtml(supplierName(i.supplierId))}</td>
++              <td class="text-right whitespace-nowrap">
++                ${manage ? `<button class="btn btn-ghost btn-sm" data-move="${i.id}">Adjust</button>
++                <button class="btn btn-ghost btn-sm" data-edit="${i.id}">Edit</button>` : ''}
++              </td>
++            </tr>`;
++          }).join('');
++        }
++
++        const moves = document.getElementById('stkMoves');
++        if (moves) {
++          moves.innerHTML = (data.movements || []).length
++            ? `<div class="space-y-2">${data.movements.slice(0, 12).map((m) => {
++              const item = data.items.find((i) => i.id === m.stockItemId) || {};
++              return `<div class="flex justify-between gap-3 border-b border-ink-50 pb-2">
++                <div><span class="font-semibold">${escapeHtml(item.name || m.stockItemId)}</span>
++                <span class="text-ink-400"> · ${escapeHtml(m.type)} ${m.qty}</span>
++                ${m.reason ? `<div class="text-xs text-ink-400">${escapeHtml(m.reason)}</div>` : ''}</div>
++                <div class="text-xs text-ink-400">${new Date(m.at).toLocaleString('en-GB')}</div>
++              </div>`;
++            }).join('')}</div>`
++            : 'No movements yet.';
++        }
++
++        function openItem(item) {
++          const e = item || { name: '', sku: '', unit: 'kg', qtyOnHand: 0, reorderLevel: 0, unitCost: 0, supplierId: '' };
++          const supOpts = (S().db.suppliers || []).map((s) =>
++            `<option value="${s.id}" ${s.id === e.supplierId ? 'selected' : ''}>${escapeHtml(s.name)}</option>`
++          ).join('');
++          modal(item ? 'Edit stock item' : 'Add stock item', `<div class="space-y-3">
++            <input id="st_n" class="input" placeholder="Item name" value="${escapeHtml(e.name || '')}">
++            <div class="grid grid-cols-2 gap-2">
++              <input id="st_sku" class="input" placeholder="SKU" value="${escapeHtml(e.sku || '')}">
++              <input id="st_u" class="input" placeholder="Unit" value="${escapeHtml(e.unit || 'kg')}">
++            </div>
++            <div class="grid grid-cols-3 gap-2">
++              <div><label class="label">On hand</label><input id="st_q" type="number" step="0.001" class="input" value="${e.qtyOnHand ?? 0}"></div>
++              <div><label class="label">Reorder at</label><input id="st_r" type="number" step="0.001" class="input" value="${e.reorderLevel ?? 0}"></div>
++              <div><label class="label">Unit cost £</label><input id="st_c" type="number" step="0.01" class="input" value="${e.unitCost ?? 0}"></div>
++            </div>
++            <div><label class="label">Supplier</label><select id="st_s" class="select"><option value="">—</option>${supOpts}</select></div>
++            <button class="btn btn-primary w-full" id="st_save">Save</button>
++          </div>`);
++          document.getElementById('st_save').onclick = async () => {
++            const payload = {
++              id: e.id,
++              siteId: site,
++              name: document.getElementById('st_n').value.trim(),
++              sku: document.getElementById('st_sku').value.trim(),
++              unit: document.getElementById('st_u').value.trim(),
++              qtyOnHand: +document.getElementById('st_q').value,
++              reorderLevel: +document.getElementById('st_r').value,
++              unitCost: +document.getElementById('st_c').value,
++              supplierId: document.getElementById('st_s').value || null,
++            };
++            try {
++              await api('POST', '/stock/item', payload);
++              // keep local mirror
++              S().db.stockItems = S().db.stockItems || [];
++              toast('Stock item saved');
++              closeModal();
++              window.App.render();
++            } catch (err) {
++              toast(err.message || 'Save failed', 'error');
++            }
++          };
++        }
++
++        const addBtn = document.getElementById('stkAdd');
++        if (addBtn) addBtn.onclick = () => openItem(null);
++        document.querySelectorAll('[data-edit]').forEach((b) => {
++          b.onclick = () => openItem(data.items.find((i) => i.id === b.dataset.edit));
++        });
++        document.querySelectorAll('[data-move]').forEach((b) => {
++          b.onclick = () => {
++            const item = data.items.find((i) => i.id === b.dataset.move);
++            if (!item) return;
++            modal('Adjust stock — ' + escapeHtml(item.name), `<div class="space-y-3">
++              <select id="mv_t" class="select">
++                <option value="in">Stock in</option>
++                <option value="out">Stock out</option>
++                <option value="waste">Waste</option>
++                <option value="adjust">Adjust (+/-)</option>
++              </select>
++              <input id="mv_q" type="number" step="0.001" class="input" placeholder="Quantity">
++              <input id="mv_r" class="input" placeholder="Reason (optional)">
++              <button class="btn btn-primary w-full" id="mv_ok">Apply</button>
++            </div>`);
++            document.getElementById('mv_ok').onclick = async () => {
++              try {
++                await api('POST', '/stock/move', {
++                  siteId: site,
++                  stockItemId: item.id,
++                  type: document.getElementById('mv_t').value,
++                  qty: +document.getElementById('mv_q').value,
++                  reason: document.getElementById('mv_r').value.trim(),
++                });
++                toast('Stock updated');
++                closeModal();
++                window.App.render();
++              } catch (err) {
++                toast(err.message || 'Update failed', 'error');
++              }
++            };
++          };
++        });
++      },
++    };
++  }
++
++  function orders() {
++    const site = S().db.currentSite;
++    const siteName = S().site(site).name;
++    const manage = canManage();
++    const html = `
++      ${sectionHeader('Orders', escapeHtml(siteName) + ' — purchase orders by location', `
++        <a href="#stock" class="btn btn-ghost btn-sm">${icon('box', 'ico')} Stock</a>
++        ${manage ? `<button class="btn btn-ghost btn-sm" id="poSuggest">From low stock</button>
++        <button class="btn btn-primary btn-sm" id="poAdd">${icon('plus', 'ico')} New order</button>` : ''}
++      `)}
++      <div id="poKpis" class="grid sm:grid-cols-3 gap-4 mb-5">
++        ${kpi('Draft', '…')} ${kpi('Sent', '…')} ${kpi('Received', '…')}
++      </div>
++      <div class="card overflow-hidden">
++        <table class="table">
++          <thead><tr><th>Order</th><th>Supplier</th><th>Lines</th><th>Status</th><th>Created</th><th></th></tr></thead>
++          <tbody id="poBody"><tr><td colspan="6" class="text-ink-400 text-sm p-4">Loading orders…</td></tr></tbody>
++        </table>
++      </div>`;
++
++    return {
++      title: 'Orders',
++      html,
++      async mount() {
++        let data;
++        try {
++          data = await api('GET', '/orders?siteId=' + encodeURIComponent(site));
++        } catch (e) {
++          data = {
++            orders: (S().db.purchaseOrders || []).filter((o) => o.siteId === site),
++            summary: { draft: 0, sent: 0, received: 0 },
++            suggestions: [],
++          };
++          toast(e.message || 'Could not load orders', 'warn');
++        }
++
++        const k = document.getElementById('poKpis');
++        if (k) {
++          k.innerHTML = [
++            kpi('Draft', data.summary.draft),
++            kpi('Sent', data.summary.sent),
++            kpi('Received', data.summary.received, 'brand'),
++          ].join('');
++        }
++
++        const statusBadge = (st) => {
++          const map = { draft: 'badge-gray', sent: 'badge-blue', received: 'badge-green', cancelled: 'badge-red' };
++          return `<span class="badge ${map[st] || 'badge-gray'}">${escapeHtml(st)}</span>`;
++        };
++
++        const body = document.getElementById('poBody');
++        if (!data.orders.length) {
++          body.innerHTML = `<tr><td colspan="6" class="text-ink-400 text-sm p-4">No purchase orders yet.</td></tr>`;
++        } else {
++          body.innerHTML = data.orders.map((o) => {
++            const total = (o.lines || []).reduce((n, l) => n + (Number(l.qty) || 0) * (Number(l.unitCost) || 0), 0);
++            return `<tr>
++              <td class="font-mono text-xs">${escapeHtml(o.id)}</td>
++              <td>${escapeHtml(supplierName(o.supplierId))}</td>
++              <td>${(o.lines || []).length} · £${total.toFixed(2)}</td>
++              <td>${statusBadge(o.status)}</td>
++              <td class="text-xs text-ink-400">${new Date(o.createdAt).toLocaleDateString('en-GB')}</td>
++              <td class="text-right whitespace-nowrap">
++                ${manage && o.status === 'draft' ? `<button class="btn btn-ghost btn-sm" data-send="${o.id}">Mark sent</button>` : ''}
++                ${manage && o.status === 'sent' ? `<button class="btn btn-primary btn-sm" data-recv="${o.id}">Receive</button>` : ''}
++              </td>
++            </tr>`;
++          }).join('');
++        }
++
++        async function createWithLines(lines, supplierId) {
++          try {
++            await api('POST', '/orders', {
++              siteId: site,
++              supplierId: supplierId || null,
++              status: 'draft',
++              lines,
++            });
++            toast('Draft order created');
++            window.App.render();
++          } catch (err) {
++            toast(err.message || 'Could not create order', 'error');
++          }
++        }
++
++        const add = document.getElementById('poAdd');
++        if (add) add.onclick = () => {
++          const supOpts = (S().db.suppliers || []).map((s) =>
++            `<option value="${s.id}">${escapeHtml(s.name)}</option>`
++          ).join('');
++          modal('New purchase order', `<div class="space-y-3">
++            <select id="po_sup" class="select"><option value="">Supplier (optional)</option>${supOpts}</select>
++            <textarea id="po_lines" class="input" rows="5" placeholder="One line per item: name, qty, unit&#10;e.g. Whole milk, 20, L"></textarea>
++            <button class="btn btn-primary w-full" id="po_ok">Create draft</button>
++          </div>`);
++          document.getElementById('po_ok').onclick = () => {
++            const lines = document.getElementById('po_lines').value.split('\n').map((line) => {
++              const parts = line.split(',').map((x) => x.trim());
++              if (!parts[0]) return null;
++              return { name: parts[0], qty: +parts[1] || 1, unit: parts[2] || 'each', unitCost: +parts[3] || 0 };
++            }).filter(Boolean);
++            createWithLines(lines, document.getElementById('po_sup').value || null);
++            closeModal();
++          };
++        };
++
++        const sug = document.getElementById('poSuggest');
++        if (sug) sug.onclick = () => {
++          const lines = data.suggestions || [];
++          if (!lines.length) return toast('No low-stock items to order', 'warn');
++          const supplierId = lines.find((l) => l.supplierId)?.supplierId || null;
++          createWithLines(lines, supplierId);
++        };
++
++        document.querySelectorAll('[data-send]').forEach((b) => {
++          b.onclick = async () => {
++            try {
++              await api('PATCH', '/orders', { id: b.dataset.send, siteId: site, status: 'sent' });
++              toast('Order marked sent');
++              window.App.render();
++            } catch (err) { toast(err.message || 'Failed', 'error'); }
++          };
++        });
++        document.querySelectorAll('[data-recv]').forEach((b) => {
++          b.onclick = async () => {
++            try {
++              await api('PATCH', '/orders', { id: b.dataset.recv, siteId: site, status: 'received' });
++              toast('Order received — stock updated');
++              window.App.render();
++            } catch (err) { toast(err.message || 'Failed', 'error'); }
++          };
++        });
++      },
++    };
++  }
++
++  function register() {
++    if (!window.Views) return false;
++    window.Views.stock = stock;
++    window.Views.orders = orders;
++    return true;
++  }
++
++  if (!register()) {
++    document.addEventListener('DOMContentLoaded', register);
++    setTimeout(register, 0);
++    setTimeout(register, 100);
++  }
++})();
+diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=data' '--exclude=*.png' '--exclude=*.jpg' kitline1/server/saas/context.js kitline1-bcd/server/saas/context.js
 --- kitline1/server/saas/context.js	1970-01-01 00:00:00.000000000 +0000
-+++ kitline1-bc/server/saas/context.js	2026-08-06 07:51:30.166867148 +0000
++++ kitline1-bcd/server/saas/context.js	2026-08-06 08:02:40.508499458 +0000
 @@ -0,0 +1,73 @@
 +'use strict';
 +
@@ -387,9 +793,9 @@ diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitl
 +  resolveAccess,
 +  assertLocationAllowed,
 +};
-diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitline1/server/saas/index.js kitline1-bc/server/saas/index.js
+diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=data' '--exclude=*.png' '--exclude=*.jpg' kitline1/server/saas/index.js kitline1-bcd/server/saas/index.js
 --- kitline1/server/saas/index.js	1970-01-01 00:00:00.000000000 +0000
-+++ kitline1-bc/server/saas/index.js	2026-08-06 07:51:30.166867148 +0000
++++ kitline1-bcd/server/saas/index.js	2026-08-06 08:02:40.508499458 +0000
 @@ -0,0 +1,74 @@
 +'use strict';
 +
@@ -465,9 +871,266 @@ diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitl
 +}
 +
 +module.exports = { attach, context, scope, roles, pg };
-diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitline1/server/saas/pg.js kitline1-bc/server/saas/pg.js
+diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=data' '--exclude=*.png' '--exclude=*.jpg' kitline1/server/saas/inventory.js kitline1-bcd/server/saas/inventory.js
+--- kitline1/server/saas/inventory.js	1970-01-01 00:00:00.000000000 +0000
++++ kitline1-bcd/server/saas/inventory.js	2026-08-06 08:02:40.508499458 +0000
+@@ -0,0 +1,253 @@
++'use strict';
++
++const crypto = require('crypto');
++
++function uid(prefix) {
++  return `${prefix}_${crypto.randomBytes(4).toString('hex')}`;
++}
++
++function ensureCollections(state) {
++  if (!Array.isArray(state.stockItems)) state.stockItems = [];
++  if (!Array.isArray(state.stockMovements)) state.stockMovements = [];
++  if (!Array.isArray(state.purchaseOrders)) state.purchaseOrders = [];
++}
++
++const STARTER = [
++  { name: 'Whole milk', unit: 'L', qty: 20, reorder: 8, cost: 0.95 },
++  { name: 'Butter unsalted', unit: 'kg', qty: 4, reorder: 2, cost: 7.5 },
++  { name: 'Chicken breast', unit: 'kg', qty: 8, reorder: 4, cost: 6.2 },
++  { name: 'Rapeseed oil', unit: 'L', qty: 10, reorder: 3, cost: 2.4 },
++  { name: 'Plain flour', unit: 'kg', qty: 12, reorder: 5, cost: 0.8 },
++  { name: 'Sanitiser (food-safe)', unit: 'L', qty: 6, reorder: 2, cost: 3.1 },
++  { name: 'Disposable gloves (M)', unit: 'box', qty: 5, reorder: 2, cost: 4.5 },
++  { name: 'Cling film', unit: 'roll', qty: 8, reorder: 3, cost: 2.2 },
++];
++
++function seedSiteIfEmpty(state, siteId) {
++  ensureCollections(state);
++  const existing = state.stockItems.filter((i) => i.siteId === siteId);
++  if (existing.length) return false;
++  const supplierId = (state.suppliers && state.suppliers[0] && state.suppliers[0].id) || null;
++  STARTER.forEach((row, idx) => {
++    state.stockItems.push({
++      id: uid('stk'),
++      siteId,
++      name: row.name,
++      sku: `SKU-${String(idx + 1).padStart(3, '0')}`,
++      unit: row.unit,
++      qtyOnHand: row.qty,
++      reorderLevel: row.reorder,
++      unitCost: row.cost,
++      supplierId,
++      active: true,
++      createdAt: new Date().toISOString(),
++    });
++  });
++  return true;
++}
++
++function itemsForSite(state, siteId) {
++  ensureCollections(state);
++  return state.stockItems.filter((i) => i.siteId === siteId && i.active !== false);
++}
++
++function lowStock(items) {
++  return items.filter((i) => Number(i.qtyOnHand) <= Number(i.reorderLevel || 0));
++}
++
++function listStock(state, siteId) {
++  const items = itemsForSite(state, siteId);
++  const movements = (state.stockMovements || [])
++    .filter((m) => m.siteId === siteId)
++    .sort((a, b) => new Date(b.at) - new Date(a.at))
++    .slice(0, 40);
++  const value = items.reduce((n, i) => n + (Number(i.qtyOnHand) || 0) * (Number(i.unitCost) || 0), 0);
++  return {
++    items,
++    movements,
++    summary: {
++      skuCount: items.length,
++      lowStock: lowStock(items).length,
++      stockValue: Math.round(value * 100) / 100,
++    },
++  };
++}
++
++function upsertItem(state, siteId, body, email) {
++  ensureCollections(state);
++  const name = String(body.name || '').trim();
++  if (!name) return { ok: false, error: 'Name required' };
++  let item = body.id ? state.stockItems.find((i) => i.id === body.id && i.siteId === siteId) : null;
++  if (body.id && !item) return { ok: false, error: 'Item not found' };
++  if (!item) {
++    item = {
++      id: uid('stk'),
++      siteId,
++      createdAt: new Date().toISOString(),
++      active: true,
++    };
++    state.stockItems.push(item);
++  }
++  item.name = name;
++  item.sku = String(body.sku || item.sku || '').trim();
++  item.unit = String(body.unit || item.unit || 'each').trim();
++  if (body.qtyOnHand != null) item.qtyOnHand = Number(body.qtyOnHand) || 0;
++  if (item.qtyOnHand == null) item.qtyOnHand = 0;
++  item.reorderLevel = Number(body.reorderLevel != null ? body.reorderLevel : item.reorderLevel) || 0;
++  item.unitCost = Number(body.unitCost != null ? body.unitCost : item.unitCost) || 0;
++  item.supplierId = body.supplierId || item.supplierId || null;
++  if (typeof body.active === 'boolean') item.active = body.active;
++  item.updatedAt = new Date().toISOString();
++  item.updatedBy = email || null;
++  return { ok: true, item };
++}
++
++function moveStock(state, siteId, body, email) {
++  ensureCollections(state);
++  const item = state.stockItems.find((i) => i.id === body.stockItemId && i.siteId === siteId);
++  if (!item) return { ok: false, error: 'Stock item not found' };
++  const type = String(body.type || 'adjust');
++  if (!['in', 'out', 'adjust', 'waste'].includes(type)) return { ok: false, error: 'Invalid movement type' };
++  let qty = Number(body.qty);
++  if (!Number.isFinite(qty) || qty === 0) return { ok: false, error: 'Quantity required' };
++  if (type === 'out' || type === 'waste') qty = -Math.abs(qty);
++  if (type === 'in') qty = Math.abs(qty);
++  // adjust uses signed qty as provided
++  const next = (Number(item.qtyOnHand) || 0) + qty;
++  if (next < 0) return { ok: false, error: 'Insufficient stock' };
++  item.qtyOnHand = Math.round(next * 1000) / 1000;
++  item.updatedAt = new Date().toISOString();
++  const movement = {
++    id: uid('sm'),
++    siteId,
++    stockItemId: item.id,
++    type,
++    qty,
++    reason: String(body.reason || '').trim(),
++    at: new Date().toISOString(),
++    by: email || null,
++  };
++  state.stockMovements.unshift(movement);
++  return { ok: true, item, movement };
++}
++
++function listOrders(state, siteId) {
++  ensureCollections(state);
++  const orders = state.purchaseOrders
++    .filter((o) => o.siteId === siteId)
++    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
++  return {
++    orders,
++    summary: {
++      draft: orders.filter((o) => o.status === 'draft').length,
++      sent: orders.filter((o) => o.status === 'sent').length,
++      received: orders.filter((o) => o.status === 'received').length,
++    },
++  };
++}
++
++function createOrder(state, siteId, body, email) {
++  ensureCollections(state);
++  const lines = Array.isArray(body.lines) ? body.lines : [];
++  const clean = lines
++    .map((l) => ({
++      stockItemId: l.stockItemId || null,
++      name: String(l.name || '').trim(),
++      qty: Number(l.qty) || 0,
++      unit: String(l.unit || 'each'),
++      unitCost: Number(l.unitCost) || 0,
++    }))
++    .filter((l) => l.name && l.qty > 0);
++  if (!clean.length) return { ok: false, error: 'Add at least one line' };
++  const order = {
++    id: uid('po'),
++    siteId,
++    supplierId: body.supplierId || null,
++    status: body.status === 'sent' ? 'sent' : 'draft',
++    lines: clean,
++    expectedAt: body.expectedAt || null,
++    orderedAt: body.status === 'sent' ? new Date().toISOString() : null,
++    notes: String(body.notes || '').trim(),
++    createdBy: email || null,
++    createdAt: new Date().toISOString(),
++  };
++  state.purchaseOrders.unshift(order);
++  return { ok: true, order };
++}
++
++function updateOrder(state, siteId, body, email) {
++  ensureCollections(state);
++  const order = state.purchaseOrders.find((o) => o.id === body.id && o.siteId === siteId);
++  if (!order) return { ok: false, error: 'Order not found' };
++  if (body.status) {
++    const st = String(body.status);
++    if (!['draft', 'sent', 'received', 'cancelled'].includes(st)) {
++      return { ok: false, error: 'Invalid status' };
++    }
++    // Receiving stock applies inbound movements once
++    if (st === 'received' && order.status !== 'received') {
++      (order.lines || []).forEach((line) => {
++        if (line.stockItemId) {
++          moveStock(state, siteId, {
++            stockItemId: line.stockItemId,
++            type: 'in',
++            qty: line.qty,
++            reason: `PO ${order.id}`,
++          }, email);
++        } else if (line.name) {
++          const upsert = upsertItem(state, siteId, {
++            name: line.name,
++            unit: line.unit,
++            qtyOnHand: 0,
++            unitCost: line.unitCost,
++            supplierId: order.supplierId,
++          }, email);
++          if (upsert.ok) {
++            line.stockItemId = upsert.item.id;
++            moveStock(state, siteId, {
++              stockItemId: upsert.item.id,
++              type: 'in',
++              qty: line.qty,
++              reason: `PO ${order.id}`,
++            }, email);
++          }
++        }
++      });
++      order.receivedAt = new Date().toISOString();
++    }
++    if (st === 'sent' && !order.orderedAt) order.orderedAt = new Date().toISOString();
++    order.status = st;
++  }
++  if (body.notes != null) order.notes = String(body.notes);
++  if (body.expectedAt != null) order.expectedAt = body.expectedAt;
++  if (body.supplierId != null) order.supplierId = body.supplierId;
++  order.updatedAt = new Date().toISOString();
++  order.updatedBy = email || null;
++  return { ok: true, order };
++}
++
++/** Build draft PO lines from low-stock items */
++function suggestOrderFromLowStock(state, siteId) {
++  const items = lowStock(itemsForSite(state, siteId));
++  return items.map((i) => ({
++    stockItemId: i.id,
++    name: i.name,
++    qty: Math.max(1, (Number(i.reorderLevel) || 1) * 2 - (Number(i.qtyOnHand) || 0)),
++    unit: i.unit || 'each',
++    unitCost: i.unitCost || 0,
++    supplierId: i.supplierId || null,
++  }));
++}
++
++module.exports = {
++  ensureCollections,
++  seedSiteIfEmpty,
++  listStock,
++  upsertItem,
++  moveStock,
++  listOrders,
++  createOrder,
++  updateOrder,
++  suggestOrderFromLowStock,
++  lowStock,
++};
+diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=data' '--exclude=*.png' '--exclude=*.jpg' kitline1/server/saas/pg.js kitline1-bcd/server/saas/pg.js
 --- kitline1/server/saas/pg.js	1970-01-01 00:00:00.000000000 +0000
-+++ kitline1-bc/server/saas/pg.js	2026-08-06 07:51:30.166867148 +0000
++++ kitline1-bcd/server/saas/pg.js	2026-08-06 08:02:40.508499458 +0000
 @@ -0,0 +1,90 @@
 +'use strict';
 +
@@ -559,9 +1222,9 @@ diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitl
 +  lookupMembershipByEmail,
 +  listCompanyLocations,
 +};
-diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitline1/server/saas/roles.js kitline1-bc/server/saas/roles.js
+diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=data' '--exclude=*.png' '--exclude=*.jpg' kitline1/server/saas/roles.js kitline1-bcd/server/saas/roles.js
 --- kitline1/server/saas/roles.js	1970-01-01 00:00:00.000000000 +0000
-+++ kitline1-bc/server/saas/roles.js	2026-08-06 07:51:30.166867148 +0000
++++ kitline1-bcd/server/saas/roles.js	2026-08-06 08:02:40.508499458 +0000
 @@ -0,0 +1,106 @@
 +'use strict';
 +
@@ -669,16 +1332,17 @@ diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitl
 +  roleAtLeast,
 +  permissionsFor,
 +};
-diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitline1/server/saas/router.js kitline1-bc/server/saas/router.js
+diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=data' '--exclude=*.png' '--exclude=*.jpg' kitline1/server/saas/router.js kitline1-bcd/server/saas/router.js
 --- kitline1/server/saas/router.js	1970-01-01 00:00:00.000000000 +0000
-+++ kitline1-bc/server/saas/router.js	2026-08-06 07:51:30.166867148 +0000
-@@ -0,0 +1,185 @@
++++ kitline1-bcd/server/saas/router.js	2026-08-06 08:02:40.508499458 +0000
+@@ -0,0 +1,270 @@
 +'use strict';
 +
 +const context = require('./context');
 +const scope = require('./scope');
 +const roles = require('./roles');
 +const pg = require('./pg');
++const inventory = require('./inventory');
 +
 +function readBody(req) {
 +  return new Promise((resolve) => {
@@ -851,6 +1515,90 @@ diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitl
 +      return apiSend(200, { ok: true });
 +    }
 +
++    // ---- Phase D: Stock & purchase orders (location-scoped) ----
++    function siteFrom(bodyOrQuery) {
++      return (bodyOrQuery && (bodyOrQuery.siteId || bodyOrQuery.locationId)) || state.currentSite;
++    }
++
++    if (path === '/stock' && req.method === 'GET') {
++      const siteId = siteFrom({ siteId: url.searchParams.get('siteId') });
++      const check = context.assertLocationAllowed(access, siteId);
++      if (!check.ok) return apiSend(403, { error: 'Location not allowed' });
++      if (inventory.seedSiteIfEmpty(state, siteId)) {
++        tenants.setStateForUser(db, me.email, state);
++        writeDb(db);
++      }
++      return apiSend(200, Object.assign({ siteId }, inventory.listStock(state, siteId)));
++    }
++
++    if (path === '/stock/item' && (req.method === 'POST' || req.method === 'PUT')) {
++      if (!access.permissions.manage_stock) return apiSend(403, { error: 'No permission to manage stock' });
++      const siteId = siteFrom(body);
++      const check = context.assertLocationAllowed(access, siteId);
++      if (!check.ok) return apiSend(403, { error: 'Location not allowed' });
++      const result = inventory.upsertItem(state, siteId, body, me.email);
++      if (!result.ok) return apiSend(400, result);
++      if (!tenants.setStateForUser(db, me.email, state)) {
++        return apiSend(403, { error: 'Cannot save this workspace' });
++      }
++      writeDb(db);
++      return apiSend(200, result);
++    }
++
++    if (path === '/stock/move' && req.method === 'POST') {
++      if (!access.permissions.manage_stock) return apiSend(403, { error: 'No permission to manage stock' });
++      const siteId = siteFrom(body);
++      const check = context.assertLocationAllowed(access, siteId);
++      if (!check.ok) return apiSend(403, { error: 'Location not allowed' });
++      const result = inventory.moveStock(state, siteId, body, me.email);
++      if (!result.ok) return apiSend(400, result);
++      if (!tenants.setStateForUser(db, me.email, state)) {
++        return apiSend(403, { error: 'Cannot save this workspace' });
++      }
++      writeDb(db);
++      return apiSend(200, result);
++    }
++
++    if (path === '/orders' && req.method === 'GET') {
++      const siteId = siteFrom({ siteId: url.searchParams.get('siteId') });
++      const check = context.assertLocationAllowed(access, siteId);
++      if (!check.ok) return apiSend(403, { error: 'Location not allowed' });
++      if (inventory.seedSiteIfEmpty(state, siteId)) {
++        tenants.setStateForUser(db, me.email, state);
++        writeDb(db);
++      }
++      const data = inventory.listOrders(state, siteId);
++      return apiSend(200, Object.assign({ siteId, suggestions: inventory.suggestOrderFromLowStock(state, siteId) }, data));
++    }
++
++    if (path === '/orders' && req.method === 'POST') {
++      if (!access.permissions.manage_orders) return apiSend(403, { error: 'No permission to manage orders' });
++      const siteId = siteFrom(body);
++      const check = context.assertLocationAllowed(access, siteId);
++      if (!check.ok) return apiSend(403, { error: 'Location not allowed' });
++      const result = inventory.createOrder(state, siteId, body, me.email);
++      if (!result.ok) return apiSend(400, result);
++      if (!tenants.setStateForUser(db, me.email, state)) {
++        return apiSend(403, { error: 'Cannot save this workspace' });
++      }
++      writeDb(db);
++      return apiSend(200, result);
++    }
++
++    if (path === '/orders' && req.method === 'PATCH') {
++      if (!access.permissions.manage_orders) return apiSend(403, { error: 'No permission to manage orders' });
++      const siteId = siteFrom(body);
++      const check = context.assertLocationAllowed(access, siteId);
++      if (!check.ok) return apiSend(403, { error: 'Location not allowed' });
++      const result = inventory.updateOrder(state, siteId, body, me.email);
++      if (!result.ok) return apiSend(400, result);
++      if (!tenants.setStateForUser(db, me.email, state)) {
++        return apiSend(403, { error: 'Cannot save this workspace' });
++      }
++      writeDb(db);
++      return apiSend(200, result);
++    }
++
 +    return apiSend(404, { error: 'Unknown SaaS route' });
 +  }
 +
@@ -858,10 +1606,10 @@ diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitl
 +}
 +
 +module.exports = { createHandler };
-diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitline1/server/saas/scope.js kitline1-bc/server/saas/scope.js
+diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=data' '--exclude=*.png' '--exclude=*.jpg' kitline1/server/saas/scope.js kitline1-bcd/server/saas/scope.js
 --- kitline1/server/saas/scope.js	1970-01-01 00:00:00.000000000 +0000
-+++ kitline1-bc/server/saas/scope.js	2026-08-06 07:51:30.166867148 +0000
-@@ -0,0 +1,171 @@
++++ kitline1-bcd/server/saas/scope.js	2026-08-06 08:02:40.508499458 +0000
+@@ -0,0 +1,172 @@
 +'use strict';
 +
 +const { siteIdOf } = require('./context');
@@ -870,6 +1618,7 @@ diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitl
 +  'sensors', 'checklists', 'records', 'alerts', 'menus', 'labels', 'waste',
 +  'recipes', 'workflows', 'deliveries', 'batches', 'cooling', 'phlogs',
 +  'holding', 'incidents', 'maintenance', 'assets', 'training',
++  'stockItems', 'stockMovements', 'purchaseOrders',
 +];
 +
 +function inAllowed(row, allowed) {
@@ -1033,15 +1782,15 @@ diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitl
 +  mergeStatePut,
 +  aggregateReport,
 +};
-diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitline1/server/server.js kitline1-bc/server/server.js
+diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=data' '--exclude=*.png' '--exclude=*.jpg' kitline1/server/server.js kitline1-bcd/server/server.js
 --- kitline1/server/server.js	2026-08-06 07:29:35.506570540 +0000
-+++ kitline1-bc/server/server.js	2026-08-06 07:51:30.166867148 +0000
++++ kitline1-bcd/server/server.js	2026-08-06 08:02:40.508499458 +0000
 @@ -28,7 +28,7 @@
    || (!isProd && process.env.DEMO_MODE !== 'false');
  // Early access: registration open unless explicitly disabled.
  const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
 -const APP_BUILD = '2026-07-02-pilot-sites';
-+const APP_BUILD = '2026-08-06-saas-bc';
++const APP_BUILD = '2026-08-06-saas-bcd';
  const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
  const notify = require('./notify');
  const vedantaReports = require('./vedanta-reports');
@@ -1062,7 +1811,7 @@ diff -ruN '--exclude=.git' '--exclude=node_modules' '--exclude=server/data' kitl
      return apiSend( 200, { ok: true });
    }
  
-+  // SaaS multi-company / multi-location API (Phase B)
++  // SaaS multi-company / multi-location API (Phase B/C/D)
 +  if (url.pathname.startsWith('/api/saas') || route === '/state') {
 +    if (typeof DEMO_MODE !== 'undefined' && DEMO_MODE) {
 +      if (kitelineSaas.ensureDemoTeamAccess(db, me.email, tenants)) writeDb(db);

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * Apply Phase B/C runtime into a kitline1 checkout.
+ * Apply Phase B/C/D runtime into a kitline1 checkout.
  * Usage: node scripts/apply-bc-to-kitline1.js /path/to/kitline1
  */
 const fs = require('fs');
@@ -13,6 +13,8 @@ if (!target || !fs.existsSync(path.join(target, 'server', 'server.js'))) {
   console.error('Usage: node scripts/apply-bc-to-kitline1.js /path/to/kitline1');
   process.exit(1);
 }
+
+const BUILD = '2026-08-06-saas-bcd';
 
 function cpDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
@@ -26,6 +28,10 @@ function cpDir(src, dest) {
 
 cpDir(path.join(root, 'runtime', 'server', 'saas'), path.join(target, 'server', 'saas'));
 fs.copyFileSync(path.join(root, 'runtime', 'js', 'saas.js'), path.join(target, 'js', 'saas.js'));
+fs.copyFileSync(
+  path.join(root, 'runtime', 'js', 'views-inventory.js'),
+  path.join(target, 'js', 'views-inventory.js')
+);
 
 const serverPath = path.join(target, 'server', 'server.js');
 let server = fs.readFileSync(serverPath, 'utf8');
@@ -37,7 +43,6 @@ if (!server.includes("require('./saas')")) {
   );
 }
 
-// Hook GET /api/state to return scoped state
 if (!server.includes('kitelineSaas.scopedStateFor')) {
   server = server.replace(
     "return apiSend(200, { state, tenant: tenants.tenantInfo(db, me.email) });\n  }\n  if (route === '/state' && req.method === 'PUT') {",
@@ -48,7 +53,6 @@ if (!server.includes('kitelineSaas.scopedStateFor')) {
   );
 }
 
-// Hook PUT /api/state merge
 if (!server.includes('kitelineSaas.mergePut')) {
   server = server.replace(
     "const next = body.state || prevState;\n    const prevCopy = JSON.parse(JSON.stringify(prevState));\n    ensureBreachAlerts(next);",
@@ -60,12 +64,10 @@ if (!server.includes('kitelineSaas.mergePut')) {
   );
 }
 
-// Mount /api/saas before generic 404 — inject after auth'd section start of state is fine;
-// place just before GET /api/state
 if (!server.includes("url.pathname.startsWith('/api/saas')")) {
   server = server.replace(
     "// Per-company workspace (tenant-scoped; demo tenant is owner-only)\n  if (route === '/state' && req.method === 'GET') {",
-    `// SaaS multi-company / multi-location API (Phase B)
+    `// SaaS multi-company / multi-location API (Phase B/C/D)
   if (url.pathname.startsWith('/api/saas') || route === '/state') {
     if (typeof DEMO_MODE !== 'undefined' && DEMO_MODE) {
       if (kitelineSaas.ensureDemoTeamAccess(db, me.email, tenants)) writeDb(db);
@@ -80,30 +82,45 @@ if (!server.includes("url.pathname.startsWith('/api/saas')")) {
   );
 }
 
-// Bump build id
-server = server.replace(
-  /const APP_BUILD = '[^']+';/,
-  "const APP_BUILD = '2026-08-06-saas-bc';"
-);
-
+server = server.replace(/const APP_BUILD = '[^']+';/, `const APP_BUILD = '${BUILD}';`);
 fs.writeFileSync(serverPath, server);
 
+// ---- app.js: nav + route roles ----
+const appPath = path.join(target, 'js', 'app.js');
+let app = fs.readFileSync(appPath, 'utf8');
+if (!app.includes("id:'stock'")) {
+  app = app.replace(
+    "{ id:'suppliers', label:'Suppliers', icon:'truck' },",
+    "{ id:'suppliers', label:'Suppliers', icon:'truck' },\n    { id:'stock', label:'Stock', icon:'box' },\n    { id:'orders', label:'Orders', icon:'truck' },"
+  );
+}
+if (!app.includes("stock:'Manager'")) {
+  app = app.replace(
+    "suppliers:'Manager', assets:'Manager', sites:'Manager', reports:'Manager',",
+    "suppliers:'Manager', stock:'Manager', orders:'Manager', assets:'Manager', sites:'Manager', reports:'Manager',"
+  );
+}
+fs.writeFileSync(appPath, app);
+
+// ---- index.html scripts + build ----
 const indexPath = path.join(target, 'index.html');
 let index = fs.readFileSync(indexPath, 'utf8');
 if (!index.includes('/js/saas.js')) {
   index = index.replace(
-    '<script src="/js/app.js?v=31"></script>',
-    '<script src="/js/app.js?v=31"></script>\n  <script src="/js/saas.js?v=1"></script>'
+    /<script src="\/js\/app\.js\?v=\d+"><\/script>/,
+    (m) => `${m}\n  <script src="/js/views-inventory.js?v=1"></script>\n  <script src="/js/saas.js?v=1"></script>`
+  );
+} else if (!index.includes('/js/views-inventory.js')) {
+  index = index.replace(
+    '<script src="/js/saas.js?v=1"></script>',
+    '<script src="/js/views-inventory.js?v=1"></script>\n  <script src="/js/saas.js?v=1"></script>'
   );
 }
-index = index.replace(
-  /var build = '[^']+';/,
-  "var build = '2026-08-06-saas-bc';"
-);
+index = index.replace(/var build = '[^']+';/, `var build = '${BUILD}';`);
 fs.writeFileSync(indexPath, index);
 
-console.log('Applied Phase B/C into', target);
-console.log('- server/saas/*');
-console.log('- js/saas.js');
-console.log('- server.js hooks + build 2026-08-06-saas-bc');
-console.log('- index.html script tag');
+console.log('Applied Phase B/C/D into', target);
+console.log('- server/saas/* (incl. inventory)');
+console.log('- js/saas.js + js/views-inventory.js');
+console.log('- app.js Stock/Orders nav');
+console.log('- build', BUILD);
