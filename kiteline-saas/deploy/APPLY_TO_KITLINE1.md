@@ -8,7 +8,7 @@ cd kitline1
 # 1) Security hardening (Phase E)
 git apply /path/to/parslia-kitchen-os/kiteline-saas/deploy/kitline1-security-hardening.patch
 
-# 2) Tenancy API + screens (Phase B/C)
+# 2) Tenancy API + screens + Stock/Orders (Phase B/C/D)
 git apply /path/to/parslia-kitchen-os/kiteline-saas/deploy/kitline1-saas-bc.patch
 # or: node /path/to/kiteline-saas/scripts/apply-bc-to-kitline1.js .
 

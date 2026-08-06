@@ -7,8 +7,9 @@ Professional multi-company / multi-location foundation for **kiteline.uk**, with
 | Path | Purpose |
 |------|---------|
 | `schema/*.sql` | Postgres schema + RLS (A) |
-| `runtime/server/saas/*` | Tenancy API + scoped state (B) |
+| `runtime/server/saas/*` | Tenancy API + inventory (B/D) |
 | `runtime/js/saas.js` | Switcher / Team / Clock / Reports (C) |
+| `runtime/js/views-inventory.js` | Stock + Orders screens (D) |
 | `docs/*` | Roles, workflow, migration, Phase B/C |
 | `tests/isolation_test.sql` | DB isolation proof (A/E) |
 | `tests/saas-unit-test.js` | API scoping unit tests (B) |
@@ -36,7 +37,7 @@ DATABASE_URL='postgres://...' ./scripts/apply-schema.sh
 
 Then deploy kitline1 to Render (this agent cannot push `kitline1`).
 
-## Still later (Phase D)
+## Still later
 
-- First-class Stock / Orders screens
-- Full Postgres cutover for ops data (beyond context enrichment)
+- Full Postgres cutover for ops data (stock tables already in schema)
+- Deeper billing portal polish beyond Owner permissions

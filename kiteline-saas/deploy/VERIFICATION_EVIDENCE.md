@@ -54,4 +54,20 @@ Probed 2026-08-06:
 - `/api/config` → `"demo": true`
 - `/api/vedanta/store` → HTTP **200** (still open)
 
-**Conclusion:** A/B/C/E package verified locally. Production still needs owner apply + Render deploy.
+## Phase D Stock & Orders
+
+Commands: `node tests/inventory-unit-test.js` + local server smoke
+
+Result: **PASS** (5/5 unit tests)
+
+| Check | Result |
+|-------|--------|
+| Owner GET `/api/saas/stock` | 8 starter SKUs seeded |
+| Create PO → sent → received | Stock increased |
+| Staff POST stock item | **403** |
+| Manager stock `site_dock` | Allowed |
+| Manager stock `site_grove` | **403** |
+
+Build id: `2026-08-06-saas-bcd`
+
+**Conclusion:** A/B/C/D/E package verified locally. Production still needs owner apply + Render deploy.
