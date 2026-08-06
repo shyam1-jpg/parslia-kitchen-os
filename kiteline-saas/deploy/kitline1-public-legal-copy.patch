@@ -1,0 +1,1080 @@
+diff --git a/js/store.js b/js/store.js
+index 0266c5d..6d520fb 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -131,7 +131,7 @@
+       { id:'site_academy', name:'Culinary Academy Kitchen', city:'Edinburgh', timezone:'Europe/London', address:'12 Lauriston Place', postcode:'EH3 9DF', country:'UK', type:'Education', covers:40, rating:5, manager:'Ewan Fraser', phone:'+44 131 555 0155', email:'academy@kiteline.uk', opened:'2017', lastInspection:daysAgo(75).slice(0,10), status:'Active' },
+       { id:'site_marina', name:'Marina Fish & Grill', city:'Brighton', timezone:'Europe/London', address:'27 Madeira Drive', postcode:'BN2 1EN', country:'UK', type:'Seafood', covers:70, rating:4, manager:'Nina Kostova', phone:'+44 1273 555 0122', email:'marina@kiteline.uk', opened:'2019', lastInspection:daysAgo(33).slice(0,10), status:'Seasonal' },
+       { id:'site_heathrow', name:'Terminal 3 Food Court', city:'Hounslow', timezone:'Europe/London', address:'Heathrow T3, Inner Ring E', postcode:'TW6 1QG', country:'UK', type:'Food Court', covers:220, rating:5, manager:'Raj Patel', phone:'+44 20 555 0199', email:'t3@kiteline.uk', opened:'2014', lastInspection:daysAgo(18).slice(0,10), status:'Active' },
+-      { id:'site_vedanta', name:'The Ve Kitchen One', legalName:'The Vedanta Way Limited', city:'London', timezone:'Europe/London', address:'The Ve Outlet One — Vedanta Campus', postcode:'WD25 8HE', country:'UK', type:'School & Events Catering', covers:520, rating:5, manager:'Shyam Prasad', phone:'', email:'shyam_1@hotmail.co.uk', opened:'2018', lastInspection:daysAgo(10).slice(0,10), status:'Active', pilot:true, tags:['vedanta','school-meals'] },
++      { id:'site_vedanta', name:'Demo Pilot Kitchen One', legalName:'Demo Pilot Kitchen Ltd (sample data)', city:'London', timezone:'Europe/London', address:'Demo Pilot Campus', postcode:'WD25 8HE', country:'UK', type:'School & Events Catering', covers:520, rating:5, manager:'Shyam Prasad', phone:'', email:'shyam_1@hotmail.co.uk', opened:'2018', lastInspection:daysAgo(10).slice(0,10), status:'Active', pilot:true, tags:['pilot','school-meals'] },
+       { id:'site_govindas', name:'Govindas Central Kitchen', legalName:'Govindas Ltd', city:'London', timezone:'Europe/London', address:'Bhaktivedanta Manor — School Meals Unit', postcode:'WD25 8HE', country:'UK', type:'Vegetarian School Catering', covers:1200, rating:5, manager:'Anita Sharma', phone:'+44 1923 851000', email:'kitchen@govindas.demo', opened:'2010', lastInspection:daysAgo(14).slice(0,10), status:'Active', pilot:true, tags:['govindas','vegetarian','school-meals'] },
+       { id:'site_regent', name:'The Regent Hotel', city:'London', timezone:'Europe/London', address:'88 Regent Street', postcode:'W1B 5RS', country:'UK', type:'Hotel', covers:200, rating:5, manager:'Helen Croft', phone:'+44 20 7123 4600', email:'regent@kiteline.uk', opened:'2012', lastInspection:daysAgo(35).slice(0,10), status:'Active' },
+       { id:'site_manor', name:'Manor Park Hotel', city:'Edinburgh', timezone:'Europe/London', address:'12 Manor Park Gardens', postcode:'EH12 5BF', country:'UK', type:'Hotel', covers:140, rating:4, manager:'Gordon Reid', phone:'+44 131 555 0201', email:'manor@kiteline.uk', opened:'2015', lastInspection:daysAgo(50).slice(0,10), status:'Active' },
+@@ -524,7 +524,7 @@
+     };
+   }
+ 
+-  // Pilot kitchens — Vedanta & Govindas full feature packs for market testing
++  // Pilot kitchens — demo samples & Govindas full feature packs for market testing
+   const PILOT_PACK_VERSION = 2;
+   const PILOT_SITE_IDS = ['site_vedanta', 'site_govindas'];
+   let _pilotSeedDefs = null;
+@@ -543,7 +543,7 @@
+     {
+       id: 'site_vedanta',
+       assigneeMap: { u_sarah: 'u_ved_chef', u_james: 'u_ved_sous', u_marco: 'u_ved_kp', u_amy: 'u_ved_comp' },
+-      links: [{ label: 'Vedanta Rota', href: '/vedanta-rota/' }, { label: 'Vedanta Ordering', href: '/vedanta-ordering/' }, { label: 'Menu Creator', href: '/menu-creator/' }],
++      links: [{ label: 'Staff Rota', href: '/vedanta-rota/' }, { label: 'Ordering', href: '/vedanta-ordering/' }, { label: 'Menu Creator', href: '/menu-creator/' }],
+     },
+     {
+       id: 'site_govindas',
+diff --git a/site/academy/cookies.html b/site/academy/cookies.html
+index f1dcce2..a5b2a9d 100644
+--- a/site/academy/cookies.html
++++ b/site/academy/cookies.html
+@@ -12,7 +12,8 @@
+ <p>Kiteline Academy uses cookies to keep you signed in and to protect the service.</p>
+ <h2>Essential cookies</h2><ul><li><strong>ka_session</strong> — HttpOnly session cookie after login (Secure in production).</li><li>Language preference stored locally in your browser.</li></ul>
+ <h2>Security & analytics</h2><p>We may use Cloudflare Turnstile or reCAPTCHA cookies when bot protection is enabled.</p>
+-<h2>Payment cookies</h2><p>Stripe may set cookies during checkout on their domain.</p>
++<h2>Payment cookies</h2><p>Online card checkout cookies are planned and only apply if checkout is actually loaded on Academy pages.</p>
+ <h2>Your choices</h2><p>Essential cookies are required to stay signed in. You can clear cookies in your browser settings, which will sign you out.</p>
+ <p>See also our <a href="privacy.html">Privacy Policy</a>.</p>
+-</div></body></html>
++</div><footer><p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p></footer>
++</body></html>
+diff --git a/site/academy/privacy.html b/site/academy/privacy.html
+index 541df37..6332184 100644
+--- a/site/academy/privacy.html
++++ b/site/academy/privacy.html
+@@ -20,13 +20,13 @@ a{color:#36e6ff}h1{font-size:2rem;margin:0 0 8px}h2{font-size:1.1rem;margin:2rem
+   <p>This policy explains how <strong>Kiteline Academy</strong> (“we”, “us”) collects and uses personal data when you register, learn, or pay for courses at <a href="https://kiteline.uk/academy/">Kiteline Academy</a>.</p>
+ 
+   <h2>1. Data controller</h2>
+-  <p>Kiteline Academy is the data controller. Contact: <a href="mailto:contact@kiteline.uk">contact@kiteline.uk</a></p>
++    <p>Kiteline is an independent software brand operated by [FULL LEGAL OPERATOR NAME]. For account, website, support and marketing data, [FULL LEGAL OPERATOR NAME] is the data controller. Contact: <a href="mailto:contact@kiteline.uk" class="text-brand-700">contact@kiteline.uk</a>. The customer organisation normally acts as data controller for the staff and operational data entered into its workspace. Kiteline processes that information on the customer’s instructions when providing the hosted service.</p>
+ 
+   <h2>2. Data we collect</h2>
+   <ul>
+     <li><strong>Account data</strong> — name, email, phone (optional), password (hashed), country, language preference, and optional profile fields you choose to add.</li>
+     <li><strong>Learning data</strong> — course enrolments, progress, certificates, and support messages.</li>
+-    <li><strong>Payment data</strong> — processed by Stripe; we store payment status and course access, not full card numbers.</li>
++    <li><strong>Payment data</strong> — processed by card checkout only when online payments are enabled (not currently the default early-access path); we store payment status and course access, not full card numbers.</li>
+     <li><strong>Security data</strong> — IP address, login attempts, session cookies (HttpOnly), optional authenticator-app 2FA secrets (encrypted at rest when Postgres is enabled).</li>
+     <li><strong>CAPTCHA</strong> — bot-check tokens from Cloudflare Turnstile or Google reCAPTCHA when enabled.</li>
+   </ul>
+@@ -72,5 +72,6 @@ a{color:#36e6ff}h1{font-size:2rem;margin:0 0 8px}h2{font-size:1.1rem;margin:2rem
+ 
+   <p style="margin-top:2rem"><a href="/academy/">Return to Kiteline Academy</a></p>
+ </div>
++<footer><p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p></footer>
+ </body>
+ </html>
+diff --git a/site/academy/refunds.html b/site/academy/refunds.html
+index 1f19781..93e7a54 100644
+--- a/site/academy/refunds.html
++++ b/site/academy/refunds.html
+@@ -8,11 +8,13 @@
+ </head>
+ <body><div class="wrap"><a href="/academy/" class="btn">← Kiteline Academy</a>
+ <p style="color:#64748b;font-size:.85rem;margin:2rem 0 .5rem">Last updated: 13 July 2026</p>
+-<h1>Refund Policy</h1>
++<p class="text-sm text-ink-600 mb-4">No payment is taken automatically when the free trial ends. During early access, any paid pilot subscription is arranged manually by written quotation and invoice. The applicable cancellation and refund terms will be included in the accepted quotation.</p>
++  <h1>Refund Policy</h1>
+ <p>Kiteline Academy is operated in the UK by Shyam Prasad. This policy uses the same plan names as our <a href="/academy/#pricing">pricing page</a>: <strong>Free</strong>, <strong>Starter</strong> (£9.99/month), <strong>Pro Student</strong> (£19.99/month) and <strong>Annual Bundle</strong> (£99, one-time).</p>
+ <h2>Free plan</h2><p>No payment is taken, so no refunds apply. You can delete your account at any time by emailing us from your registered address.</p>
+ <h2>Starter and Pro Student (monthly subscriptions)</h2><p>Access lasts one month and renews automatically until cancelled. Cancel anytime before your next billing date from your student dashboard Billing tab, or by emailing us. After cancellation, access continues until the end of the current billing period, then stops. We do not refund partial months unless required by law.</p>
+ <h2>Annual Bundle (£99, one-time payment)</h2><p>Includes <strong>12 months</strong> access to all beginner courses from the purchase date, plus certificates for completed courses. It does not renew automatically. You may request a full refund within <strong>14 days</strong> of purchase if fewer than 2 course modules have been completed.</p>
+ <h2>Your UK consumer rights</h2><p>Because our courses are digital content with immediate access, you are asked at checkout to confirm that access begins straight away and that you may lose the 14-day cooling-off cancellation right once you start streaming lessons. This does not affect your other statutory rights, including where content is faulty or not as described.</p>
+ <h2>How to request</h2><p>Email <a href="mailto:contact@kiteline.uk?subject=Kiteline%20Academy%20refund">contact@kiteline.uk</a> from your registered account email with your plan name and purchase date. We respond within 5 business days.</p>
+-</div></body></html>
++</div><footer><p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p></footer>
++</body></html>
+diff --git a/site/academy/terms.html b/site/academy/terms.html
+index 0ed8413..a24cdd3 100644
+--- a/site/academy/terms.html
++++ b/site/academy/terms.html
+@@ -12,9 +12,10 @@
+ <p>These terms apply to Kiteline Academy at <a href="https://kiteline.uk/academy/">kiteline.uk/academy</a>, operated by <strong>Kiteline Academy</strong> (“we”, “us”).</p>
+ <h2>1. Your account</h2><p>You must provide accurate registration details. You are responsible for keeping your password secure. You must be at least 13 years old.</p>
+ <h2>2. Courses and access</h2><p>Course access is granted after enrolment and payment (where required). Content is for personal learning unless we agree otherwise in writing.</p>
+-<h2>3. Payments</h2><p>Prices are shown in GBP. Payments are processed by Stripe. Subscriptions renew monthly until cancelled.</p>
++<h2>3. Payments</h2><p>Prices are shown in GBP. Payments are processed by card checkout only when online payments are enabled (not currently the default early-access path). Subscription renewal terms will be stated in your accepted quotation or checkout confirmation when online payments are active.</p>
+ <h2>4. Acceptable use</h2><p>Do not share account access, copy course materials for resale, or misuse the platform.</p>
+ <h2>5. Certificates</h2><p>Certificates are issued on completion of course requirements. They represent completion of Kiteline Academy learning, not an accredited qualification unless stated.</p>
+ <h2>6. Limitation of liability</h2><p>We provide education content “as is”. We are not liable for indirect losses. Nothing limits liability where unlawful to do so.</p>
+ <h2>7. Contact</h2><p><a href="mailto:contact@kiteline.uk">contact@kiteline.uk</a></p>
+-</div></body></html>
++</div><footer><p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p></footer>
++</body></html>
+diff --git a/site/billing-success.html b/site/billing-success.html
+index 446b76f..83a93aa 100644
+--- a/site/billing-success.html
++++ b/site/billing-success.html
+@@ -18,7 +18,7 @@
+       <a href="/app#settings" id="cta" class="inline-block mt-8 px-6 py-3 rounded-xl bg-white text-brand-800 font-bold">Open Kiteline app</a>
+       <p id="hint" class="mt-6 text-sm text-white/50">Manage or cancel anytime in the app → Settings → Billing.</p>
+       <p class="mt-4 text-sm"><a href="pricing.html" class="text-brand-300 underline">Back to pricing</a></p>
+-      <p class="mt-8 text-xs text-white/40">© 2026 Kiteline · <a href="terms.html" class="underline">Terms</a> · <a href="privacy.html" class="underline">Privacy</a></p>
++      <p class="mt-8 text-xs text-white/40">© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited. · <a href="terms.html" class="underline">Terms</a> · <a href="privacy.html" class="underline">Privacy</a></p>
+     </div>
+   </section>
+   <script>
+diff --git a/site/contact.html b/site/contact.html
+index 091fb08..125ff39 100644
+--- a/site/contact.html
++++ b/site/contact.html
+@@ -44,8 +44,11 @@
+ 
+       <div class="rounded-xl border border-ink-100 p-5 mb-6">
+         <h2 class="font-bold text-ink-900 mb-2">Company</h2>
+-        <p class="text-sm text-ink-600"><strong>Kiteline</strong><br>Professional kitchen software<br>Website: <a href="https://kiteline.uk" class="text-brand-700 font-semibold">kiteline.uk</a></p>
+-        <p class="text-sm text-ink-500 mt-3">Company registration details available on request for B2B contracts.</p>
++        <p class="text-sm text-ink-600">Kiteline<br>
++            Independent professional kitchen software<br>
++            Currently in early access<br>
++            Email: <a href="mailto:contact@kiteline.uk">contact@kiteline.uk</a></p>
++        <p class="text-sm text-ink-500 mt-3">Currently in early access. Email: contact@kiteline.uk</p>
+       </div>
+ 
+       <div id="demo" class="rounded-xl border border-ink-100 p-5">
+@@ -106,7 +109,7 @@
+       <a href="privacy.html" class="hover:text-white">Privacy</a>
+       <a href="/app" class="hover:text-white">App</a>
+     </div>
+-    <p>© 2026 Kiteline · All rights reserved. <a href="/academy/" class="text-ink-500 hover:text-white">Kiteline Academy</a> (separate product)</p>
++    <p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
+   </footer>
+   <script>
+     document.getElementById('contactForm').onsubmit = function (e) {
+diff --git a/site/cookies.html b/site/cookies.html
+index 7a8a947..a47350c 100644
+--- a/site/cookies.html
++++ b/site/cookies.html
+@@ -27,7 +27,7 @@
+     <p>Small text files stored on your device to remember preferences, keep you signed in, or understand how the site is used.</p>
+     <h2>Essential cookies</h2>
+     <ul>
+-      <li><strong>Session / auth</strong> — keep you logged in to the app and Academy (HttpOnly where configured).</li>
++      <li><strong>Session / auth</strong> — keep you logged in to the Kiteline kitchen app where you use it (HttpOnly where configured).</li>
+       <li><strong>Security</strong> — CSRF and CAPTCHA tokens where enabled.</li>
+     </ul>
+     <h2>Functional cookies</h2>
+@@ -35,10 +35,10 @@
+     <h2>Analytics</h2>
+     <p>We do not use third-party advertising cookies on the marketing site today. If we add privacy-friendly analytics, this page will be updated.</p>
+     <h2>Third parties</h2>
+-    <p>Stripe checkout and Cloudflare Turnstile may set cookies when those features are enabled. See their policies for details.</p>
++    <p>Payment provider and bot-protection cookies are listed here only when those services actually load on Kiteline pages. They are not currently treated as active by default on the main kitchen website.</p>
+     <h2>Your choices</h2>
+     <p>You can block cookies in your browser; essential features such as login may not work without them.</p>
+-    <p class="mt-10 text-sm text-ink-500">See also our <a href="privacy.html" class="text-brand-700 font-semibold">Privacy Policy</a>. Academy cookies: <a href="/academy/cookies.html" class="text-brand-700 font-semibold">Kiteline Academy cookie policy</a>.</p>
++    <p class="mt-10 text-sm text-ink-500">See also our <a href="privacy.html" class="text-brand-700 font-semibold">Privacy Policy</a>. cookies for any separate Academy product (only if used on this domain): <a href="/academy/cookies.html" class="text-brand-700 font-semibold">Kiteline Academy cookie policy</a>.</p>
+   </main>
+   <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm px-5 space-y-3">
+     <div class="flex flex-wrap justify-center gap-x-5 gap-y-2">
+@@ -46,7 +46,7 @@
+       <a href="privacy.html" class="hover:text-white">Privacy</a>
+       <a href="contact.html" class="hover:text-white">Contact</a>
+     </div>
+-    <p>© 2026 Kiteline � All rights reserved.</p>
++    <p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
+   </footer>
+ </body>
+ </html>
+diff --git a/site/dpa.html b/site/dpa.html
+index c54a47f..5ffb3bd 100644
+--- a/site/dpa.html
++++ b/site/dpa.html
+@@ -21,9 +21,9 @@
+   <main class="max-w-3xl mx-auto px-5 py-12 legal">
+     <p class="text-sm text-ink-500 mb-2">Last updated: 21 June 2026</p>
+     <h1 class="text-3xl font-black mb-2">Data Processing Agreement (summary)</h1>
+-    <p class="text-ink-500 mb-8">This page summarises how Kiteline processes personal data on behalf of kitchen software customers. A full signed DPA is available on request for B2B contracts.</p>
++    <p class="text-ink-500 mb-8">This page summarises how Kiteline processes personal data on behalf of kitchen software customers. A formal Data Processing Agreement will be available before paid B2B customer onboarding for B2B contracts.</p>
+     <h2>Roles</h2>
+-    <p><strong>You</strong> (the customer) are the data controller for kitchen and staff data you enter. <strong>Kiteline</strong> is the data processor when hosting the service for you.</p>
++    <p><strong>You</strong> (the customer) are the data controller for kitchen and staff data you enter. the Kiteline service (operated by [FULL LEGAL OPERATOR NAME] once confirmed) acts as data processor when hosting the service for you.</p>
+     <h2>What we process</h2>
+     <ul>
+       <li>Staff account details (name, email, role)</li>
+@@ -39,12 +39,13 @@
+       <li>Use sub-processors listed in our <a href="privacy.html#subprocessors" class="text-brand-700 font-semibold">Privacy Policy</a></li>
+     </ul>
+     <h2>Sub-processors</h2>
+-    <p>Hosting (Render), database (Neon Postgres when configured), payments (Stripe), email (SMTP provider), and security tools (e.g. Cloudflare Turnstile) may process data on our behalf. See the sub-processors section in our Privacy Policy.</p>
++    <p>Hosting (Render), database (Neon Postgres when configured), payments (planned card provider — not currently active), email (SMTP provider), and security tools (e.g. Cloudflare Turnstile) may process data on our behalf. See the sub-processors section in our Privacy Policy.</p>
+     <h2>Retention & deletion</h2>
+     <p>Data is retained while your account is active. Backups are kept for disaster recovery (typically 30–90 days). Email <a href="mailto:contact@kiteline.uk?subject=DPA%20request" class="text-brand-700">contact@kiteline.uk</a> for export or deletion requests.</p>
+     <h2>Request a full DPA</h2>
+     <p>Email <a href="mailto:contact@kiteline.uk?subject=Kiteline%20DPA%20request" class="text-brand-700 font-semibold">contact@kiteline.uk</a> with your company name and we will send a standard UK GDPR Data Processing Agreement for signature.</p>
+   </main>
+-  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm"><a href="/" class="hover:text-white">Home</a> · <a href="privacy.html" class="hover:text-white">Privacy</a></footer>
++  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm"><a href="/" class="hover:text-white">Home</a> · <a href="privacy.html" class="hover:text-white">Privacy</a><p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
++  </footer>
+ </body>
+ </html>
+diff --git a/site/faq.html b/site/faq.html
+index c8343ec..8d774c9 100644
+--- a/site/faq.html
++++ b/site/faq.html
+@@ -24,8 +24,8 @@
+     <p class="mt-3 text-white/75 max-w-xl mx-auto">Kiteline kitchen software — trials, pricing, compliance, hardware, and support.</p>
+   </section>
+   <main class="max-w-3xl mx-auto px-5 py-12 space-y-3">
+-    <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Is there a free trial?</summary><p class="text-sm text-ink-500 mt-2">Yes — 14 days free for new accounts, up to 5 users, all modules. No card required to register.</p></details>
+-    <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">How do I pay?</summary><p class="text-sm text-ink-500 mt-2">During early access, paid plans are activated manually by invoice or email. When online checkout is enabled, you can subscribe securely by card after your trial. See <a href="pricing.html" class="text-brand-700 font-semibold">pricing</a>.</p></details>
++    <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Is there a free trial?</summary><p class="text-sm text-ink-500 mt-2">Yes — 14 days free for new accounts, up to 5 users, with access to currently available core software modules. No card required to register.</p></details>
++    <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">How do I pay?</summary><p class="text-sm text-ink-500 mt-2">During early access, paid plans are activated manually by invoice or email. During early access, paid plans are arranged manually by email and invoice; online card checkout is planned after your trial. See <a href="pricing.html" class="text-brand-700 font-semibold">pricing</a>.</p></details>
+     <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Does Kiteline replace my HACCP plan?</summary><p class="text-sm text-ink-500 mt-2">No. Kiteline supports your records but you remain legally responsible for food safety at your site. See <a href="product-haccp.html" class="text-brand-700 font-semibold">SafeServe</a>.</p></details>
+     <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Do I need temperature sensors?</summary><p class="text-sm text-ink-500 mt-2">No — start with manual logging in the app. Sensors are optional through our hardware pilot.</p></details>
+     <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">What about SMS alerts?</summary><p class="text-sm text-ink-500 mt-2">Email alerts are available when configured. SMS alerts are planned for the pilot and will only be offered when tested and confirmed.</p></details>
+@@ -42,7 +42,7 @@
+       <a href="terms.html" class="hover:text-white">Terms</a>
+       <a href="privacy.html" class="hover:text-white">Privacy</a>
+     </div>
+-    <p>© 2026 Kiteline � All rights reserved.</p>
++    <p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
+   </footer>
+ </body>
+ </html>
+diff --git a/site/hardware.html b/site/hardware.html
+index 30c2f7a..7b40e44 100644
+--- a/site/hardware.html
++++ b/site/hardware.html
+@@ -31,7 +31,7 @@
+   <section class="gradient text-white py-16 px-5 text-center">
+     <span class="inline-block px-3 py-1 rounded-full bg-amber-500/20 text-amber-200 text-sm font-semibold mb-4">Coming soon — no stock held yet</span>
+     <h1 class="text-4xl lg:text-5xl font-black max-w-3xl mx-auto">Kiteline Hardware & Supplies</h1>
+-    <p class="mt-4 text-white/75 max-w-2xl mx-auto">Sensors, label printers, and rolls that plug straight into Kiteline. We are not holding inventory until enough kitchens register interest — tell us what you want and we will batch-order for pilot customers.</p>
++    <p class="mt-4 text-white/75 max-w-2xl mx-auto">Sensor and labelling hardware is being assessed through a limited pilot programme. We are not holding inventory until enough kitchens register interest — tell us what you want and we will batch-order for pilot customers.</p>
+     <p class="mt-3 text-sm text-white/50" id="interestSummary">Register below — no obligation.</p>
+   </section>
+ 
+@@ -61,7 +61,7 @@
+         <h2 class="font-bold text-xl mt-3">SafeServe Sensor Kit</h2>
+         <p class="text-sm text-ink-500 mt-2 flex-1">Wireless fridge/freezer probes + gateway, pre-mapped to your Kiteline dashboard. Install support included for pilot sites.</p>
+         <ul class="mt-4 space-y-1 text-sm text-ink-600">
+-          <li>✓ Works with Kiteline /api/ingest</li>
++          <li>✓ Designed to connect compatible sensor readings with the Kiteline dashboard.</li>
+           <li>✓ Email alerts when configured; SMS planned for pilot</li>
+           <li>○ Model & price confirmed after pilot tests</li>
+         </ul>
+@@ -85,7 +85,7 @@
+       <div class="rounded-2xl border border-ink-100 p-6 flex flex-col">
+         <span class="text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-amber-50 inline-block px-2 py-1 rounded-full w-fit">Coming soon</span>
+         <h2 class="font-bold text-xl mt-3">Label Rolls (62 mm)</h2>
+-        <p class="text-sm text-ink-500 mt-2 flex-1">Food-safe thermal rolls matched to the printer bundle. Re-order from Kiteline when you run low.</p>
++        <p class="text-sm text-ink-500 mt-2 flex-1">suitable for kitchen labelling use (supplier certifications to be confirmed before sale) thermal rolls matched to the printer bundle. Re-order from Kiteline when you run low.</p>
+         <ul class="mt-4 space-y-1 text-sm text-ink-600">
+           <li>✓ 62 mm × continuous</li>
+           <li>✓ Compatible with LabelSmart layouts</li>
+@@ -169,7 +169,7 @@
+       <a href="privacy.html" class="hover:text-white">Privacy</a>
+       <a href="pricing.html" class="hover:text-white">Pricing</a>
+     </div>
+-    <p>© 2026 Kiteline � All rights reserved.</p>
++    <p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
+   </footer>
+ 
+   <script>
+diff --git a/site/index.html b/site/index.html
+index e65b2d5..2490bc5 100644
+--- a/site/index.html
++++ b/site/index.html
+@@ -67,7 +67,7 @@
+       <div>
+         <span class="inline-block px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 text-sm font-semibold mb-5">Early access · UK kitchens</span>
+         <h1 class="text-4xl lg:text-6xl font-black leading-[1.05]">The Command Line for <span class="text-brand-400">Professional Kitchens</span></h1>
+-        <p class="mt-6 text-lg text-white/75 max-w-xl">One place for daily food-safety work — checklists, temperature logs, allergen menus, labels, and waste records. Software you can try today; sensor hardware coming through our pilot programme.</p>
++        <p class="mt-6 text-lg text-white/75 max-w-xl">One place for daily food-safety work — checklists, temperature logs, allergen menus, labels, and waste records. Software you can try today; sensor hardware assessed through a limited pilot programme.</p>
+         <div class="mt-8 flex flex-wrap gap-3">
+           <a href="/app" class="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-400 text-ink-950 font-bold">Try free trial</a>
+           <a href="/app#register" class="px-6 py-3 rounded-xl bg-white text-ink-900 font-bold hover:bg-white/90">Create free account</a>
+@@ -93,10 +93,10 @@
+     </div>
+     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+       <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">Less paper</div><h3 class="font-bold mt-2">Digital daily records</h3><p class="text-sm text-ink-500 mt-1">Checklists and logs on phone, tablet, or PC — not clipboards in the dry store.</p></div>
+-      <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">EHO-ready</div><h3 class="font-bold mt-2">Inspection history</h3><p class="text-sm text-ink-500 mt-1">Export temperature logs and corrective actions when the EHO visits.</p></div>
++      <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">Inspection-friendly records</div><h3 class="font-bold mt-2">Inspection history</h3><p class="text-sm text-ink-500 mt-1">Organise and export temperature logs and corrective-action records for inspections.</p></div>
+       <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">Staff accountability</div><h3 class="font-bold mt-2">Named checks</h3><p class="text-sm text-ink-500 mt-1">See who completed each checklist and what they did when something failed.</p></div>
+-      <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">Multi-site</div><h3 class="font-bold mt-2">One login, many kitchens</h3><p class="text-sm text-ink-500 mt-1">Switch sites from a single dashboard — ideal for groups and hotels.</p></div>
+-      <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">Private data</div><h3 class="font-bold mt-2">Company workspace</h3><p class="text-sm text-ink-500 mt-1">Each customer organisation has an isolated workspace — your recipes and logs stay yours.</p></div>
++      <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">Multi-site</div><h3 class="font-bold mt-2">One organisation workspace, multiple kitchen sites</h3><p class="text-sm text-ink-500 mt-1">Switch sites from a single dashboard — ideal for groups and hotels.</p></div>
++      <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">Private data</div><h3 class="font-bold mt-2">Company workspace</h3><p class="text-sm text-ink-500 mt-1">Each customer organisation has its own workspace, with access controlled through authorised user accounts — your recipes and logs stay yours.</p></div>
+       <div class="rounded-2xl border border-ink-100 p-6"><div class="text-2xl font-black text-brand-600">UK focus</div><h3 class="font-bold mt-2">Built for professional kitchens</h3><p class="text-sm text-ink-500 mt-1">HACCP, allergens, labels, waste, and recipe library in one early-access platform.</p></div>
+     </div>
+     <p class="text-center mt-10"><a href="security.html" class="text-brand-700 font-semibold text-sm">How we protect your data →</a></p>
+@@ -159,8 +159,8 @@
+       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-10 max-w-5xl mx-auto text-sm">
+         <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>Save time</strong><p class="text-ink-500 mt-1">Daily checks on phone or tablet, not clipboards.</p></div>
+         <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>Less paper</strong><p class="text-ink-500 mt-1">Digital logs replace filing cabinets.</p></div>
+-        <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>EHO-ready records</strong><p class="text-ink-500 mt-1">Export history for inspections.</p></div>
+-        <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>Allergen safety</strong><p class="text-ink-500 mt-1">Guest menus linked to your recipes.</p></div>
++        <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>Inspection-friendly records</strong><p class="text-ink-500 mt-1">Organise and export records for inspections.</p></div>
++        <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>Allergen information tools</strong><p class="text-ink-500 mt-1">Guest menus linked to your recipes.</p></div>
+         <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>Staff accountability</strong><p class="text-ink-500 mt-1">Named checks and corrective actions.</p></div>
+         <div class="rounded-xl bg-white border border-ink-100 p-4"><strong>Multi-site control</strong><p class="text-ink-500 mt-1">Switch kitchens from one account.</p></div>
+       </div>
+@@ -173,7 +173,7 @@
+       <div><p class="font-bold text-brand-800">UK-based</p><p class="text-ink-600 mt-1">kiteline.uk</p></div>
+       <div><p class="font-bold text-brand-800">Built for professional kitchens</p><p class="text-ink-600 mt-1">HACCP, allergens, labels & waste</p></div>
+       <div><p class="font-bold text-brand-800">Early access</p><p class="text-ink-600 mt-1">Honest beta & pilot labels</p></div>
+-      <div><p class="font-bold text-brand-800">Private workspace</p><p class="text-ink-600 mt-1">Your company data isolated</p></div>
++      <div><p class="font-bold text-brand-800">Private workspace</p><p class="text-ink-600 mt-1">Your organisation workspace</p></div>
+     </div>
+   </section>
+ 
+@@ -186,11 +186,11 @@
+       </div>
+       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+         <div class="bg-white rounded-2xl border border-ink-100 p-6 flex flex-col">
+-          <span class="text-[10px] font-bold uppercase text-brand-700">Live</span>
++          <span class="text-[10px] font-bold uppercase text-brand-700">Available now</span>
+           <h3 class="font-bold text-lg mt-1">SafeServe</h3>
+           <p class="text-sm text-ink-400">HACCP & temperature records</p>
+           <p class="text-brand-700 font-bold mt-2">from £19/mo <span class="text-ink-400 font-normal text-xs">1 user · scales with team</span></p>
+-          <p class="text-sm text-ink-500 mt-2 flex-1">Checklists, manual temp logs, alerts, and audit exports. Sensor add-on via pilot.</p>
++          <p class="text-sm text-ink-500 mt-2 flex-1">Checklists, manual temp logs, alerts, and audit exports. Sensor hardware: Pilot / Planned — not commercially available yet.</p>
+           <a href="product-haccp.html" class="mt-4 text-brand-700 font-semibold text-sm">Learn more →</a>
+         </div>
+         <div class="bg-white rounded-2xl border border-ink-100 p-6 flex flex-col">
+@@ -210,7 +210,7 @@
+           <a href="/app#labels" class="mt-4 text-brand-700 font-semibold text-sm">Open in app →</a>
+         </div>
+         <div class="bg-white rounded-2xl border border-ink-100 p-6 flex flex-col">
+-          <span class="text-[10px] font-bold uppercase text-amber-700">Roadmap</span>
++          <span class="text-[10px] font-bold uppercase text-ink-500">Beta</span></span>
+           <h3 class="font-bold text-lg mt-1">WasteWise</h3>
+           <p class="text-sm text-ink-400">Waste tracking</p>
+           <p class="text-ink-500 font-bold mt-2">Preview in app</p>
+@@ -229,43 +229,43 @@
+     </div>
+     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+       <div class="rounded-2xl border border-brand-200 bg-brand-50/50 p-5">
+-        <span class="text-[10px] font-bold uppercase text-brand-700">✓ Live</span>
+-        <h3 class="font-bold mt-2">Secure login & accounts</h3>
+-        <p class="text-sm text-ink-500 mt-1">Register, sign-in, and forgot password. Reset link on screen until email is configured.</p>
++        <span class="text-[10px] font-bold uppercase text-brand-700">Available now</span>
++        <h3 class="font-bold mt-2">Account login & registration</h3>
++        <p class="text-sm text-ink-500 mt-1">Register and sign-in are available. Password reset: in development — secure password-reset emails will be enabled before public commercial launch.</p>
+       </div>
+       <div class="rounded-2xl border border-brand-200 bg-brand-50/50 p-5">
+-        <span class="text-[10px] font-bold uppercase text-brand-700">✓ Live</span>
++        <span class="text-[10px] font-bold uppercase text-brand-700">Available now</span>
+         <h3 class="font-bold mt-2">Multi-site kitchens</h3>
+-        <p class="text-sm text-ink-500 mt-1">Run many kitchens in one organisation — switch sites, add outlets, team per site.</p>
++        <p class="text-sm text-ink-500 mt-1">One organisation workspace can include multiple kitchen sites — site allowance depends on plan.</p>
+       </div>
+       <div class="rounded-2xl border border-brand-200 bg-brand-50/50 p-5">
+-        <span class="text-[10px] font-bold uppercase text-brand-700">✓ Live</span>
++        <span class="text-[10px] font-bold uppercase text-brand-700">Available now</span>
+         <h3 class="font-bold mt-2">Starter recipe library</h3>
+         <p class="text-sm text-ink-500 mt-1">Sample recipes with allergens, costing, labels, and method steps to get you started.</p>
+       </div>
+       <div class="rounded-2xl border border-brand-200 bg-brand-50/50 p-5">
+-        <span class="text-[10px] font-bold uppercase text-brand-700">✓ Live</span>
+-        <h3 class="font-bold mt-2">Private workspace per company</h3>
+-        <p class="text-sm text-ink-500 mt-1">Each customer gets their own isolated workspace — your data stays separate from other companies.</p>
++        <span class="text-[10px] font-bold uppercase text-brand-700">Available now</span>
++        <h3 class="font-bold mt-2">Private workspace per organisation</h3>
++        <p class="text-sm text-ink-500 mt-1">Each customer organisation has its own workspace, with access controlled through authorised user accounts.</p>
+       </div>
+       <div class="rounded-2xl border border-brand-200 bg-brand-50/50 p-5">
+-        <span class="text-[10px] font-bold uppercase text-brand-700">✓ Live</span>
++        <span class="text-[10px] font-bold uppercase text-brand-700">Available now</span>
+         <h3 class="font-bold mt-2">Early-access customers</h3>
+         <p class="text-sm text-ink-500 mt-1">Private workspaces with your own site, team, and recipes.</p>
+       </div>
+       <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+-        <span class="text-[10px] font-bold uppercase text-amber-800">● Next</span>
++        <span class="text-[10px] font-bold uppercase text-amber-800">● Planned</span>
+         <h3 class="font-bold mt-2">Card payments & plans</h3>
+-        <p class="text-sm text-ink-500 mt-1">Stripe checkout — team plans by size with member limits.</p>
++        <p class="text-sm text-ink-500 mt-1">During early access, paid plans are arranged manually by email and invoice. Online card payments are planned but not currently available.</p>
+       </div>
+       <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+-        <span class="text-[10px] font-bold uppercase text-amber-800">● Next</span>
++        <span class="text-[10px] font-bold uppercase text-amber-800">● Planned</span>
+         <h3 class="font-bold mt-2">Email alerts & verification</h3>
+-        <p class="text-sm text-ink-500 mt-1">SMTP on the server — password reset, alerts, and verify-by-email in your inbox.</p>
++        <p class="text-sm text-ink-500 mt-1">Planned — secure password-reset emails, temperature alerts, and verification emails will be enabled before public commercial launch.</p>
+       </div>
+       <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+         <span class="text-[10px] font-bold uppercase text-amber-800">● Next</span>
+-        <h3 class="font-bold mt-2">Recipe AI (per company)</h3>
++        <h3 class="font-bold mt-2">Recipe AI (per organisation)</h3>
+         <p class="text-sm text-ink-500 mt-1">Subscribe, use your own OpenAI key, or we enable manually — billed per kitchen company.</p>
+       </div>
+       <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+@@ -293,7 +293,7 @@
+   <section class="gradient text-white">
+     <div class="max-w-4xl mx-auto px-5 py-16 text-center">
+       <h2 class="text-3xl lg:text-4xl font-extrabold">Ready to look around?</h2>
+-      <p class="text-white/70 mt-3">Start your 14-day free trial — every module included, no card required to register.</p>
++      <p class="text-white/70 mt-3">Start your 14-day free trial with access to all currently available core software modules., no card required to register.</p>
+       <div class="mt-7 flex flex-wrap gap-3 justify-center">
+         <a href="/app#register" class="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-400 text-ink-950 font-bold">Start free trial</a>
+         <a href="contact.html#demo" class="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold">Book a demo</a>
+@@ -330,7 +330,7 @@
+         <span class="text-ink-600">·</span>
+         <a href="/academy/" class="hover:text-white text-ink-500">Kiteline Academy</a>
+       </div>
+-      <div class="text-center sm:text-right">© 2026 Kiteline · All rights reserved</div>
++      <p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
+     </div>
+   </footer>
+   <script>
+diff --git a/site/pricing.html b/site/pricing.html
+index 49d5ed4..728c36a 100644
+--- a/site/pricing.html
++++ b/site/pricing.html
+@@ -28,7 +28,7 @@
+   <section class="gradient text-white py-16 text-center px-5">
+     <span class="inline-block px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 text-sm font-semibold mb-4">Early access pricing</span>
+     <h1 class="text-4xl lg:text-5xl font-black">Simple plans. No surprises.</h1>
+-    <p class="mt-4 text-white/75 max-w-2xl mx-auto">Clear monthly pricing by team size. Try the app free for 14 days — all modules included, no card required to register.</p>
++    <p class="mt-4 text-white/75 max-w-2xl mx-auto">Clear monthly pricing by team size. Try the app free for 14 days with access to all currently available core software modules. No card required to register.</p>
+     <div class="mt-5 flex flex-wrap gap-4 justify-center text-sm text-white/70">
+       <span>✓ 14-day free trial for new accounts</span><span id="billingTag">✓ Paid plans by invoice during early access</span><span>✓ Cancel anytime · no long contract</span>
+     </div>
+@@ -39,47 +39,48 @@
+     <div class="grid sm:grid-cols-3 gap-3 text-sm">
+       <div class="rounded-xl border border-brand-200 bg-brand-50 p-4"><span class="font-bold text-brand-800">● Available now</span><p class="text-ink-600 mt-1">Working in the app — logs, checklists, reports, alerts (email when configured).</p></div>
+       <div class="rounded-xl border border-ink-200 bg-ink-50 p-4"><span class="font-bold text-ink-800">● Beta</span><p class="text-ink-600 mt-1">Usable today; we refine features with early-access kitchens.</p></div>
+-      <div class="rounded-xl border border-amber-200 bg-amber-50 p-4"><span class="font-bold text-amber-900">● Pilot / roadmap</span><p class="text-ink-600 mt-1">Not sold yet. <a href="hardware.html" class="text-brand-700 underline font-semibold">Register interest</a> — we only buy stock when enough kitchens ask.</p></div>
++      <div class="rounded-xl border border-amber-200 bg-amber-50 p-4"><span class="font-bold text-amber-900">● Pilot / roadmap</span><p class="text-ink-600 mt-1">Not sold yet. <a href="hardware.html" class="text-brand-700 underline font-semibold">Register interest</a> — hardware is being assessed through a limited pilot programme.</p></div>
+     </div>
+   </section>
+ 
+   <!-- SOFTWARE PLANS -->
+   <section class="max-w-7xl mx-auto px-5 py-16">
+     <h2 class="text-2xl font-extrabold text-center mb-2">Kiteline — pay by team size</h2>
+-    <p class="text-center text-ink-500 mb-2 max-w-2xl mx-auto">Clear monthly price for each tier. More users = better per-person rate. All modules included (SafeServe, MenuGuard, labels, waste).</p>
+-    <p class="text-center text-sm text-brand-700 font-semibold mb-10">New accounts get <b>14 days free</b> — up to 5 users, all modules, no card required</p>
++    <p class="text-center text-ink-500 mb-2 max-w-2xl mx-auto">Clear monthly price for each tier. More users = better per-person rate. All currently available core software modules included. Recipe AI, sensor hardware, printers, consumables and future premium integrations are separate.</p>
++    <p class="text-center text-sm text-ink-600 mb-4">Kiteline is not currently VAT-registered. No VAT is charged at this time.</p>
++    <p class="text-center text-sm text-brand-700 font-semibold mb-10">New accounts get <b>14 days free</b> — up to 5 users, currently available core modules, no card required</p>
+     <div id="planGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+-      <div class="rounded-2xl border border-ink-100 p-6 flex flex-col"><span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Up to 1 user</span><h3 class="font-bold text-lg mt-2">Kiteline Starter</h3><p class="text-sm text-ink-500 mt-1">1 user · 1 site · HACCP, logs, reports</p><div class="text-3xl font-black mt-4">£19<span class="text-sm font-normal text-ink-400">/mo</span></div><p class="text-xs text-ink-500 mt-1">£19.00 per user · cancel anytime</p><ul class="mt-4 space-y-1.5 text-sm text-ink-600 flex-1"><li>✓ SafeServe, MenuGuard, labels, waste</li><li>✓ Manager & staff roles</li><li>✓ Email support</li></ul><a href="mailto:contact@kiteline.uk?subject=Kiteline%20Starter%20plan" class="mt-5 block text-center px-4 py-2.5 rounded-lg bg-ink-800 text-white font-semibold text-sm plan-fallback-cta">Request enrolment</a></div>
+-      <div class="rounded-2xl border-2 border-brand-300 p-6 flex flex-col relative"><span class="absolute -top-3 left-6 text-[10px] font-bold bg-brand-600 text-white px-2 py-1 rounded-full">MOST POPULAR</span><span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Up to 5 users</span><h3 class="font-bold text-lg mt-2">Kiteline Team 5</h3><p class="text-sm text-ink-500 mt-1">Up to 5 users · all modules</p><div class="text-3xl font-black mt-4">£40<span class="text-sm font-normal text-ink-400">/mo</span></div><p class="text-xs text-ink-500 mt-1">£8.00 per user · cancel anytime</p><ul class="mt-4 space-y-1.5 text-sm text-ink-600 flex-1"><li>✓ All modules included</li><li>✓ Multi-site (Team plan)</li><li>✓ Audit exports</li></ul><a href="mailto:contact@kiteline.uk?subject=Kiteline%20Team%205" class="mt-5 block text-center px-4 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm plan-fallback-cta">Request enrolment</a></div>
+-      <div class="rounded-2xl border border-ink-100 p-6 flex flex-col"><span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Up to 10 users</span><h3 class="font-bold text-lg mt-2">Kiteline Team 10</h3><div class="text-3xl font-black mt-4">£72<span class="text-sm font-normal text-ink-400">/mo</span></div><p class="text-xs text-ink-500 mt-1">£7.20 per user</p><a href="mailto:contact@kiteline.uk?subject=Kiteline%20Team%2010" class="mt-auto block text-center px-4 py-2.5 rounded-lg bg-ink-800 text-white font-semibold text-sm plan-fallback-cta">Request enrolment</a></div>
+-      <div class="rounded-2xl border border-ink-100 p-6 flex flex-col"><span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Up to 20 users</span><h3 class="font-bold text-lg mt-2">Kiteline Team 20</h3><div class="text-3xl font-black mt-4">£130<span class="text-sm font-normal text-ink-400">/mo</span></div><p class="text-xs text-ink-500 mt-1">£6.50 per user</p><a href="mailto:contact@kiteline.uk?subject=Kiteline%20Team%2020" class="mt-auto block text-center px-4 py-2.5 rounded-lg bg-ink-800 text-white font-semibold text-sm plan-fallback-cta">Request enrolment</a></div>
+-      <div class="rounded-2xl border border-ink-100 p-6 flex flex-col"><span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Up to 50 users</span><h3 class="font-bold text-lg mt-2">Kiteline Team 50</h3><div class="text-3xl font-black mt-4">£275<span class="text-sm font-normal text-ink-400">/mo</span></div><p class="text-xs text-ink-500 mt-1">£5.50 per user · volume discount</p><a href="mailto:contact@kiteline.uk?subject=Kiteline%20Team%2050" class="mt-auto block text-center px-4 py-2.5 rounded-lg bg-ink-800 text-white font-semibold text-sm plan-fallback-cta">Request enrolment</a></div>
++      <div class="rounded-2xl border border-ink-100 p-6 flex flex-col"><span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Up to 1 user</span><h3 class="font-bold text-lg mt-2">Kiteline Starter</h3><p class="text-sm text-ink-500 mt-1">1 user · 1 site · HACCP, logs, reports</p><div class="text-3xl font-black mt-4">£19<span class="text-sm font-normal text-ink-400">/mo</span></div><p class="text-xs text-ink-500 mt-1">£19.00 effective monthly price per included user when the plan is fully used</p><ul class="mt-4 space-y-1.5 text-sm text-ink-600 flex-1"><li>✓ SafeServe, MenuGuard, labels, waste</li><li>✓ Manager & staff roles</li><li>✓ Email support</li></ul><a href="mailto:contact@kiteline.uk?subject=Kiteline%20Starter%20plan" class="mt-5 block text-center px-4 py-2.5 rounded-lg bg-ink-800 text-white font-semibold text-sm plan-fallback-cta">Request enrolment</a></div>
++      <div class="rounded-2xl border-2 border-brand-300 p-6 flex flex-col relative"><span class="absolute -top-3 left-6 text-[10px] font-bold bg-brand-600 text-white px-2 py-1 rounded-full">MOST POPULAR</span><span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Up to 5 users</span><h3 class="font-bold text-lg mt-2">Kiteline Team 5</h3><p class="text-sm text-ink-500 mt-1">Up to 5 users · 1 site · currently available core modules</p><div class="text-3xl font-black mt-4">£40<span class="text-sm font-normal text-ink-400">/mo</span></div><p class="text-xs text-ink-500 mt-1">£8.00 effective monthly price per included user when the plan is fully used</p><ul class="mt-4 space-y-1.5 text-sm text-ink-600 flex-1"><li>✓ Core modules included (see status below)</li><li>✓ 1 site included (Team 5)</li><li>✓ Audit exports</li></ul><a href="mailto:contact@kiteline.uk?subject=Kiteline%20Team%205" class="mt-5 block text-center px-4 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm plan-fallback-cta">Request enrolment</a></div>
++      <div class="rounded-2xl border border-ink-100 p-6 flex flex-col"><span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Up to 10 users</span><h3 class="font-bold text-lg mt-2">Kiteline Team 10</h3><p class="text-sm text-ink-500 mt-1">Up to 10 users · 2 sites · currently available core modules</p><div class="text-3xl font-black mt-4">£72<span class="text-sm font-normal text-ink-400">/mo</span></div><p class="text-xs text-ink-500 mt-1">£7.20 effective monthly price per included user when the plan is fully used</p><a href="mailto:contact@kiteline.uk?subject=Kiteline%20Team%2010" class="mt-auto block text-center px-4 py-2.5 rounded-lg bg-ink-800 text-white font-semibold text-sm plan-fallback-cta">Request enrolment</a></div>
++      <div class="rounded-2xl border border-ink-100 p-6 flex flex-col"><span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Up to 20 users</span><h3 class="font-bold text-lg mt-2">Kiteline Team 20</h3><p class="text-sm text-ink-500 mt-1">Up to 20 users · 5 sites · currently available core modules</p><div class="text-3xl font-black mt-4">£130<span class="text-sm font-normal text-ink-400">/mo</span></div><p class="text-xs text-ink-500 mt-1">£6.50 effective monthly price per included user when the plan is fully used</p><a href="mailto:contact@kiteline.uk?subject=Kiteline%20Team%2020" class="mt-auto block text-center px-4 py-2.5 rounded-lg bg-ink-800 text-white font-semibold text-sm plan-fallback-cta">Request enrolment</a></div>
++      <div class="rounded-2xl border border-ink-100 p-6 flex flex-col"><span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Up to 50 users</span><h3 class="font-bold text-lg mt-2">Kiteline Team 50</h3><p class="text-sm text-ink-500 mt-1">Up to 50 users · 10 sites · currently available core modules</p><div class="text-3xl font-black mt-4">£275<span class="text-sm font-normal text-ink-400">/mo</span></div><p class="text-xs text-ink-500 mt-1">£5.50 effective monthly price per included user when the plan is fully used · volume discount</p><a href="mailto:contact@kiteline.uk?subject=Kiteline%20Team%2050" class="mt-auto block text-center px-4 py-2.5 rounded-lg bg-ink-800 text-white font-semibold text-sm plan-fallback-cta">Request enrolment</a></div>
+     </div>
+-    <p id="paymentStatusNote" class="text-center text-sm text-ink-600 max-w-2xl mx-auto mt-6">14-day free trial on new accounts. Paid plans are activated manually by invoice or email during early access until online checkout is enabled.</p>
++    <p id="paymentStatusNote" class="text-center text-sm text-ink-600 max-w-2xl mx-auto mt-6">14-day free trial on new accounts. During early access, paid plans are arranged manually by email and invoice. Online card payments and self-service subscription management are planned but are not currently available.</p>
+     <div class="max-w-3xl mx-auto mt-10 rounded-2xl border border-ink-100 bg-white p-6">
+       <h3 class="font-bold text-lg text-center mb-4">Included in every plan</h3>
+       <ul class="grid sm:grid-cols-2 gap-2 text-sm text-ink-600">
+         <li>✓ SafeServe — HACCP & temperature logs</li>
+         <li>✓ MenuGuard — allergen menus & QR codes</li>
+         <li>✓ LabelSmart — prep labels</li>
+-        <li>✓ WasteWise — waste logging (preview)</li>
++        <li>✓ WasteWise — waste logging (Beta); smart scales planned</li>
+         <li>✓ Email support & audit exports</li>
+-        <li>✓ Multi-site on Team plans</li>
++        <li>✓ Site allowance by plan (Starter/Team 5: 1 · Team 10: 2 · Team 20: 5 · Team 50: 10)</li>
+       </ul>
+     </div>
+     <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mt-8">
+       <div class="rounded-2xl border border-amber-200 bg-amber-50/50 p-6 flex flex-col">
+-        <span class="text-[10px] font-bold uppercase tracking-wide text-amber-800">50+ users</span>
+-        <h3 class="font-bold text-lg mt-2">Enterprise &amp; multi-site</h3>
+-        <p class="text-sm text-ink-500 mt-1">Hotels, groups, 50+ staff</p>
++        <span class="text-[10px] font-bold uppercase tracking-wide text-amber-800">51 or more users</span>
++        <h3 class="font-bold text-lg mt-2">Enterprise</h3>
++        <p class="text-sm text-ink-500 mt-1">51 or more users, with a custom site allowance</p>
+         <div class="text-3xl font-black mt-4">Custom<span class="text-sm font-normal text-ink-400"> quote</span></div>
+-        <p class="text-xs text-ink-500 mt-1">We apply volume discounts for large teams — e.g. 50 users at a lower per-person rate than smaller plans.</p>
++        <p class="text-xs text-ink-500 mt-1">Volume pricing and site allowance agreed in a written quotation.</p>
+         <ul class="mt-4 space-y-1.5 text-sm text-ink-600 flex-1">
+-          <li>✓ Tailored user count</li>
+-          <li>✓ Multi-site roll-out</li>
+-          <li>✓ Invoice or annual billing</li>
++          <li>✓ 51 or more users</li>
++          <li>✓ Custom site allowance</li>
++          <li>✓ Invoice billing during early access</li>
+         </ul>
+-        <a href="mailto:contact@kiteline.uk?subject=Kiteline%20enterprise%20quote%20(50%2B%20users)" class="mt-5 text-center px-4 py-2.5 rounded-lg bg-ink-900 text-white font-semibold text-sm">Email for enterprise quote</a>
++        <a href="mailto:contact@kiteline.uk?subject=Kiteline%20enterprise%20quote" class="mt-5 text-center px-4 py-2.5 rounded-lg bg-ink-900 text-white font-semibold text-sm">Email for enterprise quote</a>
+       </div>
+       <div class="rounded-2xl border border-amber-200 bg-amber-50/50 p-6 flex flex-col">
+         <span class="text-[10px] font-bold uppercase tracking-wide text-amber-800">Sensor pilot</span>
+@@ -88,8 +89,8 @@
+         <div class="text-3xl font-black mt-4">Quote<span class="text-sm font-normal text-ink-400">/site</span></div>
+         <p class="text-xs text-ink-500 mt-1">Hardware kit priced after site survey.</p>
+         <ul class="mt-4 space-y-1.5 text-sm text-ink-600 flex-1">
+-          <li>✓ Automated fridge/freezer readings</li>
+-          <li>✓ Out-of-range alerts to your team</li>
++          <li>✓ Pilot programme — not commercially available yet</li>
++          <li>✓ Designed to connect compatible sensor readings with the Kiteline dashboard</li>
+         </ul>
+         <a href="hardware.html" class="mt-5 text-center px-4 py-2.5 rounded-lg bg-ink-900 text-white font-semibold text-sm">Register interest</a>
+       </div>
+@@ -117,10 +118,10 @@
+           <a href="/app#labels" class="mt-4 text-center px-4 py-2.5 rounded-lg border border-ink-200 font-semibold text-sm hover:bg-ink-50">Open in app</a>
+         </div>
+         <div class="bg-white rounded-2xl border border-ink-100 p-6 flex flex-col">
+-          <span class="text-[10px] font-bold uppercase tracking-wide text-amber-700">Roadmap</span>
++          <span class="text-[10px] font-bold uppercase tracking-wide text-ink-500">Beta</span>
+           <h3 class="font-bold text-lg mt-2">WasteWise</h3>
+-          <p class="text-sm text-ink-500 mt-2 flex-1">Waste logging in the app today. Smart scales and advanced analytics planned — not on sale yet.</p>
+-          <p class="text-sm font-semibold text-ink-400 mt-3">Coming after sensor pilot</p>
++          <p class="text-sm text-ink-500 mt-2 flex-1">Waste recording in the app today (Beta). Smart scales and advanced analytics are Planned — not on sale yet.</p>
++          <p class="text-sm font-semibold text-ink-400 mt-3">Smart scales: Planned</p>
+           <a href="/app#waste" class="mt-4 text-center px-4 py-2.5 rounded-lg border border-ink-200 font-semibold text-sm hover:bg-ink-50">Preview in app</a>
+         </div>
+       </div>
+@@ -132,45 +133,31 @@
+     <div class="rounded-2xl border-2 border-brand-200 bg-gradient-to-br from-brand-50 to-white p-8">
+       <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
+         <div>
+-          <span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Add-on · per company</span>
++          <span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Optional add-on · Pilot</span>
+           <h2 class="text-2xl font-extrabold mt-1">Recipe AI assistant</h2>
+-          <p class="text-sm text-ink-600 mt-2 max-w-xl">AI suggests ingredients, writes method steps, and creates food photos. <b>Billed to each kitchen company</b> — not shared across customers.</p>
++          <p class="text-sm text-ink-600 mt-2 max-w-xl">Recipe AI is currently available to selected pilot customers. Final pricing and monthly usage allowances will be published before general release. Not included in every plan.</p>
+         </div>
+         <div class="text-right">
+-          <div id="recipeAiPriceHero" class="text-3xl font-black text-brand-800">£12<span class="text-sm font-normal text-ink-400">/mo</span></div>
+-          <p class="text-xs text-ink-500">per organisation</p>
+-        </div>
+-      </div>
+-      <div class="grid sm:grid-cols-3 gap-4 text-sm mb-6">
+-        <div class="rounded-xl bg-white border border-brand-100 p-4">
+-          <p class="font-bold text-brand-900">Option A</p>
+-          <p class="text-ink-600 mt-1">Subscribe in the app (Stripe). Kiteline hosts AI — your company pays us monthly.</p>
+-        </div>
+-        <div class="rounded-xl bg-white border border-ink-100 p-4">
+-          <p class="font-bold">Option B</p>
+-          <p class="text-ink-600 mt-1">Paste your own OpenAI API key in app Settings. OpenAI bills you directly.</p>
+-        </div>
+-        <div class="rounded-xl bg-white border border-amber-100 p-4">
+-          <p class="font-bold text-amber-900">Option C</p>
+-          <p class="text-ink-600 mt-1">We enable AI on your account — email us for pilot kitchens or invoice billing.</p>
++          <div id="recipeAiPriceHero" class="text-2xl font-black text-brand-800">Pilot</div>
++          <p class="text-xs text-ink-500">pricing TBC before general release</p>
+         </div>
+       </div>
++      <p class="text-sm text-ink-600 mb-6">Until limits are confirmed, we will not publish a public monthly price, generation allowances, image allowances, overage rules, unused-allowance expiry, own-API-key options, or AI-provider data-handling details.</p>
+       <div class="flex flex-wrap gap-3">
+-        <a href="/app#settings" class="px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm hover:bg-brand-700">Set up in app → Settings</a>
+-        <a href="mailto:contact@kiteline.uk?subject=Recipe%20AI%20for%20my%20company" class="px-5 py-2.5 rounded-lg border border-ink-200 font-semibold text-sm hover:bg-ink-50">Email Option C setup</a>
++        <a href="mailto:contact@kiteline.uk?subject=Recipe%20AI%20pilot" class="px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm hover:bg-brand-700">Email about pilot access</a>
+       </div>
+     </div>
+   </section>
+ 
+   <!-- EXAMPLE BUNDLE -->
+   <section class="max-w-3xl mx-auto px-5 py-16">
+-    <h2 class="text-2xl font-extrabold text-center mb-2">How per-user pricing works</h2>
+-    <p class="text-center text-ink-500 mb-8">Pick the tier that matches your team. You can upgrade when you hire more staff.</p>
++    <h2 class="text-2xl font-extrabold text-center mb-2">How plan pricing works</h2>
++    <p class="text-center text-ink-500 mb-8">Pick the tier that matches your team size and site allowance. During early access, upgrades are arranged by email.</p>
+     <div class="rounded-2xl border-2 border-brand-200 p-8 bg-brand-50/30">
+-      <h3 class="font-bold text-xl">All modules included</h3>
++      <h3 class="font-bold text-xl">Core modules included (see status below)</h3>
+       <p class="text-sm text-ink-500 mt-1">SafeServe · MenuGuard · LabelSmart · WasteWise — one subscription per organisation</p>
+       <table class="w-full text-sm mt-6">
+-        <thead><tr class="text-left text-ink-500 border-b border-ink-200"><th class="pb-2">Users</th><th class="pb-2">Monthly</th><th class="pb-2">Per user</th></tr></thead>
++        <thead><tr class="text-left text-ink-500 border-b border-ink-200"><th class="pb-2">Users</th><th class="pb-2">Monthly</th><th class="pb-2">Effective monthly / included user</th></tr></thead>
+         <tbody id="pricingTable" class="text-ink-700">
+           <tr><td class="py-2">1</td><td>£19</td><td>£19.00</td></tr>
+           <tr><td class="py-2">5</td><td>£40</td><td>£8.00</td></tr>
+@@ -179,7 +166,7 @@
+           <tr><td class="py-2">50</td><td>£275</td><td>£5.50 <span class="text-brand-700 font-semibold">discount</span></td></tr>
+         </tbody>
+       </table>
+-      <p class="text-sm text-ink-600 mt-4"><b>50+ users?</b> Email us for a custom quote — we discount large teams further.</p>
++      <p class="text-sm text-ink-600 mt-4"><b>51 or more users?</b> Email us for an Enterprise quote with a custom site allowance.</p>
+       <a href="mailto:contact@kiteline.uk?subject=Kiteline%20team%20pricing%20quote" class="inline-block mt-6 px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm">Email for a quote</a>
+     </div>
+   </section>
+@@ -188,14 +175,14 @@
+   <section class="max-w-3xl mx-auto px-5 py-16 border-t border-ink-100">
+     <h2 class="text-2xl font-extrabold text-center mb-8">Pricing FAQs</h2>
+     <div class="space-y-3">
+-      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">How does Recipe AI billing work?</summary><p class="text-sm text-ink-500 mt-2"><b>Option A:</b> Subscribe to Recipe AI in the app (Settings) — charged to your company via Stripe, not to other Kiteline customers.<br><b>Option B:</b> Add your own OpenAI key in Settings — OpenAI bills your company directly.<br><b>Option C:</b> Email <a href="mailto:contact@kiteline.uk" class="text-brand-700 font-semibold">contact@kiteline.uk</a> and we enable AI on your account (invoice or pilot).</p></details>
+-      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Can I pay on this website?</summary><p class="text-sm text-ink-500 mt-2">During early access, email <a href="mailto:contact@kiteline.uk" class="text-brand-700 font-semibold">contact@kiteline.uk</a> to activate a paid plan by invoice. When online checkout is enabled, you will be able to subscribe securely by card after your free trial.</p></details>
+-      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">What if I need more users later?</summary><p class="text-sm text-ink-500 mt-2">Upgrade to the next tier in Settings or on this pricing page. Your plan limits how many people you can add on Team — e.g. the 5-user plan allows up to 5 staff accounts.</p></details>
+-      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Do you discount large teams?</summary><p class="text-sm text-ink-500 mt-2">Yes — the 50-user tier is priced lower per person than smaller plans. For 50+ users or multiple hotels, email us for an enterprise quote.</p></details>
++      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">How does Recipe AI billing work?</summary><p class="text-sm text-ink-500 mt-2">Recipe AI is currently available to selected pilot customers. Final pricing, monthly usage allowances, and AI-provider data handling will be published before general release. Email <a href="mailto:contact@kiteline.uk" class="text-brand-700 font-semibold">contact@kiteline.uk</a> for pilot access.</p></details>
++      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Can I pay on this website?</summary><p class="text-sm text-ink-500 mt-2">During early access, paid plans are arranged manually by email and invoice. Online card payments and self-service subscription management are planned but are not currently available.</p></details>
++      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">What if I need more users later?</summary><p class="text-sm text-ink-500 mt-2">Email contact@kiteline.uk to move to the next tier. Your plan limits how many people and sites you can use — e.g. Team 5 allows up to 5 users and 1 site.</p></details>
++      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Do you discount large teams?</summary><p class="text-sm text-ink-500 mt-2">Yes — larger tiers show a lower effective monthly price per included user when fully used. For 51 or more users, email us for an Enterprise quote.</p></details>
+       <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Is there a free trial?</summary><p class="text-sm text-ink-500 mt-2">Yes — every new account gets <b>14 days free</b> with full access for up to <b>5 users</b>. No card needed to register. After 14 days, pick a paid plan to continue.</p></details>
+       <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Do you sell temperature sensors now?</summary><p class="text-sm text-ink-500 mt-2">Not as a standard product yet. The app supports manual logging and simulated readings today. We are running a small hardware pilot to choose reliable probes and gateways before we publish fixed sensor pricing.</p></details>
+       <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Are the prices final?</summary><p class="text-sm text-ink-500 mt-2">No. Figures on this page are guide prices for early access and may change before public launch. Your signed quote is the price that applies to you.</p></details>
+-      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Can I cancel?</summary><p class="text-sm text-ink-500 mt-2">Yes — cancel anytime. No long contract during early access. Your trial ends before any paid plan starts unless you choose to continue. See our <a href="refunds.html" class="text-brand-700 font-semibold">refund & cancellation policy</a>.</p></details>
++      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Can I cancel?</summary><p class="text-sm text-ink-500 mt-2">No payment is taken automatically when the free trial ends. During early access, cancellation and refund terms for any paid pilot are set out in the accepted quotation. See our <a href="refunds.html" class="text-brand-700 font-semibold">refund & cancellation policy</a>.</p></details>
+       <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Is support included?</summary><p class="text-sm text-ink-500 mt-2">Yes — email support for early-access customers during UK business hours. Response within 1–2 business days on reasonable-efforts basis.</p></details>
+     </div>
+   </section>
+@@ -211,7 +198,7 @@
+       <a href="cookies.html" class="hover:text-white">Cookies</a>
+       <a href="/app" class="hover:text-white">App</a>
+     </div>
+-    <p>© 2026 Kiteline � All rights reserved.</p>
++    <p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
+   </footer>
+   <script>
+     (function () {
+@@ -227,7 +214,7 @@
+           <h3 class="font-bold text-lg mt-2">${p.name}</h3>
+           <p class="text-sm text-ink-500 mt-1">${p.description || ''}</p>
+           <div class="text-3xl font-black mt-4">${p.display.replace('/mo', '')}<span class="text-sm font-normal text-ink-400">/mo</span></div>
+-          <p class="text-xs text-ink-500 mt-1">${p.perUserDisplay} · cancel anytime</p>
++          <p class="text-xs text-ink-500 mt-1">${p.perUserDisplay} effective monthly price per included user when the plan is fully used</p>
+           ${discount ? '<p class="text-xs text-brand-700 font-semibold mt-1">' + discount + '</p>' : ''}
+           <ul class="mt-4 space-y-1.5 text-sm text-ink-600 flex-1">
+             <li>✓ Up to <b>${p.maxUsers}</b> team members</li>
+@@ -236,7 +223,7 @@
+             <li>✓ Manager & staff roles</li>
+           </ul>
+           <div class="mt-5 space-y-2">
+-            <button type="button" class="checkout-btn w-full px-4 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm" data-plan="${p.id}">Subscribe — ${p.display}</button>
++            <button type="button" class="checkout-btn w-full px-4 py-2.5 rounded-lg bg-ink-800 text-white font-semibold text-sm" data-plan="${p.id}">Request enrolment</button>
+             <a href="/app" class="block text-center px-4 py-2 text-sm text-ink-500 hover:text-brand-700">Try free first</a>
+           </div>
+         </div>`;
+@@ -258,7 +245,8 @@
+         document.querySelectorAll('.checkout-btn').forEach(btn => {
+           btn.onclick = async () => {
+             const plan = btn.dataset.plan;
+-            if (!billingOn) {
++            // Online Stripe checkout is not offered on the public site during early access.
++            {
+               const p = plans.find(x => x.id === plan);
+               const label = p ? p.name : plan;
+               window.location.href = 'mailto:contact@kiteline.uk?subject=Kiteline%20' + encodeURIComponent(label);
+@@ -308,16 +296,16 @@
+           const tag = document.getElementById('billingTag');
+           if (tag) tag.textContent = '✓ Paid plans by invoice during early access';
+           const note = document.getElementById('paymentStatusNote');
+-          if (note) note.textContent = '14-day free trial on new accounts. Paid plans are activated manually by invoice or email during early access until online checkout is enabled.';
++          if (note) note.textContent = '14-day free trial on new accounts. During early access, paid plans are arranged manually by email and invoice. Online card payments and self-service subscription management are planned but are not currently available.';
+           const foot = document.getElementById('footerBillingNote');
+           if (foot) foot.textContent = 'Early-access guide prices. Paid plans activated manually until online checkout is enabled.';
+         } else {
+           const tag = document.getElementById('billingTag');
+-          if (tag) tag.textContent = '✓ Subscribe securely online by card after trial';
++          if (tag) tag.textContent = '✓ Paid plans by invoice during early access';
+           const note = document.getElementById('paymentStatusNote');
+-          if (note) note.textContent = '14-day free trial on new accounts. After trial, subscribe securely online by card. Cancel anytime.';
++          if (note) note.textContent = '14-day free trial on new accounts. Paid plans are activated manually by invoice or email during early access.';
+           const foot = document.getElementById('footerBillingNote');
+-          if (foot) foot.textContent = 'Prices shown are guide prices. Subscriptions billed monthly via Stripe until cancelled.';
++          if (foot) foot.textContent = 'During early access, paid plans are arranged manually by email and invoice. Online card payments are planned but not currently available.';
+           document.querySelectorAll('.plan-fallback-cta').forEach(el => el.style.display = 'none');
+         }
+       }).catch(() => {});
+diff --git a/site/privacy.html b/site/privacy.html
+index 6dff872..85c46c4 100644
+--- a/site/privacy.html
++++ b/site/privacy.html
+@@ -3,7 +3,7 @@
+ <head>
+   <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+-  <title>Privacy Policy ? Kiteline</title>
++  <title>Privacy Policy — Kiteline</title>
+   <meta name="description" content="How Kiteline collects, uses, and protects your data." />
+   <script src="https://cdn.tailwindcss.com"></script>
+   <script>tailwind.config={theme:{extend:{colors:{brand:{500:'#14b8a6',600:'#0d9488',700:'#0f766e'},ink:{50:'#f8fafc',100:'#f1f5f9',400:'#94a3b8',500:'#64748b',700:'#334155',900:'#0f172a',950:'#020617'}},fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+@@ -23,23 +23,23 @@
+   <main class="max-w-3xl mx-auto px-5 py-12 legal">
+     <p class="text-sm text-ink-500 mb-2">Last updated: 21 June 2026</p>
+     <h1 class="text-3xl font-black mb-2">Privacy Policy</h1>
+-    <p class="text-ink-500 mb-8">This policy explains how <strong>Kiteline</strong> (?we?) collects and uses personal data when you use the service at <a href="https://kiteline.uk" class="text-brand-700 font-semibold">kiteline.uk</a>.</p>
++    <p class="text-ink-500 mb-8">This policy explains how <strong>Kiteline</strong> ("we") collects and uses personal data when you use the service at <a href="https://kiteline.uk" class="text-brand-700 font-semibold">kiteline.uk</a>.</p>
+ 
+     <h2>1. Data controller</h2>
+-    <p>Kiteline is the data controller. Contact: <a href="mailto:contact@kiteline.uk" class="text-brand-700">contact@kiteline.uk</a></p>
++    <p>Kiteline is an independent software brand operated by [FULL LEGAL OPERATOR NAME]. For account, website, support and marketing data, [FULL LEGAL OPERATOR NAME] is the data controller. Contact: <a href="mailto:contact@kiteline.uk" class="text-brand-700">contact@kiteline.uk</a>. The customer organisation normally acts as data controller for the staff and operational data entered into its workspace. Kiteline processes that information on the customer’s instructions when providing the hosted service.</p>
+ 
+-    <h2>2. Your organisation?s workspace</h2>
+-    <p>Each Kiteline customer gets a <strong>private workspace</strong> for their business. Your recipes, sites, team, temperature logs, checklists, and other operational data are stored separately from other customers. We do not mix your kitchen data with another company?s unless you explicitly share access within your own team (when that feature is enabled).</p>
+-    <p>A separate internal sample workspace may be used by Kiteline staff for sales and testing ? it is not visible to normal customer accounts.</p>
++    <h2>2. Your organisation's workspace</h2>
++    <p>Each Kiteline customer gets a <strong>private workspace</strong> for their business. Your recipes, sites, team, temperature logs, checklists, and other operational data are stored separately from other customers. We do not mix your kitchen data with another organisation's unless you explicitly share access within your own team (when that feature is enabled).</p>
++    <p>A separate internal sample workspace may be used by Kiteline staff for sales and testing — it is not visible to normal customer accounts.</p>
+ 
+     <h2>3. Data we collect</h2>
+     <ul>
+-      <li><strong>Account data</strong> ? name, email, phone, password (stored hashed), role, language preference.</li>
+-      <li><strong>Business data</strong> ? kitchen name, address, company details you enter at registration.</li>
+-      <li><strong>Operational data</strong> ? temperature logs, checklists, recipes, allergen menus, labels, waste records, team members, and audit activity you store in the app.</li>
+-      <li><strong>Technical data</strong> ? IP address, browser type, device identifiers, session tokens, security logs.</li>
+-      <li><strong>Payment data</strong> ? processed by Stripe when you subscribe; we do not store full card numbers.</li>
+-      <li><strong>Communications</strong> ? emails we send (verification, alerts, support) and messages you send us.</li>
++      <li><strong>Account data</strong> — name, email, phone, password (stored hashed), role, language preference.</li>
++      <li><strong>Business data</strong> — kitchen name, address, organisation details you enter at registration.</li>
++      <li><strong>Operational data</strong> — temperature logs, checklists, recipes, allergen menus, labels, waste records, team members, and audit activity you store in the app.</li>
++      <li><strong>Technical data</strong> — IP address, browser type, device identifiers, session tokens, security logs.</li>
++      <li><strong>Payment data</strong> — online card checkout is not currently active; paid pilots are arranged by invoice. We do not store full card numbers.</li>
++      <li><strong>Communications</strong> — emails we send (verification, alerts, support) and messages you send us.</li>
+     </ul>
+ 
+     <h2>4. How we use data</h2>
+@@ -55,31 +55,35 @@
+     <p>We rely on: <strong>contract</strong> (to deliver the service), <strong>legitimate interests</strong> (security, product improvement), <strong>consent</strong> (where required, e.g. marketing), and <strong>legal obligation</strong> where applicable.</p>
+ 
+     <h2>6. Sharing data &amp; sub-processors</h2>
+-    <p id="subprocessors">We do not sell your personal data. We may share data with sub-processors who help us run the service:</p>
++    <p id="subprocessors">We do not sell your personal data.</p>
++    <h3 class="text-base font-bold mt-4 mb-2">Current service providers</h3>
+     <ul>
+-      <li><strong>Hosting</strong> ? Render (application hosting).</li>
+-      <li><strong>Database</strong> ? Neon Postgres or configured database provider.</li>
+-      <li><strong>Payments</strong> ? Stripe for billing when enabled.</li>
+-      <li><strong>Email</strong> ? SMTP or transactional email provider when configured.</li>
+-      <li><strong>SMS</strong> ? only when SMS alerts are live and you configure a provider (e.g. Twilio).</li>
+-      <li><strong>CAPTCHA / security</strong> ? Cloudflare Turnstile where enabled (Academy).</li>
+-      <li><strong>Professional advisers</strong> ? lawyers or accountants if required.</li>
+-      <li><strong>Authorities</strong> ? if required by law.</li>
++      <li><strong>Hosting</strong> — Render (application hosting), where the public service is deployed.</li>
++      <li><strong>Professional advisers</strong> — lawyers or accountants if required.</li>
++      <li><strong>Authorities</strong> — if required by law.</li>
+     </ul>
+-    <p>B2B customers may request a Data Processing Agreement (DPA) ? email <a href="mailto:contact@kiteline.uk?subject=DPA%20request" class="text-brand-700">contact@kiteline.uk</a>.</p>
++    <h3 class="text-base font-bold mt-4 mb-2">Planned integrations not currently active</h3>
++    <ul>
++      <li><strong>Database provider</strong> — production database region and provider details will be confirmed before commercial launch.</li>
++      <li><strong>Transactional email</strong> — SMTP or transactional email provider (password reset and alerts) — in development.</li>
++      <li><strong>Card payments</strong> — online card billing is planned and not currently active.</li>
++      <li><strong>SMS alerts</strong> — planned; not currently active.</li>
++      <li><strong>CAPTCHA / bot protection</strong> — planned where needed; not claimed as active on the main Kiteline kitchen site.</li>
++    </ul>
++    <p>A formal Data Processing Agreement will be available before paid B2B customer onboarding. Contact <a href="mailto:contact@kiteline.uk?subject=DPA%20request" class="text-brand-700">contact@kiteline.uk</a> for information about the planned data-processing arrangements.</p>
+ 
+     <h2>7. Retention &amp; backups</h2>
+-    <p>We keep account and kitchen records while your account is active and for a reasonable period afterwards for backups, disputes, and legal compliance. Operational backups are typically retained for 30?90 days depending on environment. You may request deletion subject to legal and operational requirements.</p>
++    <p>We keep account and kitchen records while your account is active. After closure, we aim to delete or anonymise personal data within 90 days, except where we must retain records for legal, billing, security, or dispute purposes. Operational backups are typically retained for 30–90 days depending on environment, then overwritten according to the backup schedule.</p>
+ 
+     <h2>8. Security</h2>
+-    <p>Passwords are hashed. Sessions use secure tokens. HTTPS is required in production. You should use strong passwords and protect devices used to access Kiteline.</p>
++    <p>We intend to hash passwords, use session tokens, and serve the app over HTTPS in production. Confirm these controls are enabled on your deployment. You should use strong passwords and protect devices used to access Kiteline. See the Security page for verified versus planned controls. Do not treat login as fully secure while password-reset email is still in development.</p>
+ 
+     <h2>9. Your rights</h2>
+     <p>Under UK data protection law you may have rights to <strong>access</strong>, <strong>rectify</strong>, <strong>erase</strong>, <strong>restrict</strong>, <strong>object</strong>, and <strong>data portability</strong>.</p>
+     <ul>
+-      <li><strong>Export</strong> ? signed-in users can download a JSON export of their organisation?s workspace from Settings (or via <code>GET /api/workspace/export</code>).</li>
+-      <li><strong>Deletion</strong> ? email <a href="mailto:contact@kiteline.uk" class="text-brand-700">contact@kiteline.uk</a> to request account and workspace deletion. We will remove or anonymise personal data unless we must keep it for legal, billing, or security reasons.</li>
+-      <li><strong>Complaints</strong> ? you may complain to the ICO (<a href="https://ico.org.uk" class="text-brand-700" rel="noopener">ico.org.uk</a>).</li>
++      <li><strong>Export</strong> — authorised account administrators may request or download an export of their organisation's data where the export feature is available.</li>
++      <li><strong>Deletion</strong> — email <a href="mailto:contact@kiteline.uk" class="text-brand-700">contact@kiteline.uk</a> to request account and workspace deletion. We will remove or anonymise personal data unless we must keep it for legal, billing, or security reasons.</li>
++      <li><strong>Complaints</strong> — you may complain to the ICO (<a href="https://ico.org.uk" class="text-brand-700" rel="noopener">ico.org.uk</a>).</li>
+     </ul>
+ 
+     <h2>10. Cookies &amp; local storage</h2>
+@@ -92,7 +96,7 @@
+     <p>Kiteline is a business service not intended for children under 16.</p>
+ 
+     <h2>13. Changes</h2>
+-    <p>We may update this policy. The ?Last updated? date will change and continued use means you accept the updated policy.</p>
++    <p>We may update this policy. The "Last updated" date will change and continued use means you accept the updated policy.</p>
+ 
+     <p class="mt-10 text-sm text-ink-500">Privacy questions: <a href="mailto:contact@kiteline.uk" class="text-brand-700 font-semibold">contact@kiteline.uk</a></p>
+   </main>
+@@ -107,7 +111,7 @@
+       <a href="cookies.html" class="hover:text-white">Cookies</a>
+       <a href="/app" class="hover:text-white">App</a>
+     </div>
+-    <p>� 2026 Kiteline ? All rights reserved.</p>
++    <p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
+   </footer>
+ </body>
+ </html>
+diff --git a/site/product-haccp.html b/site/product-haccp.html
+index f8513d3..edf4a13 100644
+--- a/site/product-haccp.html
++++ b/site/product-haccp.html
+@@ -4,7 +4,7 @@
+   <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <title>SafeServe — Digital HACCP & Temperature Monitoring | Kiteline</title>
+-  <meta name="description" content="SafeServe helps professional kitchens run digital HACCP, temperature logs, checklists, and audit-ready reports. Software live now; sensor hardware on pilot." />
++  <meta name="description" content="SafeServe helps professional kitchens run digital HACCP, temperature logs, checklists, and inspection-friendly reports. Software available now for core logs and checklists; sensor hardware on pilot." />
+   <script src="https://cdn.tailwindcss.com"></script>
+   <script>tailwind.config={theme:{extend:{colors:{brand:{50:'#f0fdfa',100:'#ccfbf1',300:'#5eead4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a'},ink:{50:'#f8fafc',100:'#f1f5f9',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',700:'#334155',800:'#1e293b',900:'#0f172a',950:'#020617'}},fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+@@ -28,7 +28,7 @@
+   <section class="gradient text-white py-20 px-5 text-center">
+     <span class="inline-block px-3 py-1 rounded-full bg-white/10 text-sm mb-5">SafeServe · part of Kiteline</span>
+     <h1 class="text-4xl lg:text-5xl font-black max-w-3xl mx-auto">Digital HACCP & temperature records</h1>
+-    <p class="mt-5 text-white/75 max-w-2xl mx-auto text-lg">Run checklists, log temperatures, track corrective actions, and export inspection-ready reports — from one kitchen dashboard. Software is live today; connected fridge sensors are on a small UK pilot.</p>
++    <p class="mt-5 text-white/75 max-w-2xl mx-auto text-lg">Run checklists, log temperatures, track corrective actions, and export inspection-friendly reports — from one kitchen dashboard. Software is live today; connected fridge sensors are on a small UK pilot.</p>
+     <div class="mt-8 flex flex-wrap gap-3 justify-center">
+       <a href="/app" class="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-400 text-ink-950 font-bold">Try the live app</a>
+       <a href="pricing.html" class="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold">See pricing</a>
+@@ -52,7 +52,7 @@
+         <p class="text-sm text-ink-500 mt-3">Staff log temperatures manually or via the app on a phone or tablet. Checklists, deliveries, cooling logs, and alerts — all in Kiteline.</p>
+         <ul class="mt-4 space-y-2 text-sm text-ink-700">
+           <li>✓ No hardware required to start</li>
+-          <li>✓ Works for EHO visits and internal audits</li>
++          <li>✓ Helps kitchens organise records for inspections and internal reviews.</li>
+           <li>✓ Email alerts when you configure notifications</li>
+         </ul>
+         <a href="/app#haccp" class="inline-block mt-6 text-brand-700 font-semibold text-sm">Open HACCP in app →</a>
+@@ -84,7 +84,7 @@
+       <div class="rounded-2xl border border-ink-100 p-6"><h3 class="font-bold">Multi-site view</h3><p class="text-sm text-ink-500 mt-2">Switch between locations from one account (Team plan).</p></div>
+       <div class="rounded-2xl border border-ink-100 p-6"><h3 class="font-bold">Corrective actions</h3><p class="text-sm text-ink-500 mt-2">Log what you did when a reading was out of range.</p></div>
+       <div class="rounded-2xl border border-ink-100 p-6"><h3 class="font-bold">Live ops</h3><p class="text-sm text-ink-500 mt-2">See overdue tasks, deliveries, and production status on one screen.</p></div>
+-      <div class="rounded-2xl border border-ink-100 p-6"><h3 class="font-bold">Secure cloud sync</h3><p class="text-sm text-ink-500 mt-2">Data stored on Kiteline servers when you use the hosted app — not lost on one device.</p></div>
++      <div class="rounded-2xl border border-ink-100 p-6"><h3 class="font-bold">Secure cloud sync</h3><p class="text-sm text-ink-500 mt-2">Data stored within Kiteline’s hosted cloud environment. when you use the hosted app — not lost on one device.</p></div>
+     </div>
+   </section>
+ 
+@@ -156,7 +156,7 @@
+       <a href="privacy.html" class="hover:text-white">Privacy</a>
+       <a href="/app" class="hover:text-white">App</a>
+     </div>
+-    <p>© 2026 Kiteline � All rights reserved.</p>
++    <p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
+   </footer>
+ </body>
+ </html>
+diff --git a/site/refunds.html b/site/refunds.html
+index 5ce6828..f1d631a 100644
+--- a/site/refunds.html
++++ b/site/refunds.html
+@@ -21,7 +21,8 @@
+   </header>
+   <main class="max-w-3xl mx-auto px-5 py-12 legal">
+     <p class="text-sm text-ink-500 mb-2">Last updated: 21 June 2026</p>
+-    <h1 class="text-3xl font-black mb-2">Refund &amp; cancellation policy</h1>
++    <p class="text-sm text-ink-600 mb-4">No payment is taken automatically when the free trial ends. During early access, any paid pilot subscription is arranged manually by written quotation and invoice. The applicable cancellation and refund terms will be included in the accepted quotation.</p>
++  <h1 class="text-3xl font-black mb-2">Refund &amp; cancellation policy</h1>
+     <p class="text-ink-500 mb-8">Applies to Kiteline software subscriptions.</p>
+     <h2>Free trial</h2>
+     <p>New accounts receive a <strong>14-day free trial</strong> with up to 5 users. No card is required to register. Your trial ends before any paid plan starts unless you choose to continue.</p>
+@@ -33,7 +34,7 @@
+     </ul>
+     <h2>Refunds</h2>
+     <p>During early access, paid plans may be activated by invoice. Refund requests are considered case-by-case within 14 days of payment if the service has not been materially used. Contact us with your account email and invoice reference.</p>
+-    <p>When Stripe checkout is live, card subscriptions follow Stripe’s billing cycle; refunds for duplicate charges or billing errors are handled promptly.</p>
++    <p>When online card checkout becomes available, subscription cycles will follow the published billing terms; refunds for duplicate charges or billing errors are handled promptly.</p>
+     <h2>Hardware pilot</h2>
+     <p>Sensor kits and printer bundles involve separate quotes and agreements. Deposits and refunds for hardware are governed by your pilot agreement — not this software policy.</p>
+     <h2>Academy courses</h2>
+@@ -47,7 +48,7 @@
+       <a href="privacy.html" class="hover:text-white">Privacy</a>
+       <a href="contact.html" class="hover:text-white">Contact</a>
+     </div>
+-    <p>© 2026 Kiteline � All rights reserved.</p>
++    <p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
+   </footer>
+ </body>
+ </html>
+diff --git a/site/security.html b/site/security.html
+index 2bc459a..2d76a16 100644
+--- a/site/security.html
++++ b/site/security.html
+@@ -4,7 +4,7 @@
+   <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <title>Security — Kiteline</title>
+-  <meta name="description" content="How Kiteline protects kitchen data — HTTPS, isolation, access control, and backups." />
++  <meta name="description" content="How Kiteline approaches security for kitchen software — what is verified versus planned." />
+   <script src="https://cdn.tailwindcss.com"></script>
+   <script>tailwind.config={theme:{extend:{colors:{brand:{500:'#14b8a6',600:'#0d9488',700:'#0f766e'},ink:{50:'#f8fafc',100:'#f1f5f9',400:'#94a3b8',500:'#64748b',700:'#334155',900:'#0f172a',950:'#020617'}},fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+@@ -25,22 +25,22 @@
+     <p class="text-ink-500 mb-8">How Kiteline protects customer data.</p>
+     <h2>Transport &amp; hosting</h2>
+     <ul>
+-      <li><strong>HTTPS</strong> — traffic encrypted in transit on kiteline.uk and the hosted app.</li>
+-      <li><strong>Cloud hosting</strong> — application and database hosted on reputable UK/EU infrastructure providers.</li>
++      <li><strong>HTTPS</strong> — use HTTPS in production deployments. Confirm TLS is correctly configured before treating this as verified on your environment.</li>
++      <li><strong>Cloud hosting</strong> — Planned security improvement pending confirmation of production hosting and database regions. Do not assume UK/EU residency until verified.</li>
+     </ul>
+     <h2>Accounts &amp; access</h2>
+     <ul>
+-      <li><strong>Password hashing</strong> — passwords stored using industry-standard hashing (not plain text).</li>
+-      <li><strong>Role-based access</strong> — owner, manager, and staff permissions per kitchen.</li>
+-      <li><strong>Company isolation</strong> — each customer organisation has a private workspace; data is not shared between companies.</li>
+-      <li><strong>2FA</strong> — optional two-factor authentication for student accounts.</li>
++      <li><strong>Password hashing</strong> — account passwords are intended to be stored hashed (not as plain text). Confirm hashing is enabled and tested before relying on this claim.</li>
++      <li><strong>Role-based access</strong> — Owner, Manager, and Staff roles are used in the application. Treat advanced privilege hardening as a planned security improvement until fully verified.</li>
++      <li><strong>Customer workspace separation</strong> — each organisation uses its own workspace, with access controlled through authorised user accounts. Database-level isolation hardening is a planned security improvement where not yet verified.</li>
++      <li><strong>Two-factor authentication</strong> — Planned security improvement for Kiteline kitchen accounts (not claimed as available now).</li>
+     </ul>
+     <h2>Data backup &amp; deletion</h2>
+     <p>Operational backups are retained for disaster recovery (typically 30–90 days depending on environment). Account closure requests are processed within a reasonable period — see <a href="privacy.html" class="text-brand-700 font-semibold">Privacy Policy</a>.</p>
+     <h2>Reporting issues</h2>
+     <p>Report suspected vulnerabilities to <a href="mailto:contact@kiteline.uk?subject=Security" class="text-brand-700 font-semibold">contact@kiteline.uk</a>. Do not publicly disclose active issues before we respond.</p>
+     <h2>B2B customers</h2>
+-    <p>Data Processing Agreement and sub-processor list available on request — see <a href="privacy.html#subprocessors" class="text-brand-700 font-semibold">Privacy Policy</a>.</p>
++    <p>A formal Data Processing Agreement will be available before paid B2B customer onboarding — see <a href="privacy.html#subprocessors" class="text-brand-700 font-semibold">Privacy Policy</a>.</p>
+   </main>
+   <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm px-5 space-y-3">
+     <div class="flex flex-wrap justify-center gap-x-5 gap-y-2">
+@@ -48,7 +48,7 @@
+       <a href="privacy.html" class="hover:text-white">Privacy</a>
+       <a href="contact.html" class="hover:text-white">Contact</a>
+     </div>
+-    <p>© 2026 Kiteline � All rights reserved.</p>
++    <p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
+   </footer>
+ </body>
+ </html>
+diff --git a/site/terms.html b/site/terms.html
+index 6e087e4..770f97e 100644
+--- a/site/terms.html
++++ b/site/terms.html
+@@ -3,7 +3,7 @@
+ <head>
+   <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+-  <title>Terms & Conditions ? Kiteline</title>
++  <title>Terms & Conditions — Kiteline</title>
+   <meta name="description" content="Kiteline terms and conditions." />
+   <script src="https://cdn.tailwindcss.com"></script>
+   <script>tailwind.config={theme:{extend:{colors:{brand:{500:'#14b8a6',600:'#0d9488',700:'#0f766e'},ink:{50:'#f8fafc',100:'#f1f5f9',400:'#94a3b8',500:'#64748b',700:'#334155',900:'#0f172a',950:'#020617'}},fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+@@ -26,11 +26,11 @@
+     <p class="text-ink-500 mb-8">These terms govern your use of Kiteline software and the website <a href="https://kiteline.uk" class="text-brand-700 font-semibold">kiteline.uk</a>.</p>
+ 
+     <h2>1. Who we are</h2>
+-    <p><strong>Kiteline</strong> (?we?, ?us?, ?our?) provides the service at <a href="https://kiteline.uk" class="text-brand-700 font-semibold">kiteline.uk</a>. Contact: <a href="mailto:contact@kiteline.uk" class="text-brand-700">contact@kiteline.uk</a></p>
++    <p>Kiteline is an independent software brand. The legal operator’s full name, service address and business details will be added before paid commercial subscriptions are activated. Contact: <a href="mailto:contact@kiteline.uk" class="text-brand-700">contact@kiteline.uk</a>.</p>
+ 
+     <h2>2. The service</h2>
+     <p>Kiteline provides cloud software for professional kitchens, including food-safety records, allergen menus, labelling, recipes, and related tools. Some features are marked <em>beta</em>, <em>pilot</em>, or <em>early access</em> and may change.</p>
+-    <p>Kiteline supports your HACCP and food-safety processes ? it does <strong>not</strong> replace your legal duty to run a safe kitchen or your site-specific food safety management system.</p>
++    <p>Kiteline supports your HACCP and food-safety processes — it does <strong>not</strong> replace your legal duty to run a safe kitchen or your site-specific food safety management system.</p>
+ 
+     <h2>3. Accounts &amp; access</h2>
+     <ul>
+@@ -44,7 +44,7 @@
+     <p>You agree not to:</p>
+     <ul>
+       <li>Use the service for unlawful purposes or to store unlawful content.</li>
+-      <li>Attempt to access other customers? data or disrupt the platform.</li>
++      <li>Attempt to access other customers' data or disrupt the platform.</li>
+       <li>Reverse-engineer, scrape, or resell the service without written permission.</li>
+       <li>Upload malware or interfere with sensors, APIs, or integrations.</li>
+     </ul>
+@@ -53,10 +53,10 @@
+     <p>You retain ownership of kitchen and business data you enter. You grant us a licence to host, process, and back up that data solely to provide the service. See our <a href="privacy.html" class="text-brand-700 font-semibold">Privacy Policy</a>.</p>
+ 
+     <h2>6. Subscriptions &amp; payment</h2>
+-    <p>Paid plans, where offered, are billed as described at checkout or in your agreement. During early access, plans may be activated by invoice until online checkout is enabled.</p>
++    <p>During early access, paid plans are arranged manually by email and invoice. Online card payments and self-service subscription management are planned but are not currently available. Do not treat checkout wording as live until the legal operator and payment account are confirmed.</p>
+     <ul>
+       <li><strong>Free trial:</strong> new accounts receive 14 days free (up to 5 users) unless stated otherwise.</li>
+-      <li><strong>Cancellation:</strong> cancel anytime ? see our <a href="refunds.html" class="text-brand-700 font-semibold">refund & cancellation policy</a>.</li>
++      <li><strong>Cancellation:</strong> applicable cancellation and refund terms will be included in any accepted written quotation. See our <a href="refunds.html" class="text-brand-700 font-semibold">refund & cancellation policy</a>.</li>
+       <li><strong>Hardware pilot:</strong> sensors and supplies may involve a separate agreement and quote.</li>
+     </ul>
+     <p>Prices may change with notice. Your signed quote or checkout confirmation is the price that applies to you.</p>
+@@ -71,10 +71,10 @@
+     <p>We aim for high availability but do not guarantee uninterrupted access. Maintenance, updates, and third-party outages may occur. Support is provided on a reasonable-efforts basis during early access.</p>
+ 
+     <h2>10. Disclaimer</h2>
+-    <p>The service is provided ?as is? to the extent permitted by law. We do not warrant that records or alerts alone guarantee compliance with food law or EHO requirements ? you remain responsible for your operations.</p>
++    <p>The service is provided "as is" to the extent permitted by law. We do not warrant that records or alerts alone guarantee compliance with food law or inspection requirements — you remain responsible for your operations.</p>
+ 
+     <h2>11. Limitation of liability</h2>
+-    <p>To the fullest extent permitted by law, we are not liable for indirect loss, loss of profit, or food spoilage. Our total liability for any claim relating to the service is limited to the fees you paid us in the twelve months before the claim (or �100 if you use a free trial).</p>
++    <p>To the fullest extent permitted by law, we are not liable for indirect loss, loss of profit, or food spoilage. Our total liability for any claim relating to the service is limited to the fees you paid us in the twelve months before the claim (or £100 if you use a free trial). This liability wording is indicative only and must be reviewed professionally before commercial launch — it is not final approved legal wording.</p>
+     <p>Nothing in these terms limits liability for death or personal injury caused by negligence, fraud, or any liability that cannot be excluded under UK law.</p>
+ 
+     <h2>12. Changes</h2>
+@@ -96,7 +96,7 @@
+       <a href="privacy.html" class="hover:text-white">Privacy Policy</a>
+       <a href="/app" class="hover:text-white">App</a>
+     </div>
+-    <p>� 2026 Kiteline ? All rights reserved.</p>
++    <p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
+   </footer>
+ </body>
+ </html>
+diff --git a/site/use-cases/catering.html b/site/use-cases/catering.html
+index 5b497b1..2420b1b 100644
+--- a/site/use-cases/catering.html
++++ b/site/use-cases/catering.html
+@@ -12,10 +12,11 @@
+   <header class="border-b border-ink-100"><div class="max-w-4xl mx-auto px-5 h-16 flex items-center justify-between"><a href="/" class="brand-lockup brand-lockup--light"><img src="/kiteline-logo.png?v=mark3" alt="" class="brand-mark" width="32" height="32"><span class="brand-name">Kit<em>eline</em></span></a><a href="/app#register" class="px-4 py-2 text-sm font-semibold rounded-lg bg-brand-600 text-white">Create free account</a></div></header>
+   <section class="gradient text-white py-14 px-5 text-center"><h1 class="text-4xl font-black">Catering businesses</h1><p class="mt-4 text-white/75 max-w-xl mx-auto">Labels, recipes, and food-safety records across events and production sites.</p></section>
+   <main class="max-w-3xl mx-auto px-5 py-12 text-ink-600 space-y-6">
+-    <p>Event and contract caterers juggle menus, prep labels, and compliance across locations. Kiteline connects recipes, allergen info, labels, and HACCP logs so your team works from one system during early access.</p>
++    <p>Event and contract caterers juggle menus, prep labels, and food-safety records across locations. Kiteline connects recipes, allergen info, labels, and HACCP logs so your team works from one system during early access.</p>
+     <ul class="list-disc ml-5 space-y-1"><li>Recipe library with allergens and costing</li><li>LabelSmart prep labels</li><li>Multi-site when you grow</li><li>Waste logging (beta)</li></ul>
+     <div class="flex flex-wrap gap-3"><a href="/app#register" class="px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold">Create free account</a><a href="pricing.html" class="px-5 py-2.5 rounded-lg border font-semibold">View pricing</a></div>
+   </main>
+-  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm"><a href="/" class="hover:text-white">← Kiteline home</a></footer>
++  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm"><a href="/" class="hover:text-white">← Kiteline home</a><p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
++  </footer>
+ </body>
+ </html>
+diff --git a/site/use-cases/hotels.html b/site/use-cases/hotels.html
+index 5014e46..d3aac7a 100644
+--- a/site/use-cases/hotels.html
++++ b/site/use-cases/hotels.html
+@@ -13,9 +13,10 @@
+   <section class="gradient text-white py-14 px-5 text-center"><h1 class="text-4xl font-black">Hotel kitchens</h1><p class="mt-4 text-white/75 max-w-xl mx-auto">Multi-outlet control — banqueting, restaurant, and staff canteen from one account.</p></section>
+   <main class="max-w-3xl mx-auto px-5 py-12 text-ink-600 space-y-6">
+     <p>Hotels run several food outlets under one brand. Kiteline Team plans let you switch sites, manage staff roles, and keep HACCP records consistent across properties during early access.</p>
+-    <ul class="list-disc ml-5 space-y-1"><li>Multi-site dashboard</li><li>Role-based staff permissions</li><li>Audit exports per site</li><li>Enterprise quotes for 50+ users</li></ul>
++    <ul class="list-disc ml-5 space-y-1"><li>Organisation workspace with multiple kitchen sites (site allowance by plan)</li><li>Role-based staff permissions</li><li>Audit exports per site</li><li>Enterprise quotes for 51 or more users</li></ul>
+     <div class="flex flex-wrap gap-3"><a href="pricing.html" class="px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold">View pricing</a><a href="contact.html#demo" class="px-5 py-2.5 rounded-lg border font-semibold">Book a demo</a></div>
+   </main>
+-  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm"><a href="/" class="hover:text-white">← Kiteline home</a></footer>
++  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm"><a href="/" class="hover:text-white">← Kiteline home</a><p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
++  </footer>
+ </body>
+ </html>
+diff --git a/site/use-cases/restaurants.html b/site/use-cases/restaurants.html
+index 08eb8f3..e60c999 100644
+--- a/site/use-cases/restaurants.html
++++ b/site/use-cases/restaurants.html
+@@ -25,13 +25,14 @@
+   <main class="max-w-3xl mx-auto px-5 py-12 space-y-8 text-ink-600">
+     <div><h2 class="text-xl font-bold text-ink-900">What restaurants use Kiteline for</h2>
+     <ul class="mt-3 space-y-2 list-disc ml-5"><li>Opening and closing HACCP checklists</li><li>Fridge and freezer temperature logs</li><li>Allergen menus and QR codes for guests</li><li>Prep labels with use-by dates</li><li>Recipe library with costing and allergens</li></ul></div>
+-    <div><h2 class="text-xl font-bold text-ink-900">Why it fits</h2><p class="mt-2">Staff log checks on a phone between services. Managers see overdue tasks and export records before an EHO visit. Each restaurant gets a private workspace.</p></div>
++    <div><h2 class="text-xl font-bold text-ink-900">Why it fits</h2><p class="mt-2">Staff log checks on a phone between services. Managers see overdue tasks and export records ahead of an inspection. Each restaurant gets a private workspace.</p></div>
+     <div class="flex flex-wrap gap-3 pt-4">
+       <a href="/app" class="px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold">Try free trial</a>
+       <a href="contact.html#demo" class="px-5 py-2.5 rounded-lg border border-ink-200 font-semibold">Book a demo</a>
+       <a href="pricing.html" class="px-5 py-2.5 rounded-lg border border-ink-200 font-semibold">View pricing</a>
+     </div>
+   </main>
+-  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm"><a href="/" class="hover:text-white">← Kiteline home</a></footer>
++  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm"><a href="/" class="hover:text-white">← Kiteline home</a><p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
++  </footer>
+ </body>
+ </html>
+diff --git a/site/use-cases/retreat-centres.html b/site/use-cases/retreat-centres.html
+index 2e63065..286cd77 100644
+--- a/site/use-cases/retreat-centres.html
++++ b/site/use-cases/retreat-centres.html
+@@ -16,6 +16,7 @@
+     <ul class="list-disc ml-5 space-y-1"><li>HACCP checklists and temperature logs</li><li>Allergen-aware menus and QR codes</li><li>Private workspace for your organisation</li></ul>
+     <div class="flex flex-wrap gap-3"><a href="/app" class="px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold">Try free trial</a><a href="contact.html#demo" class="px-5 py-2.5 rounded-lg border font-semibold">Book a demo</a></div>
+   </main>
+-  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm"><a href="/" class="hover:text-white">← Kiteline home</a></footer>
++  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm"><a href="/" class="hover:text-white">← Kiteline home</a><p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
++  </footer>
+ </body>
+ </html>
+diff --git a/site/use-cases/schools.html b/site/use-cases/schools.html
+index f12e56d..4143415 100644
+--- a/site/use-cases/schools.html
++++ b/site/use-cases/schools.html
+@@ -16,6 +16,7 @@
+     <ul class="list-disc ml-5 space-y-1"><li>Daily HACCP and temperature logs</li><li>Allergen menus linked to recipes</li><li>Staff accountability on each check</li></ul>
+     <div class="flex flex-wrap gap-3"><a href="/app" class="px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold">Try free trial</a><a href="contact.html" class="px-5 py-2.5 rounded-lg border font-semibold">Contact sales</a></div>
+   </main>
+-  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm"><a href="/" class="hover:text-white">← Kiteline home</a></footer>
++  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm"><a href="/" class="hover:text-white">← Kiteline home</a><p>© 2026 Kiteline. All rights reserved. Kiteline is an independent software brand and is not operated by or affiliated with The Vedanta Way Limited.</p>
++  </footer>
+ </body>
+ </html>
