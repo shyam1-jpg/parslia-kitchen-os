@@ -1,4 +1,4 @@
-# Kiteline SaaS — Phase A + E package
+# Kiteline SaaS — Phase A + B + C + E package
 
 Professional multi-company / multi-location foundation for **kiteline.uk**, without changing the current teal/ink UI.
 
@@ -6,33 +6,37 @@ Professional multi-company / multi-location foundation for **kiteline.uk**, with
 
 | Path | Purpose |
 |------|---------|
-| `schema/*.sql` | Postgres schema + RLS |
-| `docs/ROLES_AND_PERMISSIONS.md` | Role matrix |
-| `docs/MULTI_LOCATION_WORKFLOW.md` | Location workflow |
-| `docs/MIGRATION_PLAN.md` | JSON → Postgres plan |
-| `docs/SCREEN_CHANGES.md` | Future UI changes (same design) |
-| `tests/isolation_test.sql` | Cross-tenant isolation proof |
-| `scripts/verify-schema.sh` | Apply + verify locally |
-| `scripts/apply-schema.sh` | Apply to Neon/prod URL |
-| `scripts/migrate-json-to-postgres.js` | Migration dry-run |
-| `deploy/*` | Hardening + production checklist |
+| `schema/*.sql` | Postgres schema + RLS (A) |
+| `runtime/server/saas/*` | Tenancy API + scoped state (B) |
+| `runtime/js/saas.js` | Switcher / Team / Clock / Reports (C) |
+| `docs/*` | Roles, workflow, migration, Phase B/C |
+| `tests/isolation_test.sql` | DB isolation proof (A/E) |
+| `tests/saas-unit-test.js` | API scoping unit tests (B) |
+| `scripts/verify-schema.sh` | Schema verify |
+| `scripts/apply-schema.sh` | Apply schema to Neon |
+| `scripts/apply-bc-to-kitline1.js` | Install B/C into kitline1 |
+| `deploy/kitline1-saas-bc.patch` | Unified B/C patch |
+| `deploy/*` | Hardening + production checklist (E) |
 
 ## Verify locally
 
 ```bash
 ./scripts/verify-schema.sh
-node scripts/migrate-json-to-postgres.js --dry-run --db /path/to/kitline1/server/data/db.json
+node tests/saas-unit-test.js
+node scripts/migrate-json-to-postgres.js --dry-run --db tests/fixtures/sample-db.json
 ```
 
-## Apply to Neon / production DB
+## Apply to kitline1
 
 ```bash
+node scripts/apply-bc-to-kitline1.js /path/to/kitline1
+# optional schema:
 DATABASE_URL='postgres://...' ./scripts/apply-schema.sh
-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f tests/isolation_test.sql
 ```
 
-## Out of scope for A/E
+Then deploy kitline1 to Render (this agent cannot push `kitline1`).
 
-- Full screen rebuild (Phases C/D)
-- Stock/ordering UI modules
-- Push/deploy to `kitline1` / Render from this agent (no write access) — owner applies + deploys using `deploy/PRODUCTION_CHECKLIST.md`
+## Still later (Phase D)
+
+- First-class Stock / Orders screens
+- Full Postgres cutover for ops data (beyond context enrichment)
