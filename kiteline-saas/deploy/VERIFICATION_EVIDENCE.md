@@ -32,6 +32,21 @@ waste: 2
 temperatureSeeds: 3
 ```
 
+## Phase B/C API + UI (local kitline1 apply)
+
+Command: `node scripts/apply-bc-to-kitline1.js` + `node tests/saas-unit-test.js`
+
+Result: **PASS** (7/7 unit tests)
+
+Live local server (`DEMO_MODE=true`, build `2026-08-06-saas-bc`):
+
+| Login | Role | Locations | Company reports |
+|-------|------|-----------|-----------------|
+| Owner | company_owner | all (16) | 200 |
+| sarah@kiteline.uk | kitchen_admin | all | 200 |
+| lena@kiteline.uk | location_manager | site_dock only | 403 |
+| james@kiteline.uk | staff | site_grove only | 403 |
+
 ## Live kiteline.uk (pre-deploy status)
 
 Probed 2026-08-06:
@@ -39,4 +54,4 @@ Probed 2026-08-06:
 - `/api/config` → `"demo": true`
 - `/api/vedanta/store` → HTTP **200** (still open)
 
-**Conclusion:** Schema package is verified. Production hardening is **not live** until owner applies security patch + checklist on Render.
+**Conclusion:** A/B/C/E package verified locally. Production still needs owner apply + Render deploy.
