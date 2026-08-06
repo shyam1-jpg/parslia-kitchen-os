@@ -1,43 +1,47 @@
-# Kiteline SaaS — Phase A + B + C + E package
+# Kiteline SaaS — Phases A–D + E (complete)
 
-Professional multi-company / multi-location foundation for **kiteline.uk**, without changing the current teal/ink UI.
+Professional multi-company / multi-location foundation for **kiteline.uk**.  
+Keeps the current teal/ink UI, sidebar, and layout.
 
-## What’s included
+## Status
 
-| Path | Purpose |
-|------|---------|
-| `schema/*.sql` | Postgres schema + RLS (A) |
-| `runtime/server/saas/*` | Tenancy API + inventory (B/D) |
-| `runtime/js/saas.js` | Switcher / Team / Clock / Reports (C) |
-| `runtime/js/views-inventory.js` | Stock + Orders screens (D) |
-| `docs/*` | Roles, workflow, migration, Phase B/C |
-| `tests/isolation_test.sql` | DB isolation proof (A/E) |
-| `tests/saas-unit-test.js` | API scoping unit tests (B) |
-| `scripts/verify-schema.sh` | Schema verify |
-| `scripts/apply-schema.sh` | Apply schema to Neon |
-| `scripts/apply-bc-to-kitline1.js` | Install B/C into kitline1 |
-| `deploy/kitline1-saas-bc.patch` | Unified B/C patch |
-| `deploy/*` | Hardening + production checklist (E) |
+| Phase | Contents | Verified locally |
+|-------|----------|------------------|
+| **A** | Postgres schema + RLS | 33 tables, isolation PASS |
+| **B** | Tenancy API + scoped state | 7/7 unit tests |
+| **C** | Switcher, Team, Clock, Reports | Integrated smoke PASS |
+| **D** | Stock + Orders | 5/5 unit tests |
+| **E** | Security hardening + deploy checklist | Hardened server: demo false, Vedanta 401 |
 
-## Verify locally
+**Live kiteline.uk is not updated until you apply + deploy** (no push access to `kitline1` from this agent).
+
+## Apply everything
 
 ```bash
+node scripts/apply-all-to-kitline1.js /path/to/kitline1
+```
+
+Or: `deploy/kitline1-saas-all.patch`  
+Details: `deploy/APPLY_TO_KITLINE1.md` · `docs/ALL_PHASES.md`
+
+## Verify
+
+```bash
+./scripts/verify-all.sh
+# or individually:
 ./scripts/verify-schema.sh
 node tests/saas-unit-test.js
-node scripts/migrate-json-to-postgres.js --dry-run --db tests/fixtures/sample-db.json
+node tests/inventory-unit-test.js
 ```
 
-## Apply to kitline1
+## Layout
 
-```bash
-node scripts/apply-bc-to-kitline1.js /path/to/kitline1
-# optional schema:
-DATABASE_URL='postgres://...' ./scripts/apply-schema.sh
 ```
-
-Then deploy kitline1 to Render (this agent cannot push `kitline1`).
-
-## Still later
-
-- Full Postgres cutover for ops data (stock tables already in schema)
-- Deeper billing portal polish beyond Owner permissions
+kiteline-saas/
+  schema/           Phase A SQL + RLS
+  runtime/          Phase B/C/D server + JS
+  deploy/           Patches, hardening, checklists
+  docs/             Roles, workflow, phase notes
+  scripts/          apply-all, apply-bc, verify
+  tests/            schema isolation + unit tests
+```

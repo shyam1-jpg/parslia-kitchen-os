@@ -1,73 +1,40 @@
-# Phase A + E verification evidence
+# Phase A–D + E verification evidence
 
 Date: 2026-08-06
 
-## Schema verification (local Postgres 16)
+## A — Schema + RLS
+Command: `./scripts/verify-schema.sh`  
+Result: **PASS** — 33 tables, isolation tests passed
 
-Command: `./scripts/verify-schema.sh`
+## B — Tenancy API
+Command: `node tests/saas-unit-test.js`  
+Result: **PASS** — 7/7
 
-Result: **PASS**
-- 33 base tables created
-- RLS policies applied
-- Isolation tests (`tests/isolation_test.sql`) passed:
-  - Company A owner sees only Company A rows
-  - Staff A location-scoped
-  - Cross-tenant insert blocked
-  - Company B owner cannot see Company A
-
-## Migration dry-run
-
-Command: `node scripts/migrate-json-to-postgres.js --dry-run --db tests/fixtures/sample-db.json`
-
-Result: **PASS** (plan printed; no writes)
-
-```
-users: 5
-companies: 1
-locations: 2
-memberships: 4
-locationMemberships: 4
-recipes: 5
-waste: 2
-temperatureSeeds: 3
-```
-
-## Phase B/C API + UI (local kitline1 apply)
-
-Command: `node scripts/apply-bc-to-kitline1.js` + `node tests/saas-unit-test.js`
-
-Result: **PASS** (7/7 unit tests)
-
-Live local server (`DEMO_MODE=true`, build `2026-08-06-saas-bc`):
-
-| Login | Role | Locations | Company reports |
-|-------|------|-----------|-----------------|
-| Owner | company_owner | all (16) | 200 |
-| sarah@kiteline.uk | kitchen_admin | all | 200 |
-| lena@kiteline.uk | location_manager | site_dock only | 403 |
-| james@kiteline.uk | staff | site_grove only | 403 |
-
-## Live kiteline.uk (pre-deploy status)
-
-Probed 2026-08-06:
-- `/api/health` → build `2026-07-02-pilot-sites` (old)
-- `/api/config` → `"demo": true`
-- `/api/vedanta/store` → HTTP **200** (still open)
-
-## Phase D Stock & Orders
-
-Commands: `node tests/inventory-unit-test.js` + local server smoke
-
-Result: **PASS** (5/5 unit tests)
+## C/D — Integrated server (security + BCD)
+Build: `2026-08-06-saas-bcd`
 
 | Check | Result |
 |-------|--------|
-| Owner GET `/api/saas/stock` | 8 starter SKUs seeded |
-| Create PO → sent → received | Stock increased |
-| Staff POST stock item | **403** |
-| Manager stock `site_dock` | Allowed |
-| Manager stock `site_grove` | **403** |
+| Owner context | company_owner, 16 locations |
+| Stock seeded | 8 SKUs |
+| views-inventory.js / saas.js | HTTP 200 |
+| Inventory unit tests | 5/5 PASS |
 
-Build id: `2026-08-06-saas-bcd`
+## E — Hardened mode (`DEMO_MODE=false`, `NODE_ENV=production`)
 
-**Conclusion:** A/B/C/D/E package verified locally. Production still needs owner apply + Render deploy.
+| Check | Result |
+|-------|--------|
+| `/api/config` demo | **false** |
+| `/api/vedanta/store` anon | **401** |
+| `/api/vedanta/store` + API key | **200** |
+| `/app/owner-login` | **302** (no passwordless session) |
+
+## apply-all script
+`node scripts/apply-all-to-kitline1.js` on fresh kitline1 → **OK**
+
+## Live kiteline.uk (still pre-deploy)
+- build `2026-07-02-pilot-sites`
+- `demo: true`
+- Vedanta store open
+
+**Conclusion:** Full A–D+E package verified locally. Production requires owner apply + Render deploy via `APPLY_TO_KITLINE1.md`.
