@@ -78,8 +78,13 @@ fs.copyFileSync(path.join(root, 'deploy', 'PRODUCTION_CHECKLIST.md'), path.join(
 fs.chmodSync(path.join(saasDir, 'apply-schema.sh'), 0o755);
 fs.chmodSync(path.join(saasDir, 'verify-schema.sh'), 0o755);
 
+console.log('== Compliance Phase 1 ==');
+execFileSync(process.execPath, [path.join(root, 'scripts', 'apply-compliance-phase1.js'), absTarget], {
+  stdio: 'inherit',
+});
+
 console.log(`
-OK: All phases applied to ${absTarget}
+OK: All phases + Compliance Phase 1 applied to ${absTarget}
 
 Next (you must do — this agent cannot push kitline1 / Render):
   1) Commit on kitline1 and push
