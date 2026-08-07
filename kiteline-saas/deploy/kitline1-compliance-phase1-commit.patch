@@ -1,0 +1,2170 @@
+From 28ba8473a259fee00d2976b569cb030cc7c6f0cb Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Fri, 7 Aug 2026 00:40:43 +0000
+Subject: [PATCH] Add Kiteline Compliance Phase 1
+
+Checklist builder, scheduling, staff runs, defects/CAPA, dashboard,
+exports, audit trail, seed templates, and Postgres schema.
+---
+ index.html                            |    4 +-
+ js/app.js                             |    3 +
+ js/compliance-phase1-views.js         |  676 ++++++++++++++++
+ js/compliance-phase1.js               | 1027 +++++++++++++++++++++++++
+ saas/docs/PHASE_1_COMPLIANCE.md       |   64 ++
+ saas/schema/005_compliance_phase1.sql |  296 +++++++
+ server/server.js                      |    2 +-
+ 7 files changed, 2070 insertions(+), 2 deletions(-)
+ create mode 100644 js/compliance-phase1-views.js
+ create mode 100644 js/compliance-phase1.js
+ create mode 100644 saas/docs/PHASE_1_COMPLIANCE.md
+ create mode 100644 saas/schema/005_compliance_phase1.sql
+
+diff --git a/index.html b/index.html
+index 92db234..6b3f6c5 100644
+--- a/index.html
++++ b/index.html
+@@ -101,7 +101,7 @@
+   <!-- Bust stale service-worker / app shell when build changes -->
+   <script>
+   (function () {
+-    var build = '2026-07-01-compliance-print';
++    var build = '2026-08-07-compliance-p1';
+     try {
+       if (localStorage.getItem('kiteline.build') !== build) {
+         localStorage.setItem('kiteline.build', build);
+@@ -131,6 +131,8 @@
+   <script src="/js/recipe-ai.js?v=2"></script>
+   <script src="/js/register-form.js?v=6"></script>
+   <script src="/js/views.js?v=26"></script>
++  <script src="/js/compliance-phase1.js?v=1"></script>
++  <script src="/js/compliance-phase1-views.js?v=1"></script>
+   <script src="/js/compliance-views.js?v=4"></script>
+   <script src="/js/app.js?v=31"></script>
+   <script>
+diff --git a/js/app.js b/js/app.js
+index 64e90c2..0ab1c5d 100644
+--- a/js/app.js
++++ b/js/app.js
+@@ -26,6 +26,7 @@
+     { id:'haccp', label:'HACCP & Checklists', icon:'check' },
+     { sep:'Kitchen Compliance', sepKey:'complianceSec' },
+     { id:'compliance', label:'Kitchen Compliance', icon:'shield' },
++    { id:'compliance-p1', label:'Compliance checks', icon:'check' },
+     { id:'deliveries', label:'Deliveries', icon:'truck' },
+     { id:'records', label:'Records', icon:'records' },
+     { id:'cooling', label:'Cooling', icon:'snow' },
+@@ -105,9 +106,11 @@
+     suppliers:'Manager', assets:'Manager', sites:'Manager', reports:'Manager',
+     team:'Manager', training:'Manager', foodcost:'Manager', settings:'Admin',
+     compliance:'Staff',
++    'compliance-p1':'Staff',
+   };
+   function routeViewId(route) {
+     if (!route) return 'home';
++    if (route === 'compliance-p1' || route.startsWith('compliance-p1')) return 'compliance-p1';
+     if (route === 'compliance' || route.startsWith('compliance-')) return 'compliance';
+     const q = route.indexOf('?');
+     return q >= 0 ? route.slice(0, q) : route;
+diff --git a/js/compliance-phase1-views.js b/js/compliance-phase1-views.js
+new file mode 100644
+index 0000000..59e39b3
+--- /dev/null
++++ b/js/compliance-phase1-views.js
+@@ -0,0 +1,676 @@
++/* ============================================================
++   Kiteline Compliance Phase 1 — screens
++   Dashboard · My checks · Run · Builder · CA board · Exports
++   ============================================================ */
++(function () {
++  const { icon, toast, modal, closeModal, escapeHtml, openPrintDocument } = window.UI || {};
++  const CP = () => window.CompliancePhase1;
++
++  function esc(s) { return escapeHtml ? escapeHtml(String(s == null ? '' : s)) : String(s == null ? '' : s); }
++
++  function siteLabel(id) {
++    const s = window.Store && window.Store.site ? window.Store.site(id) : null;
++    return (s && s.name) || id || 'Kitchen';
++  }
++
++  function header(title, subtitle, actions) {
++    return `<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
++      <div><h1 class="text-2xl font-extrabold tracking-tight">${title}</h1>
++      ${subtitle ? `<p class="text-ink-500 text-sm mt-1">${subtitle}</p>` : ''}</div>
++      <div class="flex gap-2 flex-wrap">${actions || ''}</div></div>`;
++  }
++
++  function tab() {
++    const h = (location.hash || '').replace(/^#/, '');
++    const m = h.match(/^compliance-p1(?:-(\w+))?$/);
++    return (m && m[1]) || 'dashboard';
++  }
++
++  function nav(active) {
++    const items = [
++      { id: 'dashboard', label: 'Dashboard' },
++      { id: 'checks', label: 'My checks' },
++      { id: 'actions', label: 'Corrective actions' },
++      { id: 'templates', label: 'Templates' },
++      { id: 'builder', label: 'Builder' },
++      { id: 'exports', label: 'Exports' },
++      { id: 'audit', label: 'Audit trail' },
++    ];
++    return `<div class="flex flex-wrap gap-1 mb-5 border-b border-ink-100 pb-2">
++      ${items.map((it) => {
++        const on = active === it.id || (active === 'run' && it.id === 'checks') || (active.startsWith('edit') && it.id === 'builder');
++        return `<a href="#compliance-p1-${it.id}" class="btn btn-sm ${on ? 'btn-primary' : 'btn-ghost'}">${esc(it.label)}</a>`;
++      }).join('')}
++      <a href="#compliance" class="btn btn-sm btn-ghost ml-auto text-ink-400">Classic compliance →</a>
++    </div>`;
++  }
++
++  function rag(n, warn, bad) {
++    if (n >= bad) return 'text-red-600';
++    if (n >= warn) return 'text-amber-600';
++    return 'text-brand-700';
++  }
++
++  function renderDashboard() {
++    const E = CP();
++    E.ensureSeeded();
++    const d = E.dashboard();
++    const s = E.ensure();
++    const loc = E.currentSite();
++    const due = s.schedules.filter((x) => x.locationId === loc && x.active && !x.paused);
++    return {
++      title: 'Compliance dashboard',
++      html: header('Compliance dashboard', 'Schedule → Complete → Validate → Defect → Corrective action → Verify → Report',
++        `<button class="btn btn-primary btn-sm" id="p1SeedBtn">Load Kiteline templates</button>`)
++        + nav('dashboard')
++        + `<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
++          ${kpi('Due today', d.dueToday, rag(d.dueToday, 1, 3))}
++          ${kpi('In progress', d.inProgress, 'text-ink-800')}
++          ${kpi('Completed today', d.completedToday, 'text-brand-700')}
++          ${kpi('Missed', d.missed, rag(d.missed, 1, 1))}
++          ${kpi('Open defects', d.openDefects, rag(d.openDefects, 1, 3))}
++          ${kpi('Critical defects', d.criticalDefects, rag(d.criticalDefects, 1, 1))}
++          ${kpi('Overdue actions', d.overdueActions, rag(d.overdueActions, 1, 1))}
++          ${kpi('Awaiting verification', d.awaitingVerification, rag(d.awaitingVerification, 1, 2))}
++        </div>
++        <div class="grid lg:grid-cols-2 gap-4">
++          <div class="card card-pad">
++            <h3 class="font-bold mb-3">Scheduled checks — ${esc(siteLabel(loc))}</h3>
++            <div class="space-y-2">${due.length ? due.map((sch) => {
++              const t = s.templates.find((x) => x.id === sch.templateId);
++              return `<div class="flex items-center justify-between gap-2 p-3 rounded-xl border border-ink-100">
++                <div><div class="font-semibold text-sm">${esc(t ? t.name : 'Checklist')}</div>
++                <div class="text-xs text-ink-400">Next due ${esc((sch.nextDueAt || '').replace('T', ' ').slice(0, 16))}</div></div>
++                <a class="btn btn-primary btn-sm" href="#compliance-p1-run-${esc(sch.templateId)}">Start</a>
++              </div>`;
++            }).join('') : '<p class="text-sm text-ink-400">No active schedules. Publish a template or load Kiteline seeds.</p>'}
++            </div>
++          </div>
++          <div class="card card-pad">
++            <h3 class="font-bold mb-3">Recent notifications</h3>
++            <div class="space-y-2 max-h-80 overflow-auto">${(s.notifications || []).slice(0, 12).map((n) =>
++              `<div class="p-3 rounded-xl border border-ink-100 text-sm"><div class="font-semibold">${esc(n.title)}</div>
++              <div class="text-ink-500 text-xs mt-1">${esc(n.body || '')}</div>
++              <div class="text-[10px] text-ink-400 mt-1">${esc((n.at || '').replace('T', ' ').slice(0, 16))} · ${esc(n.eventType)}</div></div>`
++            ).join('') || '<p class="text-sm text-ink-400">No notifications yet.</p>'}
++            </div>
++          </div>
++        </div>
++        <p class="text-xs text-ink-400 mt-6">Kiteline helps teams organise food-safety records. It does not guarantee legal compliance.</p>`,
++      mount() {
++        const btn = document.getElementById('p1SeedBtn');
++        if (btn) btn.onclick = () => {
++          try {
++            CP().seedKitelineTemplates(true);
++            toast && toast('Kiteline templates loaded and published where possible', 'ok');
++            window.App && window.App.render && window.App.render();
++          } catch (e) { toast && toast(e.message, 'err'); }
++        };
++      },
++    };
++  }
++
++  function kpi(label, value, cls) {
++    return `<div class="card card-pad"><div class="text-xs text-ink-500">${esc(label)}</div>
++      <div class="text-3xl font-extrabold mt-1 ${cls || ''}">${esc(value)}</div></div>`;
++  }
++
++  function renderChecks() {
++    const E = CP();
++    E.ensureSeeded();
++    const s = E.ensure();
++    const loc = E.currentSite();
++    const drafts = s.runs.filter((r) => r.locationId === loc && r.status === 'in_progress');
++    const recent = s.runs.filter((r) => r.locationId === loc && r.status !== 'in_progress').slice(0, 20);
++    const active = s.templates.filter((t) => t.status === 'active' && (!t.locationIds || t.locationIds.includes(loc)));
++    return {
++      title: 'My checks',
++      html: header('My checks', 'Large kitchen-friendly controls. Drafts autosave as you go.')
++        + nav('checks')
++        + `<div class="grid lg:grid-cols-2 gap-4 mb-6">
++          <div class="card card-pad">
++            <h3 class="font-bold mb-3">Start a check</h3>
++            <div class="space-y-2">${active.map((t) =>
++              `<a href="#compliance-p1-run-${esc(t.id)}" class="flex items-center justify-between p-4 rounded-xl border border-ink-100 hover:border-brand-300">
++                <div><div class="font-semibold">${esc(t.name)}</div><div class="text-xs text-ink-400">${esc(t.category)} · v${esc(t.version)} · ${esc(t.frequency)}</div></div>
++                <span class="btn btn-primary btn-sm">Open</span></a>`
++            ).join('') || '<p class="text-sm text-ink-400">No published templates for this location.</p>'}
++            </div>
++          </div>
++          <div class="card card-pad">
++            <h3 class="font-bold mb-3">Drafts in progress</h3>
++            <div class="space-y-2">${drafts.map((r) =>
++              `<a href="#compliance-p1-resume-${esc(r.id)}" class="block p-3 rounded-xl border border-amber-200 bg-amber-50/40">
++                <div class="font-semibold text-sm">${esc(r.templateName)}</div>
++                <div class="text-xs text-ink-400">${esc(r.ref)} · started ${(r.startedAt || '').replace('T', ' ').slice(0, 16)}</div></a>`
++            ).join('') || '<p class="text-sm text-ink-400">No drafts.</p>'}
++            </div>
++          </div>
++        </div>
++        <div class="card card-pad">
++          <h3 class="font-bold mb-3">Recent runs</h3>
++          <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left text-ink-400 border-b">
++            <th class="py-2">Ref</th><th>Checklist</th><th>Status</th><th>Completed</th><th>By</th></tr></thead><tbody>
++            ${recent.map((r) => `<tr class="border-b border-ink-50"><td class="py-2 font-mono text-xs">${esc(r.ref)}</td>
++              <td>${esc(r.templateName)}</td><td><span class="badge ${r.status === 'completed' ? 'badge-green' : r.status === 'missed' ? 'badge-red' : 'badge-gray'}">${esc(r.status)}</span></td>
++              <td class="text-xs text-ink-500">${esc((r.completedAt || '').replace('T', ' ').slice(0, 16))}</td>
++              <td>${esc(r.completedByName || '—')}</td></tr>`).join('') || '<tr><td colspan="5" class="py-4 text-ink-400">No runs yet</td></tr>'}
++          </tbody></table></div>
++        </div>`,
++      mount() {},
++    };
++  }
++
++  function renderRun(templateId, resumeId) {
++    const E = CP();
++    E.ensureSeeded();
++    let run;
++    try {
++      if (resumeId) {
++        run = E.ensure().runs.find((r) => r.id === resumeId);
++        if (!run) throw new Error('Draft not found');
++      } else {
++        run = E.startRun(templateId);
++      }
++    } catch (e) {
++      return { title: 'Check', html: header('Unable to start', e.message) + nav('checks'), mount() {} };
++    }
++    const snap = run.templateSnapshot || {};
++    const sections = snap.sections || [];
++
++    function fieldHtml(q, val) {
++      const id = 'q_' + q.id;
++      const common = `data-qid="${esc(q.id)}" class="p1-answer w-full mt-2"`;
++      if (q.type === 'pass_fail_na') {
++        return `<div class="flex flex-wrap gap-2 mt-2">${['Pass', 'Fail', 'N/A'].map((o) =>
++          `<label class="btn btn-sm ${String(val).toLowerCase() === o.toLowerCase() || (o === 'N/A' && String(val).toLowerCase() === 'na') ? 'btn-primary' : 'btn-ghost'} cursor-pointer">
++            <input type="radio" name="${id}" value="${o === 'N/A' ? 'na' : o.toLowerCase()}" class="sr-only p1-answer" data-qid="${esc(q.id)}" ${String(val).toLowerCase() === (o === 'N/A' ? 'na' : o.toLowerCase()) ? 'checked' : ''}/> ${o}</label>`
++        ).join('')}</div>`;
++      }
++      if (q.type === 'yes_no_na') {
++        return `<div class="flex flex-wrap gap-2 mt-2">${['Yes', 'No', 'N/A'].map((o) =>
++          `<label class="btn btn-sm btn-ghost cursor-pointer"><input type="radio" name="${id}" value="${o === 'N/A' ? 'na' : o.toLowerCase()}" class="sr-only p1-answer" data-qid="${esc(q.id)}" ${String(val).toLowerCase() === (o === 'N/A' ? 'na' : o.toLowerCase()) ? 'checked' : ''}/> ${o}</label>`
++        ).join('')}</div>`;
++      }
++      if (q.type === 'textarea') return `<textarea ${common} rows="3">${esc(val || '')}</textarea>`;
++      if (q.type === 'dropdown') {
++        return `<select ${common}><option value="">Select…</option>${(q.options || []).map((o) =>
++          `<option value="${esc(o)}" ${val === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
++      }
++      if (['number', 'temperature', 'weight', 'volume', 'percentage', 'currency'].indexOf(q.type) >= 0) {
++        return `<input type="number" step="0.1" inputmode="decimal" ${common} value="${esc(val == null ? '' : val)}" style="font-size:1.5rem;padding:0.75rem" />`;
++      }
++      if (q.type === 'date') return `<input type="date" ${common} value="${esc(val || '')}" />`;
++      if (q.type === 'time') return `<input type="time" ${common} value="${esc(val || '')}" />`;
++      return `<input type="text" ${common} value="${esc(val || '')}" />`;
++    }
++
++    return {
++      title: snap.name || 'Checklist',
++      html: header(esc(snap.name || 'Checklist'), `${esc(run.ref)} · v${esc(run.templateVersion)} · autosave on · ${esc(siteLabel(run.locationId))}`,
++        `<button class="btn btn-ghost btn-sm" id="p1Pause">Pause</button>
++         <button class="btn btn-primary btn-sm" id="p1Submit">Submit</button>`)
++        + nav('run')
++        + `<div id="p1RunRoot" data-run="${esc(run.id)}" class="space-y-4">
++          ${(snap.instructions ? `<div class="card card-pad text-sm text-ink-600">${esc(snap.instructions)}</div>` : '')}
++          ${sections.map((sec, si) => `<div class="card card-pad" data-sec="${esc(sec.id)}">
++            <h3 class="font-bold text-lg mb-1">${esc(si + 1)}. ${esc(sec.title)}</h3>
++            ${sec.instructions ? `<p class="text-sm text-ink-500 mb-4">${esc(sec.instructions)}</p>` : ''}
++            <div class="space-y-5">${(sec.questions || []).map((q) => {
++              const val = run.answers[q.id];
++              const ev = E.evaluateAnswer(q, val);
++              return `<div class="p-4 rounded-xl border ${ev.defect ? 'border-red-300 bg-red-50/40' : 'border-ink-100'}" data-qwrap="${esc(q.id)}">
++                <div class="font-semibold">${esc(q.label)}${q.mandatory ? ' <span class="text-red-500">*</span>' : ''}</div>
++                ${q.helpText ? `<p class="text-xs text-ink-500 mt-1">${esc(q.helpText)}</p>` : ''}
++                ${q.min != null || q.max != null ? `<p class="text-xs text-brand-700 mt-1">Safe range: ${q.min != null ? q.min : '…'}–${q.max != null ? q.max : '…'}${q.unit ? ' ' + esc(q.unit) : ''}</p>` : ''}
++                ${fieldHtml(q, val)}
++                <div class="p1-live text-xs mt-2 ${ev.defect ? 'text-red-600 font-semibold' : 'text-ink-400'}">${ev.defect ? ('⚠ ' + esc(ev.message)) : (ev.message || '')}</div>
++                <label class="block text-xs text-ink-500 mt-3">Comment ${q.commentRequiredOnFail ? '(required on fail)' : ''}</label>
++                <input type="text" class="p1-answer w-full mt-1" data-qid="${esc(q.id)}__comment" value="${esc(run.answers[q.id + '__comment'] || '')}" />
++              </div>`;
++            }).join('')}</div>
++          </div>`).join('')}
++        </div>`,
++      mount() {
++        const root = document.getElementById('p1RunRoot');
++        if (!root) return;
++        const runId = root.getAttribute('data-run');
++        const collect = () => {
++          const answers = {};
++          root.querySelectorAll('.p1-answer').forEach((el) => {
++            const qid = el.getAttribute('data-qid');
++            if (!qid) return;
++            if (el.type === 'radio') {
++              if (el.checked) answers[qid] = el.value;
++            } else {
++              answers[qid] = el.value;
++            }
++          });
++          return answers;
++        };
++        const autosave = () => {
++          try { CP().saveDraft(runId, collect()); } catch (e) { /* ignore */ }
++        };
++        root.addEventListener('change', autosave);
++        root.addEventListener('input', () => {
++          clearTimeout(root._t);
++          root._t = setTimeout(autosave, 400);
++        });
++        document.getElementById('p1Pause').onclick = () => {
++          autosave();
++          toast && toast('Draft saved — resume anytime from My checks', 'ok');
++          location.hash = '#compliance-p1-checks';
++        };
++        document.getElementById('p1Submit').onclick = () => {
++          try {
++            CP().saveDraft(runId, collect());
++            const result = CP().submitRun(runId);
++            toast && toast('Submitted' + (result.defects.length ? ` — ${result.defects.length} defect(s) raised` : ''), result.defects.length ? 'warn' : 'ok');
++            location.hash = result.defects.length ? '#compliance-p1-actions' : '#compliance-p1-dashboard';
++          } catch (e) {
++            toast && toast(e.message, 'err');
++          }
++        };
++      },
++    };
++  }
++
++  function renderActions() {
++    const E = CP();
++    const s = E.ensure();
++    const loc = E.currentSite();
++    const list = s.correctiveActions.filter((c) => c.locationId === loc);
++    return {
++      title: 'Corrective actions',
++      html: header('Corrective actions', 'Separate permanent records. Critical items need independent verification.')
++        + nav('actions')
++        + `<div class="card card-pad overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left text-ink-400 border-b">
++          <th class="py-2">Ref</th><th>Title</th><th>Risk</th><th>Status</th><th>Due</th><th>Recorded by</th><th></th></tr></thead><tbody>
++          ${list.map((ca) => `<tr class="border-b border-ink-50 align-top">
++            <td class="py-3 font-mono text-xs">${esc(ca.ref)}</td>
++            <td><div class="font-semibold">${esc(ca.title)}</div><div class="text-xs text-ink-400">${esc(ca.description || '')}</div></td>
++            <td><span class="badge ${ca.riskLevel === 'high' || ca.riskLevel === 'critical' ? 'badge-red' : 'badge-amber'}">${esc(ca.riskLevel)}</span></td>
++            <td>${esc(ca.status)}</td>
++            <td class="text-xs">${esc((ca.dueAt || '').replace('T', ' ').slice(0, 16))}</td>
++            <td class="text-xs">${esc(ca.recordedByName || '')}</td>
++            <td class="space-x-1 whitespace-nowrap">
++              ${ca.status !== 'closed' && ca.status !== 'awaiting_verification' ? `<button class="btn btn-sm btn-ghost p1-close-ca" data-id="${esc(ca.id)}">Close</button>` : ''}
++              ${ca.status === 'awaiting_verification' ? `<button class="btn btn-sm btn-primary p1-verify-ca" data-id="${esc(ca.id)}">Verify</button>` : ''}
++            </td>
++          </tr>`).join('') || '<tr><td colspan="7" class="py-6 text-ink-400">No corrective actions yet</td></tr>'}
++        </tbody></table></div>`,
++      mount() {
++        document.querySelectorAll('.p1-close-ca').forEach((btn) => {
++          btn.onclick = () => {
++            const comment = prompt('Closure comment / action taken:') || '';
++            try {
++              CP().closeCorrectiveAction(btn.getAttribute('data-id'), { comment });
++              toast && toast('Corrective action updated', 'ok');
++              window.App && window.App.render && window.App.render();
++            } catch (e) { toast && toast(e.message, 'err'); }
++          };
++        });
++        document.querySelectorAll('.p1-verify-ca').forEach((btn) => {
++          btn.onclick = () => {
++            try {
++              CP().verifyCorrectiveAction(btn.getAttribute('data-id'), {});
++              toast && toast('Verified and closed', 'ok');
++              window.App && window.App.render && window.App.render();
++            } catch (e) { toast && toast(e.message, 'err'); }
++          };
++        });
++      },
++    };
++  }
++
++  function renderTemplates() {
++    const E = CP();
++    E.ensureSeeded();
++    const s = E.ensure();
++    const canEdit = E.can('edit_templates');
++    return {
++      title: 'Templates',
++      html: header('Checklist templates', 'Draft → publish → assign. Editing a published template creates a new version.',
++        canEdit ? `<a href="#compliance-p1-builder" class="btn btn-primary btn-sm">New template</a>
++        <button class="btn btn-ghost btn-sm" id="p1Seed2">Seed Kiteline library</button>` : '')
++        + nav('templates')
++        + `<div class="space-y-2">${s.templates.map((t) => `<div class="card card-pad flex flex-wrap items-center justify-between gap-3">
++          <div><div class="font-bold">${esc(t.name)} <span class="badge badge-gray">v${esc(t.version)}</span>
++            <span class="badge ${t.status === 'active' ? 'badge-green' : t.status === 'archived' ? 'badge-gray' : 'badge-amber'}">${esc(t.status)}</span></div>
++            <div class="text-xs text-ink-400 mt-1">${esc(t.category)} · ${esc(t.frequency)} · ${(t.sections || []).length} sections</div></div>
++          <div class="flex gap-2 flex-wrap">
++            ${canEdit ? `<a class="btn btn-sm btn-ghost" href="#compliance-p1-edit-${esc(t.id)}">Edit</a>` : ''}
++            ${canEdit && t.status === 'draft' ? `<button class="btn btn-sm btn-primary p1-pub" data-id="${esc(t.id)}">Publish</button>` : ''}
++            ${canEdit ? `<button class="btn btn-sm btn-ghost p1-dup" data-id="${esc(t.id)}">Duplicate</button>` : ''}
++            ${t.status === 'active' ? `<a class="btn btn-sm btn-primary" href="#compliance-p1-run-${esc(t.id)}">Run</a>` : ''}
++          </div></div>`).join('') || '<p class="text-ink-400">No templates</p>'}
++        </div>`,
++      mount() {
++        const seed = document.getElementById('p1Seed2');
++        if (seed) seed.onclick = () => { CP().seedKitelineTemplates(true); toast && toast('Seeded', 'ok'); window.App.render(); };
++        document.querySelectorAll('.p1-pub').forEach((b) => {
++          b.onclick = () => { try { CP().publishTemplate(b.dataset.id); toast && toast('Published', 'ok'); window.App.render(); } catch (e) { toast && toast(e.message, 'err'); } };
++        });
++        document.querySelectorAll('.p1-dup').forEach((b) => {
++          b.onclick = () => { try { CP().duplicateTemplate(b.dataset.id); toast && toast('Duplicated', 'ok'); window.App.render(); } catch (e) { toast && toast(e.message, 'err'); } };
++        });
++      },
++    };
++  }
++
++  function renderBuilder(editId) {
++    const E = CP();
++    if (!E.can('edit_templates') && !E.can('create_templates')) {
++      return { title: 'Builder', html: header('Builder', 'Admin access required') + nav('builder'), mount() {} };
++    }
++    E.ensureSeeded();
++    let tpl;
++    if (editId) {
++      tpl = JSON.parse(JSON.stringify(E.ensure().templates.find((t) => t.id === editId) || null));
++      if (!tpl) return { title: 'Builder', html: header('Not found', '') + nav('builder'), mount() {} };
++    } else {
++      tpl = {
++        id: null,
++        name: 'New checklist',
++        description: '',
++        category: 'Food safety',
++        department: 'Kitchen',
++        instructions: '',
++        frequency: 'daily',
++        windowStart: '06:00',
++        windowEnd: '11:00',
++        graceMinutes: 30,
++        requireManagerVerification: false,
++        status: 'draft',
++        version: 1,
++        sections: [E.section({ title: 'Section 1', questions: [E.question({ label: 'Example pass/fail check' })] })],
++        locationIds: [E.currentSite()],
++      };
++    }
++
++    function renderEditor() {
++      return header('Checklist builder', tpl.id ? `Editing ${esc(tpl.name)} (status: ${esc(tpl.status)})` : 'Create a draft template',
++        `<button class="btn btn-ghost btn-sm" id="p1Preview">Preview staff view</button>
++         <button class="btn btn-primary btn-sm" id="p1SaveTpl">Save draft</button>`)
++        + nav('builder')
++        + `<div class="grid lg:grid-cols-3 gap-4">
++          <div class="lg:col-span-1 card card-pad space-y-3">
++            <label class="text-xs font-bold text-ink-500">Name</label>
++            <input id="p1Name" class="w-full" value="${esc(tpl.name)}" />
++            <label class="text-xs font-bold text-ink-500">Category</label>
++            <input id="p1Cat" class="w-full" value="${esc(tpl.category)}" />
++            <label class="text-xs font-bold text-ink-500">Frequency</label>
++            <select id="p1Freq" class="w-full">${E.FREQUENCIES.map((f) => `<option value="${f}" ${tpl.frequency === f ? 'selected' : ''}>${f}</option>`).join('')}</select>
++            <div class="grid grid-cols-2 gap-2">
++              <div><label class="text-xs font-bold text-ink-500">Window start</label><input id="p1Ws" type="time" class="w-full" value="${esc(tpl.windowStart || '06:00')}" /></div>
++              <div><label class="text-xs font-bold text-ink-500">Window end</label><input id="p1We" type="time" class="w-full" value="${esc(tpl.windowEnd || '11:00')}" /></div>
++            </div>
++            <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="p1Ver" ${tpl.requireManagerVerification ? 'checked' : ''}/> Manager verification</label>
++            <label class="text-xs font-bold text-ink-500">Instructions</label>
++            <textarea id="p1Instr" class="w-full" rows="3">${esc(tpl.instructions || '')}</textarea>
++            <button class="btn btn-ghost btn-sm w-full" id="p1AddSec">+ Add section</button>
++          </div>
++          <div class="lg:col-span-2 space-y-3" id="p1Sections">
++            ${tpl.sections.map((sec, si) => sectionEditor(sec, si)).join('')}
++          </div>
++        </div>`;
++    }
++
++    function sectionEditor(sec, si) {
++      return `<div class="card card-pad p1-sec" draggable="true" data-si="${si}">
++        <div class="flex items-center gap-2 mb-3">
++          <span class="text-ink-300 cursor-grab" title="Drag to reorder">⋮⋮</span>
++          <input class="font-bold flex-1 p1-sec-title" data-si="${si}" value="${esc(sec.title)}" />
++          <button class="btn btn-ghost btn-sm p1-add-q" data-si="${si}">+ Question</button>
++          <button class="btn btn-ghost btn-sm p1-del-sec" data-si="${si}">Remove</button>
++        </div>
++        <div class="space-y-3">${(sec.questions || []).map((q, qi) => questionEditor(q, si, qi)).join('')}</div>
++      </div>`;
++    }
++
++    function questionEditor(q, si, qi) {
++      return `<div class="p-3 rounded-xl border border-ink-100 bg-ink-50/40" draggable="true" data-si="${si}" data-qi="${qi}">
++        <div class="grid md:grid-cols-2 gap-2">
++          <input class="p1-q-label" data-si="${si}" data-qi="${qi}" value="${esc(q.label)}" placeholder="Question label" />
++          <select class="p1-q-type" data-si="${si}" data-qi="${qi}">${E.ANSWER_TYPES.map((t) => `<option value="${t}" ${q.type === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
++          <input class="p1-q-min" data-si="${si}" data-qi="${qi}" placeholder="Min" value="${q.min != null ? esc(q.min) : ''}" />
++          <input class="p1-q-max" data-si="${si}" data-qi="${qi}" placeholder="Max" value="${q.max != null ? esc(q.max) : ''}" />
++          <select class="p1-q-risk" data-si="${si}" data-qi="${qi}">${['low', 'medium', 'high', 'critical'].map((r) => `<option value="${r}" ${q.riskLevel === r ? 'selected' : ''}>${r}</option>`).join('')}</select>
++          <input class="p1-q-unit" data-si="${si}" data-qi="${qi}" placeholder="Unit" value="${esc(q.unit || '')}" />
++        </div>
++        <div class="flex flex-wrap gap-3 mt-2 text-xs">
++          <label><input type="checkbox" class="p1-q-mand" data-si="${si}" data-qi="${qi}" ${q.mandatory ? 'checked' : ''}/> Mandatory</label>
++          <label><input type="checkbox" class="p1-q-def" data-si="${si}" data-qi="${qi}" ${q.defectOnFail !== false ? 'checked' : ''}/> Defect on fail</label>
++          <button class="text-red-600 p1-del-q" data-si="${si}" data-qi="${qi}">Delete</button>
++        </div>
++      </div>`;
++    }
++
++    return {
++      title: 'Builder',
++      html: renderEditor(),
++      mount() {
++        const readForm = () => {
++          tpl.name = document.getElementById('p1Name').value.trim() || 'Untitled';
++          tpl.category = document.getElementById('p1Cat').value.trim();
++          tpl.frequency = document.getElementById('p1Freq').value;
++          tpl.windowStart = document.getElementById('p1Ws').value;
++          tpl.windowEnd = document.getElementById('p1We').value;
++          tpl.requireManagerVerification = document.getElementById('p1Ver').checked;
++          tpl.instructions = document.getElementById('p1Instr').value;
++          document.querySelectorAll('.p1-sec-title').forEach((el) => {
++            const si = +el.dataset.si;
++            if (tpl.sections[si]) tpl.sections[si].title = el.value;
++          });
++          document.querySelectorAll('.p1-q-label').forEach((el) => {
++            const si = +el.dataset.si, qi = +el.dataset.qi;
++            if (tpl.sections[si] && tpl.sections[si].questions[qi]) tpl.sections[si].questions[qi].label = el.value;
++          });
++          document.querySelectorAll('.p1-q-type').forEach((el) => {
++            const si = +el.dataset.si, qi = +el.dataset.qi;
++            if (tpl.sections[si] && tpl.sections[si].questions[qi]) tpl.sections[si].questions[qi].type = el.value;
++          });
++          document.querySelectorAll('.p1-q-min').forEach((el) => {
++            const si = +el.dataset.si, qi = +el.dataset.qi;
++            if (tpl.sections[si] && tpl.sections[si].questions[qi]) tpl.sections[si].questions[qi].min = el.value === '' ? null : Number(el.value);
++          });
++          document.querySelectorAll('.p1-q-max').forEach((el) => {
++            const si = +el.dataset.si, qi = +el.dataset.qi;
++            if (tpl.sections[si] && tpl.sections[si].questions[qi]) tpl.sections[si].questions[qi].max = el.value === '' ? null : Number(el.value);
++          });
++          document.querySelectorAll('.p1-q-risk').forEach((el) => {
++            const si = +el.dataset.si, qi = +el.dataset.qi;
++            if (tpl.sections[si] && tpl.sections[si].questions[qi]) tpl.sections[si].questions[qi].riskLevel = el.value;
++          });
++          document.querySelectorAll('.p1-q-unit').forEach((el) => {
++            const si = +el.dataset.si, qi = +el.dataset.qi;
++            if (tpl.sections[si] && tpl.sections[si].questions[qi]) tpl.sections[si].questions[qi].unit = el.value;
++          });
++          document.querySelectorAll('.p1-q-mand').forEach((el) => {
++            const si = +el.dataset.si, qi = +el.dataset.qi;
++            if (tpl.sections[si] && tpl.sections[si].questions[qi]) tpl.sections[si].questions[qi].mandatory = el.checked;
++          });
++          document.querySelectorAll('.p1-q-def').forEach((el) => {
++            const si = +el.dataset.si, qi = +el.dataset.qi;
++            if (tpl.sections[si] && tpl.sections[si].questions[qi]) tpl.sections[si].questions[qi].defectOnFail = el.checked;
++          });
++        };
++
++        document.getElementById('p1AddSec').onclick = () => {
++          readForm();
++          tpl.sections.push(E.section({ title: 'New section', questions: [E.question()] }));
++          window.App.render();
++        };
++        document.querySelectorAll('.p1-add-q').forEach((b) => {
++          b.onclick = () => { readForm(); tpl.sections[+b.dataset.si].questions.push(E.question()); window.App.render(); };
++        });
++        document.querySelectorAll('.p1-del-sec').forEach((b) => {
++          b.onclick = () => { readForm(); tpl.sections.splice(+b.dataset.si, 1); window.App.render(); };
++        });
++        document.querySelectorAll('.p1-del-q').forEach((b) => {
++          b.onclick = () => { readForm(); tpl.sections[+b.dataset.si].questions.splice(+b.dataset.qi, 1); window.App.render(); };
++        });
++        document.getElementById('p1SaveTpl').onclick = () => {
++          try {
++            readForm();
++            let saved;
++            if (!tpl.id) {
++              saved = E.createTemplate(tpl);
++              saved.sections = tpl.sections;
++              E.saveTemplate(saved);
++            } else {
++              saved = E.saveTemplate(tpl);
++            }
++            toast && toast(saved.status === 'draft' && saved.parentTemplateId ? 'New version draft created' : 'Saved', 'ok');
++            location.hash = '#compliance-p1-templates';
++          } catch (e) { toast && toast(e.message, 'err'); }
++        };
++        document.getElementById('p1Preview').onclick = () => {
++          readForm();
++          const html = `<div class="p-4"><h2 class="text-xl font-bold mb-2">${esc(tpl.name)}</h2>
++            ${(tpl.sections || []).map((sec) => `<h3 class="font-bold mt-4">${esc(sec.title)}</h3>
++              <ul class="list-disc ml-5 text-sm">${(sec.questions || []).map((q) => `<li>${esc(q.label)} <span class="text-ink-400">(${esc(q.type)})</span></li>`).join('')}</ul>`).join('')}</div>`;
++          if (modal) modal({ title: 'Staff preview', body: html, wide: true });
++          else alert('Preview: ' + tpl.name);
++        };
++
++        // Simple HTML5 section reorder
++        let dragSi = null;
++        document.querySelectorAll('.p1-sec').forEach((el) => {
++          el.addEventListener('dragstart', () => { dragSi = +el.dataset.si; });
++          el.addEventListener('dragover', (e) => e.preventDefault());
++          el.addEventListener('drop', () => {
++            if (dragSi == null) return;
++            readForm();
++            const to = +el.dataset.si;
++            const moved = tpl.sections.splice(dragSi, 1)[0];
++            tpl.sections.splice(to, 0, moved);
++            dragSi = null;
++            window.App.render();
++          });
++        });
++      },
++    };
++  }
++
++  function renderExports() {
++    const E = CP();
++    if (!E.can('export_information')) {
++      return { title: 'Exports', html: header('Exports', 'Manager access required') + nav('exports'), mount() {} };
++    }
++    return {
++      title: 'Exports',
++      html: header('Exports', 'CSV for spreadsheet analysis. PDF via print for inspection packs (Phase 1).')
++        + nav('exports')
++        + `<div class="card card-pad space-y-3 max-w-xl">
++          <button class="btn btn-primary" id="p1Csv">Download checklist CSV</button>
++          <button class="btn btn-ghost" id="p1Pdf">Print / PDF summary</button>
++          <p class="text-xs text-ink-400">Exports include company, location, template version, answers, defect and corrective-action fields.</p>
++        </div>`,
++      mount() {
++        document.getElementById('p1Csv').onclick = () => {
++          const rows = CP().exportRunsCsv();
++          const csv = rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
++          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
++          const a = document.createElement('a');
++          a.href = URL.createObjectURL(blob);
++          a.download = 'kiteline-compliance-runs.csv';
++          a.click();
++          CP().audit('export', 'runs', 'csv', {});
++        };
++        document.getElementById('p1Pdf').onclick = () => {
++          const d = CP().dashboard();
++          const s = CP().ensure();
++          const loc = CP().currentSite();
++          const body = `<div class="compliance-print-brand">Kiteline</div>
++            <h1>Compliance summary</h1>
++            <p class="meta">${esc(siteLabel(loc))} · ${new Date().toLocaleString()} · Phase 1</p>
++            <table><tr><th>Metric</th><th>Value</th></tr>
++              <tr><td>Due today</td><td>${d.dueToday}</td></tr>
++              <tr><td>Completed today</td><td>${d.completedToday}</td></tr>
++              <tr><td>Missed</td><td>${d.missed}</td></tr>
++              <tr><td>Open defects</td><td>${d.openDefects}</td></tr>
++              <tr><td>Overdue actions</td><td>${d.overdueActions}</td></tr>
++            </table>
++            <h2 style="margin-top:20px;font-size:16px">Open corrective actions</h2>
++            <table><tr><th>Ref</th><th>Title</th><th>Status</th><th>Risk</th></tr>
++              ${s.correctiveActions.filter((c) => c.locationId === loc && c.status !== 'closed').slice(0, 40).map((c) =>
++                `<tr><td>${esc(c.ref)}</td><td>${esc(c.title)}</td><td>${esc(c.status)}</td><td>${esc(c.riskLevel)}</td></tr>`).join('') || '<tr><td colspan="4">None</td></tr>'}
++            </table>
++            <p class="meta" style="margin-top:24px">Kiteline helps organise records for inspections. It does not guarantee legal compliance.</p>`;
++          if (openPrintDocument) {
++            openPrintDocument('Kiteline compliance summary', body,
++              'body{font-family:system-ui,sans-serif;color:#0f172a;font-size:13px}h1{color:#0f766e}table{width:100%;border-collapse:collapse}td,th{border:1px solid #e2e8f0;padding:8px;text-align:left}th{background:#ecfdf5}');
++          } else {
++            const w = window.open('', '_blank');
++            w.document.write(body);
++            w.print();
++          }
++          CP().audit('export', 'runs', 'pdf_print', {});
++        };
++      },
++    };
++  }
++
++  function renderAudit() {
++    const E = CP();
++    if (!E.can('view_audit_trail')) {
++      return { title: 'Audit trail', html: header('Audit trail', 'Manager access required') + nav('audit'), mount() {} };
++    }
++    const events = E.ensure().auditEvents.slice(0, 100);
++    return {
++      title: 'Audit trail',
++      html: header('Audit trail', 'Completed records are not silently edited. Corrections and key actions are logged.')
++        + nav('audit')
++        + `<div class="card card-pad overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left text-ink-400 border-b">
++          <th class="py-2">When</th><th>User</th><th>Action</th><th>Entity</th><th>Reason</th></tr></thead><tbody>
++          ${events.map((e) => `<tr class="border-b border-ink-50"><td class="py-2 text-xs">${esc((e.at || '').replace('T', ' ').slice(0, 19))}</td>
++            <td>${esc(e.userName)} <span class="text-ink-400 text-xs">${esc(e.role || '')}</span></td>
++            <td>${esc(e.action)}</td><td class="text-xs">${esc(e.entityType)} ${esc(e.entityId || '')}</td>
++            <td class="text-xs text-ink-500">${esc(e.reason || '')}</td></tr>`).join('') || '<tr><td colspan="5" class="py-4 text-ink-400">No events</td></tr>'}
++        </tbody></table></div>`,
++      mount() {},
++    };
++  }
++
++  function complianceP1() {
++    const h = (location.hash || '').replace(/^#/, '');
++    let m;
++    if ((m = h.match(/^compliance-p1-run-([\w-]+)$/))) return renderRun(m[1]);
++    if ((m = h.match(/^compliance-p1-resume-([\w-]+)$/))) return renderRun(null, m[1]);
++    if ((m = h.match(/^compliance-p1-edit-([\w-]+)$/))) return renderBuilder(m[1]);
++    const t = tab();
++    if (t === 'checks') return renderChecks();
++    if (t === 'actions') return renderActions();
++    if (t === 'templates') return renderTemplates();
++    if (t === 'builder') return renderBuilder();
++    if (t === 'exports') return renderExports();
++    if (t === 'audit') return renderAudit();
++    return renderDashboard();
++  }
++
++  // Expose under Views — also wrap classic compliance overview with entry card via patch helper
++  window.CompliancePhase1Views = { 'compliance-p1': complianceP1 };
++  if (window.Views) {
++    Object.keys(window.CompliancePhase1Views).forEach((k) => { window.Views[k] = window.CompliancePhase1Views[k]; });
++    // Hash router uses route without considering dynamic suffixes — app.js maps compliance-* specially.
++  }
++
++  // Enhance classic compliance overview with Phase 1 banner when present
++  const prev = window.ComplianceViews && window.ComplianceViews.compliance;
++  if (prev) {
++    window.Views.compliance = function () {
++      const base = prev();
++      const banner = `<div class="card card-pad mb-4 border-l-4 border-brand-600 bg-gradient-to-r from-brand-50 to-white">
++        <div class="font-bold text-brand-900">Compliance Phase 1 (Available now)</div>
++        <p class="text-sm text-ink-600 mt-1">Checklist builder, scheduling, staff completion, defects, corrective actions, verification, dashboard and exports.</p>
++        <a href="#compliance-p1-dashboard" class="btn btn-primary btn-sm mt-3">Open Compliance Phase 1</a>
++      </div>`;
++      return {
++        title: base.title,
++        html: banner + (base.html || ''),
++        mount: base.mount,
++      };
++    };
++  }
++})();
+diff --git a/js/compliance-phase1.js b/js/compliance-phase1.js
+new file mode 100644
+index 0000000..a692723
+--- /dev/null
++++ b/js/compliance-phase1.js
+@@ -0,0 +1,1027 @@
++/* ============================================================
++   Kiteline Compliance Phase 1 — engine
++   Schedule → Complete → Validate → Defect → CA → Verify → Report
++   Original Kiteline system (not a competitor clone).
++   ============================================================ */
++(function () {
++  const STORE_KEY = 'complianceV1';
++  const ENGINE_VERSION = 1;
++
++  const ANSWER_TYPES = [
++    'pass_fail_na', 'yes_no_na', 'text', 'textarea', 'radio', 'checkbox',
++    'dropdown', 'date', 'time', 'datetime', 'number', 'temperature',
++    'weight', 'volume', 'length', 'duration', 'currency', 'percentage',
++    'photo', 'signature', 'staff_name', 'manager_verification',
++  ];
++
++  const FREQUENCIES = [
++    'once', 'every_shift', 'daily', 'weekdays', 'weekly', 'fortnightly',
++    'four_weekly', 'monthly', 'quarterly', 'six_monthly', 'annually', 'custom',
++  ];
++
++  function uid(prefix) {
++    return (prefix || 'id') + '_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
++  }
++
++  function nowIso() {
++    return new Date().toISOString();
++  }
++
++  function emptyState() {
++    return {
++      _version: ENGINE_VERSION,
++      templates: [],
++      assignments: [],
++      schedules: [],
++      runs: [],
++      defects: [],
++      correctiveActions: [],
++      auditEvents: [],
++      notifications: [],
++      counters: { defect: 0, ca: 0, run: 0 },
++    };
++  }
++
++  function db() {
++    return window.Store && window.Store.db ? window.Store.db : null;
++  }
++
++  function ensure(stateDb) {
++    const d = stateDb || db();
++    if (!d) return emptyState();
++    if (!d[STORE_KEY] || typeof d[STORE_KEY] !== 'object') d[STORE_KEY] = emptyState();
++    const s = d[STORE_KEY];
++    Object.keys(emptyState()).forEach((k) => {
++      if (s[k] === undefined) s[k] = emptyState()[k];
++    });
++    if (!s.counters) s.counters = { defect: 0, ca: 0, run: 0 };
++    return s;
++  }
++
++  function persist() {
++    if (window.Store && window.Store.persist) window.Store.persist();
++  }
++
++  function currentUser() {
++    if (window.App && window.App.currentUser) return window.App.currentUser();
++    const team = (db() && db().team) || [];
++    return team[0] || { id: 'u_unknown', name: 'User', role: 'Staff', rank: 1, access: 'Staff' };
++  }
++
++  function currentSite() {
++    const d = db();
++    return (d && d.currentSite) || (d && d.sites && d.sites[0] && d.sites[0].id) || 'site_default';
++  }
++
++  function rankOf(user) {
++    if (user && typeof user.rank === 'number') return user.rank;
++    const access = (user && user.access) || 'Staff';
++    if (access === 'Admin') return 3;
++    if (access === 'Manager') return 2;
++    const title = String((user && user.role) || '').toLowerCase();
++    if (/owner|director|admin|gm/.test(title)) return 3;
++    if (/manager|compliance|supervisor|lead|head chef/.test(title)) return 2;
++    return 1;
++  }
++
++  /** Phase 1 permission matrix (mapped to existing Admin/Manager/Staff ranks). */
++  function permissionsFor(user) {
++    const r = rankOf(user);
++    return {
++      create_templates: r >= 3,
++      edit_templates: r >= 3,
++      publish_templates: r >= 3,
++      assign_checklists: r >= 2,
++      complete_checks: r >= 1,
++      reopen_checks: r >= 2,
++      raise_corrective_actions: r >= 1,
++      close_corrective_actions: r >= 2,
++      verify_actions: r >= 2,
++      view_reports: r >= 2,
++      export_information: r >= 2,
++      archive_records: r >= 3,
++      change_limits: r >= 3,
++      manage_users_locations: r >= 3,
++      view_audit_trail: r >= 2,
++    };
++  }
++
++  function can(perm, user) {
++    const p = permissionsFor(user || currentUser());
++    return !!p[perm];
++  }
++
++  function audit(action, entityType, entityId, opts) {
++    const s = ensure();
++    const u = currentUser();
++    s.auditEvents.unshift({
++      id: uid('aud'),
++      at: nowIso(),
++      userId: u.id,
++      userName: u.name,
++      role: u.role || u.access,
++      locationId: currentSite(),
++      action,
++      entityType,
++      entityId: entityId || null,
++      originalValue: opts && opts.original != null ? opts.original : null,
++      newValue: opts && opts.next != null ? opts.next : null,
++      reason: (opts && opts.reason) || '',
++      device: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 120) : '',
++    });
++    if (s.auditEvents.length > 2000) s.auditEvents.length = 2000;
++  }
++
++  function notify(eventType, title, body, entity) {
++    const s = ensure();
++    s.notifications.unshift({
++      id: uid('ntf'),
++      at: nowIso(),
++      channel: 'in_app',
++      eventType,
++      title,
++      body: body || '',
++      locationId: currentSite(),
++      entityType: entity && entity.type,
++      entityId: entity && entity.id,
++      readAt: null,
++    });
++    if (s.notifications.length > 500) s.notifications.length = 500;
++    // Also surface in legacy alerts list when available
++    const d = db();
++    if (d && Array.isArray(d.alerts)) {
++      d.alerts.unshift({
++        id: uid('al'),
++        site: currentSite(),
++        type: eventType,
++        title,
++        message: body || title,
++        status: 'open',
++        at: nowIso(),
++        source: 'complianceV1',
++      });
++    }
++  }
++
++  function nextRef(kind) {
++    const s = ensure();
++    if (kind === 'defect') {
++      s.counters.defect = (s.counters.defect || 0) + 1;
++      return 'KDEF-' + String(s.counters.defect).padStart(5, '0');
++    }
++    if (kind === 'ca') {
++      s.counters.ca = (s.counters.ca || 0) + 1;
++      return 'KCA-' + String(s.counters.ca).padStart(5, '0');
++    }
++    s.counters.run = (s.counters.run || 0) + 1;
++    return 'KRUN-' + String(s.counters.run).padStart(5, '0');
++  }
++
++  function question(partial) {
++    return Object.assign({
++      id: uid('q'),
++      label: 'New question',
++      type: 'pass_fail_na',
++      helpText: '',
++      instructions: '',
++      mandatory: true,
++      allowNa: true,
++      expectedAnswer: '',
++      min: null,
++      max: null,
++      target: null,
++      unit: '',
++      options: [],
++      evidenceRequired: false,
++      commentRequiredOnFail: true,
++      defectOnFail: true,
++      riskLevel: 'medium',
++      immediateActionHint: '',
++      requireIndependentVerification: false,
++    }, partial || {});
++  }
++
++  function section(partial) {
++    return Object.assign({
++      id: uid('sec'),
++      title: 'New section',
++      instructions: '',
++      questions: [],
++    }, partial || {});
++  }
++
++  function createTemplate(partial, opts) {
++    if (!(opts && opts.systemSeed) && !can('create_templates')) {
++      throw new Error('Not allowed to create templates');
++    }
++    const s = ensure();
++    const t = Object.assign({
++      id: uid('tpl'),
++      name: 'Untitled checklist',
++      description: '',
++      category: 'Food safety',
++      department: 'Kitchen',
++      instructions: '',
++      responsibleRole: 'Staff',
++      frequency: 'daily',
++      daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
++      windowStart: '06:00',
++      windowEnd: '11:00',
++      graceMinutes: 30,
++      requireManagerVerification: false,
++      evidenceRequired: false,
++      version: 1,
++      status: 'draft',
++      sections: [],
++      locationIds: [currentSite()],
++      createdAt: nowIso(),
++      updatedAt: nowIso(),
++      publishedAt: null,
++      createdBy: currentUser().id,
++    }, partial || {});
++    s.templates.unshift(t);
++    audit('create', 'template', t.id, { next: { name: t.name, status: t.status } });
++    persist();
++    return t;
++  }
++
++  function duplicateTemplate(templateId) {
++    const s = ensure();
++    const src = s.templates.find((t) => t.id === templateId);
++    if (!src) throw new Error('Template not found');
++    if (!can('create_templates')) throw new Error('Not allowed');
++    const copy = JSON.parse(JSON.stringify(src));
++    copy.id = uid('tpl');
++    copy.name = src.name + ' (copy)';
++    copy.status = 'draft';
++    copy.version = 1;
++    copy.publishedAt = null;
++    copy.createdAt = nowIso();
++    copy.updatedAt = nowIso();
++    copy.sections = (copy.sections || []).map((sec) => {
++      sec.id = uid('sec');
++      sec.questions = (sec.questions || []).map((q) => Object.assign({}, q, { id: uid('q') }));
++      return sec;
++    });
++    s.templates.unshift(copy);
++    audit('duplicate', 'template', copy.id, { original: src.id });
++    persist();
++    return copy;
++  }
++
++  function saveTemplate(template) {
++    if (!can('edit_templates')) throw new Error('Not allowed to edit templates');
++    const s = ensure();
++    const idx = s.templates.findIndex((t) => t.id === template.id);
++    if (idx < 0) throw new Error('Template not found');
++    const prev = s.templates[idx];
++    if (prev.status === 'active') {
++      // Versioning: editing a published template creates a new draft version
++      const draft = JSON.parse(JSON.stringify(template));
++      draft.id = uid('tpl');
++      draft.status = 'draft';
++      draft.version = (prev.version || 1) + 1;
++      draft.parentTemplateId = prev.id;
++      draft.publishedAt = null;
++      draft.createdAt = nowIso();
++      draft.updatedAt = nowIso();
++      s.templates.unshift(draft);
++      audit('version', 'template', draft.id, {
++        original: { id: prev.id, version: prev.version },
++        next: { version: draft.version },
++        reason: 'Published template edited — new draft version created',
++      });
++      persist();
++      return draft;
++    }
++    template.updatedAt = nowIso();
++    s.templates[idx] = template;
++    audit('update', 'template', template.id, { original: { version: prev.version }, next: { version: template.version } });
++    persist();
++    return template;
++  }
++
++  function publishTemplate(templateId, opts) {
++    if (!(opts && opts.systemSeed) && !can('publish_templates')) {
++      throw new Error('Not allowed to publish');
++    }
++    const s = ensure();
++    const t = s.templates.find((x) => x.id === templateId);
++    if (!t) throw new Error('Template not found');
++    if (!t.sections || !t.sections.length) throw new Error('Add at least one section before publishing');
++    const qCount = t.sections.reduce((n, sec) => n + (sec.questions || []).length, 0);
++    if (!qCount) throw new Error('Add at least one question before publishing');
++    t.status = 'active';
++    t.publishedAt = nowIso();
++    t.updatedAt = nowIso();
++    // Ensure schedule for each assigned location
++    (t.locationIds || [currentSite()]).forEach((loc) => ensureSchedule(t.id, loc));
++    audit('publish', 'template', t.id, { next: { version: t.version, status: 'active' } });
++    persist();
++    return t;
++  }
++
++  function archiveTemplate(templateId) {
++    if (!can('archive_records')) throw new Error('Not allowed');
++    const s = ensure();
++    const t = s.templates.find((x) => x.id === templateId);
++    if (!t) throw new Error('Template not found');
++    t.status = 'archived';
++    t.updatedAt = nowIso();
++    audit('archive', 'template', t.id, {});
++    persist();
++    return t;
++  }
++
++  function ensureSchedule(templateId, locationId) {
++    const s = ensure();
++    const t = s.templates.find((x) => x.id === templateId);
++    if (!t) return null;
++    let sch = s.schedules.find((x) => x.templateId === templateId && x.locationId === locationId && x.active);
++    if (!sch) {
++      sch = {
++        id: uid('sch'),
++        templateId,
++        locationId,
++        frequency: t.frequency || 'daily',
++        windowStart: t.windowStart || '06:00',
++        windowEnd: t.windowEnd || '23:59',
++        graceMinutes: t.graceMinutes || 30,
++        allowLate: true,
++        autoMiss: true,
++        paused: false,
++        active: true,
++        nextDueAt: computeNextDue(t.frequency || 'daily'),
++        createdAt: nowIso(),
++      };
++      s.schedules.push(sch);
++    }
++    return sch;
++  }
++
++  function computeNextDue(frequency) {
++    const d = new Date();
++    d.setMinutes(0, 0, 0);
++    if (frequency === 'weekly') d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7));
++    else if (frequency === 'monthly') d.setMonth(d.getMonth() + 1, 1);
++    else d.setHours(6, 0, 0, 0);
++    if (d.getTime() < Date.now()) d.setDate(d.getDate() + 1);
++    return d.toISOString();
++  }
++
++  function evaluateAnswer(q, raw) {
++    const result = {
++      ok: true,
++      defect: false,
++      na: false,
++      message: '',
++      normalised: raw,
++    };
++    if (raw == null || raw === '') {
++      if (q.mandatory) {
++        result.ok = false;
++        result.message = 'This question is mandatory';
++      }
++      return result;
++    }
++    if (String(raw).toLowerCase() === 'na' || String(raw).toLowerCase() === 'n/a') {
++      result.na = true;
++      if (!q.allowNa && q.mandatory) {
++        result.ok = false;
++        result.message = 'Not applicable is not allowed for this question';
++      }
++      return result;
++    }
++
++    const type = q.type;
++    if (type === 'pass_fail_na') {
++      if (String(raw).toLowerCase() === 'fail' && q.defectOnFail !== false) {
++        result.defect = true;
++        result.message = 'Fail recorded';
++      }
++    } else if (type === 'yes_no_na') {
++      const expected = (q.expectedAnswer || 'yes').toLowerCase();
++      if (String(raw).toLowerCase() !== expected && q.defectOnFail !== false) {
++        result.defect = true;
++        result.message = 'Answer does not match expected (' + expected + ')';
++      }
++    } else if (['number', 'temperature', 'weight', 'volume', 'length', 'percentage', 'currency'].indexOf(type) >= 0) {
++      const n = Number(raw);
++      if (Number.isNaN(n)) {
++        result.ok = false;
++        result.message = 'Enter a valid number';
++        return result;
++      }
++      result.normalised = n;
++      if (q.min != null && n < Number(q.min)) {
++        result.defect = true;
++        result.message = 'Below minimum (' + q.min + (q.unit ? ' ' + q.unit : '') + ')';
++      }
++      if (q.max != null && n > Number(q.max)) {
++        result.defect = true;
++        result.message = 'Above maximum (' + q.max + (q.unit ? ' ' + q.unit : '') + ')';
++      }
++    }
++    return result;
++  }
++
++  function startRun(templateId, opts) {
++    if (!can('complete_checks')) throw new Error('Not allowed to complete checks');
++    const s = ensure();
++    const t = s.templates.find((x) => x.id === templateId && x.status === 'active');
++    if (!t) throw new Error('Published template not found');
++    const loc = (opts && opts.locationId) || currentSite();
++    const sch = ensureSchedule(t.id, loc);
++    const run = {
++      id: uid('run'),
++      ref: nextRef('run'),
++      templateId: t.id,
++      templateName: t.name,
++      templateVersion: t.version,
++      templateSnapshot: JSON.parse(JSON.stringify(t)),
++      scheduleId: sch && sch.id,
++      locationId: loc,
++      status: 'in_progress',
++      draft: true,
++      scheduledFor: (sch && sch.nextDueAt) || nowIso(),
++      startedAt: nowIso(),
++      completedAt: null,
++      completedBy: null,
++      completedByName: null,
++      verifiedBy: null,
++      verifiedByName: null,
++      verifiedAt: null,
++      lateReason: '',
++      answers: {},
++      createdAt: nowIso(),
++      updatedAt: nowIso(),
++    };
++    s.runs.unshift(run);
++    audit('start', 'run', run.id, { next: { templateId: t.id, ref: run.ref } });
++    persist();
++    return run;
++  }
++
++  function saveDraft(runId, answers) {
++    const s = ensure();
++    const run = s.runs.find((r) => r.id === runId);
++    if (!run) throw new Error('Run not found');
++    if (run.status === 'completed') throw new Error('Completed records cannot be silently edited');
++    run.answers = Object.assign({}, run.answers || {}, answers || {});
++    run.draft = true;
++    run.status = 'in_progress';
++    run.updatedAt = nowIso();
++    persist();
++    return run;
++  }
++
++  function raiseDefect(run, q, answer, evalResult) {
++    const s = ensure();
++    const u = currentUser();
++    const defect = {
++      id: uid('def'),
++      ref: nextRef('defect'),
++      runId: run.id,
++      templateId: run.templateId,
++      templateName: run.templateName,
++      locationId: run.locationId,
++      questionId: q.id,
++      questionLabel: q.label,
++      recordedAnswer: String(answer),
++      expectedAnswer: q.expectedAnswer || (q.min != null || q.max != null
++        ? ((q.min != null ? q.min : '…') + '–' + (q.max != null ? q.max : '…') + (q.unit ? ' ' + q.unit : ''))
++        : 'Pass / expected'),
++      riskLevel: q.riskLevel || 'medium',
++      status: 'open',
++      recordedBy: u.id,
++      recordedByName: u.name,
++      recordedAt: nowIso(),
++      comment: '',
++      evidence: [],
++      immediateAction: q.immediateActionHint || '',
++      areaOrEquipment: '',
++      message: evalResult.message || '',
++    };
++    s.defects.unshift(defect);
++
++    const critical = defect.riskLevel === 'high' || defect.riskLevel === 'critical';
++    const ca = {
++      id: uid('ca'),
++      ref: nextRef('ca'),
++      defectId: defect.id,
++      defectRef: defect.ref,
++      runId: run.id,
++      locationId: run.locationId,
++      title: 'Correct: ' + q.label,
++      description: evalResult.message || ('Defect on ' + q.label),
++      riskLevel: defect.riskLevel,
++      status: 'open',
++      assignedTo: null,
++      assignedToName: '',
++      dueAt: new Date(Date.now() + (critical ? 4 : 24) * 3600e3).toISOString(),
++      escalateAt: new Date(Date.now() + (critical ? 2 : 12) * 3600e3).toISOString(),
++      requireIndependentVerification: !!(q.requireIndependentVerification || critical || (run.templateSnapshot && run.templateSnapshot.requireManagerVerification)),
++      recordedBy: u.id,
++      recordedByName: u.name,
++      closureComment: '',
++      closureEvidence: [],
++      closedBy: null,
++      closedAt: null,
++      verifiedBy: null,
++      verifiedByName: null,
++      verifiedAt: null,
++      createdAt: nowIso(),
++      updatedAt: nowIso(),
++    };
++    s.correctiveActions.unshift(ca);
++    audit('raise_defect', 'defect', defect.id, { next: { ref: defect.ref, ca: ca.ref } });
++    notify(
++      critical ? 'critical_defect' : 'defect_raised',
++      critical ? 'Critical defect: ' + defect.ref : 'Defect raised: ' + defect.ref,
++      q.label + ' — ' + (evalResult.message || answer),
++      { type: 'defect', id: defect.id }
++    );
++    return { defect, ca };
++  }
++
++  function submitRun(runId, opts) {
++    if (!can('complete_checks')) throw new Error('Not allowed');
++    const s = ensure();
++    const run = s.runs.find((r) => r.id === runId);
++    if (!run) throw new Error('Run not found');
++    if (run.status === 'completed') throw new Error('Already completed');
++    const snap = run.templateSnapshot || {};
++    const sections = snap.sections || [];
++    const answers = run.answers || {};
++    const raised = [];
++
++    for (let si = 0; si < sections.length; si++) {
++      const sec = sections[si];
++      for (let qi = 0; qi < (sec.questions || []).length; qi++) {
++        const q = sec.questions[qi];
++        const raw = answers[q.id];
++        const ev = evaluateAnswer(q, raw);
++        if (!ev.ok) throw new Error((q.label || 'Question') + ': ' + ev.message);
++        if (ev.defect) {
++          if (q.commentRequiredOnFail && !(answers[q.id + '__comment'])) {
++            throw new Error((q.label || 'Question') + ': comment required for failed result');
++          }
++          raised.push(raiseDefect(run, q, raw, ev));
++        }
++      }
++    }
++
++    const u = currentUser();
++    run.draft = false;
++    run.status = 'completed';
++    run.completedAt = nowIso();
++    run.completedBy = u.id;
++    run.completedByName = u.name;
++    run.lateReason = (opts && opts.lateReason) || run.lateReason || '';
++    run.updatedAt = nowIso();
++
++    // Advance schedule
++    const sch = s.schedules.find((x) => x.id === run.scheduleId);
++    if (sch) sch.nextDueAt = computeNextDue(sch.frequency || 'daily');
++
++    audit('submit', 'run', run.id, { next: { ref: run.ref, defects: raised.length } });
++    notify('checklist_completed', 'Checklist completed', run.templateName + ' · ' + run.ref, { type: 'run', id: run.id });
++    persist();
++    return { run, defects: raised.map((x) => x.defect), correctiveActions: raised.map((x) => x.ca) };
++  }
++
++  function updateCorrectiveAction(caId, patch) {
++    const s = ensure();
++    const ca = s.correctiveActions.find((x) => x.id === caId);
++    if (!ca) throw new Error('Corrective action not found');
++    const prev = { status: ca.status };
++    Object.assign(ca, patch || {}, { updatedAt: nowIso() });
++    audit('update', 'corrective_action', ca.id, { original: prev, next: { status: ca.status }, reason: patch && patch.reason });
++    persist();
++    return ca;
++  }
++
++  function closeCorrectiveAction(caId, closure) {
++    if (!can('close_corrective_actions')) throw new Error('Not allowed to close corrective actions');
++    const s = ensure();
++    const ca = s.correctiveActions.find((x) => x.id === caId);
++    if (!ca) throw new Error('Corrective action not found');
++    const u = currentUser();
++    ca.closureComment = (closure && closure.comment) || '';
++    ca.closureEvidence = (closure && closure.evidence) || [];
++    ca.closedBy = u.id;
++    ca.closedByName = u.name;
++    ca.closedAt = nowIso();
++    if (ca.requireIndependentVerification) {
++      ca.status = 'awaiting_verification';
++      notify('action_awaiting_verification', 'Verification required', ca.ref + ' — ' + ca.title, { type: 'corrective_action', id: ca.id });
++    } else {
++      ca.status = 'closed';
++    }
++    ca.updatedAt = nowIso();
++    const def = s.defects.find((d) => d.id === ca.defectId);
++    if (def) def.status = ca.status === 'closed' ? 'closed' : 'awaiting_verification';
++    audit('close', 'corrective_action', ca.id, { next: { status: ca.status } });
++    persist();
++    return ca;
++  }
++
++  function verifyCorrectiveAction(caId, decision) {
++    if (!can('verify_actions')) throw new Error('Not allowed to verify');
++    const s = ensure();
++    const ca = s.correctiveActions.find((x) => x.id === caId);
++    if (!ca) throw new Error('Corrective action not found');
++    const u = currentUser();
++    if (ca.requireIndependentVerification && (u.id === ca.recordedBy || u.id === ca.closedBy)) {
++      throw new Error('Independent verification required — the same person cannot complete and verify this critical action');
++    }
++    if (decision && decision.reject) {
++      ca.status = 'in_progress';
++      ca.verifiedBy = u.id;
++      ca.verifiedByName = u.name;
++      ca.verifiedAt = nowIso();
++      audit('verify_reject', 'corrective_action', ca.id, { reason: decision.comment || '' });
++      persist();
++      return ca;
++    }
++    ca.status = 'closed';
++    ca.verifiedBy = u.id;
++    ca.verifiedByName = u.name;
++    ca.verifiedAt = nowIso();
++    ca.updatedAt = nowIso();
++    const def = s.defects.find((d) => d.id === ca.defectId);
++    if (def) def.status = 'closed';
++    audit('verify', 'corrective_action', ca.id, { next: { status: 'closed' } });
++    persist();
++    return ca;
++  }
++
++  function markOverdue() {
++    const s = ensure();
++    const now = Date.now();
++    s.correctiveActions.forEach((ca) => {
++      if (ca.status !== 'closed' && ca.dueAt && new Date(ca.dueAt).getTime() < now) {
++        if (ca.status !== 'overdue') {
++          ca.status = 'overdue';
++          notify('corrective_action_overdue', 'Overdue action', ca.ref + ' — ' + ca.title, { type: 'corrective_action', id: ca.id });
++        }
++      }
++    });
++    s.schedules.forEach((sch) => {
++      if (!sch.active || sch.paused || !sch.autoMiss) return;
++      if (!sch.nextDueAt) return;
++      const grace = (sch.graceMinutes || 30) * 60e3;
++      if (new Date(sch.nextDueAt).getTime() + grace < now) {
++        const exists = s.runs.some((r) => r.scheduleId === sch.id && r.status === 'missed'
++          && r.scheduledFor === sch.nextDueAt);
++        if (!exists) {
++          const t = s.templates.find((x) => x.id === sch.templateId);
++          s.runs.unshift({
++            id: uid('run'),
++            ref: nextRef('run'),
++            templateId: sch.templateId,
++            templateName: (t && t.name) || 'Checklist',
++            templateVersion: (t && t.version) || 1,
++            templateSnapshot: t ? JSON.parse(JSON.stringify(t)) : {},
++            scheduleId: sch.id,
++            locationId: sch.locationId,
++            status: 'missed',
++            draft: false,
++            scheduledFor: sch.nextDueAt,
++            startedAt: null,
++            completedAt: null,
++            answers: {},
++            createdAt: nowIso(),
++            updatedAt: nowIso(),
++          });
++          notify('checklist_missed', 'Missed checklist', (t && t.name) || 'Checklist', { type: 'schedule', id: sch.id });
++          sch.nextDueAt = computeNextDue(sch.frequency || 'daily');
++        }
++      }
++    });
++    persist();
++  }
++
++  function dashboard(locationId) {
++    markOverdue();
++    const s = ensure();
++    const loc = locationId || currentSite();
++    const today = new Date().toISOString().slice(0, 10);
++    const runs = s.runs.filter((r) => r.locationId === loc);
++    const defects = s.defects.filter((d) => d.locationId === loc);
++    const cas = s.correctiveActions.filter((c) => c.locationId === loc);
++    const dueSchedules = s.schedules.filter((sch) => sch.locationId === loc && sch.active && !sch.paused);
++    return {
++      dueToday: dueSchedules.filter((sch) => (sch.nextDueAt || '').slice(0, 10) <= today).length,
++      inProgress: runs.filter((r) => r.status === 'in_progress').length,
++      completedToday: runs.filter((r) => r.status === 'completed' && (r.completedAt || '').slice(0, 10) === today).length,
++      missed: runs.filter((r) => r.status === 'missed').length,
++      openDefects: defects.filter((d) => d.status === 'open' || d.status === 'in_progress').length,
++      criticalDefects: defects.filter((d) => (d.riskLevel === 'high' || d.riskLevel === 'critical') && d.status !== 'closed').length,
++      overdueActions: cas.filter((c) => c.status === 'overdue' || (c.status !== 'closed' && c.dueAt && new Date(c.dueAt) < new Date())).length,
++      awaitingVerification: cas.filter((c) => c.status === 'awaiting_verification').length,
++      unreadNotifications: s.notifications.filter((n) => !n.readAt && n.locationId === loc).length,
++    };
++  }
++
++  function exportRunsCsv(locationId) {
++    const s = ensure();
++    const loc = locationId || currentSite();
++    const rows = [[
++      'Company', 'Location', 'Checklist', 'Template version', 'Run ref', 'Scheduled', 'Status',
++      'Completed at', 'Completed by', 'Section', 'Question', 'Answer', 'Defect ref',
++      'CA ref', 'CA status', 'CA due', 'Closed by', 'Verified by',
++    ]];
++    const d = db();
++    const site = (d.sites || []).find((x) => x.id === loc);
++    const company = (d.org && d.org.name) || 'Kiteline customer';
++    s.runs.filter((r) => r.locationId === loc).forEach((run) => {
++      const sections = (run.templateSnapshot && run.templateSnapshot.sections) || [];
++      sections.forEach((sec) => {
++        (sec.questions || []).forEach((q) => {
++          const def = s.defects.find((x) => x.runId === run.id && x.questionId === q.id);
++          const ca = def ? s.correctiveActions.find((x) => x.defectId === def.id) : null;
++          rows.push([
++            company,
++            (site && site.name) || loc,
++            run.templateName,
++            run.templateVersion,
++            run.ref,
++            run.scheduledFor || '',
++            run.status,
++            run.completedAt || '',
++            run.completedByName || '',
++            sec.title,
++            q.label,
++            run.answers && run.answers[q.id] != null ? String(run.answers[q.id]) : '',
++            def ? def.ref : '',
++            ca ? ca.ref : '',
++            ca ? ca.status : '',
++            ca ? (ca.dueAt || '') : '',
++            ca ? (ca.closedByName || '') : '',
++            ca ? (ca.verifiedByName || '') : '',
++          ]);
++        });
++      });
++      if (!sections.length) {
++        rows.push([company, (site && site.name) || loc, run.templateName, run.templateVersion, run.ref, run.scheduledFor || '', run.status, run.completedAt || '', run.completedByName || '', '', '', '', '', '', '', '', '', '']);
++      }
++    });
++    return rows;
++  }
++
++  function seedKitelineTemplates(force) {
++    const s = ensure();
++    if (!force && s.templates.some((t) => t.kitelineSeed)) return s.templates.filter((t) => t.kitelineSeed);
++
++    function tempQ(label, min, max, risk) {
++      return question({
++        label,
++        type: 'temperature',
++        min,
++        max,
++        unit: '°C',
++        riskLevel: risk || 'high',
++        defectOnFail: true,
++        commentRequiredOnFail: true,
++        evidenceRequired: false,
++        immediateActionHint: 'Recheck with calibrated probe. Move food if needed. Inform manager.',
++        requireIndependentVerification: risk === 'critical' || risk === 'high',
++        helpText: 'Use a clean calibrated probe. Record the reading in °C.',
++      });
++    }
++
++    function pf(label, risk) {
++      return question({
++        label,
++        type: 'pass_fail_na',
++        riskLevel: risk || 'medium',
++        defectOnFail: true,
++        commentRequiredOnFail: true,
++        immediateActionHint: 'Correct the issue before service continues where safe to do so.',
++      });
++    }
++
++    const seeds = [
++      {
++        name: 'Kitchen opening checks',
++        category: 'Food safety',
++        frequency: 'daily',
++        windowStart: '06:00',
++        windowEnd: '11:00',
++        description: 'Original Kiteline opening checklist for professional kitchens.',
++        sections: [
++          section({
++            title: 'Hygiene & readiness',
++            questions: [
++              pf('Hands, PPE and jewellery policy followed'),
++              pf('Sinks stocked with soap and paper towels'),
++              pf('Work surfaces clean and sanitised before prep'),
++              pf('Pest signs checked (no activity observed)'),
++            ],
++          }),
++          section({
++            title: 'Cold storage',
++            questions: [
++              tempQ('Walk-in / main fridge temperature', 0, 5, 'high'),
++              tempQ('Main freezer temperature', -25, -18, 'high'),
++              pf('Date codes and stock rotation acceptable'),
++            ],
++          }),
++        ],
++      },
++      {
++        name: 'Kitchen closing checks',
++        category: 'Food safety',
++        frequency: 'daily',
++        windowStart: '20:00',
++        windowEnd: '23:59',
++        description: 'Original Kiteline closing checklist.',
++        sections: [
++          section({
++            title: 'Close-down',
++            questions: [
++              pf('Hot equipment switched off / safe'),
++              pf('Food covered, labelled and stored correctly'),
++              pf('Floors cleaned; waste removed'),
++              pf('Fire exits clear; lights/alarms as required'),
++              tempQ('Fridge temperature at close', 0, 5, 'high'),
++            ],
++          }),
++        ],
++      },
++      {
++        name: 'Fridge temperature record',
++        category: 'Temperature',
++        frequency: 'daily',
++        windowStart: '06:00',
++        windowEnd: '22:00',
++        requireManagerVerification: true,
++        description: 'Dedicated fridge temperature checks with fail follow-up.',
++        sections: [
++          section({
++            title: 'Reading',
++            questions: [
++              tempQ('Fridge temperature (°C)', 0, 5, 'high'),
++              question({
++                label: 'Was the temperature checked again after a fail?',
++                type: 'yes_no_na',
++                expectedAnswer: 'yes',
++                mandatory: false,
++                allowNa: true,
++                defectOnFail: false,
++                helpText: 'Complete if the first reading was out of range.',
++              }),
++              question({
++                label: 'Second reading (°C)',
++                type: 'temperature',
++                min: 0,
++                max: 5,
++                unit: '°C',
++                mandatory: false,
++                allowNa: true,
++                riskLevel: 'high',
++                defectOnFail: true,
++              }),
++              question({
++                label: 'Was affected food moved or discarded?',
++                type: 'yes_no_na',
++                expectedAnswer: 'yes',
++                mandatory: false,
++                allowNa: true,
++                defectOnFail: true,
++                riskLevel: 'high',
++              }),
++              question({
++                label: 'Was maintenance / manager informed?',
++                type: 'yes_no_na',
++                expectedAnswer: 'yes',
++                mandatory: false,
++                allowNa: true,
++                defectOnFail: true,
++                riskLevel: 'medium',
++              }),
++            ],
++          }),
++        ],
++      },
++      {
++        name: 'Freezer temperature record',
++        category: 'Temperature',
++        frequency: 'daily',
++        sections: [section({ title: 'Reading', questions: [tempQ('Freezer temperature (°C)', -25, -18, 'high')] })],
++      },
++      {
++        name: 'Delivery acceptance',
++        category: 'Food safety',
++        frequency: 'every_shift',
++        sections: [
++          section({
++            title: 'Goods in',
++            questions: [
++              pf('Vehicle and packaging clean and undamaged'),
++              tempQ('Chilled delivery temperature (°C)', 0, 5, 'high'),
++              pf('Use-by / best-before dates acceptable'),
++              pf('Allergen / specification info available where required'),
++              question({ label: 'Delivery accepted or rejected', type: 'dropdown', options: ['Accepted', 'Part accepted', 'Rejected'], mandatory: true, defectOnFail: false }),
++            ],
++          }),
++        ],
++      },
++      {
++        name: 'Hot holding record',
++        category: 'Temperature',
++        frequency: 'every_shift',
++        sections: [section({ title: 'Hot hold', questions: [tempQ('Hot-hold temperature (°C)', 63, 90, 'high'), pf('Food labelled and within hold time')] })],
++      },
++      {
++        name: 'Cooking temperature record',
++        category: 'Temperature',
++        frequency: 'every_shift',
++        sections: [section({ title: 'Cook', questions: [
++          question({ label: 'Product / batch', type: 'text', mandatory: true, defectOnFail: false }),
++          tempQ('Core cooking temperature (°C)', 75, 100, 'critical'),
++        ] })],
++      },
++      {
++        name: 'Probe calibration',
++        category: 'Temperature',
++        frequency: 'weekly',
++        sections: [section({ title: 'Calibration', questions: [
++          question({ label: 'Probe identity', type: 'text', mandatory: true, defectOnFail: false }),
++          question({ label: 'Ice-point reading (°C)', type: 'temperature', min: -1, max: 1, unit: '°C', riskLevel: 'medium' }),
++          question({ label: 'Boiling-point reading (°C)', type: 'temperature', min: 99, max: 101, unit: '°C', riskLevel: 'medium' }),
++          pf('Probe within ±1°C tolerance'),
++        ] })],
++      },
++    ];
++
++    const created = [];
++    const seedOpts = { systemSeed: true };
++    seeds.forEach((seed) => {
++      const t = createTemplate({
++        name: seed.name,
++        description: seed.description || '',
++        category: seed.category,
++        frequency: seed.frequency,
++        windowStart: seed.windowStart || '06:00',
++        windowEnd: seed.windowEnd || '22:00',
++        requireManagerVerification: !!seed.requireManagerVerification,
++        sections: seed.sections,
++        kitelineSeed: true,
++        status: 'draft',
++      }, seedOpts);
++      const stored = ensure().templates.find((x) => x.id === t.id);
++      if (stored) {
++        stored.sections = seed.sections;
++        stored.kitelineSeed = true;
++        try { publishTemplate(stored.id, seedOpts); } catch (e) { /* keep draft if publish rules fail */ }
++      }
++      created.push(stored || t);
++    });
++    persist();
++    return created;
++  }
++
++  function ensureSeeded() {
++    const s = ensure();
++    if (!s.templates.some((t) => t.kitelineSeed)) {
++      try { seedKitelineTemplates(false); } catch (e) { console.warn('[complianceV1] seed', e.message); }
++    }
++    return s;
++  }
++
++  window.CompliancePhase1 = {
++    STORE_KEY,
++    ANSWER_TYPES,
++    FREQUENCIES,
++    ensure,
++    ensureSeeded,
++    can,
++    permissionsFor,
++    currentUser,
++    currentSite,
++    question,
++    section,
++    createTemplate,
++    duplicateTemplate,
++    saveTemplate,
++    publishTemplate,
++    archiveTemplate,
++    ensureSchedule,
++    evaluateAnswer,
++    startRun,
++    saveDraft,
++    submitRun,
++    updateCorrectiveAction,
++    closeCorrectiveAction,
++    verifyCorrectiveAction,
++    markOverdue,
++    dashboard,
++    exportRunsCsv,
++    seedKitelineTemplates,
++    audit,
++    notify,
++    nextRef,
++  };
++})();
+diff --git a/saas/docs/PHASE_1_COMPLIANCE.md b/saas/docs/PHASE_1_COMPLIANCE.md
+new file mode 100644
+index 0000000..ffbbe8e
+--- /dev/null
++++ b/saas/docs/PHASE_1_COMPLIANCE.md
+@@ -0,0 +1,64 @@
++# Kiteline Compliance Phase 1 — Implementation
++
++**Status:** Implemented in `kiteline-saas` (apply to kitline1 to go live on kiteline.uk).  
++**Brand:** Original Kiteline system — not a competitor clone.
++
++## Workflow
++
++```text
++Schedule → Complete → Validate → Detect failure → Raise corrective action
++→ Resolve → Manager verification → Report
++```
++
++## Included
++
++| Feature | Delivery |
++|---------|----------|
++| Checklist template builder | Sections/questions, reorder (drag), draft/publish, version on edit of published |
++| Scheduling | Frequency + window + grace; auto-miss; per-location schedules |
++| Staff completion | Kitchen-friendly controls, pause/resume, autosave drafts |
++| Validation | Mandatory, N/A, min/max, pass/fail, yes/no expected |
++| Defects + CAPA | Auto-raise on fail/out-of-range; separate permanent CA records |
++| Independent verification | Critical/high: completer ≠ verifier |
++| Temperature packs | Seed fridge/freezer/delivery/cook/hot-hold/calibration templates |
++| Dashboard | Due / missed / defects / overdue / awaiting verification |
++| Notifications | In-app (+ legacy alerts list). Email/SMS not claimed live |
++| Exports | CSV + print/PDF summary |
++| Permissions | Mapped to Admin / Manager / Staff ranks |
++| Audit trail | Append-only event log for key actions |
++| Postgres schema | `005_compliance_phase1.sql` (RLS-ready) |
++
++## Apply to kitline1
++
++```bash
++node kiteline-saas/scripts/apply-compliance-phase1.js /path/to/kitline1
++```
++
++Then open **Compliance checks** in the app sidebar, or `#compliance-p1-dashboard`.
++
++Optional Postgres:
++
++```bash
++psql "$DATABASE_URL" -f kitline1/saas/schema/005_compliance_phase1.sql
++```
++
++JSON mode stores data under `db.complianceV1` and works without Postgres.
++
++## Seed templates (original Kiteline wording)
++
++- Kitchen opening checks  
++- Kitchen closing checks  
++- Fridge temperature record (with fail follow-ups)  
++- Freezer temperature record  
++- Delivery acceptance  
++- Hot holding record  
++- Cooking temperature record  
++- Probe calibration  
++
++## Not in Phase 1 (later)
++
++Risk assessment builder, document file registry, training LMS, full incident cases, equipment QR ops, offline sync queue, AI assist, SMS, inspector ZIP evidence pack.
++
++## Legal note
++
++Kiteline helps organise records for inspections. It does **not** guarantee legal compliance.
+diff --git a/saas/schema/005_compliance_phase1.sql b/saas/schema/005_compliance_phase1.sql
+new file mode 100644
+index 0000000..98a93c0
+--- /dev/null
++++ b/saas/schema/005_compliance_phase1.sql
+@@ -0,0 +1,296 @@
++-- =============================================================================
++-- Kiteline Compliance Phase 1 — templates, schedules, runs, defects, CAPA, audit
++-- Depends on: 001_core_tenancy.sql (companies, locations, users)
++-- =============================================================================
++
++DO $$ BEGIN
++  CREATE TYPE compliance_template_status AS ENUM ('draft', 'active', 'archived');
++EXCEPTION WHEN duplicate_object THEN NULL; END $$;
++
++DO $$ BEGIN
++  CREATE TYPE compliance_run_status AS ENUM (
++    'scheduled', 'in_progress', 'completed', 'missed', 'cancelled'
++  );
++EXCEPTION WHEN duplicate_object THEN NULL; END $$;
++
++DO $$ BEGIN
++  CREATE TYPE compliance_defect_status AS ENUM (
++    'open', 'in_progress', 'awaiting_verification', 'closed', 'overdue'
++  );
++EXCEPTION WHEN duplicate_object THEN NULL; END $$;
++
++DO $$ BEGIN
++  CREATE TYPE compliance_risk_level AS ENUM (
++    'acceptable', 'low', 'medium', 'high', 'critical'
++  );
++EXCEPTION WHEN duplicate_object THEN NULL; END $$;
++
++-- Optional hierarchy extensions (Phase 1 minimal — nullable FKs for future)
++CREATE TABLE IF NOT EXISTS divisions (
++  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
++  company_id   uuid NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
++  name         text NOT NULL,
++  created_at   timestamptz NOT NULL DEFAULT now(),
++  UNIQUE (company_id, name)
++);
++
++CREATE TABLE IF NOT EXISTS departments (
++  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
++  company_id   uuid NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
++  location_id  uuid NOT NULL,
++  name         text NOT NULL,
++  created_at   timestamptz NOT NULL DEFAULT now(),
++  FOREIGN KEY (company_id, location_id) REFERENCES locations(company_id, id) ON DELETE CASCADE,
++  UNIQUE (company_id, location_id, name)
++);
++
++CREATE TABLE IF NOT EXISTS areas (
++  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
++  company_id     uuid NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
++  location_id    uuid NOT NULL,
++  department_id  uuid REFERENCES departments(id) ON DELETE SET NULL,
++  name           text NOT NULL,
++  created_at     timestamptz NOT NULL DEFAULT now(),
++  FOREIGN KEY (company_id, location_id) REFERENCES locations(company_id, id) ON DELETE CASCADE
++);
++
++CREATE TABLE IF NOT EXISTS compliance_templates (
++  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
++  company_id      uuid NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
++  name            text NOT NULL,
++  description     text,
++  category        text,
++  department      text,
++  instructions    text,
++  responsible_role text,
++  frequency       text NOT NULL DEFAULT 'daily',
++  days_of_week    int[] DEFAULT ARRAY[1,2,3,4,5,6,7],
++  window_start    time,
++  window_end      time,
++  grace_minutes   int NOT NULL DEFAULT 30,
++  require_manager_verification boolean NOT NULL DEFAULT false,
++  evidence_required boolean NOT NULL DEFAULT false,
++  version         int NOT NULL DEFAULT 1,
++  status          compliance_template_status NOT NULL DEFAULT 'draft',
++  sections        jsonb NOT NULL DEFAULT '[]'::jsonb,
++  parent_template_id uuid REFERENCES compliance_templates(id) ON DELETE SET NULL,
++  created_by      uuid REFERENCES users(id),
++  created_at      timestamptz NOT NULL DEFAULT now(),
++  updated_at      timestamptz NOT NULL DEFAULT now(),
++  published_at    timestamptz,
++  legacy_id       text
++);
++
++CREATE INDEX IF NOT EXISTS compliance_templates_co_idx
++  ON compliance_templates(company_id, status);
++
++CREATE TABLE IF NOT EXISTS compliance_template_assignments (
++  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
++  company_id    uuid NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
++  template_id   uuid NOT NULL REFERENCES compliance_templates(id) ON DELETE CASCADE,
++  scope_type    text NOT NULL, -- company | division | location | department | area | equipment | role | user
++  scope_id      text,
++  location_id   uuid,
++  local_overrides jsonb NOT NULL DEFAULT '{}'::jsonb,
++  active        boolean NOT NULL DEFAULT true,
++  created_at    timestamptz NOT NULL DEFAULT now(),
++  FOREIGN KEY (company_id, location_id) REFERENCES locations(company_id, id) ON DELETE CASCADE
++);
++
++CREATE TABLE IF NOT EXISTS compliance_schedules (
++  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
++  company_id    uuid NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
++  template_id   uuid NOT NULL REFERENCES compliance_templates(id) ON DELETE CASCADE,
++  location_id   uuid NOT NULL,
++  assignment_id uuid REFERENCES compliance_template_assignments(id) ON DELETE SET NULL,
++  frequency     text NOT NULL DEFAULT 'daily',
++  next_due_at   timestamptz,
++  window_start  time,
++  window_end    time,
++  grace_minutes int NOT NULL DEFAULT 30,
++  allow_late    boolean NOT NULL DEFAULT true,
++  auto_miss     boolean NOT NULL DEFAULT true,
++  paused        boolean NOT NULL DEFAULT false,
++  backup_user_id uuid REFERENCES users(id),
++  active        boolean NOT NULL DEFAULT true,
++  created_at    timestamptz NOT NULL DEFAULT now(),
++  FOREIGN KEY (company_id, location_id) REFERENCES locations(company_id, id) ON DELETE CASCADE
++);
++
++CREATE TABLE IF NOT EXISTS compliance_runs (
++  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
++  company_id      uuid NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
++  location_id     uuid NOT NULL,
++  template_id     uuid NOT NULL REFERENCES compliance_templates(id),
++  schedule_id     uuid REFERENCES compliance_schedules(id) ON DELETE SET NULL,
++  template_version int NOT NULL DEFAULT 1,
++  template_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
++  status          compliance_run_status NOT NULL DEFAULT 'scheduled',
++  scheduled_for   timestamptz,
++  started_at      timestamptz,
++  completed_at    timestamptz,
++  completed_by    uuid REFERENCES users(id),
++  verified_by     uuid REFERENCES users(id),
++  verified_at     timestamptz,
++  late_reason     text,
++  answers         jsonb NOT NULL DEFAULT '{}'::jsonb,
++  draft           boolean NOT NULL DEFAULT true,
++  created_at      timestamptz NOT NULL DEFAULT now(),
++  updated_at      timestamptz NOT NULL DEFAULT now(),
++  legacy_id       text,
++  FOREIGN KEY (company_id, location_id) REFERENCES locations(company_id, id) ON DELETE CASCADE
++);
++
++CREATE INDEX IF NOT EXISTS compliance_runs_loc_status_idx
++  ON compliance_runs(company_id, location_id, status, scheduled_for DESC);
++
++CREATE TABLE IF NOT EXISTS compliance_defects (
++  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
++  company_id      uuid NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
++  location_id     uuid NOT NULL,
++  run_id          uuid REFERENCES compliance_runs(id) ON DELETE SET NULL,
++  template_id     uuid REFERENCES compliance_templates(id) ON DELETE SET NULL,
++  ref             text NOT NULL,
++  question_id     text,
++  question_label  text,
++  recorded_answer text,
++  expected_answer text,
++  risk_level      compliance_risk_level NOT NULL DEFAULT 'medium',
++  status          compliance_defect_status NOT NULL DEFAULT 'open',
++  recorded_by     uuid REFERENCES users(id),
++  recorded_at     timestamptz NOT NULL DEFAULT now(),
++  comment         text,
++  evidence        jsonb NOT NULL DEFAULT '[]'::jsonb,
++  immediate_action text,
++  area_or_equipment text,
++  created_at      timestamptz NOT NULL DEFAULT now(),
++  FOREIGN KEY (company_id, location_id) REFERENCES locations(company_id, id) ON DELETE CASCADE
++);
++
++CREATE UNIQUE INDEX IF NOT EXISTS compliance_defects_ref_idx
++  ON compliance_defects(company_id, ref);
++
++CREATE TABLE IF NOT EXISTS compliance_corrective_actions (
++  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
++  company_id      uuid NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
++  location_id     uuid NOT NULL,
++  defect_id       uuid NOT NULL REFERENCES compliance_defects(id) ON DELETE CASCADE,
++  run_id          uuid REFERENCES compliance_runs(id) ON DELETE SET NULL,
++  ref             text NOT NULL,
++  title           text NOT NULL,
++  description     text,
++  risk_level      compliance_risk_level NOT NULL DEFAULT 'medium',
++  status          compliance_defect_status NOT NULL DEFAULT 'open',
++  assigned_to     uuid REFERENCES users(id),
++  due_at          timestamptz,
++  escalate_at     timestamptz,
++  require_independent_verification boolean NOT NULL DEFAULT false,
++  recorded_by     uuid REFERENCES users(id),
++  closure_comment text,
++  closure_evidence jsonb NOT NULL DEFAULT '[]'::jsonb,
++  closed_by       uuid REFERENCES users(id),
++  closed_at       timestamptz,
++  verified_by     uuid REFERENCES users(id),
++  verified_at     timestamptz,
++  created_at      timestamptz NOT NULL DEFAULT now(),
++  updated_at      timestamptz NOT NULL DEFAULT now(),
++  FOREIGN KEY (company_id, location_id) REFERENCES locations(company_id, id) ON DELETE CASCADE
++);
++
++CREATE UNIQUE INDEX IF NOT EXISTS compliance_ca_ref_idx
++  ON compliance_corrective_actions(company_id, ref);
++
++CREATE TABLE IF NOT EXISTS compliance_audit_events (
++  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
++  company_id      uuid NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
++  location_id     uuid,
++  actor_user_id   uuid REFERENCES users(id),
++  actor_role      text,
++  action          text NOT NULL,
++  entity_type     text NOT NULL,
++  entity_id       text,
++  original_value  jsonb,
++  new_value       jsonb,
++  reason          text,
++  device          text,
++  at              timestamptz NOT NULL DEFAULT now(),
++  meta            jsonb NOT NULL DEFAULT '{}'::jsonb
++);
++
++CREATE INDEX IF NOT EXISTS compliance_audit_co_idx
++  ON compliance_audit_events(company_id, at DESC);
++
++CREATE TABLE IF NOT EXISTS compliance_notifications (
++  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
++  company_id      uuid NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
++  location_id     uuid,
++  user_id         uuid REFERENCES users(id),
++  channel         text NOT NULL DEFAULT 'in_app', -- in_app | email (sms Phase 3)
++  event_type      text NOT NULL,
++  title           text NOT NULL,
++  body            text,
++  entity_type     text,
++  entity_id       text,
++  read_at         timestamptz,
++  created_at      timestamptz NOT NULL DEFAULT now()
++);
++
++-- RLS
++ALTER TABLE divisions ENABLE ROW LEVEL SECURITY;
++ALTER TABLE departments ENABLE ROW LEVEL SECURITY;
++ALTER TABLE areas ENABLE ROW LEVEL SECURITY;
++ALTER TABLE compliance_templates ENABLE ROW LEVEL SECURITY;
++ALTER TABLE compliance_template_assignments ENABLE ROW LEVEL SECURITY;
++ALTER TABLE compliance_schedules ENABLE ROW LEVEL SECURITY;
++ALTER TABLE compliance_runs ENABLE ROW LEVEL SECURITY;
++ALTER TABLE compliance_defects ENABLE ROW LEVEL SECURITY;
++ALTER TABLE compliance_corrective_actions ENABLE ROW LEVEL SECURITY;
++ALTER TABLE compliance_audit_events ENABLE ROW LEVEL SECURITY;
++ALTER TABLE compliance_notifications ENABLE ROW LEVEL SECURITY;
++
++DO $$ BEGIN
++  CREATE POLICY compliance_templates_tenant ON compliance_templates
++    USING (kiteline_is_super_admin() OR company_id = kiteline_current_company_id());
++EXCEPTION WHEN duplicate_object THEN NULL; END $$;
++
++DO $$ BEGIN
++  CREATE POLICY compliance_runs_tenant ON compliance_runs
++    USING (kiteline_is_super_admin() OR company_id = kiteline_current_company_id());
++EXCEPTION WHEN duplicate_object THEN NULL; END $$;
++
++DO $$ BEGIN
++  CREATE POLICY compliance_defects_tenant ON compliance_defects
++    USING (kiteline_is_super_admin() OR company_id = kiteline_current_company_id());
++EXCEPTION WHEN duplicate_object THEN NULL; END $$;
++
++DO $$ BEGIN
++  CREATE POLICY compliance_ca_tenant ON compliance_corrective_actions
++    USING (kiteline_is_super_admin() OR company_id = kiteline_current_company_id());
++EXCEPTION WHEN duplicate_object THEN NULL; END $$;
++
++DO $$ BEGIN
++  CREATE POLICY compliance_audit_tenant ON compliance_audit_events
++    USING (kiteline_is_super_admin() OR company_id = kiteline_current_company_id());
++EXCEPTION WHEN duplicate_object THEN NULL; END $$;
++
++DO $$ BEGIN
++  CREATE POLICY compliance_notif_tenant ON compliance_notifications
++    USING (kiteline_is_super_admin() OR company_id = kiteline_current_company_id());
++EXCEPTION WHEN duplicate_object THEN NULL; END $$;
++
++DO $$ BEGIN
++  CREATE POLICY compliance_schedules_tenant ON compliance_schedules
++    USING (kiteline_is_super_admin() OR company_id = kiteline_current_company_id());
++EXCEPTION WHEN duplicate_object THEN NULL; END $$;
++
++DO $$ BEGIN
++  CREATE POLICY compliance_assign_tenant ON compliance_template_assignments
++    USING (kiteline_is_super_admin() OR company_id = kiteline_current_company_id());
++EXCEPTION WHEN duplicate_object THEN NULL; END $$;
++
++GRANT SELECT, INSERT, UPDATE, DELETE ON
++  divisions, departments, areas,
++  compliance_templates, compliance_template_assignments, compliance_schedules,
++  compliance_runs, compliance_defects, compliance_corrective_actions,
++  compliance_audit_events, compliance_notifications
++TO kiteline_app;
+diff --git a/server/server.js b/server/server.js
+index 5c5248e..f3e6370 100644
+--- a/server/server.js
++++ b/server/server.js
+@@ -28,7 +28,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
+   || (!isProd && process.env.DEMO_MODE !== 'false');
+ // Early access: registration open unless explicitly disabled.
+ const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
+-const APP_BUILD = '2026-07-02-pilot-sites';
++const APP_BUILD = '2026-08-07-compliance-p1';
+ const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
+ const notify = require('./notify');
+ const vedantaReports = require('./vedanta-reports');
+-- 
+2.43.0
+
