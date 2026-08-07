@@ -12,6 +12,7 @@ Keeps the current teal/ink UI, sidebar, and layout.
 | **C** | Switcher, Team, Clock, Reports | Integrated smoke PASS |
 | **D** | Stock + Orders | 5/5 unit tests |
 | **E** | Security hardening + deploy checklist | Hardened server: demo false, Vedanta 401 |
+| **Compliance P1** | Builder, schedule, run, defects/CA, dashboard, CSV/PDF, audit | Unit tests in `tests/compliance_phase1_test.js` |
 
 **Live kiteline.uk is not updated until you apply + deploy** (no push access to `kitline1` from this agent).
 
@@ -19,10 +20,12 @@ Keeps the current teal/ink UI, sidebar, and layout.
 
 ```bash
 node scripts/apply-all-to-kitline1.js /path/to/kitline1
+# Compliance Phase 1 only:
+node scripts/apply-compliance-phase1.js /path/to/kitline1
 ```
 
 Or: `deploy/kitline1-saas-all.patch`  
-Details: `deploy/APPLY_TO_KITLINE1.md` · `docs/ALL_PHASES.md`
+Details: `deploy/APPLY_TO_KITLINE1.md` · `docs/ALL_PHASES.md` · `docs/PHASE_1_COMPLIANCE.md`
 
 ## Verify
 

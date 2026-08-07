@@ -1,6 +1,6 @@
 # Kiteline Complete Compliance System — Pre-Development Plan
 
-**Status:** Planning only — do **not** start Phase 2/3 AI, SMS, sensors, or paid third-party integrations until costs are confirmed.  
+**Status:** Phase 1 **approved and implemented** in `kiteline-saas` (see `PHASE_1_COMPLIANCE.md`). Do **not** start Phase 2/3 AI, SMS, sensors, or paid third-party integrations until costs are confirmed.  
 **Brand rule:** Original Kiteline product. Do not copy Shield Safety (or any competitor) design, code, branding, wording, or proprietary templates. Use standard compliance *concepts* only.  
 **UI rule:** Keep Kiteline branding and existing visual style. Kitchen-staff flows must stay simple and fast.
 

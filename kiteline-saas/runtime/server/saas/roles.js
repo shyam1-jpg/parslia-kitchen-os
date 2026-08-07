@@ -67,6 +67,20 @@ function permissionsFor(role) {
     view_reports_location: true,
     view_reports_company: false,
     manage_subscription: false,
+    // Compliance Phase 1
+    create_templates: false,
+    edit_templates: false,
+    publish_templates: false,
+    assign_checklists: false,
+    complete_checks: true,
+    reopen_checks: false,
+    raise_corrective_actions: true,
+    close_corrective_actions: false,
+    verify_actions: false,
+    export_information: false,
+    archive_records: false,
+    change_limits: false,
+    view_audit_trail: false,
   };
   if (roleAtLeast(role, 'location_manager')) {
     Object.assign(p, {
@@ -78,12 +92,23 @@ function permissionsFor(role) {
       manage_orders: true,
       manage_recipes: true,
       view_costing: true,
+      assign_checklists: true,
+      reopen_checks: true,
+      close_corrective_actions: true,
+      verify_actions: true,
+      export_information: true,
+      view_audit_trail: true,
     });
   }
   if (roleAtLeast(role, 'kitchen_admin')) {
     Object.assign(p, {
       manage_locations: true,
       view_reports_company: true,
+      create_templates: true,
+      edit_templates: true,
+      publish_templates: true,
+      archive_records: true,
+      change_limits: true,
     });
   }
   if (roleAtLeast(role, 'company_owner')) {
