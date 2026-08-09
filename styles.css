@@ -137,9 +137,14 @@ h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.12;
 .store-badge-top { font-size: .7rem; letter-spacing: .04em; opacity: .85; line-height: 1.1; }
 .store-badge-name { font-family: var(--font-head); font-size: 1.35rem; font-weight: 600; line-height: 1.15; }
 .get-app-note { margin: 6px 0 0; font-size: .82rem; color: var(--muted); line-height: 1.45; }
-.legal-block { max-width: 720px; }
-.legal-block p { color: var(--muted); margin: 0; }
+.legal-block { max-width: 760px; }
+.legal-block h1 { font-size: clamp(2rem, 4vw, 2.6rem); color: var(--green-deep); margin-bottom: 10px; }
+.legal-block h2 { font-size: 1.25rem; color: var(--green-deep); margin: 28px 0 10px; }
+.legal-block p { color: var(--muted); margin: 0 0 14px; }
+.legal-block ul { margin: 0 0 14px; padding-left: 1.2rem; color: var(--muted); }
+.legal-block li { margin-bottom: 8px; }
 .legal-block a { color: var(--green-2); font-weight: 600; }
+.legal-updated { font-size: .92rem; color: var(--copper) !important; font-weight: 600; }
 
 /* Sections */
 .section { padding: 92px 0; }

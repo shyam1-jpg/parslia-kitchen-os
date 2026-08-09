@@ -15,13 +15,16 @@ Local marketing page is already updated with launch strips and App Store section
 
 ---
 
-## Already done (landing page)
+## Already done (landing page + App Store prep)
 
 - [x] Launch strip: AI Image · AI Voice Finder · Recipe library · Menu planner · Allergen control · App Store ready  
 - [x] Audience strip: kitchens / catering / retreats / hotels / vegetarian / food production  
 - [x] `#get-app` section with App Store + Google Play badges (link to early access until real store URLs exist)  
-- [x] Privacy + Terms stubs (`#privacy`, `#terms`) for store listing readiness  
+- [x] Full Privacy + Terms pages (`/privacy`, `/terms`, plus `privacy.html` / `terms.html`)  
 - [x] Hero / features / modules mention AI Image + AI Voice Finder  
+- [x] iPhone screenshots at Apple sizes (`assets/app-store-screenshots/`)  
+- [x] App Store icon 1024×1024 no alpha (`assets/app-store-icon-1024.png`)  
+- [x] Capacitor iOS shell (`mobile/`) + listing paste pack (`APP_STORE_CONNECT.md`)  
 
 **Cloud task A — publish landing**
 

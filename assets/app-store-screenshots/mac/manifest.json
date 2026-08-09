@@ -1,0 +1,162 @@
+[
+  {
+    "file": "assets/app-store-screenshots/mac/2560x1600/01-recipe-library.png",
+    "size": [
+      2560,
+      1600
+    ],
+    "id": "01-recipe-library"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/2560x1600/02-dashboard.png",
+    "size": [
+      2560,
+      1600
+    ],
+    "id": "02-dashboard"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/2560x1600/03-ai-image.png",
+    "size": [
+      2560,
+      1600
+    ],
+    "id": "03-ai-image"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/2560x1600/04-ai-voice.png",
+    "size": [
+      2560,
+      1600
+    ],
+    "id": "04-ai-voice"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/2560x1600/05-menu-planner.png",
+    "size": [
+      2560,
+      1600
+    ],
+    "id": "05-menu-planner"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/2560x1600/06-allergens.png",
+    "size": [
+      2560,
+      1600
+    ],
+    "id": "06-allergens"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/2560x1600/07-portions.png",
+    "size": [
+      2560,
+      1600
+    ],
+    "id": "07-portions"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/2560x1600/08-compliance.png",
+    "size": [
+      2560,
+      1600
+    ],
+    "id": "08-compliance"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/2560x1600/09-stock.png",
+    "size": [
+      2560,
+      1600
+    ],
+    "id": "09-stock"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/2560x1600/10-rota.png",
+    "size": [
+      2560,
+      1600
+    ],
+    "id": "10-rota"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/1280x800/01-recipe-library.png",
+    "size": [
+      1280,
+      800
+    ],
+    "id": "01-recipe-library"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/1280x800/02-dashboard.png",
+    "size": [
+      1280,
+      800
+    ],
+    "id": "02-dashboard"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/1280x800/03-ai-image.png",
+    "size": [
+      1280,
+      800
+    ],
+    "id": "03-ai-image"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/1280x800/04-ai-voice.png",
+    "size": [
+      1280,
+      800
+    ],
+    "id": "04-ai-voice"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/1280x800/05-menu-planner.png",
+    "size": [
+      1280,
+      800
+    ],
+    "id": "05-menu-planner"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/1280x800/06-allergens.png",
+    "size": [
+      1280,
+      800
+    ],
+    "id": "06-allergens"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/1280x800/07-portions.png",
+    "size": [
+      1280,
+      800
+    ],
+    "id": "07-portions"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/1280x800/08-compliance.png",
+    "size": [
+      1280,
+      800
+    ],
+    "id": "08-compliance"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/1280x800/09-stock.png",
+    "size": [
+      1280,
+      800
+    ],
+    "id": "09-stock"
+  },
+  {
+    "file": "assets/app-store-screenshots/mac/1280x800/10-rota.png",
+    "size": [
+      1280,
+      800
+    ],
+    "id": "10-rota"
+  }
+]
