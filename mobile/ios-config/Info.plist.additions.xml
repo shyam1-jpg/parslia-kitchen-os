@@ -1,0 +1,13 @@
+<!--
+  After `npx cap add ios` on a Mac, merge these keys into
+  ios/App/App/Info.plist (Xcode → App → Info), or paste via the
+  Privacy - Microphone / Camera / Photo Library usage description fields.
+-->
+<key>NSMicrophoneUsageDescription</key>
+<string>Parslia uses the microphone for AI Voice Finder so you can find recipes hands-free during prep and service.</string>
+<key>NSCameraUsageDescription</key>
+<string>Parslia uses the camera for AI Image when you capture dish photos for menus and training.</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Parslia accesses your photo library so you can choose dish images for AI Image and recipe boards.</string>
+<key>ITSAppUsesNonExemptEncryption</key>
+<false/>
