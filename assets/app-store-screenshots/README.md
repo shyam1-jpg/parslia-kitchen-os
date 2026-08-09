@@ -25,3 +25,8 @@ Regenerate:
 ```bash
 python3 scripts/app-store-shots/generate.py
 ```
+
+
+## Mac
+
+Upload from `mac/2560x1600/` (2560×1600, Apple 16:10).

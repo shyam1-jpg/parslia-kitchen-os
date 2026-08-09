@@ -6,8 +6,10 @@ Use this file while creating the app in [App Store Connect](https://appstoreconn
 
 | Item | Location |
 |------|----------|
-| Screenshots (1284×2778) | `assets/app-store-screenshots/1284x2778/` |
-| Screenshots (1242×2688) | `assets/app-store-screenshots/1242x2688/` |
+| Screenshots iPhone (1284×2778) | `assets/app-store-screenshots/1284x2778/` |
+| Screenshots iPhone (1242×2688) | `assets/app-store-screenshots/1242x2688/` |
+| Screenshots Mac (2560×1600) | `assets/app-store-screenshots/mac/2560x1600/` |
+| Screenshots Mac (1280×800) | `assets/app-store-screenshots/mac/1280x800/` |
 | App icon 1024×1024 (no alpha) | `assets/app-store-icon-1024.png` |
 | Privacy URL | https://parslia.app/privacy (`privacy.html`) |
 | Terms / marketing | https://parslia.app · https://parslia.app/terms |
@@ -68,10 +70,17 @@ Support: hello@parslia.app
 
 ## Screenshots upload
 
-1. App Store Connect → your app → **iOS App** → **App Store** tab → Screenshots.
-2. Upload all 10 PNGs from **`assets/app-store-screenshots/1284x2778/`** (exact Apple size).
-3. Do not mix with 1242×2688 in the same device set.
-4. Suggested order: Recipe Library → Dashboard → AI Image → AI Voice → Menu → Allergens → Portions → Logs → Stock → Rota.
+### iPhone
+1. App Store Connect → your app → **iOS App** → Screenshots → **iPhone**.
+2. Upload all 10 PNGs from **`assets/app-store-screenshots/1284x2778/`**.
+3. Do not mix sizes in the same device set.
+
+### Mac (computer)
+1. App Store Connect → your app → **Mac** → Screenshots.
+2. Upload all 10 PNGs from **`assets/app-store-screenshots/mac/2560x1600/`** (2560×1600, Apple 16:10).
+3. Alternate accepted size: `mac/1280x800/`.
+
+Suggested order (both): Recipe Library → Dashboard → AI Image → AI Voice → Menu → Allergens → Portions → Logs → Stock → Rota.
 
 ## App Review notes (paste)
 

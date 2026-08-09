@@ -31,7 +31,8 @@ Cloud prepared the listing pack, legal pages, screenshots, icon, and Capacitor s
 ## D. Upload media
 
 1. App icon: `assets/app-store-icon-1024.png` (1024×1024)  
-2. Screenshots: all 10 files in `assets/app-store-screenshots/1284x2778/`  
+2. **iPhone** screenshots: all 10 in `assets/app-store-screenshots/1284x2778/`  
+3. **Mac** screenshots (computer): all 10 in `assets/app-store-screenshots/mac/2560x1600/`  
 
 ## E. Build on your Mac
 
