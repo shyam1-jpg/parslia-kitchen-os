@@ -59,48 +59,102 @@ struct PaywallView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 18) {
-                    Text("Choose your Parslia plan").font(.largeTitle.bold()).multilineTextAlignment(.center)
-                    Text("Eligible new customers receive a 14-day free trial. After the trial, your selected plan renews automatically at the price and duration shown unless cancelled at least 24 hours before renewal.")
-                        .font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                    ForEach(store.coreProducts) { product in
-                        PlanCard(product: product, introEligible: store.isIntroEligible(product)) { Task { await store.purchase(product) } }
-                    }
-                    if store.products.isEmpty && !store.isLoading {
-                        Text("Plans are temporarily unavailable.").foregroundStyle(.secondary)
-                    }
-                    if !store.addOnProducts.isEmpty {
-                        Divider()
-                        Text("Add-ons").font(.title2.bold()).frame(maxWidth: .infinity, alignment: .leading)
-                        Text("AI Image Booster adds 50 AI recipe images to an active paid plan each month.")
-                            .font(.subheadline).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
-                        ForEach(store.addOnProducts) { product in
-                            PlanCard(product: product, introEligible: false, isEnabled: store.tier != .free) { Task { await store.purchase(product) } }
-                        }
-                        if store.tier == .free {
-                            Text("Choose a Parslia plan before adding the booster.")
-                                .font(.caption).foregroundStyle(.secondary)
-                        }
-                    }
-                    Link("Enterprise — Contact Sales", destination: URL(string: "https://parslia.app/support.html")!)
-                    Button("Restore Purchases") { Task { await store.restore() } }
-                    ManageSubscriptionsButton { Text("Manage Subscription") }
-                    HStack {
-                        Link("Privacy Policy", destination: URL(string: "https://parslia.app/privacy.html")!)
-                        Text("•")
-                        Link("Terms of Use", destination: URL(string: "https://parslia.app/terms.html")!)
-                    }.font(.footnote)
-                    Text("Payment is charged to your Apple Account after the free trial. Cancellation takes effect at the end of the current billing period. Features remain available while Apple reports a verified active entitlement.")
-                        .font(.caption).foregroundStyle(.secondary)
-                }.padding(22)
+                paywallContent
             }
             .navigationTitle("Subscriptions").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
-            .alert("Parslia", isPresented: Binding(get: { store.message != nil }, set: { if !$0 { store.message = nil } })) {
+            .alert("Parslia", isPresented: messageIsPresented) {
                 Button("OK") { store.message = nil }
             } message: { Text(store.message ?? "") }
             .overlay { if store.isLoading { ProgressView().controlSize(.large) } }
         }
+    }
+
+    private var paywallContent: some View {
+        VStack(spacing: 18) {
+            paywallHeader
+            corePlans
+            addOns
+            accountActions
+            legalLinks
+        }
+        .padding(22)
+    }
+
+    private var paywallHeader: some View {
+        Group {
+            Text("Choose your Parslia plan")
+                .font(.largeTitle.bold())
+                .multilineTextAlignment(.center)
+            Text("Eligible new customers receive a 14-day free trial. After the trial, your selected plan renews automatically at the price and duration shown unless cancelled at least 24 hours before renewal.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+    }
+
+    @ViewBuilder private var corePlans: some View {
+        ForEach(store.coreProducts) { product in
+            PlanCard(product: product, introEligible: store.isIntroEligible(product)) {
+                Task { await store.purchase(product) }
+            }
+        }
+        if store.products.isEmpty && !store.isLoading {
+            Text("Plans are temporarily unavailable.")
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private var addOns: some View {
+        if !store.addOnProducts.isEmpty {
+            Divider()
+            Text("Add-ons")
+                .font(.title2.bold())
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text("AI Image Booster adds 50 AI recipe images to an active paid plan each month.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            ForEach(store.addOnProducts) { product in
+                PlanCard(product: product, introEligible: false, isEnabled: store.tier != .free) {
+                    Task { await store.purchase(product) }
+                }
+            }
+            if store.tier == .free {
+                Text("Choose a Parslia plan before adding the booster.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var accountActions: some View {
+        VStack(spacing: 14) {
+            Link("Enterprise — Contact Sales", destination: URL(string: "https://parslia.app/support.html")!)
+            Button("Restore Purchases") { Task { await store.restore() } }
+            Link("Manage Subscription", destination: URL(string: "https://apps.apple.com/account/subscriptions")!)
+        }
+    }
+
+    private var legalLinks: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Link("Privacy Policy", destination: URL(string: "https://parslia.app/privacy.html")!)
+                Text("•")
+                Link("Terms of Use", destination: URL(string: "https://parslia.app/terms.html")!)
+            }
+            .font(.footnote)
+            Text("Payment is charged to your Apple Account after the free trial. Cancellation takes effect at the end of the current billing period. Features remain available while Apple reports a verified active entitlement.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var messageIsPresented: Binding<Bool> {
+        Binding(
+            get: { store.message != nil },
+            set: { if !$0 { store.message = nil } }
+        )
     }
 }
 
