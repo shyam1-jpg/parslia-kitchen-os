@@ -69,6 +69,7 @@ Draft declaration: “Parslia displays content created and owned by Parslia, con
 - Apple Standard EULA selected; primary category Business and secondary category Food & Drink.
 - Privacy Policy URL and Support URL point to the live Parslia pages.
 - Five iPhone 6.5-inch screenshots are uploaded. Apple accepts up to 10; more are optional.
+- The Xcode target is explicitly iPhone-only (`TARGETED_DEVICE_FAMILY = 1`), so iPad screenshots are not required for this release.
 - Release mode changed to **Manual release** so approval does not publish the app unexpectedly.
 - App Privacy answers are fully configured and published; data is declared as linked where applicable and not used for tracking.
 - Content Rights is intentionally left for the account holder’s truthful legal confirmation.
