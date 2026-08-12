@@ -1,3 +1,6 @@
 node_modules/
 .netlify/
 libraix/frontend/.vite/
+ios/Parslia.xcodeproj/
+ios/DerivedData/
+ios/build/

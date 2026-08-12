@@ -141,6 +141,37 @@ h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.12;
 .legal-block p { color: var(--muted); margin: 0; }
 .legal-block a { color: var(--green-2); font-weight: 600; }
 
+/* Standalone legal and support pages */
+.legal-page {
+  width: min(920px, calc(100% - 32px));
+  margin: 48px auto;
+  padding: clamp(32px, 6vw, 72px);
+  background: var(--card-white);
+  border: 1px solid var(--border);
+  border-top: 8px solid var(--green-deep);
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg);
+}
+.legal-page::before {
+  content: "PARSLIA KITCHEN OS";
+  display: block;
+  margin-bottom: 18px;
+  color: var(--copper-dark);
+  font-weight: 700;
+  font-size: .78rem;
+  letter-spacing: .16em;
+}
+.legal-page h1 { color: var(--green-deep); font-size: clamp(2rem, 5vw, 3.2rem); }
+.legal-page h2 { margin-top: 36px; color: var(--green-deep); font-size: 1.35rem; }
+.legal-page p, .legal-page li { color: var(--muted); }
+.legal-page ul { padding-left: 1.25rem; }
+.legal-page a { color: var(--green-2); font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
+.legal-page a:hover { color: var(--copper-dark); }
+
+@media (max-width: 600px) {
+  .legal-page { margin: 16px auto; padding: 28px 22px; border-radius: 16px; }
+}
+
 /* Sections */
 .section { padding: 92px 0; }
 .section-light { background: var(--warm-white); }
