@@ -14,8 +14,8 @@ Production Hercules application URL: `https://parslia-kitchen-os-667132.onhercul
 - `app.parslia.kitchen.pro.monthly` — Professional Monthly — £79/month — Apple ID `6800861515`
 - `app.parslia.kitchen.pro.annual` — Professional Annual — £790/year — Apple ID `6800859004`
 - `app.parslia.kitchen.business.monthly` — Business Monthly — £149/month — Apple ID `6800918531`
-- Add-on subscription group: **Parslia Add-ons** — required so the booster can coexist with one product from Parslia Plans; pending creation in App Store Connect.
-- `app.parslia.kitchen.ai.booster.monthly` — AI Image Booster — £9.99/month — Apple ID pending creation
+- Add-on subscription group: **Parslia Add-ons** — configured, Apple group ID `22305966`, so the booster can coexist with one product from Parslia Plans.
+- `app.parslia.kitchen.ai.booster.monthly` — AI Image Booster — £9.99/month — Apple ID `6800927927`; availability, price, localization and review assets still need final verification.
 - **Free Trial / 2 Weeks** applies to every core-plan product for new eligible subscribers (12 August 2026–11 August 2036). Apple determines eligibility once per core subscription group. The booster has no separate trial.
 - A 16-day Billing Grace Period is enabled for all renewals in Production and Sandbox.
 - Product icons, localisations, review notes and the refreshed paywall review screenshot are uploaded for Business and the existing monthly/Professional products. Apple browser security stopped the final Starter Annual metadata refresh; its price schedule is updated, but its review text/screenshot should be checked once in App Store Connect.
@@ -57,6 +57,7 @@ Draft declaration: “Parslia displays content created and owned by Parslia, con
 
 ## Build, media and review
 
+- No owned Mac is required: `.github/workflows/ios-cloud-build.yml` runs the build on GitHub's macOS runner. Add the four encrypted Apple signing secrets documented in `ios/README.md`, then manually run the workflow with `upload_to_app_store` enabled. Never commit or paste the `.p8` private key into a support conversation.
 - Generate `Parslia.xcodeproj` on a Mac with XcodeGen: `cd ios && xcodegen generate`.
 - Set the Apple Developer Team and Automatic Signing; confirm the registered bundle ID.
 - Add the approved 1024×1024 icon to `Assets.xcassets/AppIcon.appiconset` and verify it is opaque with no alpha.

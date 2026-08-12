@@ -11,6 +11,25 @@ This target is the native iPhone/iPad shell for Parslia Kitchen OS. It uses Stor
 5. Confirm bundle ID `app.parslia.kitchen` and the `Parslia.storekit` scheme configuration.
 6. Production Hercules URL: `https://parslia-kitchen-os-667132.onhercules.app/`.
 
+## Build without owning a Mac
+
+The repository includes `.github/workflows/ios-cloud-build.yml`. It validates the
+app on GitHub's macOS runner for pull requests and can sign and upload a manual
+build to App Store Connect after these encrypted repository secrets are added:
+
+- `APPLE_TEAM_ID`
+- `APP_STORE_CONNECT_ISSUER_ID`
+- `APP_STORE_CONNECT_KEY_ID`
+- `APP_STORE_CONNECT_PRIVATE_KEY` (the complete contents of the downloaded
+  `AuthKey_*.p8` team key; never commit this file)
+
+Use an App Store Connect **team** API key with access to Certificates,
+Identifiers & Profiles. Individual API keys cannot manage provisioning. After
+the secrets exist, run **Actions -> iOS Cloud Build -> Run workflow**, select
+`upload_to_app_store: true`, and monitor both jobs. The workflow uses its GitHub
+run number as the App Store build number and removes the private key from the
+temporary runner after every attempt.
+
 ## Local StoreKit tests
 
 - Product loading: five core plans and the AI Image Booster appear with StoreKit-formatted prices.
