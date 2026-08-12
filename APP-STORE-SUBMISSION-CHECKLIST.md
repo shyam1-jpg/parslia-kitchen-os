@@ -8,14 +8,17 @@ Production Hercules application URL: `https://parslia-kitchen-os-667132.onhercul
 
 - Subscription group reference name: **Parslia Plans** — configured, Apple group ID `22305600`
 - Group display name: **Parslia Plans**
-- Rank 1: Pro products; rank 2: Starter products (upgrades become effective immediately; downgrades follow Apple’s service rules).
-- `app.parslia.kitchen.starter.monthly` — Starter Monthly — £29/month — Apple ID `6800864623`
-- `app.parslia.kitchen.starter.annual` — Starter Annual — £290/year — Apple ID `6800863077`
-- `app.parslia.kitchen.pro.monthly` — Pro Monthly — £59/month — Apple ID `6800861515`
-- `app.parslia.kitchen.pro.annual` — Pro Annual — £590/year — Apple ID `6800859004`
-- **Free Trial / 2 Weeks** is configured on every product for eligible new subscribers (12 August 2026–11 August 2036). Apple determines eligibility once per subscription group.
+- Required order: rank 1 Business; rank 2 Professional; rank 3 Starter (upgrades become effective immediately; downgrades follow Apple’s service rules). **App Store Connect still needs the newly created Business product moved above Professional.**
+- `app.parslia.kitchen.starter.monthly` — Starter Monthly — £39/month — Apple ID `6800864623`
+- `app.parslia.kitchen.starter.annual` — Starter Annual — £390/year — Apple ID `6800863077`
+- `app.parslia.kitchen.pro.monthly` — Professional Monthly — £79/month — Apple ID `6800861515`
+- `app.parslia.kitchen.pro.annual` — Professional Annual — £790/year — Apple ID `6800859004`
+- `app.parslia.kitchen.business.monthly` — Business Monthly — £149/month — Apple ID `6800918531`
+- Add-on subscription group: **Parslia Add-ons** — required so the booster can coexist with one product from Parslia Plans; pending creation in App Store Connect.
+- `app.parslia.kitchen.ai.booster.monthly` — AI Image Booster — £9.99/month — Apple ID pending creation
+- **Free Trial / 2 Weeks** applies to every core-plan product for new eligible subscribers (12 August 2026–11 August 2036). Apple determines eligibility once per core subscription group. The booster has no separate trial.
 - A 16-day Billing Grace Period is enabled for all renewals in Production and Sandbox.
-- Product icons, localisations, review notes and the paywall review screenshot are uploaded for all four subscriptions.
+- Product icons, localisations, review notes and the refreshed paywall review screenshot are uploaded for Business and the existing monthly/Professional products. Apple browser security stopped the final Starter Annual metadata refresh; its price schedule is updated, but its review text/screenshot should be checked once in App Store Connect.
 - Subscription review notes: “StoreKit 2 paywall is opened from View plans in the navigation bar. Use the supplied review account, select any plan, and use Apple sandbox purchase controls. Restore Purchases and Manage Subscription are on the same screen.”
 
 ## URLs and agreements
@@ -58,7 +61,7 @@ Draft declaration: “Parslia displays content created and owned by Parslia, con
 - Set the Apple Developer Team and Automatic Signing; confirm the registered bundle ID.
 - Add the approved 1024×1024 icon to `Assets.xcassets/AppIcon.appiconset` and verify it is opaque with no alpha.
 - Run unit tests, StoreKit local tests, then sandbox on a physical device/TestFlight.
-- Verify new purchase, trial, restore, cancellation, upgrade Starter→Pro, downgrade Pro→Starter, billing retry, expiry and repurchase.
+- Verify new purchase, trial, restore, cancellation, upgrades and downgrades across Starter/Professional/Business, independent booster renewal, billing retry, expiry and repurchase.
 - Upload an archive through Xcode, select the build in App Store Connect, export-compliance answer No (subject to final build review), and provide a working demo account.
 - Screenshots: up to 10 per device class. Required current App Store Connect slots should include iPhone 6.7-inch and iPad 13-inch if iPad remains supported. Ensure screenshots show the actual shipping UI and no placeholder data.
 - Submit subscriptions with the first app version. Confirm Paid Applications Agreement, banking and tax information are active.
@@ -78,8 +81,10 @@ Draft declaration: “Parslia displays content created and owned by Parslia, con
 ## Feature entitlement decision
 
 - Free/expired: account, legal, support and subscription screen only.
-- Starter: dashboard, recipes, menu planner, allergens and kitchen logs.
-- Pro: all Starter features plus AI Image, AI Voice Finder, stock, suppliers, rota, reports and labels.
+- Starter: one location, up to 10 staff, 30 AI recipe images/month, recipes, menus, allergens, stock, suppliers, compliance logs, rota/time clock, temperature integration and logging, backup and export.
+- Professional: all Starter features, up to 30 staff and 100 AI recipe images/month, plus advanced costing, invoice scanning, auto-ordering, PIN/time-clock controls, advanced compliance/labels, reports and priority support.
+- Business: all Professional features, up to three locations, up to 100 staff and 250 AI recipe images/month, plus central multi-location control, comparisons, permissions and exportable group reports.
+- AI Image Booster: adds 50 AI recipe images/month to an active core plan; it never grants core access on its own.
 - The native shell exposes this verified entitlement to the Hercules web app as `window.ParsliaNativeEntitlement` and emits `parslia-entitlement-changed`. The Hercules application must consume that event and enforce the same checks on every paid action; hiding navigation alone is not sufficient.
 
 ## Server hardening recommended before scale

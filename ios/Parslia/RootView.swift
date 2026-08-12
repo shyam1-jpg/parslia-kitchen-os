@@ -8,7 +8,11 @@ struct RootView: View {
 
     var body: some View {
         NavigationStack {
-            ParsliaWebView(url: URL(string: "https://parslia-kitchen-os-667132.onhercules.app/")!, entitlement: store.tier)
+            ParsliaWebView(
+                url: URL(string: "https://parslia-kitchen-os-667132.onhercules.app/")!,
+                entitlement: store.tier,
+                hasAIImageBooster: store.hasAIImageBooster
+            )
                 .navigationTitle("Parslia")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -24,6 +28,7 @@ struct RootView: View {
 struct ParsliaWebView: UIViewRepresentable {
     let url: URL
     let entitlement: EntitlementTier
+    let hasAIImageBooster: Bool
     func makeUIView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
@@ -33,9 +38,15 @@ struct ParsliaWebView: UIViewRepresentable {
         return view
     }
     func updateUIView(_ uiView: WKWebView, context: Context) {
-        let plan = switch entitlement { case .free: "free"; case .starter: "starter"; case .pro: "pro" }
+        let plan = switch entitlement {
+        case .free: "free"
+        case .starter: "starter"
+        case .professional: "professional"
+        case .business: "business"
+        }
         let features = ParsliaFeature.allCases.filter { $0.isAvailable(with: entitlement) }.map(\.rawValue)
-        let data = try? JSONSerialization.data(withJSONObject: ["plan": plan, "features": features])
+        let addOns = hasAIImageBooster ? ["aiImageBooster"] : []
+        let data = try? JSONSerialization.data(withJSONObject: ["plan": plan, "features": features, "addOns": addOns])
         guard let data, let json = String(data: data, encoding: .utf8) else { return }
         uiView.evaluateJavaScript("window.ParsliaNativeEntitlement=\(json);window.dispatchEvent(new CustomEvent('parslia-entitlement-changed',{detail:window.ParsliaNativeEntitlement}));")
     }
@@ -52,12 +63,26 @@ struct PaywallView: View {
                     Text("Choose your Parslia plan").font(.largeTitle.bold()).multilineTextAlignment(.center)
                     Text("Eligible new customers receive a 14-day free trial. After the trial, your selected plan renews automatically at the price and duration shown unless cancelled at least 24 hours before renewal.")
                         .font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                    ForEach(store.products) { product in
+                    ForEach(store.coreProducts) { product in
                         PlanCard(product: product, introEligible: store.isIntroEligible(product)) { Task { await store.purchase(product) } }
                     }
                     if store.products.isEmpty && !store.isLoading {
                         Text("Plans are temporarily unavailable.").foregroundStyle(.secondary)
                     }
+                    if !store.addOnProducts.isEmpty {
+                        Divider()
+                        Text("Add-ons").font(.title2.bold()).frame(maxWidth: .infinity, alignment: .leading)
+                        Text("AI Image Booster adds 50 AI recipe images to an active paid plan each month.")
+                            .font(.subheadline).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                        ForEach(store.addOnProducts) { product in
+                            PlanCard(product: product, introEligible: false, isEnabled: store.tier != .free) { Task { await store.purchase(product) } }
+                        }
+                        if store.tier == .free {
+                            Text("Choose a Parslia plan before adding the booster.")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                    Link("Enterprise — Contact Sales", destination: URL(string: "https://parslia.app/support.html")!)
                     Button("Restore Purchases") { Task { await store.restore() } }
                     ManageSubscriptionsButton { Text("Manage Subscription") }
                     HStack {
@@ -82,6 +107,7 @@ struct PaywallView: View {
 private struct PlanCard: View {
     let product: Product
     let introEligible: Bool
+    var isEnabled = true
     let buy: () -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
@@ -92,7 +118,7 @@ private struct PlanCard: View {
                  : "\(product.displayPrice) per \(periodText). Auto-renews until cancelled.")
                 .font(.subheadline)
             Button(introEligible ? "Start 14-Day Free Trial" : "Subscribe", action: buy)
-                .buttonStyle(.borderedProminent).frame(maxWidth: .infinity)
+                .buttonStyle(.borderedProminent).frame(maxWidth: .infinity).disabled(!isEnabled)
         }.padding().frame(maxWidth: .infinity, alignment: .leading)
             .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
     }

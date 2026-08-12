@@ -6,6 +6,7 @@ final class SubscriptionStore: ObservableObject {
     @Published private(set) var products: [Product] = []
     @Published private(set) var introEligibleProductIDs: Set<String> = []
     @Published private(set) var tier: EntitlementTier = .free
+    @Published private(set) var hasAIImageBooster = false
     @Published private(set) var isLoading = false
     @Published var message: String?
     private var updates: Task<Void, Never>?
@@ -44,6 +45,14 @@ final class SubscriptionStore: ObservableObject {
         introEligibleProductIDs.contains(product.id)
     }
 
+    var coreProducts: [Product] {
+        products.filter { SubscriptionPlan(rawValue: $0.id)?.isAddOn == false }
+    }
+
+    var addOnProducts: [Product] {
+        products.filter { SubscriptionPlan(rawValue: $0.id)?.isAddOn == true }
+    }
+
     func purchase(_ product: Product) async {
         isLoading = true
         defer { isLoading = false }
@@ -65,21 +74,27 @@ final class SubscriptionStore: ObservableObject {
         do {
             try await AppStore.sync()
             await refreshEntitlements()
-            message = tier == .free ? "No active subscription was found." : "Purchases restored."
+            message = tier == .free && !hasAIImageBooster ? "No active subscription was found." : "Purchases restored."
         } catch { message = "Purchases could not be restored."
         }
     }
 
     func refreshEntitlements() async {
         var best: EntitlementTier = .free
+        var booster = false
         for await result in Transaction.currentEntitlements {
             guard let transaction = try? verified(result),
                   transaction.revocationDate == nil,
                   transaction.expirationDate.map({ $0 > Date() }) ?? true,
                   let plan = SubscriptionPlan(rawValue: transaction.productID) else { continue }
-            best = max(best, plan.tier)
+            if let planTier = plan.tier {
+                best = max(best, planTier)
+            } else if plan == .aiImageBoosterMonthly {
+                booster = true
+            }
         }
         tier = best
+        hasAIImageBooster = booster
     }
 
     private func observeTransactions() -> Task<Void, Never> {

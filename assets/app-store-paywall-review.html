@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Parslia subscriptions</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f7f2e8; color: #073f35; font: 15px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    main { width: 430px; min-height: 932px; margin: 0 auto; padding: 34px 18px 24px; background: radial-gradient(circle at 100% 0, #e7c08b55, transparent 36%), #f7f2e8; }
+    header { text-align: center; margin-bottom: 20px; }
+    .logo { width: 74px; height: 74px; border-radius: 18px; box-shadow: 0 8px 24px #073f3540; }
+    h1 { margin: 13px 0 5px; font: 700 28px/1.1 Georgia, serif; }
+    .intro { margin: 0 auto; max-width: 370px; color: #3e5f58; }
+    .trial { color: #9a5f28; font-weight: 750; }
+    .card { border: 1px solid #d9d2c5; background: #fffdf8; border-radius: 18px; padding: 15px 16px; margin: 11px 0; box-shadow: 0 5px 15px #073f3512; }
+    .recommended { border: 2px solid #b8793f; position: relative; }
+    .badge { position: absolute; right: 13px; top: -10px; background: #b8793f; color: white; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    h2 { margin: 0; font: 700 20px/1.1 Georgia, serif; }
+    .price { font-size: 17px; font-weight: 750; white-space: nowrap; }
+    .details { margin: 6px 0 11px; color: #526a65; font-size: 13px; }
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button { border: 1px solid #0a594a; border-radius: 10px; padding: 10px 5px; background: #fff; color: #0a594a; font-weight: 700; }
+    button.primary { background: #0a594a; color: #fff; }
+    .booster { display: flex; justify-content: space-between; gap: 10px; align-items: center; background: #efe4d1; border-radius: 14px; padding: 12px 14px; margin-top: 14px; }
+    .booster strong { display: block; }
+    .booster span { font-size: 12px; color: #5f625d; }
+    footer { margin-top: 15px; text-align: center; color: #6b716e; font-size: 11px; }
+    footer a { color: #0a594a; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <img class="logo" src="USE_THIS_parslia_app_icon_1024.png" alt="Parslia">
+      <h1>Choose your Parslia plan</h1>
+      <p class="intro"><span class="trial">14 days free</span> for eligible new customers, then your chosen plan renews automatically unless cancelled.</p>
+    </header>
+
+    <section class="card">
+      <div class="title-row"><h2>Starter</h2><div class="price">£39 / month</div></div>
+      <p class="details">1 location · up to 10 staff · 30 AI recipe images · complete kitchen essentials</p>
+      <div class="options"><button class="primary">Monthly £39</button><button>Annual £390</button></div>
+    </section>
+
+    <section class="card recommended">
+      <div class="badge">MOST POPULAR</div>
+      <div class="title-row"><h2>Professional</h2><div class="price">£79 / month</div></div>
+      <p class="details">1 location · up to 30 staff · 100 AI images · advanced costing, stock and reports</p>
+      <div class="options"><button class="primary">Monthly £79</button><button>Annual £790</button></div>
+    </section>
+
+    <section class="card">
+      <div class="title-row"><h2>Business</h2><div class="price">£149 / month</div></div>
+      <p class="details">Up to 3 locations · up to 100 staff · central controls and location comparisons</p>
+      <div class="options"><button class="primary">Monthly £149</button><button>Contact us for annual</button></div>
+    </section>
+
+    <section class="booster">
+      <div><strong>AI Image Booster</strong><span>50 extra AI recipe images every month</span></div>
+      <b>£9.99 / month</b>
+    </section>
+
+    <footer>
+      <p>Payment is charged to your Apple Account after any eligible trial. Subscriptions auto-renew for the period and price shown unless cancelled at least 24 hours before renewal.</p>
+      <p>Restore Purchases · Manage Subscription</p>
+      <p><a href="https://parslia.app/privacy.html">Privacy Policy</a> · <a href="https://parslia.app/terms.html">Terms of Use</a></p>
+    </footer>
+  </main>
+</body>
+</html>
