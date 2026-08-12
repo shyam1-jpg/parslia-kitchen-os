@@ -18,28 +18,46 @@
       "name" : "Parslia Plans",
       "subscriptions" : [
         {
-          "adHocOffers" : [], "codeOffers" : [], "displayPrice" : "29.00", "familyShareable" : false,
-          "groupNumber" : 2, "internalID" : "100000000001", "introductoryOffer" : { "displayPrice" : "0", "internalID" : "intro-starter-monthly", "numberOfPeriods" : 1, "paymentMode" : "free", "subscriptionPeriod" : "P2W" },
+          "adHocOffers" : [], "codeOffers" : [], "displayPrice" : "39.00", "familyShareable" : false,
+          "groupNumber" : 3, "internalID" : "100000000001", "introductoryOffer" : { "displayPrice" : "0", "internalID" : "intro-starter-monthly", "numberOfPeriods" : 1, "paymentMode" : "free", "subscriptionPeriod" : "P2W" },
           "localizations" : [{ "description" : "Starter access for one month, renewing monthly.", "displayName" : "Starter Monthly", "locale" : "en_GB" }],
           "productID" : "app.parslia.kitchen.starter.monthly", "recurringSubscriptionPeriod" : "P1M", "referenceName" : "Starter Monthly", "subscriptionGroupID" : "5F123C9A-70AE-4BB1-A6CC-F7329BED6275", "type" : "RecurringSubscription"
         },
         {
-          "adHocOffers" : [], "codeOffers" : [], "displayPrice" : "290.00", "familyShareable" : false,
-          "groupNumber" : 2, "internalID" : "100000000002", "introductoryOffer" : { "displayPrice" : "0", "internalID" : "intro-starter-annual", "numberOfPeriods" : 1, "paymentMode" : "free", "subscriptionPeriod" : "P2W" },
+          "adHocOffers" : [], "codeOffers" : [], "displayPrice" : "390.00", "familyShareable" : false,
+          "groupNumber" : 3, "internalID" : "100000000002", "introductoryOffer" : { "displayPrice" : "0", "internalID" : "intro-starter-annual", "numberOfPeriods" : 1, "paymentMode" : "free", "subscriptionPeriod" : "P2W" },
           "localizations" : [{ "description" : "Starter access for one year, renewing annually.", "displayName" : "Starter Annual", "locale" : "en_GB" }],
           "productID" : "app.parslia.kitchen.starter.annual", "recurringSubscriptionPeriod" : "P1Y", "referenceName" : "Starter Annual", "subscriptionGroupID" : "5F123C9A-70AE-4BB1-A6CC-F7329BED6275", "type" : "RecurringSubscription"
         },
         {
-          "adHocOffers" : [], "codeOffers" : [], "displayPrice" : "59.00", "familyShareable" : false,
-          "groupNumber" : 1, "internalID" : "100000000003", "introductoryOffer" : { "displayPrice" : "0", "internalID" : "intro-pro-monthly", "numberOfPeriods" : 1, "paymentMode" : "free", "subscriptionPeriod" : "P2W" },
-          "localizations" : [{ "description" : "Complete Parslia Pro access for one month, renewing monthly.", "displayName" : "Pro Monthly", "locale" : "en_GB" }],
-          "productID" : "app.parslia.kitchen.pro.monthly", "recurringSubscriptionPeriod" : "P1M", "referenceName" : "Pro Monthly", "subscriptionGroupID" : "5F123C9A-70AE-4BB1-A6CC-F7329BED6275", "type" : "RecurringSubscription"
+          "adHocOffers" : [], "codeOffers" : [], "displayPrice" : "79.00", "familyShareable" : false,
+          "groupNumber" : 2, "internalID" : "100000000003", "introductoryOffer" : { "displayPrice" : "0", "internalID" : "intro-pro-monthly", "numberOfPeriods" : 1, "paymentMode" : "free", "subscriptionPeriod" : "P2W" },
+          "localizations" : [{ "description" : "Professional access for one month, renewing monthly.", "displayName" : "Professional Monthly", "locale" : "en_GB" }],
+          "productID" : "app.parslia.kitchen.pro.monthly", "recurringSubscriptionPeriod" : "P1M", "referenceName" : "Professional Monthly", "subscriptionGroupID" : "5F123C9A-70AE-4BB1-A6CC-F7329BED6275", "type" : "RecurringSubscription"
         },
         {
-          "adHocOffers" : [], "codeOffers" : [], "displayPrice" : "590.00", "familyShareable" : false,
-          "groupNumber" : 1, "internalID" : "100000000004", "introductoryOffer" : { "displayPrice" : "0", "internalID" : "intro-pro-annual", "numberOfPeriods" : 1, "paymentMode" : "free", "subscriptionPeriod" : "P2W" },
-          "localizations" : [{ "description" : "Complete Parslia Pro access for one year, renewing annually.", "displayName" : "Pro Annual", "locale" : "en_GB" }],
-          "productID" : "app.parslia.kitchen.pro.annual", "recurringSubscriptionPeriod" : "P1Y", "referenceName" : "Pro Annual", "subscriptionGroupID" : "5F123C9A-70AE-4BB1-A6CC-F7329BED6275", "type" : "RecurringSubscription"
+          "adHocOffers" : [], "codeOffers" : [], "displayPrice" : "790.00", "familyShareable" : false,
+          "groupNumber" : 2, "internalID" : "100000000004", "introductoryOffer" : { "displayPrice" : "0", "internalID" : "intro-pro-annual", "numberOfPeriods" : 1, "paymentMode" : "free", "subscriptionPeriod" : "P2W" },
+          "localizations" : [{ "description" : "Professional access for one year, renewing annually.", "displayName" : "Professional Annual", "locale" : "en_GB" }],
+          "productID" : "app.parslia.kitchen.pro.annual", "recurringSubscriptionPeriod" : "P1Y", "referenceName" : "Professional Annual", "subscriptionGroupID" : "5F123C9A-70AE-4BB1-A6CC-F7329BED6275", "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [], "codeOffers" : [], "displayPrice" : "149.00", "familyShareable" : false,
+          "groupNumber" : 1, "internalID" : "100000000005", "introductoryOffer" : { "displayPrice" : "0", "internalID" : "intro-business-monthly", "numberOfPeriods" : 1, "paymentMode" : "free", "subscriptionPeriod" : "P2W" },
+          "localizations" : [{ "description" : "Business access for up to three locations, renewing monthly.", "displayName" : "Business Monthly", "locale" : "en_GB" }],
+          "productID" : "app.parslia.kitchen.business.monthly", "recurringSubscriptionPeriod" : "P1M", "referenceName" : "Business Monthly", "subscriptionGroupID" : "5F123C9A-70AE-4BB1-A6CC-F7329BED6275", "type" : "RecurringSubscription"
+        }
+      ]
+    },
+    {
+      "id" : "A47B68A1-5C9A-427D-A984-3243CC1A253B",
+      "localizations" : [{ "description" : "Optional enhancements for an active Parslia plan.", "displayName" : "Parslia Add-ons", "locale" : "en_GB" }],
+      "name" : "Parslia Add-ons",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [], "codeOffers" : [], "displayPrice" : "9.99", "familyShareable" : false,
+          "groupNumber" : 1, "internalID" : "100000000006", "localizations" : [{ "description" : "Adds 50 AI recipe images each month to an active paid plan.", "displayName" : "AI Image Booster", "locale" : "en_GB" }],
+          "productID" : "app.parslia.kitchen.ai.booster.monthly", "recurringSubscriptionPeriod" : "P1M", "referenceName" : "AI Image Booster Monthly", "subscriptionGroupID" : "A47B68A1-5C9A-427D-A984-3243CC1A253B", "type" : "RecurringSubscription"
         }
       ]
     }

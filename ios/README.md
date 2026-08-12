@@ -13,11 +13,12 @@ This target is the native iPhone/iPad shell for Parslia Kitchen OS. It uses Stor
 
 ## Local StoreKit tests
 
-- Product loading: all four products appear with StoreKit-formatted prices.
-- Trial: each product shows the two-week free introductory offer.
-- Purchase: verified Starter and Pro transactions select their respective tier.
-- Upgrade: Starter to Pro unlocks Pro immediately.
-- Downgrade: Pro remains active until Apple changes the verified entitlement.
+- Product loading: five core plans and the AI Image Booster appear with StoreKit-formatted prices.
+- Trial: each core plan shows the two-week free introductory offer; the booster does not include a separate trial.
+- Purchase: verified Starter, Professional and Business transactions select their respective tier.
+- Upgrade: Starter to Professional or Business unlocks the higher tier immediately.
+- Downgrade: the higher tier remains active until Apple changes the verified entitlement.
+- Add-on: the AI Image Booster is tracked independently and never grants a core entitlement by itself.
 - Cancel/expire/revoke: paid access is removed after the verified entitlement ends.
 - Billing retry/grace period: confirm access follows StoreKit's current entitlement sequence.
 - Restore: erase local transaction state as appropriate, then Restore Purchases.
