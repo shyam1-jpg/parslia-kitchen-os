@@ -12,6 +12,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.parslia.kitchen
         PRODUCT_NAME: Parslia
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
         TARGETED_DEVICE_FAMILY: "1"
         SWIFT_VERSION: 5.10
         CODE_SIGN_STYLE: Automatic
@@ -20,6 +22,8 @@ targets:
       path: Parslia/Info.plist
       properties:
         CFBundleDisplayName: Parslia
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
         NSCameraUsageDescription: Parslia uses the camera only when you choose to add a kitchen image.
         NSMicrophoneUsageDescription: Parslia uses the microphone only when you choose voice input.
