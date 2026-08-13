@@ -1,0 +1,508 @@
+{
+  "users": {
+    "owner-a@example.com": {
+      "name": "Owner A",
+      "tenantId": "tenant_demo"
+    },
+    "sarah@kiteline.app": {
+      "name": "Sarah Mitchell",
+      "tenantId": "tenant_demo"
+    }
+  },
+  "tenants": {
+    "tenant_demo": {
+      "org": {
+        "name": "Kiteline",
+        "plan": "Complete Kiteline",
+        "currency": "GBP",
+        "products": {
+          "fss": true,
+          "allerq": true,
+          "labels": true,
+          "waste": true
+        },
+        "channels": {
+          "sms": true,
+          "email": true,
+          "push": true
+        }
+      },
+      "sites": [
+        {
+          "id": "site_grove",
+          "name": "The Grove Hotel",
+          "city": "London",
+          "timezone": "Europe/London",
+          "address": "14 Park Lane",
+          "postcode": "W1K 1BE",
+          "country": "UK",
+          "type": "Hotel",
+          "covers": 180,
+          "rating": 5,
+          "manager": "Sarah Mitchell",
+          "phone": "+44 20 7123 4500",
+          "email": "grove@kiteline.app",
+          "opened": "2016",
+          "lastInspection": "2026-04-25",
+          "status": "Active"
+        },
+        {
+          "id": "site_dock",
+          "name": "Dockside Bistro",
+          "city": "Manchester",
+          "timezone": "Europe/London",
+          "address": "22 Salford Quays",
+          "postcode": "M50 3AZ",
+          "country": "UK",
+          "type": "Restaurant",
+          "covers": 85,
+          "rating": 5,
+          "manager": "Lena Park",
+          "phone": "+44 161 555 0192",
+          "email": "dock@kiteline.app",
+          "opened": "2019",
+          "lastInspection": "2026-04-08",
+          "status": "Active"
+        }
+      ],
+      "team": [
+        {
+          "id": "u_sarah",
+          "name": "Sarah Mitchell",
+          "role": "Head Chef",
+          "email": "sarah@kiteline.app",
+          "siteId": "site_grove",
+          "initials": "SM",
+          "access": "Admin"
+        },
+        {
+          "id": "u_james",
+          "name": "James Okafor",
+          "role": "Sous Chef",
+          "email": "james@kiteline.app",
+          "siteId": "site_grove",
+          "initials": "JO",
+          "access": "Staff"
+        },
+        {
+          "id": "u_lena",
+          "name": "Lena Park",
+          "role": "Kitchen Manager",
+          "email": "lena@kiteline.app",
+          "siteId": "site_dock",
+          "initials": "LP",
+          "access": "Manager"
+        },
+        {
+          "id": "u_marco",
+          "name": "Marco Rossi",
+          "role": "Chef de Partie",
+          "email": "marco@kiteline.app",
+          "siteId": "site_dock",
+          "initials": "MR",
+          "access": "Staff"
+        }
+      ],
+      "currentSite": "site_grove",
+      "recipes": [
+        {
+          "id": "r1",
+          "name": "Classic Beef Lasagne",
+          "category": "Main",
+          "site": "site_grove",
+          "servings": 8,
+          "prepMins": 40,
+          "cookMins": 60,
+          "allergens": [
+            "Cereals containing gluten",
+            "Milk",
+            "Eggs"
+          ],
+          "image": null,
+          "proImage": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22700%22%20height%3D%22400%22%20viewBox%3D%220%200%20700%20400%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22kg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22hsl(109%2C52%25%2C40%25)%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22hsl(151%2C48%25%2C24%25)%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22700%22%20height%3D%22400%22%20fill%3D%22url(%23kg)%22%2F%3E%3Ctext%20x%3D%2228%22%20y%3D%2248%22%20fill%3D%22rgba(255%2C255%2C255%2C.75)%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22700%22%20letter-spacing%3D%222%22%3EKITELINE%3C%2Ftext%3E%3Ctext%20x%3D%2228%22%20y%3D%22300%22%20fill%3D%22%23ffffff%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2232%22%20font-weight%3D%22700%22%3EClassic%20Beef%20Lasagne%3C%2Ftext%3E%3Ctext%20x%3D%2228%22%20y%3D%22334%22%20fill%3D%22%23ccfbf1%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2215%22%20font-weight%3D%22700%22%3EMain%3C%2Ftext%3E%3C%2Fsvg%3E",
+          "cost": 14.5,
+          "price": 12.95,
+          "sold": 86,
+          "ingredients": [
+            "500 g beef mince",
+            "1 onion, finely diced",
+            "2 garlic cloves, crushed",
+            "800 g chopped tomatoes",
+            "2 tbsp tomato pur\u00e9e",
+            "250 g lasagne sheets",
+            "50 g butter",
+            "50 g plain flour",
+            "500 ml milk",
+            "100 g parmesan, grated"
+          ],
+          "method": [
+            "Brown the mince, then add onion and garlic until soft.",
+            "Stir in tomatoes and pur\u00e9e; simmer 30 minutes.",
+            "Make a roux with butter and flour, whisk in milk to a smooth b\u00e9chamel.",
+            "Layer rag\u00f9, pasta sheets and b\u00e9chamel, repeating to fill the dish.",
+            "Top with parmesan and bake at 180\u00b0C for 40 minutes until golden."
+          ],
+          "proMethod": [
+            "Weigh all components; rag\u00f9 and b\u00e9chamel can be prepped day ahead (chill below 5\u00b0C).",
+            "Brown mince in batches for colour; drain excess fat before adding tomatoes.",
+            "Simmer rag\u00f9 30 min minimum until thick \u2014 sauce should coat the back of a spoon.",
+            "B\u00e9chamel: whisk constantly; pass through sieve if lumpy. Season with nutmeg.",
+            "Layer in GN tray: rag\u00f9 \u2192 pasta \u2192 b\u00e9chamel \u00d7 3. Top with parmesan.",
+            "Bake 180\u00b0C fan until core reaches 75\u00b0C and top is golden (~40 min).",
+            "Portion with hot hold above 63\u00b0C; cool surplus within 90 min for refrigeration."
+          ],
+          "stepByStep": false,
+          "steps": []
+        },
+        {
+          "id": "r2",
+          "name": "Wild Mushroom Risotto",
+          "category": "Main",
+          "site": "site_grove",
+          "servings": 4,
+          "prepMins": 15,
+          "cookMins": 30,
+          "allergens": [
+            "Milk",
+            "Sulphur dioxide & sulphites"
+          ],
+          "image": null,
+          "proImage": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22700%22%20height%3D%22400%22%20viewBox%3D%220%200%20700%20400%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22kg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22hsl(249%2C52%25%2C40%25)%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22hsl(291%2C48%25%2C24%25)%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22700%22%20height%3D%22400%22%20fill%3D%22url(%23kg)%22%2F%3E%3Ctext%20x%3D%2228%22%20y%3D%2248%22%20fill%3D%22rgba(255%2C255%2C255%2C.75)%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22700%22%20letter-spacing%3D%222%22%3EKITELINE%3C%2Ftext%3E%3Ctext%20x%3D%2228%22%20y%3D%22300%22%20fill%3D%22%23ffffff%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2232%22%20font-weight%3D%22700%22%3EWild%20Mushroom%20Risotto%3C%2Ftext%3E%3Ctext%20x%3D%2228%22%20y%3D%22334%22%20fill%3D%22%23ccfbf1%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2215%22%20font-weight%3D%22700%22%3EMain%3C%2Ftext%3E%3C%2Fsvg%3E",
+          "cost": 9,
+          "price": 13.5,
+          "sold": 54,
+          "ingredients": [
+            "300 g arborio rice",
+            "400 g mixed wild mushrooms",
+            "1 onion, diced",
+            "150 ml white wine",
+            "1 L hot vegetable stock",
+            "40 g butter",
+            "50 g parmesan",
+            "Olive oil, salt & pepper"
+          ],
+          "method": [
+            "Saut\u00e9 mushrooms in oil, set aside.",
+            "Soften onion, add rice and toast 1 minute.",
+            "Add wine and let it absorb.",
+            "Add stock a ladle at a time, stirring, until creamy (~18 min).",
+            "Fold through mushrooms, butter and parmesan; season and serve."
+          ],
+          "proMethod": [
+            "Stock kept at simmer in bain-marie \u2014 cold stock stops the risotto.",
+            "Saut\u00e9 mushrooms hard in batches; drain on cloth to avoid grey risotto.",
+            "Toast rice 1 min until edges translucent before wine.",
+            "Add stock one ladle at a time; stir continuously \u2014 all'onda texture at ~18 min.",
+            "Mount with cold butter and parmesan off heat (mantecatura). Serve immediately on hot plates."
+          ],
+          "stepByStep": false,
+          "steps": []
+        },
+        {
+          "id": "r3",
+          "name": "Tomato & Basil Soup",
+          "category": "Starter",
+          "site": "site_grove",
+          "servings": 6,
+          "prepMins": 10,
+          "cookMins": 25,
+          "allergens": [
+            "Celery"
+          ],
+          "image": null,
+          "proImage": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22700%22%20height%3D%22400%22%20viewBox%3D%220%200%20700%20400%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22kg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22hsl(228%2C52%25%2C40%25)%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22hsl(270%2C48%25%2C24%25)%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22700%22%20height%3D%22400%22%20fill%3D%22url(%23kg)%22%2F%3E%3Ctext%20x%3D%2228%22%20y%3D%2248%22%20fill%3D%22rgba(255%2C255%2C255%2C.75)%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22700%22%20letter-spacing%3D%222%22%3EKITELINE%3C%2Ftext%3E%3Ctext%20x%3D%2228%22%20y%3D%22300%22%20fill%3D%22%23ffffff%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2232%22%20font-weight%3D%22700%22%3ETomato%20%26amp%3B%20Basil%20Soup%3C%2Ftext%3E%3Ctext%20x%3D%2228%22%20y%3D%22334%22%20fill%3D%22%23ccfbf1%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2215%22%20font-weight%3D%22700%22%3EStarter%3C%2Ftext%3E%3C%2Fsvg%3E",
+          "cost": 5.5,
+          "price": 6.5,
+          "sold": 120,
+          "ingredients": [
+            "1 kg ripe tomatoes",
+            "1 onion",
+            "2 celery sticks",
+            "2 garlic cloves",
+            "700 ml vegetable stock",
+            "Handful fresh basil",
+            "Olive oil, salt & pepper"
+          ],
+          "method": [
+            "Soften onion, celery and garlic in oil.",
+            "Add tomatoes and stock; simmer 20 minutes.",
+            "Blend until smooth.",
+            "Stir through torn basil, season and serve."
+          ],
+          "proMethod": [
+            "Wash and chop veg to uniform size for even cooking.",
+            "Sweat without colour \u2014 lid on, low heat 8 min.",
+            "Simmer 20 min; blend on high until silky, pass if required.",
+            "Basil added off heat only \u2014 retains colour and aroma.",
+            "Hold hot above 63\u00b0C or chill below 5\u00b0C within 90 min of cooking."
+          ],
+          "stepByStep": false,
+          "steps": []
+        },
+        {
+          "id": "r4",
+          "name": "Sticky Toffee Pudding",
+          "category": "Dessert",
+          "site": "site_grove",
+          "servings": 8,
+          "prepMins": 20,
+          "cookMins": 35,
+          "allergens": [
+            "Cereals containing gluten",
+            "Eggs",
+            "Milk"
+          ],
+          "image": null,
+          "proImage": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22700%22%20height%3D%22400%22%20viewBox%3D%220%200%20700%20400%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22kg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22hsl(221%2C52%25%2C40%25)%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22hsl(263%2C48%25%2C24%25)%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22700%22%20height%3D%22400%22%20fill%3D%22url(%23kg)%22%2F%3E%3Ctext%20x%3D%2228%22%20y%3D%2248%22%20fill%3D%22rgba(255%2C255%2C255%2C.75)%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22700%22%20letter-spacing%3D%222%22%3EKITELINE%3C%2Ftext%3E%3Ctext%20x%3D%2228%22%20y%3D%22300%22%20fill%3D%22%23ffffff%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2232%22%20font-weight%3D%22700%22%3ESticky%20Toffee%20Pudding%3C%2Ftext%3E%3Ctext%20x%3D%2228%22%20y%3D%22334%22%20fill%3D%22%23ccfbf1%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2215%22%20font-weight%3D%22700%22%3EDessert%3C%2Ftext%3E%3C%2Fsvg%3E",
+          "cost": 7.2,
+          "price": 7.25,
+          "sold": 95,
+          "ingredients": [
+            "200 g pitted dates",
+            "250 ml boiling water",
+            "1 tsp bicarbonate of soda",
+            "175 g self-raising flour",
+            "150 g brown sugar",
+            "2 eggs",
+            "75 g butter",
+            "300 ml double cream",
+            "100 g toffee sauce"
+          ],
+          "method": [
+            "Soak dates in boiling water with bicarb for 10 minutes.",
+            "Cream butter and sugar, beat in eggs.",
+            "Fold in flour and the date mixture.",
+            "Bake at 180\u00b0C for 30\u201335 minutes.",
+            "Serve warm with toffee sauce and cream."
+          ],
+          "proMethod": [
+            "Dates must be fully softened \u2014 blend soaking liquid smooth before adding to batter.",
+            "Do not over-mix once flour is added; sponge should be light.",
+            "Bake 180\u00b0C until skewer clean (~30 min). Core above 75\u00b0C.",
+            "Rest 10 min before saucing. Warm toffee sauce separately.",
+            "Serve warm; hold covered max 30 min. Chill surplus below 5\u00b0C."
+          ],
+          "stepByStep": false,
+          "steps": []
+        },
+        {
+          "id": "r5",
+          "name": "Falafel Wrap",
+          "category": "Lunch",
+          "site": "site_dock",
+          "servings": 4,
+          "prepMins": 20,
+          "cookMins": 10,
+          "allergens": [
+            "Cereals containing gluten",
+            "Sesame",
+            "Soybeans"
+          ],
+          "image": null,
+          "proImage": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22700%22%20height%3D%22400%22%20viewBox%3D%220%200%20700%20400%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22kg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22hsl(130%2C52%25%2C40%25)%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22hsl(172%2C48%25%2C24%25)%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22700%22%20height%3D%22400%22%20fill%3D%22url(%23kg)%22%2F%3E%3Ctext%20x%3D%2228%22%20y%3D%2248%22%20fill%3D%22rgba(255%2C255%2C255%2C.75)%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22700%22%20letter-spacing%3D%222%22%3EKITELINE%3C%2Ftext%3E%3Ctext%20x%3D%2228%22%20y%3D%22300%22%20fill%3D%22%23ffffff%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2232%22%20font-weight%3D%22700%22%3EFalafel%20Wrap%3C%2Ftext%3E%3Ctext%20x%3D%2228%22%20y%3D%22334%22%20fill%3D%22%23ccfbf1%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2215%22%20font-weight%3D%22700%22%3ELunch%3C%2Ftext%3E%3C%2Fsvg%3E",
+          "cost": 4.8,
+          "price": 8.95,
+          "sold": 140,
+          "ingredients": [
+            "400 g chickpeas",
+            "1 onion",
+            "2 garlic cloves",
+            "Handful parsley & coriander",
+            "1 tsp cumin",
+            "4 flatbreads",
+            "Hummus & pickles to serve",
+            "Oil for frying"
+          ],
+          "method": [
+            "Blitz chickpeas, onion, garlic, herbs and spices to a coarse paste.",
+            "Shape into balls and chill 15 minutes.",
+            "Shallow fry until golden and cooked through.",
+            "Spread flatbread with hummus, add falafel and pickles, wrap and serve."
+          ],
+          "proMethod": [
+            "Use soaked dried chickpeas \u2014 tinned chickpeas make wet falafel.",
+            "Pulse to coarse crumb, not pur\u00e9e; test fry one ball for seasoning.",
+            "Chill shaped falafel 15 min minimum \u2014 improves structure.",
+            "Fry at 175\u00b0C until deep golden; drain on rack, not paper (stays crisp).",
+            "Build wrap to order; confirm sesame allergen on flatbread and hummus."
+          ],
+          "stepByStep": false,
+          "steps": []
+        }
+      ],
+      "waste": [
+        {
+          "id": "id_tknn1ew",
+          "site": "site_grove",
+          "item": "Bread",
+          "kg": 2.4,
+          "reason": "Overproduction",
+          "stage": "Prep",
+          "cost": 6,
+          "at": "2026-06-09T22:36:00.714Z"
+        },
+        {
+          "id": "id_l1bnzqd",
+          "site": "site_grove",
+          "item": "Vegetables",
+          "kg": 1.8,
+          "reason": "Spoilage",
+          "stage": "Storage",
+          "cost": 5.4,
+          "at": "2026-06-08T22:36:00.714Z"
+        }
+      ],
+      "sensors": [
+        {
+          "id": "s1",
+          "name": "Walk-in Fridge 1 \u2014 Proteins",
+          "type": "fridge",
+          "target": 4,
+          "min": 1,
+          "max": 5,
+          "siteId": "site_grove",
+          "temp": 3.2,
+          "location": "Basement cold store",
+          "zone": "Protein store",
+          "serial": "KL-SN001-2024",
+          "gateway": "GW-GROVE",
+          "probe": "LoRaWAN PT100 probe",
+          "interval": "5 min",
+          "humidity": 72,
+          "doorOpen": false,
+          "calibrated": "2026-04-12",
+          "standard": "0\u20135\u00b0C chilled (EC 852/2004)",
+          "notes": "Primary protein walk-in \u2014 daily stock rotation",
+          "battery": 71,
+          "signal": 96,
+          "updated": "2026-06-09T22:32:58.570Z",
+          "history": [
+            3,
+            3.2,
+            3.3,
+            3.7,
+            3.8,
+            3.9,
+            3.6,
+            3.5,
+            3.5,
+            3.1,
+            3.4,
+            3.1,
+            3.1,
+            2.9,
+            2.8,
+            3,
+            3,
+            3,
+            3,
+            3.5,
+            3.6,
+            3.6,
+            3.4,
+            3.5
+          ]
+        },
+        {
+          "id": "s2",
+          "name": "Walk-in Fridge 2 \u2014 Produce",
+          "type": "fridge",
+          "target": 4,
+          "min": 1,
+          "max": 5,
+          "siteId": "site_grove",
+          "temp": 3.8,
+          "location": "Basement cold store",
+          "zone": "Produce",
+          "serial": "KL-SN002-2024",
+          "gateway": "GW-GROVE",
+          "probe": "LoRaWAN PT100 probe",
+          "interval": "5 min",
+          "humidity": 78,
+          "doorOpen": false,
+          "calibrated": "2026-04-14",
+          "standard": "0\u20135\u00b0C chilled (EC 852/2004)",
+          "notes": "Salad, veg & dairy \u2014 separate from raw protein",
+          "battery": 89,
+          "signal": 81,
+          "updated": "2026-06-09T22:31:32.974Z",
+          "history": [
+            3.8,
+            4,
+            4.2,
+            4,
+            4,
+            4.2,
+            4.1,
+            4.3,
+            3.9,
+            4,
+            3.5,
+            3.9,
+            3.6,
+            3.5,
+            3.2,
+            3.2,
+            3.3,
+            3.6,
+            3.6,
+            3.6,
+            4,
+            4.3,
+            3.9,
+            4.4
+          ]
+        },
+        {
+          "id": "s3",
+          "name": "Freezer A \u2014 Main",
+          "type": "freezer",
+          "target": -18,
+          "min": -22,
+          "max": -16,
+          "siteId": "site_grove",
+          "temp": -18.6,
+          "location": "Basement cold store",
+          "zone": "Frozen proteins",
+          "serial": "KL-SN003-2024",
+          "gateway": "GW-GROVE",
+          "probe": "LoRaWAN PT100 probe",
+          "interval": "5 min",
+          "doorOpen": false,
+          "calibrated": "2026-04-20",
+          "standard": "\u2264-18\u00b0C frozen storage",
+          "notes": "Core temp log every 4h during service",
+          "battery": 81,
+          "signal": 81,
+          "updated": "2026-06-09T22:23:36.399Z",
+          "history": [
+            -18.5,
+            -18.5,
+            -18.4,
+            -18,
+            -18.3,
+            -18.4,
+            -18.5,
+            -18.2,
+            -18.7,
+            -18.7,
+            -18.9,
+            -18.9,
+            -18.6,
+            -18.9,
+            -19.1,
+            -18.8,
+            -19.1,
+            -18.9,
+            -18.9,
+            -18.8,
+            -18.7,
+            -18.3,
+            -18.5,
+            -18.3
+          ]
+        }
+      ]
+    }
+  }
+}
