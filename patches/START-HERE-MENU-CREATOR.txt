@@ -1,0 +1,26 @@
+START HERE — simple Menu Creator
+================================
+
+Weekly menu removed. One menu at a time.
+Allergen footer is locked so dishes cannot jump there.
+
+PRINT RIGHT NOW
+---------------
+1. Double-click: OPEN-PRINT-MENU-NOW.bat
+2. Paste menu → Make menu → Print / Save PDF
+
+OR FIX KITELINE
+---------------
+1. Double-click: APPLY-MENU-TEXT-ALIGN.bat
+2. Restart Kiteline
+3. Open Menu Creator
+4. Press Ctrl+Shift+R
+5. Confirm left panel shows: Build simple-v1.3
+
+Then:
+- Paste into "Paste menu → dishes"
+- Click Generate menu
+- Dishes appear in Dishes / preview
+- Allergen Information stays the disclaimer
+- Use Normal / Compact spacing if needed
+- Print / Save PDF or Copy text
