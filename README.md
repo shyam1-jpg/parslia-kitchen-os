@@ -3,6 +3,26 @@
 **Live domain (when DNS points to GitHub Pages):** https://parslia.app  
 **GitHub:** https://github.com/shyam1-jpg/parslia-kitchen-os
 
+## Products in this repo
+
+| Path | Product |
+|------|---------|
+| `index.html` + `styles.css` + `script.js` | Parslia marketing landing |
+| `libraix/` | Libraix AI web app (auth, chat, billing) |
+| **`parslia-ai-builder/`** | **Parslia AI Builder — VS Code extension (Stage 1 coding agent)** |
+
+### Parslia AI Builder (VS Code)
+
+Hospitality-focused AI coding agent: analyse a project, chat with code, multi-file edits with visual diff approval, and test/fix loops.
+
+```bash
+cd parslia-ai-builder
+npm install
+npm run build
+```
+
+See [`parslia-ai-builder/README.md`](parslia-ai-builder/README.md). Launch with **Run Parslia AI Builder Extension** from the workspace debug menu.
+
 ## Files
 
 | File | Purpose |
@@ -33,8 +53,8 @@ Open http://localhost:8000
 ## Cursor artifacts (original build)
 
 - https://cursor.com/artifacts/v/art-4019db19-1595-4fd0-9188-c1c8ff5c6288
-- https://cursor.com/artifacts/v/art-a83a6a46-6892-4258-a7e1-e7dec9a979e4
 - https://cursor.com/artifacts/v/art-e15bc4f8-923a-4858-8359-e5baeef338c3
+- https://cursor.com/artifacts/v/art-a83a6a46-6892-4258-a7e1-e7dec9a979e4
 
 ## Go live on parslia.app
 
