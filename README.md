@@ -13,22 +13,23 @@
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
 | `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
 
-## Preview locally (Windows)
+## Preview locally
 
-Double-click **`PREVIEW.bat`** or run:
+**Linux / macOS / Cloud:**
 
-```bat
-python -m http.server 8000
+```bash
+./setup.sh      # verify assets (optional)
+./preview.sh    # opens http://localhost:8000
 ```
 
-Open http://localhost:8000
+**Windows:** double-click **`PREVIEW.bat`** or run `python -m http.server 8000`, then open http://localhost:8000
 
 ## Raw GitHub links
 
 - [index.html](https://raw.githubusercontent.com/shyam1-jpg/parslia-kitchen-os/main/index.html)
 - [styles.css](https://raw.githubusercontent.com/shyam1-jpg/parslia-kitchen-os/main/styles.css)
 - [script.js](https://raw.githubusercontent.com/shyam1-jpg/parslia-kitchen-os/main/script.js)
-- [Logo PNG](https://raw.githubusercontent.com/shyam1-jpg/parslia-kitchen-os/main/USE_THIS_parslia_header_logo_clean.png)
+- [Logo PNG](https://raw.githubusercontent.com/shyam1-jpg/parslia-kitchen-os/main/assets/USE_THIS_parslia_header_logo_clean.png)
 
 ## Cursor artifacts (original build)
 
