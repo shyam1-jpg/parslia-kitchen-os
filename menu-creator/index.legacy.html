@@ -1986,7 +1986,7 @@ $("projectFile").onchange = e=>{
 };
 
 /* ---------------- Bulk paste → auto parse ---------------- */
-function toTitle(s){ return s.toLowerCase().replace(/\b([a-z])/g, (m,c)=>c.toUpperCase()); }
+function toTitle(s){ return s.toLowerCase().replace(/(^|[^A-Za-zÀ-ÿ])([a-zà-ÿ])/g,(m,pre,c)=>pre+c.toUpperCase()); }
 function normAllergen(x){
   x = x.replace(/[.;:]+$/,"").trim();
   if(!x) return "";
@@ -2005,7 +2005,7 @@ function parseAllergens(s){
   return out.filter(p=>p!=="None");
 }
 function normDiet(x){
-  const low = x.replace(/[.;:]+$/,"").trim().toLowerCase();
+  const low = x.replace(/[.;:]+$/,"").trim().toLowerCase().replace(/^(gluten|dairy|nut)[- ]?fre[e]?$/,"$1-free").replace(/\s+/g," ");
   const map = {v:"Vegetarian",veg:"Vegetarian",vegetarian:"Vegetarian",vegitarian:"Vegetarian",vegaterian:"Vegetarian",vegatarian:"Vegetarian",vg:"Vegan",vegan:"Vegan",
     gf:"Gluten-Free","gluten free":"Gluten-Free","gluten-free":"Gluten-Free",
     df:"Dairy-Free","dairy free":"Dairy-Free","dairy-free":"Dairy-Free",
@@ -2035,6 +2035,15 @@ function isDietHeadingDish(d){
   if(d.section) return true;
   const extra=(d.desc&&d.desc.trim()) || (d.allergens&&d.allergens.length);
   return isDietOnlyLine(d.name||"") && !extra;
+}
+function peelTrailingDiet(raw){
+  const src=(raw||"").trim();
+  if(!src) return {text:"", diet:[]};
+  const m=src.match(/^(.*?)(?:[.]\s+|\s+)((?:suitable\s+for\s+)?[A-Za-z][A-Za-z\s|/,&-]*)$/);
+  if(!m || !m[1].trim()) return {text:src, diet:[]};
+  const tail=m[2].trim();
+  if(!isDietOnlyLine(tail)) return {text:src, diet:[]};
+  return {text:m[1].replace(/[.\s]+$/,"").trim(), diet:parseDiets(tail.replace(/[()|/]/g,","))};
 }
 function parseBulk(text){
   const rawLines = text.split(/\r?\n/);
@@ -2196,7 +2205,9 @@ function parseBulk(text){
       cur.name = isCaps(raw) ? toTitle(raw) : raw;   // keep normal-case names as typed
       expectName = false;
     } else {
-      cur.desc = cur.desc ? cur.desc+" "+raw : raw;  // continuation of description
+      const peeled = peelTrailingDiet(raw);
+      cur.desc = cur.desc ? cur.desc+" "+peeled.text : peeled.text;
+      if(peeled.diet.length) cur.diet = [...new Set([...(cur.diet||[]), ...peeled.diet])];
     }
   }
   push();

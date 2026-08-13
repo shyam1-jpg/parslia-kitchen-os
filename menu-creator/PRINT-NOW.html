@@ -73,7 +73,7 @@ Vegan"></textarea>
 const DEFAULT_INFO = "We carefully select our ingredients and prepare all dishes with attention to allergens. However, please be aware that all food is prepared in a shared kitchen where cross-contamination may occur. While we take every precaution to minimize risk, we cannot guarantee the complete absence of allergens.\n\nIf you have a severe allergy or specific dietary requirement, please speak to a member of our team before serving yourself.\n\nYou can request more information on the allergens listed below.";
 const $ = id => document.getElementById(id);
 const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-function toTitle(s){ return s.toLowerCase().replace(/\b([a-z])/g, (m,c)=>c.toUpperCase()); }
+function toTitle(s){ return s.toLowerCase().replace(/(^|[^A-Za-zÀ-ÿ])([a-zà-ÿ])/g,(m,pre,c)=>pre+c.toUpperCase()); }
 function normAllergen(x){
   x = x.replace(/[.;:]+$/,"").trim(); if(!x) return "";
   const map = {none:"None",soya:"Soy",soy:"Soy",milk:"Dairy",dairy:"Dairy",gluten:"Gluten",sesame:"Sesame",mustard:"Mustard",sulphites:"Sulphur Dioxide","sulphur dioxide":"Sulphur Dioxide"};
@@ -85,6 +85,9 @@ function parseAllergens(s){
   if(out.length && out.every(p=>p==="None")) return ["None"];
   return out.filter(p=>p!=="None");
 }
+function dietKey(x){
+  return x.trim().toLowerCase().replace(/[^a-z-]+/g,"").replace(/^(gluten|dairy|nut)[-]?fre[e]?$/,"$1-free");
+}
 function parseDiets(s){
   const map={
     vegan:"Vegan",vg:"Vegan",
@@ -93,10 +96,7 @@ function parseDiets(s){
     "dairy-free":"Dairy-Free","dairyfree":"Dairy-Free",
     halal:"Halal","nut-free":"Nut-Free","nutfree":"Nut-Free"
   };
-  return [...new Set(s.replace(/^suitable\s+for\s*:?\s*/i,"").split(/,|&|\||\band\b/i).map(x=>{
-    const low=x.trim().toLowerCase().replace(/[^a-z-]+/g,"").replace(/^(gluten|dairy|nut)free$/,"$1-free");
-    return map[low]||"";
-  }).filter(Boolean))];
+  return [...new Set(s.replace(/^suitable\s+for\s*:?\s*/i,"").split(/,|&|\||\band\b/i).map(x=>map[dietKey(x)]||"").filter(Boolean))];
 }
 function isDietOnlyLine(raw){
   const cleaned=(raw||"").replace(/[()|/.,]/g," ").replace(/\s+/g," ").trim();
@@ -109,6 +109,19 @@ function isDietOnlyLine(raw){
     const low=w.toLowerCase().replace(/[^a-z-]/g,"");
     return !low || ["suitable","for","and","or"].includes(low) || parseDiets(w).length>0;
   });
+}
+function peelTrailingDiet(raw){
+  const src=(raw||"").trim();
+  if(!src) return {text:"", diet:[]};
+  const m=src.match(/^(.*?)(?:[.]\s+|\s+)((?:suitable\s+for\s+)?[A-Za-z][A-Za-z\s|/,&-]*)$/);
+  if(!m || !m[1].trim()) return {text:src, diet:[]};
+  const tail=m[2].trim();
+  if(!isDietOnlyLine(tail)) return {text:src, diet:[]};
+  return {text:m[1].replace(/[.\s]+$/,"").trim(), diet:parseDiets(tail.replace(/[()|/]/g,","))};
+}
+function applyDiet(dish, diets){
+  if(!dish || !diets || !diets.length) return;
+  dish.diet=[...new Set([...(dish.diet||[]),...diets])];
 }
 function isDietHeadingDish(d){
   if(!d) return false;
@@ -153,7 +166,11 @@ function parseBulk(text){
     if(/menu\s*$/i.test(raw) && !title && !dishes.length && !cur){ title=raw; continue; }
     if(isCaps(raw) && cur && cur.name && !expect){ push(); cur={name:toTitle(raw),desc:"",allergens:[],diet:[]}; expect=false; continue; }
     if(expect || !cur){ push(); cur={name:isCaps(raw)?toTitle(raw):raw, desc:"", allergens:[], diet:[]}; expect=false; }
-    else cur.desc = cur.desc ? cur.desc+" "+raw : raw;
+    else {
+      const peeled=peelTrailingDiet(raw);
+      cur.desc = cur.desc ? cur.desc+" "+peeled.text : peeled.text;
+      applyDiet(cur, peeled.diet);
+    }
   }
   push(); return {title, dishes};
 }

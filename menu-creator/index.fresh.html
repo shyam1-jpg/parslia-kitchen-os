@@ -522,7 +522,7 @@ async function loadPcMenuBundle(silent){
 }
 
 /* ---- Parse dishes only ---- */
-function toTitle(s){return s.toLowerCase().replace(/\b([a-z])/g,(m,c)=>c.toUpperCase())}
+function toTitle(s){return s.toLowerCase().replace(/(^|[^A-Za-zÀ-ÿ])([a-zà-ÿ])/g,(m,pre,c)=>pre+c.toUpperCase())}
 function normAllergen(x){
   x=x.replace(/[.;:]+$/,"").trim(); if(!x) return "";
   const map={non:"None",none:"None","n/a":"None",na:"None",soya:"Soy",soy:"Soy",milk:"Dairy",dairy:"Dairy",gluten:"Gluten","cereals containing gluten":"Gluten",celery:"Celery",nuts:"Nuts","tree nuts":"Nuts",peanuts:"Peanuts",peanut:"Peanuts",sesame:"Sesame",egg:"Eggs",eggs:"Eggs",fish:"Fish",mustard:"Mustard",lupin:"Lupin",crustaceans:"Crustaceans",molluscs:"Molluscs","sulphur dioxide":"Sulphur Dioxide",sulphites:"Sulphur Dioxide"};
@@ -535,7 +535,7 @@ function parseAllergens(s){
   return out.filter(p=>p!=="None");
 }
 function normDiet(x){
-  const low=x.replace(/[.;:]+$/,"").trim().toLowerCase();
+  const low=x.replace(/[.;:]+$/,"").trim().toLowerCase().replace(/^(gluten|dairy|nut)[- ]?fre[e]?$/,"$1-free").replace(/\s+/g," ");
   const map={v:"Vegetarian",veg:"Vegetarian",vegetarian:"Vegetarian",vegitarian:"Vegetarian",vegaterian:"Vegetarian",vegatarian:"Vegetarian",vg:"Vegan",vegan:"Vegan",gf:"Gluten-Free","gluten free":"Gluten-Free","gluten-free":"Gluten-Free",df:"Dairy-Free","dairy free":"Dairy-Free","dairy-free":"Dairy-Free",halal:"Halal","nut free":"Nut-Free","nut-free":"Nut-Free"};
   return map[low]||"";
 }
@@ -560,6 +560,15 @@ function isDietHeadingDish(d){
   if(d.section) return true;
   const extra=(d.desc&&d.desc.trim()) || (d.allergens&&d.allergens.length);
   return isDietOnlyLine(d.name||"") && !extra;
+}
+function peelTrailingDiet(raw){
+  const src=(raw||"").trim();
+  if(!src) return {text:"", diet:[]};
+  const m=src.match(/^(.*?)(?:[.]\s+|\s+)((?:suitable\s+for\s+)?[A-Za-z][A-Za-z\s|/,&-]*)$/);
+  if(!m || !m[1].trim()) return {text:src, diet:[]};
+  const tail=m[2].trim();
+  if(!isDietOnlyLine(tail)) return {text:src, diet:[]};
+  return {text:m[1].replace(/[.\s]+$/,"").trim(), diet:parseDiets(tail.replace(/[()|/]/g,","))};
 }
 function parseInlineDishLine(raw){
   const t=(raw||"").replace(/\s+/g," ").trim();
@@ -615,7 +624,11 @@ function parseBulk(text){
     if(/menu\s*$/i.test(raw) && !title && !dishes.length && !cur){ title=raw; continue; }
     if(isCaps(raw) && cur && cur.name && !expectName){ push(); cur=newDish(); cur.name=toTitle(raw); expectName=false; continue; }
     if(expectName || !cur){ push(); cur=newDish(); cur.name=isCaps(raw)?toTitle(raw):raw; expectName=false; }
-    else cur.desc=cur.desc?cur.desc+" "+raw:raw;
+    else {
+      const peeled=peelTrailingDiet(raw);
+      cur.desc=cur.desc?cur.desc+" "+peeled.text:peeled.text;
+      if(peeled.diet.length) cur.diet=[...new Set([...(cur.diet||[]),...peeled.diet])];
+    }
   }
   push();
   return {title, dishes};
