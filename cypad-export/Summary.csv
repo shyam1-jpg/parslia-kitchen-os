@@ -1,0 +1,17 @@
+﻿Metric,Value
+Supplier,Fresh from the Fields (Cypad)
+Site,The Vedanta (9999)
+Orders (unique),600
+Orders excl. Cancelled,595
+Cancelled,5
+Date range (Created),2022-06-20 to 2026-06-02
+Span days,1443
+Order GBP total excl. Cancelled,84407.28
+Delivered GBP total excl. Cancelled,66727.48
+Invoice Gross GBP total excl. Cancelled,2870.08
+Assessed cost (Delivered if present else Order),83196.6
+Yearly avg (assessed),21058.6
+Monthly avg (assessed),1754.88
+Weekly avg (assessed),403.59
+Daily avg (assessed),57.66
+Note,Order-level Cypad export only; no product line items in paste
