@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#2f6b4f" />
+<title>Menu Creator</title>
+<link rel="manifest" href="/menu-creator/manifest.json" />
+<link rel="apple-touch-icon" href="/menu-creator/icons/apple-touch-icon.png" />
+<style>
+:root{
+  --bg:#f3efe6; --panel:#fffdf8; --ink:#1f2a24; --muted:#6b7770;
+  --accent:#2f6b4f; --accent-soft:#e7f1eb; --gold:#b08a3e; --line:#ddd4c4;
+  --danger:#9b3b2e; --serif:"Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:"Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--sans)}
+button,input,textarea,select{font:inherit}
+.app{display:grid;grid-template-columns:380px 1fr;min-height:100vh}
+@media(max-width:980px){.app{grid-template-columns:1fr}}
+.side{background:var(--panel);border-right:1px solid var(--line);padding:16px;overflow:auto;max-height:100vh}
+.preview-wrap{padding:16px;overflow:auto;max-height:100vh}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.brand h1{margin:0;font-size:18px}
+.build{font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1px dashed var(--line);border-radius:999px;padding:4px 8px;color:var(--muted)}
+.group{margin-bottom:14px}
+.group label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;color:var(--muted)}
+.hint{font-size:12px;color:var(--muted);line-height:1.4;margin-top:6px}
+.divider{height:1px;background:var(--line);margin:14px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+.btn:hover{background:#f7f3ea}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{filter:brightness(1.05);background:var(--accent);color:#fff}
+.btn-line{background:transparent}
+.btn-danger{background:#f8e9e6;border-color:#e2b2a8;color:var(--danger)}
+.btn-sm{padding:6px 10px;font-size:12.5px}
+.btn-block{width:100%}
+input[type=text],input[type=date],textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#fff}
+textarea{min-height:90px;resize:vertical}
+.meal-tabs,.day-tabs,.chip-row,.align-row,.tpl-grid{display:flex;flex-wrap:wrap;gap:6px}
+.meal-tab,.day-tab,.chip,.align-btn,.tpl-card{
+  border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;font-size:12.5px;cursor:pointer
+}
+.meal-tab.on,.day-tab.on,.chip.on,.align-btn.on,.tpl-card.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tpl-card{width:calc(50% - 4px);text-align:left}
+.tpl-swatch{height:28px;border-radius:6px;margin-bottom:4px;border:1px solid rgba(0,0,0,.08)}
+.tpl-card b{display:block;font-size:12px}
+.tpl-card small{color:var(--muted);font-size:10.5px}
+.archive-status{font-size:12px;color:var(--muted);margin-top:6px}
+.dish-card{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:#fff}
+.dish-card h4{margin:0 0 4px;font-size:14px}
+.dish-card .meta{font-size:11.5px;color:var(--muted)}
+.dish-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;position:sticky;top:0;z-index:5;background:var(--bg);padding-bottom:10px}
+.toolbar .grow{flex:1;font-weight:700}
+#pagesOut{display:flex;flex-direction:column;align-items:center;gap:24px}
+.page{
+  width:min(794px,100%);min-height:1123px;background:#fff;border:3px double var(--gold);
+  padding:42px 48px 56px;position:relative;box-shadow:0 10px 30px rgba(31,42,36,.08);cursor:pointer
+}
+.page.current{outline:3px solid var(--accent);outline-offset:4px}
+.page.align-left .menu-head,.page.align-left .dish,.page.align-left .info-block{text-align:left}
+.page.align-right .menu-head,.page.align-right .dish,.page.align-right .info-block{text-align:right}
+.page.align-center .menu-head,.page.align-center .dish,.page.align-center .info-block{text-align:center}
+.menu-head{border-bottom:2px solid var(--gold);padding-bottom:12px;margin-bottom:18px;text-align:center}
+.menu-logo{max-height:72px;max-width:220px;display:block;margin:0 auto 8px}
+.menu-logo-text{font-family:var(--serif);font-size:20px;color:var(--accent);margin-bottom:4px}
+.menu-title{font-family:var(--serif);font-size:28px;letter-spacing:.14em;text-transform:uppercase;margin:0}
+.menu-sub{color:var(--muted);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-top:4px}
+.dish{margin:0 0 16px;text-align:center}
+.dish-name{font-family:var(--serif);font-size:16px;font-weight:700;margin:0 0 4px}
+.dish-desc{font-size:12.5px;font-style:italic;color:#3c463f;margin:0 0 4px}
+.dish-contains{font-size:11px;color:var(--gold);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.dish-diet{font-size:7px;color:var(--accent);font-weight:500;letter-spacing:.02em;text-transform:none;margin-top:2px;line-height:1.2}
+.diet-heading{font-family:var(--serif);font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:none;color:var(--accent);text-align:center;margin:14px 0 8px}
+.info-block{margin-top:28px;padding-top:14px;border-top:2px solid var(--gold);text-align:center}
+.info-title{font-family:var(--serif);font-size:18px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin:0 0 4px}
+.info-sub{font-size:10.5px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin:0 0 10px}
+.info-body{max-width:480px;margin:0 auto;font-size:11px;line-height:1.55;color:#3c463f}
+.info-body p{margin:0 0 8px}
+.empty-note{color:var(--muted);font-style:italic;text-align:center;padding:28px}
+.menu-qr-wrap{margin-top:12px;text-align:center}
+.menu-qr-wrap img{display:block;margin:0 auto;background:#fff}
+.menu-qr-caption{font-size:9px;color:var(--muted);font-style:italic;margin:6px 0 0}
+.page.tpl-modern{border:none;border-left:4px solid #111;background:#fafafa}
+.page.tpl-luxury{background:#1a1f2e;border-color:#c9a84c;color:#c4b89a}
+.page.tpl-luxury .menu-title,.page.tpl-luxury .dish-name{color:#f5e6c8}
+.page.tpl-luxury .info-title,.page.tpl-luxury .dish-contains,.page.tpl-luxury .menu-logo-text{color:#c9a84c}
+.page.tpl-botanical{background:#f7f9f4;border-color:#5a7d5a}
+.page.tpl-artdeco{background:#fff8f0;border:4px solid #1a1a1a}
+.page.tpl-rustic{background:#faf6f0;border:2px dashed #8b5a2b}
+.lib-overlay{position:fixed;inset:0;background:rgba(20,24,22,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.lib-overlay.open{display:flex}
+.lib-panel{background:var(--panel);width:min(920px,100%);max-height:90vh;overflow:auto;border-radius:16px;padding:16px}
+.lib-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.lib-head h2{margin:0;flex:1;font-size:18px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-cell{border:1px solid var(--line);border-radius:8px;min-height:72px;padding:6px;background:#fff;font-size:11px}
+.cal-cell b{display:block;margin-bottom:4px}
+.cal-cell .dot{display:inline-block;padding:2px 5px;border-radius:999px;background:var(--accent-soft);margin:1px;font-size:10px}
+.bank-item{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:#fff;cursor:grab}
+@media print{
+  body{background:#fff}
+  .side,.toolbar,.lib-overlay,.build{display:none!important}
+  .preview-wrap{padding:0;max-height:none;overflow:visible}
+  .page{box-shadow:none;outline:none!important;page-break-after:always;break-after:page}
+  .page.current{outline:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div>
+        <h1>Menu Creator</h1>
+        <div class="hint">Fresh rebuild — dishes in the menu, allergens only as a footer note.<br><a href="./PRINT-NOW.html"><b>Need to print right now?</b> Open Print Menu Now</a></div>
+      </div>
+      <span class="build" id="buildTag">Build fresh-v2</span>
+    </div>
+
+    <div class="group">
+      <label>Menu library — save by date</label>
+      <input type="date" id="archiveDate" />
+      <div class="meal-tabs" style="margin-top:8px">
+        <button type="button" class="meal-tab" data-meal="breakfast">Breakfast</button>
+        <button type="button" class="meal-tab" data-meal="lunch">Lunch</button>
+        <button type="button" class="meal-tab on" data-meal="dinner">Dinner</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn btn-primary btn-sm" id="saveArchiveBtn" type="button">Save to calendar</button>
+        <button class="btn btn-line btn-sm" id="browseLibBtn" type="button">Browse library</button>
+      </div>
+      <div class="archive-status" id="archiveStatus">Library ready</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="group">
+      <label>Days / menus</label>
+      <div class="day-tabs" id="dayTabs"></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn btn-line btn-sm" id="addDay" type="button">+ Add day</button>
+        <button class="btn btn-line btn-sm" id="weekBtn" type="button">Make week</button>
+        <button class="btn btn-line btn-sm" id="renameDay" type="button">Rename</button>
+        <button class="btn btn-danger btn-sm" id="delDay" type="button">Delete</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="group" style="background:var(--accent-soft);padding:12px;border-radius:12px">
+      <label>Paste full menu → Generate dishes</label>
+      <textarea id="bulkText" placeholder="DINNER MENU&#10;&#10;DISH NAME&#10;Description&#10;Contains: Gluten, Dairy&#10;Vegan"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="btn btn-primary" id="genBtn" type="button">Generate menu</button>
+        <button class="btn btn-line" id="appendBtn" type="button">Add to existing</button>
+      </div>
+      <div class="hint"><b>Generate puts dishes only into Dishes</b> — never into Allergen Information. Allergen Information stays the short disclaimer.</div>
+    </div>
+
+    <div class="group">
+      <label>Menu style</label>
+      <div class="tpl-grid" id="tplGrid"></div>
+    </div>
+
+    <div class="group">
+      <label>Text alignment</label>
+      <div class="align-row" id="alignRow">
+        <button type="button" class="align-btn" data-align="left">Left</button>
+        <button type="button" class="align-btn on" data-align="center">Center</button>
+        <button type="button" class="align-btn" data-align="right">Right</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <label>Logo</label>
+      <input type="file" id="logoFile" accept="image/*" />
+      <input type="text" id="logoText" placeholder="or type logo text" style="margin-top:8px" />
+      <button class="btn btn-line btn-sm" id="clearLogo" style="margin-top:8px" type="button">Remove logo</button>
+    </div>
+
+    <div class="group">
+      <label>Menu title</label>
+      <input type="text" id="menuTitle" placeholder="DINNER MENU" />
+      <input type="text" id="menuSub" placeholder="Optional subtitle" style="margin-top:8px" />
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="group">
+      <label>Add / edit a dish</label>
+      <input type="text" id="dName" placeholder="Dish name" />
+      <textarea id="dDesc" placeholder="Description" style="margin-top:8px;min-height:70px"></textarea>
+      <div class="hint">Allergens (tap to toggle):</div>
+      <div class="chip-row" id="allergenPick"></div>
+      <input type="text" id="dCustom" placeholder="Custom allergens (comma separated)" style="margin-top:8px" />
+      <div class="hint">Dietary:</div>
+      <div class="chip-row" id="dietPick"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn btn-primary" id="saveDish" type="button">Add dish</button>
+        <button class="btn btn-line" id="cancelEdit" type="button" style="display:none">Cancel</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <label>Dishes (<span id="dishCount">0</span>)</label>
+      <div id="dishList"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="group">
+      <label>Allergen footer (disclaimer only)</label>
+      <textarea id="infoText" style="min-height:110px"></textarea>
+      <div class="hint">Short kitchen disclaimer only. Dish names are blocked here on purpose.</div>
+      <button class="btn btn-line btn-sm" id="resetInfo" type="button" style="margin-top:8px">Reset disclaimer</button>
+      <div class="hint" style="margin-top:8px">Optional allergen names guests can ask about:</div>
+      <textarea id="infoAllergens" style="min-height:60px;margin-top:6px" placeholder="Gluten, Dairy, Sesame"></textarea>
+    </div>
+
+    <button class="btn btn-line btn-block" id="resetAll" type="button">Reset editor</button>
+  </aside>
+
+  <main class="preview-wrap">
+    <div class="toolbar">
+      <strong class="grow">Live preview</strong>
+      <button class="btn btn-line" id="loadSample" type="button">Load sample</button>
+      <button class="btn btn-line" id="saveProject" type="button">Save project</button>
+      <button class="btn btn-line" id="openProject" type="button">Open project</button>
+      <input type="file" id="projectFile" accept=".json" style="display:none" />
+      <button class="btn btn-line" id="wordBtn" type="button">Word (all days)</button>
+      <button class="btn btn-primary" id="printBtn" type="button">Print / Save PDF</button>
+    </div>
+    <div id="pagesOut"></div>
+  </main>
+</div>
+
+<div class="lib-overlay" id="libOverlay" aria-hidden="true">
+  <div class="lib-panel">
+    <div class="lib-head">
+      <h2>Menu library</h2>
+      <button class="btn btn-line btn-sm" id="libCalTab" type="button">Calendar</button>
+      <button class="btn btn-line btn-sm" id="libBankTab" type="button">All menus</button>
+      <button class="btn btn-line btn-sm" id="libClose" type="button">Close</button>
+    </div>
+    <div id="libBody"></div>
+  </div>
+</div>
+
+<script>
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,(function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1}))},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(n*r,o*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)};
+
+const ALLERGENS=["Gluten","Dairy","Celery","Soy","Nuts","Peanuts","Sesame","Eggs","Fish","Crustaceans","Molluscs","Mustard","Lupin","Sulphur Dioxide","None"];
+const DIETS=["Vegan","Vegetarian","Gluten-Free","Dairy-Free","Halal","Nut-Free"];
+const MENU_QR_URL="https://pureprasadkitchen.com";
+const MENU_QR_CAPTION="Scan the QR code — Recipe by Shyam Prasad, Head Chef";
+const DEFAULT_INFO="We carefully select our ingredients and prepare all dishes with attention to allergens. However, please be aware that all food is prepared in a shared kitchen where cross-contamination may occur. While we take every precaution to minimize risk, we cannot guarantee the complete absence of allergens.\n\nIf you have a severe allergy or specific dietary requirement, please speak to a member of our team before serving yourself.\n\nYou can request more information on the allergens listed below.";
+const TEMPLATES={
+  classic:{name:"Classic Gold",desc:"Double gold border",swatch:"linear-gradient(135deg,#fff 40%,#b08a3e)"},
+  modern:{name:"Modern Minimal",desc:"Clean black line",swatch:"linear-gradient(135deg,#fafafa,#111 90%)"},
+  luxury:{name:"Luxury Dark",desc:"Navy + gold",swatch:"linear-gradient(135deg,#1a1f2e,#c9a84c)"},
+  botanical:{name:"Botanical",desc:"Soft sage",swatch:"linear-gradient(135deg,#f7f9f4,#5a7d5a)"},
+  artdeco:{name:"Art Deco",desc:"Bold geometric",swatch:"linear-gradient(135deg,#fff8f0,#1a1a1a)"},
+  rustic:{name:"Rustic Warm",desc:"Farmhouse dashed",swatch:"linear-gradient(135deg,#faf6f0,#8b5a2b)"}
+};
+const SAMPLE={
+  logoText:"vedanta.org", title:"DINNER MENU", sub:"",
+  dishes:[
+    {name:"High Protein Lasagne with Beluga Lentil",desc:"Layered pasta with tomato ragu, beluga lentils, spinach & plant-based cheese",allergens:["Gluten","Dairy","Celery"],diet:["Vegetarian"]},
+    {name:"Tuscany Salad",desc:"Mixed greens, cherry tomatoes, roasted pepper, olives & balsamic",allergens:["None"],diet:["Vegan","Gluten-Free"]},
+    {name:"Maple Roasted Squash Salad",desc:"Arugula, maple roasted squash, candied pecans & goat cheese",allergens:["Dairy","Nuts"],diet:["Vegetarian"]},
+    {name:"Blackberry Coconut Tart",desc:"Blackberry jam & coconut cream in a flaky tart shell",allergens:["Gluten","Dairy","Soy"],diet:["Vegetarian"]}
+  ]
+};
+
+const $=id=>document.getElementById(id);
+const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cleanText=s=>(s||"").replace(/\*+/g,"").replace(/\s+/g," ").trim();
+function uid(){return "m"+Math.random().toString(36).slice(2,9)}
+function todayISO(d=new Date()){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function archiveKey(date,meal){return date+"_"+meal}
+function mealLabel(meal){return meal==="breakfast"?"Breakfast":meal==="lunch"?"Lunch":"Dinner"}
+function dayName(dateStr){return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(dateStr+"T12:00:00").getDay()]}
+function isoWeek(d){const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));x.setUTCDate(x.getUTCDate()+4-(x.getUTCDay()||7));const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));return Math.ceil((((x-y)/86400000)+1)/7)}
+function newMenu(label){return {id:uid(),label:label||"Day 1",title:"DINNER MENU",sub:"",dishes:[]}}
+function makeDefault(){return {logoText:"",logoImg:null,infoText:DEFAULT_INFO,infoAllergens:"",template:"classic",textAlign:"center",menus:[newMenu("Day 1")],currentId:null}}
+
+/* ---- Strict allergen footer rules (by design) ---- */
+function looksLikeDishContent(text){
+  const t=(text||"").trim(); if(!t) return false;
+  const lines=t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const containsN=(t.match(/\bcontains\s*:/gi)||[]).length;
+  const capsN=lines.filter(l=>{const L=l.replace(/[^a-zA-Z]/g,"");return L.length>=6 && l===l.toUpperCase() && !/ALLERGEN|DIETARY|INFORMATION|MENU/.test(l)}).length;
+  const inline=lines.filter(l=>/.+:\s*contains\s*:/i.test(l)).length;
+  // Disclaimer never uses "Contains:" dish lines — any Contains: means dish dump
+  if(containsN>=1) return true;
+  if(inline>=1) return true;
+  if(capsN>=2) return true;
+  const idx=t.toLowerCase().indexOf("listed below");
+  if(idx>=0){
+    const after=t.slice(idx+"listed below".length).replace(/^[\s.:\-–—]+/,"").trim();
+    if(after.length>40 && (/\bcontains\s*:/i.test(after) || /[A-Z]{5,}/.test(after))) return true;
+  }
+  return false;
+}
+function isPlainDisclaimer(text){
+  const t=(text||"").toLowerCase();
+  return t.includes("cross-contamination") || t.includes("shared kitchen") || t.includes("severe allergy");
+}
+function safeDisclaimer(text){
+  const t=(text||"").trim();
+  if(!t) return DEFAULT_INFO;
+  if(looksLikeDishContent(t)) return DEFAULT_INFO;
+  // If disclaimer has junk after "listed below", keep only clean part
+  const idx=t.toLowerCase().indexOf("listed below");
+  if(idx>=0){
+    const after=t.slice(idx+"listed below".length).replace(/^[\s.:\-–—]+/,"").trim();
+    if(after && (/\bcontains\s*:/i.test(after) || /[A-Z]{5,}.+\bcontains/i.test(after))){
+      return t.slice(0, idx+"listed below".length).replace(/[\s.:\-–—]+$/,"").trim() || DEFAULT_INFO;
+    }
+  }
+  return t;
+}
+function sanitizeSnap(snap){
+  if(!snap || typeof snap!=="object") return snap;
+  const out=JSON.parse(JSON.stringify(snap));
+  out.infoText=safeDisclaimer(out.infoText||DEFAULT_INFO);
+  if(looksLikeDishContent(out.infoAllergens||"")) out.infoAllergens="";
+  out.dishes=Array.isArray(out.dishes)?out.dishes.map(d=>({
+    name:cleanText(d.name||""),
+    desc:cleanText(d.desc||""),
+    allergens:Array.isArray(d.allergens)?d.allergens:[],
+    diet:Array.isArray(d.diet)?d.diet:[]
+  })).filter(d=>d.name):[];
+  if(!out.template) out.template="classic";
+  if(!["left","center","right"].includes(out.textAlign)) out.textAlign="center";
+  return out;
+}
+
+function migrate(old){
+  if(!old) return null;
+  if(old.menus){
+    const d=JSON.parse(JSON.stringify(old));
+    d.infoText=safeDisclaimer(d.infoText||DEFAULT_INFO);
+    if(looksLikeDishContent(d.infoAllergens||"")) d.infoAllergens="";
+    d.menus=(d.menus||[]).map(m=>({...newMenu(m.label),...m,dishes:(m.dishes||[]).map(x=>({name:cleanText(x.name||""),desc:cleanText(x.desc||""),allergens:x.allergens||[],diet:x.diet||[]})).filter(x=>x.name)}));
+    if(!d.template) d.template="classic";
+    if(!["left","center","right"].includes(d.textAlign)) d.textAlign="center";
+    return d;
+  }
+  const d=makeDefault();
+  const clean=sanitizeSnap(old);
+  d.logoText=clean.logoText||""; d.logoImg=clean.logoImg||null;
+  d.infoText=clean.infoText; d.infoAllergens=clean.infoAllergens||"";
+  d.template=clean.template||"classic"; d.textAlign=clean.textAlign||"center";
+  d.menus=[Object.assign(newMenu("Day 1"),{title:clean.title||"DINNER MENU",sub:clean.sub||"",dishes:clean.dishes||[]})];
+  return d;
+}
+
+let data=migrate(loadRaw())||makeDefault();
+if(!data.currentId || !data.menus.some(m=>m.id===data.currentId)) data.currentId=data.menus[0].id;
+const SHARED=["logoText","logoImg","infoText","infoAllergens","template","textAlign"];
+function current(){return data.menus.find(m=>m.id===data.currentId)||data.menus[0]}
+const state=new Proxy({},{
+  get(_,k){return SHARED.includes(k)?data[k]:current()[k]},
+  set(_,k,v){if(SHARED.includes(k)) data[k]=v; else current()[k]=v; return true}
+});
+
+function save(){localStorage.setItem("menuCreator", JSON.stringify(data)); scheduleArchiveSave()}
+function loadRaw(){try{return JSON.parse(localStorage.getItem("menuCreator"))}catch(e){return null}}
+
+/* ---- Library / calendar (same keys as before) ---- */
+const DB_NAME="MenuCreatorArchive", DB_VER=1, STORE="menus";
+const BANK_LS="menuCreatorBank_v1";
+const ARCHIVE_LS_KEY="menuCreatorArchive_v1";
+let archiveCtx={date:todayISO(), meal:"dinner"};
+let archiveIndex=[];
+let menuBank=[];
+let archiveTimer=null;
+let archiveStorage="idb";
+let libView="calendar";
+let libCalYear, libCalMonth;
+
+function loadMenuBank(){try{menuBank=JSON.parse(localStorage.getItem(BANK_LS))||[]}catch(e){menuBank=[]}}
+function saveMenuBank(){localStorage.setItem(BANK_LS, JSON.stringify(menuBank))}
+function mergeMenuBank(items){
+  if(!items||!items.length) return 0;
+  const have=new Set(menuBank.map(b=>b.id)); let n=0;
+  items.forEach(it=>{
+    if(!it||!it.snap) return;
+    const id=it.id||("bank_"+String(it.label||"menu").replace(/\W+/g,"_").toLowerCase()+"_"+(it.meal||"dinner"));
+    if(have.has(id)) return;
+    menuBank.push({id,label:it.label||it.snap.title||"Menu",meal:it.meal||"dinner",snap:sanitizeSnap(it.snap),source:it.source||""});
+    have.add(id); n++;
+  });
+  if(n) saveMenuBank();
+  return n;
+}
+function lsArchiveAll(){try{return JSON.parse(localStorage.getItem(ARCHIVE_LS_KEY)||"[]")}catch(e){return []}}
+function lsArchivePut(rec){const all=lsArchiveAll().filter(r=>r.id!==rec.id); all.push(rec); localStorage.setItem(ARCHIVE_LS_KEY, JSON.stringify(all))}
+function lsArchiveGetAll(){return lsArchiveAll()}
+
+let dbp=null;
+function openDb(){
+  if(dbp) return dbp;
+  dbp=new Promise((resolve,reject)=>{
+    try{
+      const req=indexedDB.open(DB_NAME, DB_VER);
+      req.onupgradeneeded=()=>{const db=req.result; if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE,{keyPath:"id"})};
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>reject(req.error);
+    }catch(e){reject(e)}
+  });
+  return dbp;
+}
+async function detectArchiveStorage(){
+  try{
+    const db=await openDb();
+    // migrate LS → IDB once
+    const legacy=lsArchiveAll();
+    if(legacy.length){
+      const tx=db.transaction(STORE,"readwrite"); const st=tx.objectStore(STORE);
+      await Promise.all(legacy.map(rec=>new Promise((res,rej)=>{const r=st.put(sanitizeRecord(rec)); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error)})));
+      localStorage.removeItem(ARCHIVE_LS_KEY);
+    }
+    archiveStorage="idb";
+  }catch(e){ archiveStorage="ls"; }
+}
+function sanitizeRecord(rec){
+  const r=Object.assign({},rec);
+  if(r.snap) r.snap=sanitizeSnap(r.snap);
+  return r;
+}
+async function dbPut(rec){
+  rec=sanitizeRecord(rec);
+  if(archiveStorage==="ls"){ lsArchivePut(rec); return }
+  const db=await openDb();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(STORE,"readwrite");
+    const r=tx.objectStore(STORE).put(rec);
+    r.onsuccess=()=>resolve(); r.onerror=()=>reject(r.error);
+  });
+}
+async function dbGetAll(){
+  if(archiveStorage==="ls") return lsArchiveGetAll();
+  const db=await openDb();
+  return new Promise((resolve,reject)=>{
+    const r=db.transaction(STORE,"readonly").objectStore(STORE).getAll();
+    r.onsuccess=()=>resolve((r.result||[]).map(sanitizeRecord));
+    r.onerror=()=>reject(r.error);
+  });
+}
+async function refreshArchiveIndex(){
+  archiveIndex=await dbGetAll();
+  updateArchiveStatus();
+}
+function scheduleArchiveSave(){
+  clearTimeout(archiveTimer);
+  archiveTimer=setTimeout(()=>saveToArchive(true).catch(()=>{}), 800);
+}
+function snapshotCurrent(){
+  const m=current();
+  return sanitizeSnap({
+    logoText:data.logoText||"", logoImg:data.logoImg||null,
+    infoText:data.infoText||DEFAULT_INFO, infoAllergens:data.infoAllergens||"",
+    template:data.template||"classic", textAlign:data.textAlign||"center",
+    title:m.title||"DINNER MENU", sub:m.sub||"", dishes:m.dishes||[]
+  });
+}
+async function saveToArchive(silent){
+  const date=archiveCtx.date||todayISO();
+  const meal=archiveCtx.meal||"dinner";
+  const d=new Date(date+"T12:00:00");
+  const rec={
+    id:archiveKey(date,meal), date, meal,
+    year:d.getFullYear(), month:d.getMonth()+1, week:isoWeek(d),
+    dayLabel:dayName(date), savedAt:new Date().toISOString(),
+    snap:snapshotCurrent()
+  };
+  await dbPut(rec);
+  await refreshArchiveIndex();
+  if(!silent) $("archiveStatus").textContent="Saved to library: "+date+" · "+mealLabel(meal);
+}
+function applyArchiveSnapshot(snap){
+  const s=sanitizeSnap(snap||{});
+  data.logoText=s.logoText||""; data.logoImg=s.logoImg||null;
+  data.infoText=s.infoText||DEFAULT_INFO; data.infoAllergens=s.infoAllergens||"";
+  data.template=s.template||"classic"; data.textAlign=s.textAlign||"center";
+  const m=current();
+  m.title=s.title||m.title; m.sub=s.sub||""; m.dishes=s.dishes||[];
+  // Clear dirty editor project mix by design
+  save(); resetForm(); syncInputs(); buildTplGrid(); buildAlignRow(); render();
+}
+function updateArchiveStatus(){
+  const rec=archiveIndex.find(r=>r.id===archiveKey(archiveCtx.date, archiveCtx.meal));
+  const bn=menuBank.length;
+  if(rec) $("archiveStatus").textContent="In library: "+rec.date+" · "+mealLabel(rec.meal)+" (saved "+new Date(rec.savedAt).toLocaleString()+")"+(bn?" · "+bn+" bank menus":"");
+  else $("archiveStatus").textContent=(bn?bn+" menus in bank. ":"")+"Not saved yet for "+archiveCtx.date+" · "+mealLabel(archiveCtx.meal);
+}
+function setMealTab(meal){
+  archiveCtx.meal=meal;
+  document.querySelectorAll(".meal-tab").forEach(t=>t.classList.toggle("on", t.dataset.meal===meal));
+}
+
+async function loadPcMenuBundle(silent){
+  try{
+    const res=await fetch("/menu-creator/imports/menu-calendar-bundle.json",{cache:"no-store"});
+    if(!res.ok) return 0;
+    const bundle=await res.json();
+    const n=mergeMenuBank(bundle.bank||[]);
+    // Also import dated records if present
+    if(Array.isArray(bundle.records)){
+      for(const rec of bundle.records){ if(rec&&rec.id&&rec.snap) await dbPut(rec); }
+    }
+    if(!silent && n) $("archiveStatus").textContent=n+" menus loaded into bank from bundle";
+    return n;
+  }catch(e){ return 0; }
+}
+
+/* ---- Parse dishes only ---- */
+function toTitle(s){return s.toLowerCase().replace(/(^|[^A-Za-zÀ-ÿ])([a-zà-ÿ])/g,(m,pre,c)=>pre+c.toUpperCase())}
+function normAllergen(x){
+  x=x.replace(/[.;:]+$/,"").trim(); if(!x) return "";
+  const map={non:"None",none:"None","n/a":"None",na:"None",soya:"Soy",soy:"Soy",milk:"Dairy",dairy:"Dairy",gluten:"Gluten","cereals containing gluten":"Gluten",celery:"Celery",nuts:"Nuts","tree nuts":"Nuts",peanuts:"Peanuts",peanut:"Peanuts",sesame:"Sesame",egg:"Eggs",eggs:"Eggs",fish:"Fish",mustard:"Mustard",lupin:"Lupin",crustaceans:"Crustaceans",molluscs:"Molluscs","sulphur dioxide":"Sulphur Dioxide",sulphites:"Sulphur Dioxide"};
+  return map[x.toLowerCase()]||toTitle(x);
+}
+function parseAllergens(s){
+  const parts=s.split(/,|&|\band\b/i).map(x=>x.trim()).filter(Boolean).map(normAllergen).filter(Boolean);
+  const seen=new Set(), out=[]; for(const p of parts){const k=p.toLowerCase(); if(!seen.has(k)){seen.add(k); out.push(p)}}
+  if(out.length && out.every(p=>p==="None")) return ["None"];
+  return out.filter(p=>p!=="None");
+}
+function normDiet(x){
+  const low=x.replace(/[.;:]+$/,"").trim().toLowerCase().replace(/^(gluten|dairy|nut)[- ]?fre[e]?$/,"$1-free").replace(/\s+/g," ");
+  const map={v:"Vegetarian",veg:"Vegetarian",vegetarian:"Vegetarian",vegitarian:"Vegetarian",vegaterian:"Vegetarian",vegatarian:"Vegetarian",vg:"Vegan",vegan:"Vegan",gf:"Gluten-Free","gluten free":"Gluten-Free","gluten-free":"Gluten-Free",df:"Dairy-Free","dairy free":"Dairy-Free","dairy-free":"Dairy-Free",halal:"Halal","nut free":"Nut-Free","nut-free":"Nut-Free"};
+  return map[low]||"";
+}
+function parseDiets(s){
+  s=s.replace(/^suitable\s+for\s*:?\s*/i,"");
+  return [...new Set(s.split(/,|&|\||\band\b/i).map(x=>normDiet(x)).filter(Boolean))];
+}
+function isDietOnlyLine(raw){
+  const cleaned=(raw||"").replace(/[()|/.,]/g," ").replace(/\s+/g," ").trim();
+  if(!cleaned) return false;
+  const words=cleaned.split(" ");
+  if(words.length>6) return false;
+  const diets=parseDiets(raw.replace(/[()|/]/g,","));
+  if(!diets.length) return false;
+  return words.every(w=>{
+    const low=w.toLowerCase().replace(/[^a-z-]/g,"");
+    return !low || ["suitable","for","and","or"].includes(low) || parseDiets(w).length>0;
+  });
+}
+function isDietHeadingDish(d){
+  if(!d) return false;
+  if(d.section) return true;
+  const extra=(d.desc&&d.desc.trim()) || (d.allergens&&d.allergens.length);
+  return isDietOnlyLine(d.name||"") && !extra;
+}
+function peelTrailingDiet(raw){
+  const src=(raw||"").trim();
+  if(!src) return {text:"", diet:[]};
+  const m=src.match(/^(.*?)(?:[.]\s+|\s+)((?:suitable\s+for\s+)?[A-Za-z][A-Za-z\s|/,&-]*)$/);
+  if(!m || !m[1].trim()) return {text:src, diet:[]};
+  const tail=m[2].trim();
+  if(!isDietOnlyLine(tail)) return {text:src, diet:[]};
+  return {text:m[1].replace(/[.\s]+$/,"").trim(), diet:parseDiets(tail.replace(/[()|/]/g,","))};
+}
+function parseInlineDishLine(raw){
+  const t=(raw||"").replace(/\s+/g," ").trim();
+  if(!t || t.length<8) return null;
+  if(/cross-contamination|shared kitchen|severe allergy|request more information/i.test(t) && !/\bcontains\s*:/i.test(t)) return null;
+  const m=t.match(/^(.+?)\s*[:\-–—]\s*(Contains\s*:?\s*.+)$/i);
+  if(!m) return null;
+  let name=m[1].trim().replace(/[:\-–—]+$/,"").trim();
+  if(!name || /^(allergen|dietary|menu|contains|suitable)\b/i.test(name)) return null;
+  let rest=m[2].trim(); let diet=[];
+  const dietM=rest.match(/[\(\[]\s*([^\)\]]+)\s*[\)\]]\.?\s*$/);
+  if(dietM){ diet=parseDiets(dietM[1].replace(/[|/]/g,",")); rest=rest.slice(0,dietM.index).trim(); }
+  const allergens=parseAllergens(rest.replace(/^contains\s*:?\s*/i,"").replace(/\.+$/,""));
+  const letters=name.replace(/[^a-zA-Z]/g,"");
+  const isCaps=letters.length>=2 && name===name.toUpperCase();
+  return {name:isCaps?toTitle(name):name, desc:"", allergens, diet};
+}
+function parseBulk(text){
+  const rawLines=text.split(/\r?\n/);
+  let title=null, cur=null, expectName=true;
+  const dishes=[];
+  const letters=s=>s.replace(/[^a-zA-Z]/g,"");
+  const isCaps=s=>{const L=letters(s); return L.length>=2 && s.toUpperCase()===s && /[A-Z]/.test(s)};
+  const newDish=()=>({name:"",desc:"",allergens:[],diet:[]});
+  const push=()=>{ if(cur&&cur.name) dishes.push(cur); cur=null; expectName=true; };
+  for(const line of rawLines){
+    const raw=line.replace(/\s+/g," ").trim();
+    const low=raw.toLowerCase();
+    if(!raw){ expectName=true; continue; }
+    // skip allergen section headers and disclaimer prose
+    if(/(allergen|dietary)\s*(&|and|information|info)/i.test(raw) || /^allergen\b/i.test(raw)) continue;
+    if(/cross-contamination|shared kitchen|severe allergy|carefully select our ingredients|request more information on the allergens listed below/i.test(raw)) continue;
+    const inline=parseInlineDishLine(raw);
+    if(inline){ push(); dishes.push(inline); continue; }
+    if(low.startsWith("contains")){
+      if(!cur) cur=newDish();
+      cur.allergens=parseAllergens(raw.replace(/^contains\s*:?\s*/i,""));
+      expectName=false; continue;
+    }
+    if(low.startsWith("suitable") || isDietOnlyLine(raw)){
+      const diets=parseDiets(raw.replace(/[()|/]/g,","));
+      if(cur&&cur.name&&!cur.section&&!expectName){
+        cur.diet=[...new Set([...(cur.diet||[]),...diets])]; expectName=true; continue;
+      }
+      if(!expectName){
+        const t=dishes.filter(x=>!x.section).pop();
+        if(t){ t.diet=[...new Set([...(t.diet||[]),...diets])]; expectName=true; continue; }
+      }
+      push();
+      dishes.push({name:diets.join(" / ")||toTitle(raw), desc:"", allergens:[], diet:[], section:true});
+      continue;
+    }
+    if(/menu\s*$/i.test(raw) && !title && !dishes.length && !cur){ title=raw; continue; }
+    if(isCaps(raw) && cur && cur.name && !expectName){ push(); cur=newDish(); cur.name=toTitle(raw); expectName=false; continue; }
+    if(expectName || !cur){ push(); cur=newDish(); cur.name=isCaps(raw)?toTitle(raw):raw; expectName=false; }
+    else {
+      const peeled=peelTrailingDiet(raw);
+      cur.desc=cur.desc?cur.desc+" "+peeled.text:peeled.text;
+      if(peeled.diet.length) cur.diet=[...new Set([...(cur.diet||[]),...peeled.diet])];
+    }
+  }
+  push();
+  return {title, dishes};
+}
+
+/* ---- Dish form ---- */
+let editIndex=-1;
+let selectedAllergens=new Set();
+let selectedDiets=new Set();
+function buildChips(){
+  const wrap=$("allergenPick"); wrap.innerHTML="";
+  ALLERGENS.forEach(a=>{
+    const c=document.createElement("button"); c.type="button";
+    c.className="chip"+(selectedAllergens.has(a)?" on":""); c.textContent=a;
+    c.onclick=()=>{ if(a==="None"){selectedAllergens.clear(); selectedAllergens.add("None")} else {selectedAllergens.delete("None"); selectedAllergens.has(a)?selectedAllergens.delete(a):selectedAllergens.add(a)} buildChips(); };
+    wrap.appendChild(c);
+  });
+  const dwrap=$("dietPick"); dwrap.innerHTML="";
+  DIETS.forEach(a=>{
+    const c=document.createElement("button"); c.type="button";
+    c.className="chip"+(selectedDiets.has(a)?" on":""); c.textContent=a;
+    c.onclick=()=>{ selectedDiets.has(a)?selectedDiets.delete(a):selectedDiets.add(a); buildChips(); };
+    dwrap.appendChild(c);
+  });
+}
+function resetForm(){
+  $("dName").value=""; $("dDesc").value=""; $("dCustom").value="";
+  selectedAllergens=new Set(); selectedDiets=new Set(); editIndex=-1;
+  $("saveDish").textContent="Add dish"; $("cancelEdit").style.display="none"; buildChips();
+}
+function containsLine(a){
+  if(!a||!a.length) return "";
+  const list=a.filter(x=>x&&x.toLowerCase()!=="none").map(x=>String(x).toUpperCase());
+  if(!list.length) return "Contains: NONE";
+  if(list.length===1) return "Contains: "+list[0];
+  return "Contains: "+list.slice(0,-1).join(", ")+" and "+list[list.length-1];
+}
+function dietLine(d){
+  if(!d||!d.length) return "";
+  return d.join(" | ");
+}
+
+/* ---- Render ---- */
+function tplClass(){return " tpl-"+(data.template||"classic")}
+function alignClass(){const a=(data.textAlign==="left"||data.textAlign==="right")?data.textAlign:"center"; return " align-"+a}
+function logoHTML(){
+  if(state.logoImg) return `<img class="menu-logo" src="${state.logoImg}" alt="logo" />`;
+  if(state.logoText) return `<div class="menu-logo-text">${esc(state.logoText)}</div>`;
+  return "";
+}
+function qrHTML(){
+  const u=MENU_QR_URL; if(!u || typeof qrcode!=="function") return "";
+  try{
+    const qr=qrcode(0,"M"); qr.addData(u,"Byte"); qr.make();
+    const cell=4, margin=16, px=qr.getModuleCount()*cell+margin*2;
+    return `<div class="menu-qr-wrap"><img src="${qr.createDataURL(cell,margin)}" width="${px}" height="${px}" alt="QR"/><p class="menu-qr-caption">${esc(MENU_QR_CAPTION)}</p></div>`;
+  }catch(e){return ""}
+}
+function pageHTML(m){
+  const dishes=m.dishes.length? m.dishes.map(d=> isDietHeadingDish(d) ? `
+    <div class="diet-heading">${esc(d.name)}</div>` : `
+    <div class="dish">
+      <div class="dish-name">${esc(d.name)}</div>
+      ${d.desc?`<div class="dish-desc">${esc(d.desc)}</div>`:""}
+      ${d.allergens&&d.allergens.length?`<div class="dish-contains">${esc(containsLine(d.allergens))}</div>`:""}
+      ${d.diet&&d.diet.length?`<div class="dish-diet">${esc(dietLine(d.diet))}</div>`:""}
+    </div>`).join("") : `<div class="empty-note">No dishes yet — add one on the left, or paste a full menu.</div>`;
+  const info=safeDisclaimer(data.infoText||DEFAULT_INFO);
+  const infoBody=info.split(/\n{2,}/).map(p=>`<p>${esc(p).replace(/\n/g,"<br>")}</p>`).join("");
+  const items=(data.infoAllergens||"").split(",").map(s=>s.trim()).filter(Boolean);
+  const ask=items.length?`<p style="margin-top:8px"><b>You can request more information on:</b> ${items.map(esc).join(" · ")}</p>`:"";
+  return `
+    <div class="dishes-wrap">${dishes}</div>
+    <div class="info-block">
+      <h2 class="info-title">Allergen Information</h2>
+      <div class="info-sub">Allergen &amp; Dietary Information</div>
+      <div class="info-body">${infoBody}${ask}</div>
+      ${qrHTML()}
+    </div>`;
+}
+function renderTabs(){
+  $("dayTabs").innerHTML=data.menus.map(m=>`<button type="button" class="day-tab${m.id===data.currentId?" on":""}" data-id="${m.id}">${esc(m.label)} <small>(${m.dishes.length})</small></button>`).join("");
+  $("dayTabs").querySelectorAll(".day-tab").forEach(el=>el.onclick=()=>{data.currentId=el.dataset.id; resetForm(); save(); syncInputs(); render()});
+}
+function render(){
+  // Hard guarantee: never keep dish dumps in footer storage
+  if(looksLikeDishContent(data.infoText||"")){ data.infoText=DEFAULT_INFO; save(); }
+  if(looksLikeDishContent(data.infoAllergens||"")){ data.infoAllergens=""; save(); }
+  renderTabs();
+  $("pagesOut").innerHTML=data.menus.map(m=>`
+    <section class="page${tplClass()}${alignClass()}${m.id===data.currentId?" current":""}" data-id="${m.id}">
+      <div class="menu-head">
+        ${logoHTML()}
+        <h1 class="menu-title">${esc(m.title||"DINNER MENU")}</h1>
+        ${data.menus.length>1?`<div class="menu-sub" style="color:var(--accent)">${esc(m.label||"")}</div>`:""}
+        ${m.sub?`<div class="menu-sub">${esc(m.sub)}</div>`:""}
+      </div>
+      ${pageHTML(m)}
+    </section>`).join("");
+  $("pagesOut").querySelectorAll(".page").forEach(el=>el.onclick=()=>{ if(el.dataset.id!==data.currentId){ data.currentId=el.dataset.id; resetForm(); save(); syncInputs(); render(); }});
+  const m=current();
+  $("dishCount").textContent=m.dishes.length;
+  $("dishList").innerHTML=m.dishes.length? m.dishes.map((d,i)=>`
+    <div class="dish-card">
+      <h4>${esc(d.name)}</h4>
+      <div class="meta">${esc(containsLine(d.allergens)||"No allergens set")}${d.diet&&d.diet.length?" · "+esc(dietLine(d.diet)):""}</div>
+      <div class="dish-actions">
+        <button class="btn btn-line btn-sm" data-edit="${i}" type="button">Edit</button>
+        <button class="btn btn-line btn-sm" data-up="${i}" type="button">↑</button>
+        <button class="btn btn-line btn-sm" data-down="${i}" type="button">↓</button>
+        <button class="btn btn-danger btn-sm" data-del="${i}" type="button">Delete</button>
+      </div>
+    </div>`).join("") : `<div class="hint">No dishes added yet.</div>`;
+  $("dishList").querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editDish(+b.dataset.edit));
+  $("dishList").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ current().dishes.splice(+b.dataset.del,1); save(); render(); });
+  $("dishList").querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.up; if(i>0){ const a=current().dishes; [a[i-1],a[i]]=[a[i],a[i-1]]; save(); render(); }});
+  $("dishList").querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.down; const a=current().dishes; if(i<a.length-1){ [a[i+1],a[i]]=[a[i],a[i+1]]; save(); render(); }});
+}
+function syncInputs(){
+  $("menuTitle").value=state.title||"";
+  $("menuSub").value=state.sub||"";
+  $("logoText").value=state.logoText||"";
+  $("infoText").value=safeDisclaimer(state.infoText||DEFAULT_INFO);
+  $("infoAllergens").value=state.infoAllergens||"";
+  $("archiveDate").value=archiveCtx.date;
+  setMealTab(archiveCtx.meal);
+}
+function buildTplGrid(){
+  $("tplGrid").innerHTML=Object.entries(TEMPLATES).map(([k,t])=>`
+    <button type="button" class="tpl-card${data.template===k?" on":""}" data-tpl="${k}">
+      <div class="tpl-swatch" style="background:${t.swatch}"></div><b>${t.name}</b><small>${t.desc}</small>
+    </button>`).join("");
+  $("tplGrid").querySelectorAll(".tpl-card").forEach(c=>c.onclick=()=>{ data.template=c.dataset.tpl; save(); buildTplGrid(); render(); });
+}
+function buildAlignRow(){
+  document.querySelectorAll("#alignRow .align-btn, #toolbarAlign .align-btn").forEach(b=>{
+    b.classList.toggle("on", (b.dataset.align||"")===(data.textAlign||"center"));
+    b.onclick=()=>{ data.textAlign=b.dataset.align; save(); buildAlignRow(); render(); };
+  });
+}
+function editDish(i){
+  const d=current().dishes[i];
+  $("dName").value=d.name; $("dDesc").value=d.desc||"";
+  selectedAllergens=new Set(); selectedDiets=new Set(d.diet||[]);
+  const custom=[];
+  (d.allergens||[]).forEach(a=>ALLERGENS.includes(a)?selectedAllergens.add(a):custom.push(a));
+  $("dCustom").value=custom.join(", ");
+  editIndex=i; $("saveDish").textContent="Update dish"; $("cancelEdit").style.display="inline-block"; buildChips();
+}
+
+/* ---- Library UI ---- */
+function openLib(view){
+  libView=view||"calendar";
+  $("libOverlay").classList.add("open");
+  $("libOverlay").setAttribute("aria-hidden","false");
+  renderLib();
+}
+function closeLib(){ $("libOverlay").classList.remove("open"); $("libOverlay").setAttribute("aria-hidden","true"); }
+function renderLib(){
+  const body=$("libBody");
+  if(libView==="bank"){
+    body.innerHTML = menuBank.length? menuBank.map(b=>`
+      <div class="bank-item" data-id="${esc(b.id)}">
+        <b>${esc(b.label)}</b>
+        <div class="hint">${esc(mealLabel(b.meal))} · ${(b.snap.dishes||[]).length} dishes${b.source?" · "+esc(b.source):""}</div>
+        <button class="btn btn-primary btn-sm" data-use="${esc(b.id)}" type="button" style="margin-top:6px">Use on selected date</button>
+      </div>`).join("") : `<div class="hint">No bank menus yet. Bundle loads automatically when online.</div>`;
+    body.querySelectorAll("[data-use]").forEach(btn=>btn.onclick=async()=>{
+      const item=menuBank.find(x=>x.id===btn.dataset.use); if(!item) return;
+      const date=archiveCtx.date, meal=item.meal||archiveCtx.meal;
+      const d=new Date(date+"T12:00:00");
+      await dbPut({id:archiveKey(date,meal),date,meal,year:d.getFullYear(),month:d.getMonth()+1,week:isoWeek(d),dayLabel:dayName(date),savedAt:new Date().toISOString(),snap:sanitizeSnap(item.snap)});
+      archiveCtx={date,meal}; applyArchiveSnapshot(item.snap); await refreshArchiveIndex(); closeLib();
+    });
+    return;
+  }
+  const now=new Date();
+  if(libCalYear==null){ libCalYear=now.getFullYear(); libCalMonth=now.getMonth(); }
+  const y=libCalYear, m=libCalMonth;
+  const first=new Date(y,m,1); const start=(first.getDay()+6)%7; // Mon-start
+  const days=new Date(y,m+1,0).getDate();
+  let html=`<div class="row" style="margin-bottom:10px"><button class="btn btn-line btn-sm" id="calPrev" type="button">‹</button><strong>${first.toLocaleString(undefined,{month:"long",year:"numeric"})}</strong><button class="btn btn-line btn-sm" id="calNext" type="button">›</button></div>`;
+  html+=`<div class="cal-grid">`+["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d=>`<div class="hint" style="text-align:center">${d}</div>`).join("");
+  for(let i=0;i<start;i++) html+=`<div></div>`;
+  for(let day=1; day<=days; day++){
+    const date=`${y}-${String(m+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+    const meals=["breakfast","lunch","dinner"].filter(meal=>archiveIndex.some(r=>r.id===archiveKey(date,meal)));
+    html+=`<button type="button" class="cal-cell" data-date="${date}"><b>${day}</b>${meals.map(x=>`<span class="dot">${x[0].toUpperCase()}</span>`).join("")}</button>`;
+  }
+  html+=`</div>`;
+  body.innerHTML=html;
+  $("calPrev").onclick=()=>{ libCalMonth--; if(libCalMonth<0){libCalMonth=11; libCalYear--} renderLib(); };
+  $("calNext").onclick=()=>{ libCalMonth++; if(libCalMonth>11){libCalMonth=0; libCalYear++} renderLib(); };
+  body.querySelectorAll("[data-date]").forEach(cell=>cell.onclick=async()=>{
+    const date=cell.dataset.date;
+    archiveCtx.date=date;
+    const rec=archiveIndex.find(r=>r.id===archiveKey(date, archiveCtx.meal)) || archiveIndex.find(r=>r.date===date);
+    if(rec){ archiveCtx.meal=rec.meal; applyArchiveSnapshot(rec.snap); }
+    else { syncInputs(); }
+    await refreshArchiveIndex(); closeLib();
+  });
+}
+
+/* ---- Word export ---- */
+function buildWordPage(m, idx){
+  const dishes=(m.dishes||[]).map(d=> isDietHeadingDish(d) ? `
+    <p style="text-align:center;font-family:Georgia,serif;font-size:9pt;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#2f6b4f;margin:10pt 0 6pt;">${esc(d.name)}</p>` : `
+    <p style="text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;margin:9pt 0 2pt;">${esc(d.name)}</p>
+    ${d.desc?`<p style="text-align:center;font-style:italic;font-size:9.5pt;margin:0 0 3pt;">${esc(d.desc)}</p>`:""}
+    ${d.allergens&&d.allergens.length?`<p style="text-align:center;font-size:8pt;color:#b08a3e;font-weight:bold;margin:0;">${esc(containsLine(d.allergens))}</p>`:""}
+    ${d.diet&&d.diet.length?`<p style="text-align:center;font-size:6.5pt;color:#2f6b4f;font-weight:500;margin:1pt 0 0;">${esc(dietLine(d.diet))}</p>`:""}
+  `).join("");
+  const info=safeDisclaimer(data.infoText||DEFAULT_INFO).split(/\n{2,}/).map(p=>`<p style="font-size:8.5pt;text-align:center;margin:0 0 4pt;">${esc(p)}</p>`).join("");
+  return `<div style="${idx?"page-break-before:always;":""}">
+    <div style="border:3px double #b08a3e;padding:20pt 18pt;">
+      ${data.logoImg?`<p style="text-align:center"><img src="${data.logoImg}" style="max-height:78px;max-width:220px"/></p>`:(data.logoText?`<p style="text-align:center;font-family:Georgia,serif;font-size:15pt;color:#2f6b4f;">${esc(data.logoText)}</p>`:"")}
+      <h1 style="text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;">${esc(m.title||"DINNER MENU")}</h1>
+      ${data.menus.length>1?`<p style="text-align:center;font-size:9pt;color:#6b7770;">${esc(m.label||"")}</p>`:""}
+      ${dishes}
+      <div style="border-top:2px solid #b08a3e;margin-top:14pt;padding-top:8pt;"></div>
+      <h2 style="text-align:center;font-family:Georgia,serif;color:#2f6b4f;font-size:13pt;">Allergen Information</h2>
+      ${info}
+    </div></div>`;
+}
+
+/* ---- Wire UI ---- */
+$("saveDish").onclick=()=>{
+  const name=cleanText($("dName").value); if(!name){ $("dName").focus(); return; }
+  const allergens=[...selectedAllergens];
+  const custom=$("dCustom").value.split(",").map(s=>s.trim()).filter(Boolean);
+  const all=[...allergens.filter(a=>a!=="None"), ...custom];
+  const finalAllergens=all.length?all:(selectedAllergens.has("None")?["None"]:[]);
+  const dish={name, desc:cleanText($("dDesc").value), allergens:finalAllergens, diet:[...selectedDiets]};
+  if(editIndex>=0) current().dishes[editIndex]=dish; else current().dishes.push(dish);
+  resetForm(); save(); render();
+};
+$("cancelEdit").onclick=resetForm;
+$("menuTitle").oninput=e=>{ state.title=e.target.value; save(); render(); };
+$("menuSub").oninput=e=>{ state.sub=e.target.value; save(); render(); };
+$("logoText").oninput=e=>{ state.logoText=e.target.value; save(); render(); };
+$("infoText").oninput=e=>{
+  const v=e.target.value;
+  if(looksLikeDishContent(v)){
+    e.target.value=DEFAULT_INFO;
+    state.infoText=DEFAULT_INFO;
+    $("archiveStatus").textContent="Blocked: dish text cannot go in Allergen Information. Use Paste full menu or Add dish.";
+  } else state.infoText=v;
+  save(); render();
+};
+$("infoAllergens").oninput=e=>{
+  let v=e.target.value;
+  if(looksLikeDishContent(v)){ v=""; e.target.value=""; $("archiveStatus").textContent="Blocked dish names in allergen list."; }
+  state.infoAllergens=v; save(); render();
+};
+$("resetInfo").onclick=()=>{ data.infoText=DEFAULT_INFO; save(); syncInputs(); render(); };
+$("logoFile").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=()=>{ state.logoImg=r.result; save(); render(); }; r.readAsDataURL(f);
+};
+$("clearLogo").onclick=()=>{ state.logoImg=null; state.logoText=""; $("logoText").value=""; $("logoFile").value=""; save(); render(); };
+$("genBtn").onclick=()=>{
+  const raw=($("bulkText").value||"").trim();
+  if(!raw){ alert("Paste your menu text first."); return; }
+  const r=parseBulk(raw);
+  if(!r.dishes.length){
+    alert("No dishes found.\n\nPut each DISH NAME on its own line,\nthen description,\nthen Contains: Gluten, Dairy");
+    return;
+  }
+  const m=current();
+  if(r.title) m.title=r.title;
+  m.dishes=r.dishes;
+  // Generate NEVER writes into Allergen Information — only the dish list
+  data.infoText=DEFAULT_INFO;
+  if(looksLikeDishContent(data.infoAllergens||"")) data.infoAllergens="";
+  $("bulkText").value="";
+  save(); resetForm(); syncInputs(); render();
+  $("archiveStatus").textContent="Generate put "+r.dishes.length+" dishes into the Dishes list (not Allergen Information).";
+  alert("Added "+r.dishes.length+" dishes to the menu.\n\nThey are in Dishes / the preview — not in Allergen Information.");
+  const list=$("dishList"); if(list) list.scrollIntoView({behavior:"smooth",block:"nearest"});
+};
+$("appendBtn").onclick=()=>{
+  const raw=($("bulkText").value||"").trim();
+  if(!raw){ alert("Paste your menu text first."); return; }
+  const r=parseBulk(raw);
+  if(!r.dishes.length){ alert("No dishes found."); return; }
+  current().dishes=current().dishes.concat(r.dishes);
+  data.infoText=DEFAULT_INFO;
+  $("bulkText").value="";
+  save(); resetForm(); syncInputs(); render();
+  $("archiveStatus").textContent="Added "+r.dishes.length+" more dishes to the Dishes list.";
+  alert("Added "+r.dishes.length+" dishes to the existing menu.");
+};
+$("loadSample").onclick=()=>{
+  const m=current(); m.title=SAMPLE.title; m.sub=SAMPLE.sub; m.dishes=JSON.parse(JSON.stringify(SAMPLE.dishes));
+  data.logoText=SAMPLE.logoText; data.infoText=DEFAULT_INFO; data.infoAllergens="";
+  save(); resetForm(); syncInputs(); render();
+};
+$("resetAll").onclick=()=>{ if(!confirm("Clear the editor (calendar library is kept)?")) return; data=makeDefault(); data.currentId=data.menus[0].id; save(); resetForm(); syncInputs(); buildTplGrid(); buildAlignRow(); render(); };
+$("addDay").onclick=()=>{ const m=newMenu("Day "+(data.menus.length+1)); m.title=current().title||"DINNER MENU"; data.menus.push(m); data.currentId=m.id; save(); resetForm(); syncInputs(); render(); };
+$("weekBtn").onclick=()=>{
+  const names=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  const have=new Set(data.menus.map(m=>(m.label||"").toLowerCase()));
+  const baseTitle=current().title||"DINNER MENU";
+  names.forEach(n=>{ if(!have.has(n.toLowerCase())) data.menus.push(Object.assign(newMenu(n),{title:baseTitle})); });
+  save(); render();
+};
+$("renameDay").onclick=()=>{ const m=current(); const v=prompt("Day name", m.label||""); if(v!==null){ m.label=v.trim()||m.label; save(); render(); } };
+$("delDay").onclick=()=>{
+  if(data.menus.length<=1){ alert("Keep at least one day."); return; }
+  const idx=data.menus.findIndex(m=>m.id===data.currentId);
+  data.menus.splice(idx,1); data.currentId=data.menus[Math.max(0,idx-1)].id;
+  save(); resetForm(); syncInputs(); render();
+};
+$("printBtn").onclick=()=>window.print();
+$("wordBtn").onclick=()=>{
+  const pages=data.menus.map((m,i)=>buildWordPage(m,i)).join("");
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Menu</title></head><body>${pages}</body></html>`;
+  const blob=new Blob(["\ufeff"+html],{type:"application/msword"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download=((data.menus.length>1?"menu-week":(current().title||"menu")).replace(/[^\w]+/g,"_").toLowerCase())+".doc";
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove()},100);
+};
+$("saveProject").onclick=()=>{
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="menu-project.json";
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove()},100);
+};
+$("openProject").onclick=()=>$("projectFile").click();
+$("projectFile").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ data=migrate(JSON.parse(r.result))||makeDefault(); if(!data.currentId) data.currentId=data.menus[0].id; save(); resetForm(); syncInputs(); buildTplGrid(); buildAlignRow(); render(); }catch(err){ alert("Could not open project."); } };
+  r.readAsText(f); e.target.value="";
+};
+$("archiveDate").onchange=async e=>{
+  await saveToArchive(true).catch(()=>{});
+  archiveCtx.date=e.target.value||todayISO();
+  const rec=archiveIndex.find(r=>r.id===archiveKey(archiveCtx.date, archiveCtx.meal));
+  if(rec) applyArchiveSnapshot(rec.snap);
+  else { const m=current(); m.dishes=[]; m.sub=""; m.title=archiveCtx.meal==="lunch"?"LUNCH MENU":archiveCtx.meal==="breakfast"?"BREAKFAST MENU":"DINNER MENU"; syncInputs(); render(); }
+  updateArchiveStatus();
+};
+document.querySelectorAll(".meal-tab").forEach(t=>t.onclick=async()=>{
+  await saveToArchive(true).catch(()=>{});
+  setMealTab(t.dataset.meal);
+  const rec=archiveIndex.find(r=>r.id===archiveKey(archiveCtx.date, archiveCtx.meal));
+  if(rec) applyArchiveSnapshot(rec.snap);
+  else { const m=current(); m.dishes=[]; m.title=mealLabel(archiveCtx.meal).toUpperCase()+" MENU"; syncInputs(); render(); }
+  updateArchiveStatus();
+});
+$("saveArchiveBtn").onclick=()=>saveToArchive(false);
+$("browseLibBtn").onclick=()=>openLib("calendar");
+$("libClose").onclick=closeLib;
+$("libCalTab").onclick=()=>{ libView="calendar"; renderLib(); };
+$("libBankTab").onclick=()=>{ libView="bank"; renderLib(); };
+
+/* ---- Init ---- */
+buildChips(); buildTplGrid(); buildAlignRow(); syncInputs(); render();
+detectArchiveStorage().then(async()=>{
+  loadMenuBank();
+  if(!menuBank.length) await loadPcMenuBundle(true);
+  await refreshArchiveIndex();
+  const rec=archiveIndex.find(r=>r.id===archiveKey(archiveCtx.date, archiveCtx.meal));
+  if(rec) applyArchiveSnapshot(rec.snap);
+  updateArchiveStatus();
+}).catch(()=>updateArchiveStatus());
+
+if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
+  window.addEventListener("load", ()=>navigator.serviceWorker.register("/menu-creator/service-worker.js",{scope:"/menu-creator/"}).catch(()=>{}));
+}
+</script>
+</body>
+</html>
