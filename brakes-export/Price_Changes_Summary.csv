@@ -1,0 +1,497 @@
+Metric,Value
+Invoice line items analysed,5297
+Unique products ordered,1039
+Products ordered only once (no comparison possible),426
+Products with stable price (never changed),554
+Products with at least 1 price change,485
+Total price-change events (how many times prices moved),1026
+Products ending HIGHER than first price,360
+Products ending LOWER than first price,119
+Products that changed but ended at same as first,6
+
+Brakes Code,Product,Times changed,First £,Last £,Change %,Direction,Spend £
+149957,Meadowland Double 1x1ltr,14,2.99,3.59,20.07,UP,1050.37
+136997,Beyond Meat Beyond Mince   1x4kg,8,44.2,40.57,-8.21,DOWN,1755.66
+67485,Delifrance Vegan Croissant (19401)  1x56,8,22.46,22.89,1.91,UP,2261.17
+129927,Sysco ClassicOlive Pomace Oil Blend 5ltr,7,13.89,16.12,16.05,UP,1664.11
+127622,Beyond Meat Vegan Burger   1x40,7,64.07,58.24,-9.1,DOWN,1746.03
+78252,Butter Portions                    6x100,7,34.09,34.79,2.05,UP,842.58
+86520,Blue X Large Vinyl Glove Pwd GD11XL1x100,7,4.89,4.79,-2.04,DOWN,89.63
+74088,Unsalted Butter   (70055)        20x250g,7,42.47,41.85,-1.46,DOWN,1395.09
+2041,LaBo Double Chocolate Doughnuts    1x40,6,13.03,26.2,101.07,UP,612.05
+75805,Wholesome Farms HF Greek Style Yog 1x5kg,6,17.31,28.19,62.85,UP,687.68
+71256,Brake Mild Cheddar Chese Slice    1x500g,6,8.29,3.65,-55.97,DOWN,411.41
+85753,KTC Vegetable Cooking Oil        1x20ltr,6,26.85,33.47,24.66,UP,1778.34
+100244,Brakes The Juice Apple           12x1ltr,6,11.8,14.32,21.36,UP,361.93
+4599,Sysco Essential Garden Peas      1x2.5kg,6,4.53,3.97,-12.36,DOWN,363.27
+100243,Brakes The Juice Orange         12x1ltr,6,14.99,16.79,12.01,UP,410.27
+151032,Schwartz Cracked Black Pepper 1x380g,6,7.26,8.13,11.98,UP,180.77
+151872,Global Hacienda Avocado Halves     1x1kg,6,6.11,5.49,-10.15,DOWN,1309.72
+74046,Sysco Classc Grtd Mild Whte Cheddr 5x1kg,6,37.39,34.49,-7.76,DOWN,1613.47
+152434,Sysco The Juice Orange           12x1ltr,6,17.59,17.19,-2.27,DOWN,258.85
+149522,Black Nitrile Gloves Lrg GL897L    1x100,5,4.69,7.29,55.44,UP,126.97
+149521,Black Nitrile Gloves Med GL897M    1x100,5,4.69,7.29,55.44,UP,90.04
+35379,Brakes Tortilla Chips            14x475g,5,25.04,32.9,31.39,UP,422.89
+148781,Global Hacienda Soya Beans         1x1kg,5,5.39,3.88,-28.01,DOWN,278.21
+151084,Flora Plant Butter Unsalted 24x200g,5,24.99,31.1,24.45,UP,222.21
+133966,PG Tips Envelopes                 1x1000,5,47.58,56.44,18.62,UP,362.8
+129304,Ocean Spray Cranberry Classic    12x1ltr,5,14.61,16.7,14.31,UP,156.72
+151969,MOMA Barista Professnl Oat 12x1ltr,5,14.99,16.99,13.34,UP,127.13
+187060,Cocont Col Double Cream  6x400g,5,16.91,14.99,-11.35,DOWN,307.8
+149038,DrSchar GF & V White Sandwich Loaf   1x6,5,26.92,23.99,-10.88,DOWN,375.32
+129803,Flora Professional Plant      8x1ltr,5,31.1,33.9,9.0,UP,662.54
+350101,Icing Sugar (310)                  1x3kg,5,6.22,5.93,-4.66,DOWN,192.53
+131778,McCain OC Hash Browns              1x1kg,5,4.1,3.95,-3.66,DOWN,1055.86
+84472,Tilda Arborio Risotto Rice         1x5Kg,5,18.5,18.14,-1.95,DOWN,206.4
+151289,Arla Pro Gouda Cheese Slices 1x1kg,5,8.06,8.2,1.74,UP,155.77
+15514,Migi EWide Cling Film45cmx300 32C13  1x1,5,7.39,7.49,1.35,UP,347.62
+70325,Brakes Whole Milk (Blue)     RT  6x2.27L,5,10.49,10.6,1.05,UP,3619.28
+33385,Diced Mango                        1x1kg,4,7.41,3.33,-55.06,DOWN,508.92
+13381,Sysco Classic Red Kidney Beans   1x2.5kg,4,2.77,4.27,54.15,UP,344.04
+114931,Wholesome Farms Greek Style Yogurt 1x5kg,4,10.73,16.1,50.05,UP,1669.94
+28326,Sysco Classic Tomato Paste 1x800g (KC1),4,3.88,2.18,-43.81,DOWN,314.64
+3840,Brake Whole Spinach Ptn (350038)   2.5kg,4,6.18,3.6,-41.75,DOWN,399.63
+22053,Sysco Classc Mozz Shredded Cheese  1x2kg,4,13.31,9.24,-30.58,DOWN,366.31
+149914,Granarolo Grtd Italian Hrd Chse 1x500g,4,7.99,10.43,30.54,UP,456.79
+21856,Prep Premium Toasted Sesame Oil   1x1ltr,4,12.02,8.43,-29.87,DOWN,442.59
+119648,Market Mix Olives (whole)   1x1kg,4,8.78,11.15,26.99,UP,778.11
+4111,Brake Fruits Of The Forest Mix       1kg,4,6.18,4.6,-25.57,DOWN,570.42
+33947,Sysco Premium Petit Pois           1.5kg,4,5.9,4.46,-24.41,DOWN,144.76
+74090,GVD American Style Cream Cheese 1x2kg,4,14.03,17.34,23.59,UP,285.77
+26448,Brakes The Juice Cranberry         12x1L,4,18.42,14.25,-22.64,DOWN,124.91
+4768,Brake Cauliflower Florets 30-70mm  2.5kg,4,6.62,5.32,-19.64,DOWN,165.18
+71731,Brake Mature Ched Cheese Slice    1x500g,4,4.43,3.59,-18.96,DOWN,422.86
+563,Brakes Haricot Beans               1x3kg,4,7.19,8.34,15.99,UP,743.2
+135682,Carte Dor Vegan Choc Mousse Mix   3x300g,4,8.06,9.28,15.14,UP,197.17
+103171,Maggi Coconut Milk Powder          1x1kg,4,11.37,12.99,14.25,UP,130.73
+148602,Redefine Plant Premium Burger 4x8x140g,4,54.5,46.99,-13.78,DOWN,461.92
+146135,Walkers Assortd Biscuit Mini Pck 100x25g,4,19.14,21.52,12.43,UP,1790.38
+134491,Greek Feta Cheese                 1x900g,4,10.36,11.49,10.91,UP,923.76
+36037,Brakes Capers in Brine          1x2kg,4,13.89,15.4,10.87,UP,100.02
+134323,Sysco Classic Vegan Mayonnaise  1x5L,4,12.95,14.18,9.5,UP,461.59
+4300,Sysco Classic Naan Bread         24x100g,4,8.7,8.06,-7.36,DOWN,993.71
+5946,Sysco Classic Cornflour         1x3.5kg,4,7.6,8.1,6.58,UP,251.9
+100535,Brakes Pure Maple Syrup           1x620g,4,11.51,12.16,5.65,UP,1878.96
+5222,"Sysco Ess 4 Unseeded Baps(28372)   1x48""",4,7.19,7.55,5.01,UP,212.76
+148838,Valdigrano Lasagne               12x500g,4,14.1,14.75,4.61,UP,228.34
+135584,Northwood Blue CFeed 2ply CL2B806EDS 1x6,4,8.78,9.11,3.76,UP,343.94
+117887,Ethanol Chafing Gel 2.5hr           1x12,4,10.72,10.43,-2.71,DOWN,1105.22
+71250,Goats Cheese Log                   1x1kg,4,13.46,13.82,2.67,UP,540.02
+33348,Sysco Essential Thick Cut Chip  4x2.27kg,4,11.73,11.44,-2.47,DOWN,337.43
+30925,Brake Rosti Potato Fritters          1kg,4,5.68,5.82,2.46,UP,1107.73
+150758,Glebe Farm Barista Coconut 6x1ltr,4,11.01,11.22,1.91,UP,73.45
+89987,Jacobs Biscuits For Cheese        1x800g,4,10.0,10.07,0.7,UP,171.51
+84693,Priory F Still Water PET F/Cap  24x500ml,3,4.72,7.84,66.1,UP,108.32
+135232,Bridor Vegan RTB Orange HNut Crown  1x48,3,26.49,40.89,54.36,UP,410.11
+5552,Brakes Solid Pack Apples    1x2.6kg(KC3),3,4.17,6.4,53.48,UP,181.64
+6039,Brakes Green Lentils               1x3kg,3,8.26,12.66,53.27,UP,118.39
+135231,Bridor Vegan RTB Vanilla HNut Crown 1x48,3,26.7,40.89,53.15,UP,341.52
+4762,Sysco Classic Cut Beans            2.5kg,3,5.25,2.97,-43.43,DOWN,112.3
+4381,Sysco Classic 10 Flour Tortillas    4x18,3,11.58,16.05,38.6,UP,366.19
+150756,Foraged Shredded Mushroom Meat BB 1x500g,3,2.4,3.18,32.5,UP,51.22
+115072,Amoy Coconut Milk (85833)       12x400ml,3,25.48,17.28,-32.18,DOWN,964.32
+127121,Coconut Milk CASE               12x400ml,3,11.56,15.03,30.02,UP,553.99
+88315,Brks 3Ply 40cm White Napkin  2x250Cs,3,26.34,19.36,-26.5,DOWN,677.53
+84811,Duni White Napkin 33cm 2 ply      1x2000,3,31.31,38.14,21.81,UP,498.33
+11127,Unsalted Butter                  40x250g,3,75.79,59.99,-20.85,DOWN,715.59
+126682,Duerrs Peanut Butter Crunchy     1x2.5kg,3,16.41,13.02,-20.66,DOWN,162.79
+268,Brakes Seedless Raisins            1x3kg,3,14.39,17.2,19.53,UP,146.51
+1202,Brakes Peach Slice Syrup   1x2.6kg (KC3),3,8.13,9.71,19.43,UP,146.88
+126489,Violife Orig Flavour Grated       4x500g,3,18.99,22.53,18.64,UP,103.19
+85120,Chef William Cooking Salt          1x3kg,3,4.17,4.89,17.27,UP,165.99
+110930,Paneer Cheese                      900g,3,7.32,6.28,-14.21,DOWN,4153.6
+70215,Brake Double Cream Fresh  RT    1x2.27L,3,7.89,8.99,13.94,UP,77.91
+112159,Kerrymaid Double             1 x 1 litre,3,3.45,2.99,-13.33,DOWN,191.68
+33583,Sysco Classic Ground Ginger       1x400g,3,6.69,5.82,-13.0,DOWN,45.87
+74582,Brakes Whole Mini Camembert       6x125g,3,12.59,10.99,-12.71,DOWN,92.0
+27544,Sysco Classc Grt Mild White Cheddr 1x1kg,3,7.89,6.89,-12.67,DOWN,457.2
+4760,Brake Whole Green Beans (350053) 1x2.5kg,3,9.78,8.57,-12.37,DOWN,222.46
+100262,Extra Virgin Olive Oil    1x2ltr,3,20.3,17.92,-11.72,DOWN,111.63
+150802,Wildfarmed Slcd Sour Wht Bloomer  8x800g,3,36.35,40.53,11.5,UP,145.94
+24192,Shortbread Rounds              1x200x11g,3,21.09,23.39,10.91,UP,204.98
+148819,Violife Mat Cheddar Flav Grated 1x500g,3,4.1,4.53,10.49,UP,118.11
+125279,Walkers Shortbread Gluten Free    60x30g,3,22.74,25.12,10.47,UP,345.84
+74858,Alpro Soya Alt Yogrt Dry Fre    6x4x125g,3,11.08,9.96,-10.11,DOWN,587.44
+71035,Halloumi Cheese                   4x250g,3,10.99,9.9,-9.92,DOWN,315.5
+128154,Alpro Soya Wholebean Unsweetened 8x1Ltr,3,14.54,13.17,-9.42,DOWN,252.15
+350102,Tate & Lyle Light Brown Soft Sugar 1x3kg,3,10.22,11.15,9.1,UP,106.85
+350103,Dark Brown Soft Sugar (106063)     1x3kg,3,11.87,10.86,-8.51,DOWN,65.97
+136749,Sysco Lime Juice                1x1ltr,3,2.01,2.18,8.46,UP,130.7
+136769,Beechdean Clotted Cream Ice Cream 1x5ltr,3,15.18,13.99,-7.84,DOWN,265.71
+115400,Kelloggs Coco Pops Bag Pak        4x500g,3,13.53,14.54,7.46,UP,255.05
+148578,Alpro Barista Oat          12x1ltr,3,21.3,22.89,7.46,UP,224.99
+136748,Sysco Lemon Juice                 1x1ltr,3,2.01,2.16,7.46,UP,219.78
+4301,Brakes Puff Pastry Squares 13cm     1x96,3,20.58,22.1,7.39,UP,321.34
+301,Brakes Caster Sugar               1x25kg,3,36.38,39.02,7.26,UP,234.36
+74699,Brake Essentials Grated White Cheese 1kg,3,6.37,6.83,7.22,UP,418.69
+526841,Set Soured Cream                   1x1kg,3,4.31,4.62,7.19,UP,322.07
+135454,Minor Figures Barista Oat     6x1ltr,3,10.07,10.79,7.15,UP,103.77
+134490,Butlers of Lanc Cheese Selection    650g,3,11.58,12.38,6.91,UP,380.92
+151770,Sysco Classic Green Beans X Fine 1x2.5kg,3,4.82,4.53,-6.02,DOWN,107.22
+135327,Tofoo Co Organic Naked Tofu        1x1kg,3,5.68,5.34,-5.99,DOWN,5991.86
+148660,Ubley Low Fat Natural Yogurt      1x5kg,3,12.02,12.74,5.99,UP,1211.15
+129918,Tyrrells Lightly Sea Salt Crisps    1x24,3,13.24,14.03,5.97,UP,106.34
+130799,Brake Vegan Vanilla Frozen Dessert  1x4L,3,9.06,9.57,5.63,UP,63.72
+31526,Ubley Fruit N Crm Yogurt Mixd    12x150g,3,6.18,6.49,5.02,UP,440.26
+130608,Brakes Berries Cocont & Seed Toppr 1x1kg,3,8.63,9.06,4.98,UP,320.61
+33891,Brakes Self Raising Flour         1x25kg,3,24.98,26.13,4.6,UP,204.78
+34031,Brakes Demerara Sugar Stick       1x1000,3,8.92,9.28,4.04,UP,146.38
+74048,Sysco Classc Mat White Cheddar Grt 5x1kg,3,37.79,36.29,-3.97,DOWN,351.55
+128101,Cauldron Tofu                     6x396g,3,13.24,13.74,3.78,UP,256.86
+149906,Elda Ricotta Cheese 1x1.5kg,3,11.22,11.58,3.21,UP,875.19
+135419,Sheese Mature Cheddar Slice Vegan    1kg,3,11.8,12.16,3.05,UP,393.88
+150850,Lyles Maple Syrup               1x2.80kg,3,7.98,7.77,-2.63,DOWN,278.25
+33559,Brakes Plain Flour                1x25kg,3,19.65,20.15,2.54,UP,140.05
+118225,Royal Crw BlackTurtle Bean n Wtr 1x2.5kg,3,2.87,2.94,2.44,UP,741.43
+111313,Roasted Red Peppers              1x2.5kg,3,6.18,6.04,-2.27,DOWN,1044.08
+14780,Migi Baking Parchment  45cmx75m    1x1,3,15.83,16.19,2.27,UP,171.12
+23198,Capricorn Goats Chese (Smrset)    6x100g,3,20.08,20.51,2.14,UP,181.45
+133965,Sheese Original Spread            6x255g,3,14.25,14.54,2.04,UP,127.31
+86027,Brakes Balsamic Vinegar           1x2ltr,3,10.58,10.79,1.98,UP,53.09
+4764,Brake Broad Beans                  2.5kg,3,11.44,11.22,-1.92,DOWN,412.17
+131165,Whole Black Sesame seed           1x650g,3,8.63,8.78,1.74,UP,44.03
+126335,Alpro Almond For Professionals  12x1ltr,3,21.3,20.94,-1.69,DOWN,209.27
+124886,Cheddar Cheese Arran Oak Smkd     1x200g,3,4.6,4.67,1.52,UP,64.35
+9698,Brakes Sliced Green Jalepeno       1x3kg,3,6.54,6.47,-1.07,DOWN,125.39
+10515,Migi 2Ply Blue Centrfeed 300sht 120m 1x6,3,9.79,9.79,0.0,SAME,318.58
+136410,Sysco Prem Pressed Apple Juice   1x2.27L,2,3.68,6.11,66.03,UP,58.6
+71819,Arla Pro Slcs Mature White Chedar 1x1kg,2,7.55,12.52,65.83,UP,56.68
+152188,Extons Mild Cheddar Slices         1x1kg,2,6.47,10.5,62.29,UP,112.37
+551,Brakes Yellow Split Peas           1x3kg,2,6.9,3.88,-43.77,DOWN,65.24
+2141,Brakes Clear Honey              1x3.17kg,2,23.97,14.61,-39.05,DOWN,125.39
+135233,Bridor Vegan RTB Cherry Crown       1x48,2,29.15,40.38,38.52,UP,269.19
+4782,Sysco Classic Sweetcorn         2.5kg,2,4.99,6.69,34.07,UP,70.73
+324,Plain Chocolate Drops              1x3kg,2,19.72,26.34,33.57,UP,89.38
+104466,Vinyl Gloves Blue PF X large GD13XL1x100,2,4.89,6.39,30.67,UP,46.71
+134293,Sysco Classic Cracked Black Pepper 425g,2,6.4,8.34,30.31,UP,89.24
+132671,Applewood Smoky Vegan Slices      1x200g,2,2.43,3.16,30.04,UP,88.68
+150143,Plenish Barista Oat         6x1ltr,2,9.49,12.3,29.61,UP,121.04
+150142,Plenish Barista Soya        6x1ltr,2,9.49,12.3,29.61,UP,96.44
+150144,Plenish Barista Almond          6x1ltr,2,10.99,13.96,27.02,UP,99.58
+71268,Sysco Classic Mat White Ched Grate 1x1kg,2,9.13,6.69,-26.73,DOWN,191.04
+134428,Arla Lactofree Whole Milk         1x1ltr,2,1.49,1.86,24.83,UP,15.93
+114969,Brakes Swiss Style Muesli (33731)  4x2kg,2,17.92,22.31,24.5,UP,100.75
+151083,Flora Plant Btter Salted 24x200g,2,24.99,31.1,24.45,UP,76.08
+4748,Brake Broccoli Florets 40/60(350033) 2kg,2,4.8,3.65,-23.96,DOWN,93.96
+118561,Alpro Simply Plain                1x500g,2,2.15,1.65,-23.26,DOWN,439.2
+120075,Nescafe Original Decaff Stick   800x1.2g,2,41.75,51.33,22.95,UP,195.09
+145917,Heinz Vegan Mayonnaise              5Ltr,2,16.12,12.49,-22.52,DOWN,58.59
+113654,ALPRO Soya For Professionals      1x1ltr,2,1.41,1.72,21.99,UP,88.78
+115794,Brake Organic Natural Yogurt      1x2kg,2,6.62,5.18,-21.75,DOWN,79.04
+128345,Evian Still Natural Mineral Water 8x1.5L,2,7.41,8.99,21.32,UP,49.99
+4793,Brake Sliced Mixed Peppers         1.5kg,2,4.13,3.31,-19.85,DOWN,120.93
+129464,Brakes Vegan Brownie                1x30,2,22.38,26.7,19.3,UP,452.1
+33592,Sysco Classic Oregano             1x100g,2,3.16,2.58,-18.35,DOWN,97.42
+5627,Brakes Banana Chips                1x1kg,2,7.26,8.56,17.91,UP,23.23
+350099,Demerara Sugar (106064)            1x3kg,2,12.88,10.58,-17.86,DOWN,93.54
+33386,Blackberries                       1x1kg,2,4.51,5.27,16.85,UP,397.19
+87045,Olive Pomace Oil            1x5L,2,21.45,17.92,-16.46,DOWN,357.65
+33585,Sysco Classic Paprika Pepper  1x480g,2,4.1,4.67,13.9,UP,74.25
+129454,LaBo Vegan Slcd Brioche Style Bun 1x45,2,19.79,22.38,13.09,UP,63.4
+146174,Sysco Classic Penne Pasta  1x5kg,2,8.42,9.42,11.88,UP,75.11
+6437,Sysco Classic Chop Toms in Juice   2.5kg,2,3.39,2.99,-11.8,DOWN,1280.56
+18419,G V Dairy Natural Cottage Cheese 1x2kg,2,13.02,14.54,11.67,UP,333.2
+133540,KTC Gram Flour                     1x2kg,2,3.09,3.45,11.65,UP,90.92
+4753,Sysco Choice Garden Peas (350058)  2.5kg,2,4.39,3.99,-9.11,DOWN,16.76
+19510,CHL Flora Portions(22927)        200x10g,2,23.18,25.26,8.97,UP,390.98
+18421,G V Dairy Full Fat Soft Cheese 1x2kg,2,8.61,9.37,8.83,UP,382.67
+35014,Sysco Classic Cayenne Pepper    1x450g,2,8.99,9.78,8.79,UP,46.97
+5952,Brakes Dried Chick Peas            1x3kg,2,10.94,10.0,-8.59,DOWN,223.75
+136475,Sysco ESS GF Vegan Choc Truff Torte 1x14,2,16.05,17.42,8.54,UP,169.8
+74075,Applewood Cheese                   1.5kg,2,19.79,21.45,8.39,UP,184.3
+33595,Sysco Classic Rubbed Thyme        1x210g,2,4.38,4.74,8.22,UP,36.72
+135304,McVities Tasties Digestives      12x300g,2,9.99,10.79,8.01,UP,63.64
+135284,Nairns GF Choc Chip Biscuit Break 48x30g,2,14.61,15.76,7.87,UP,935.32
+28797,Opie Sliced Gherkins             1x2.3kg,2,7.48,8.06,7.75,UP,69.13
+134288,Sysco Classic Rosemary Needles    1x200g,2,3.88,4.17,7.47,UP,12.0
+123366,Honeybuns GF Choc Pecan Caram TBake  1x1,2,23.03,24.69,7.21,UP,144.52
+89840,Galvan Heavy Duty Scourer 828/40    1x10,2,1.9,2.03,6.84,UP,37.74
+134289,Sysco Classic Smoked Paprika  1x450g,2,4.1,4.38,6.83,UP,46.08
+132404,Royal Crown Chick Peas in Water  1x2.5kg,2,3.23,3.45,6.81,UP,452.7
+121379,Sysco Classic Table Salt (33706)   1x6kg,2,10.07,10.75,6.75,UP,71.34
+106616,Pinguin Supersweet Sweetcorn      1x10kg,2,23.68,25.26,6.67,UP,173.1
+33581,Sysco Classic Ground Cinnamon   1x450g,2,5.54,5.9,6.5,UP,22.66
+111309,Rice Flour                       1x1.5kg,2,3.45,3.23,-6.38,DOWN,86.52
+133240,Clear Polypropylne Food Cont 9ltr CE 1x1,2,8.09,8.59,6.18,UP,283.86
+106727,Brakes Sliced Jalapeno Peppers     1x1kg,2,2.37,2.51,5.91,UP,27.61
+134291,Sysco Classic Whole Cumin Seeds 350g,2,3.81,4.02,5.51,UP,11.71
+132615,PlantNation Vegan Grated Cheese    1x1Kg,2,9.21,9.71,5.43,UP,96.25
+5001729,Sysco Classic Vegan Mayonnaise   1x10ltr,2,21.66,22.74,4.99,UP,66.86
+26896,Walkers Shortbread Fingers       240x20g,2,50.61,53.06,4.84,UP,522.38
+133542,Lotus Biscoff Smooth Spread      1x1.6kg,2,9.21,9.64,4.67,UP,66.77
+33829,"Brake 12 Thin & Crispy Pizza Base  1x18""",2,17.27,18.06,4.57,UP,88.65
+21957,Wrapmaster Cling Film Refill 3x45cmx300m,2,43.12,44.99,4.34,UP,132.53
+86874,Vanilla Essence                  1x500ml,2,5.32,5.54,4.14,UP,153.88
+85549,Large Clear Vinyl Gloves Pwd GD47L 1x100,2,5.19,4.99,-3.85,DOWN,46.81
+57033,"LaBo 4.5 Seeded Burger Bun         1x48""",2,9.42,9.06,-3.82,DOWN,45.45
+133687,Macphie Plant Based Crm Alternative 1x1L,2,3.74,3.88,3.74,UP,877.1
+4794,Brake Diced Mixed Peppers (Rd/Grn) 1.5kg,2,8.13,7.84,-3.57,DOWN,71.51
+89657,Brakes The Juice Apple          27x200ml,2,17.68,17.07,-3.45,DOWN,178.96
+308,Brakes Granulated Sugar           1x25kg,2,32.25,31.19,-3.29,DOWN,257.94
+86805,Brakes Mint Sauce              1x2.27ltr,2,9.35,9.64,3.1,UP,28.56
+4198,Sysco Classic Chota Naan            1x30,2,7.55,7.77,2.91,UP,91.77
+33606,Brakes Fine Cut Marmalade       1x2.72kg,2,8.7,8.92,2.53,UP,52.87
+470977,Marshalls Macaroni 3Kg           1 X 3Kg,2,8.99,9.21,2.45,UP,82.46
+100439,Noels Bicarbonate Of Soda         1x900g,2,3.3,3.38,2.42,UP,19.34
+115344,Brakes Pure Clear Honey           6x454g,2,30.09,30.81,2.39,UP,303.2
+149958,Kuhne Pickld Dill Gherkn Slices 1x2.45kg,2,9.78,10.0,2.25,UP,109.71
+136533,Ardo Oven Dried Tomatoes           1x1kg,2,6.9,7.05,2.17,UP,284.4
+151022,Hazlemere Cider Vinegar 1x5ltr,2,6.62,6.76,2.11,UP,40.07
+120625,Levanto HRD Veg Cheese Shave       1x1kg,2,21.3,21.74,2.07,UP,258.23
+151763,Kingsmill 50/50 Thck Sliced Bread 8x800g,2,15.11,15.4,1.92,UP,106.56
+129529,Reliance Blue assorted Plasters 1x150,2,7.34,7.48,1.91,UP,29.71
+109618,Alpro Original Soya Sweetened       8x1L,2,11.58,11.8,1.9,UP,176.13
+508,Cadbury Drinking Chocolate         1x5kg,2,38.73,39.45,1.86,UP,313.5
+111707,LaBou 10in BarMarkd Flour Tortillas 4x18,2,11.87,12.09,1.85,UP,59.72
+100222,Sysco Plain Flour                1x16kg,2,10.89,11.09,1.84,UP,88.22
+127153,Mikado Rice Vinegar CASE         6x500ml,2,12.16,12.38,1.81,UP,61.3
+134002,Perfect British Cheeseboard       6x155g,2,24.62,25.05,1.75,UP,274.67
+152189,Extons Mature Cheddar Slices       1x1kg,2,6.47,6.58,1.7,UP,78.47
+22383,Somerset Brie                        1kg,2,12.45,12.66,1.69,UP,37.7
+104628,British Cheese Board      1x840g,2,17.27,17.56,1.68,UP,121.62
+132654,Flat Tape Handle Paper Bag Medium  1x250,2,14.39,14.63,1.67,UP,87.36
+152056,Unearthed Pitted Blck Olive  1x3.8kg,2,17.7,17.99,1.64,UP,125.14
+118890,Quaker Oats GF Original Porridge  5x510g,2,13.6,13.82,1.62,UP,96.06
+149599,Lion Dijon Mustard              1x2.27lt,2,13.17,13.38,1.59,UP,53.24
+132777,Alpro Oat No Sugars               8x1ltr,2,13.46,13.67,1.56,UP,81.67
+129229,"15cm (6) GF Soft Blue Corn Tortilla6x24""",2,22.74,23.03,1.28,UP,222.48
+186678,Donut the Golden Fry              1x12,2,6.83,6.75,-1.17,DOWN,20.77
+135180,Global Hacienda Green Asparagus      1kg,2,6.69,6.76,1.05,UP,105.13
+591136,Kalamata Olives Whole OC 119645    1x1kg,2,10.5,10.58,0.76,UP,374.83
+5003095,BlueDragon Extr Firm Silken Tofu 12x308g,2,23.18,23.32,0.6,UP,112.01
+135285,Nairns GF Mixed Oat Biscuit Break 48x30g,2,14.61,14.61,0.0,SAME,414.36
+5010628,Global Hacienda Avocado Slices    1x500g,2,2.99,2.99,0.0,SAME,352.82
+150423,5 Bean Salad in Water             1x800g,2,1.43,1.43,0.0,SAME,182.2
+118560,Alpro Oat Drink                    1litr,2,1.94,1.94,0.0,SAME,125.79
+146186,Sysco Classic Straight Macaroni 5kg,2,7.77,7.77,0.0,SAME,116.76
+85293,Sysco Classic Whole Blk Peppercorns 1kg,1,18.71,31.17,66.6,UP,49.88
+255,Sysco Desiccated Coconut          1x2kg,1,10.22,16.48,61.25,UP,137.46
+100246,Brakes The Juice Grapefruit      12x1ltr,1,10.99,17.56,59.78,UP,81.23
+133678,Dr Oetker Cocoa Powder             1x1kg,1,9.64,15.18,57.47,UP,84.1
+109628,White Quinoa                       1x1kg,1,10.72,4.68,-56.34,DOWN,216.36
+350157,Brakes Squeezy Clear Honey (86120)  680g,1,7.12,3.59,-49.58,DOWN,67.97
+104446,DUNI White 3ply Napkin 40cm       1x1000,1,32.82,48.81,48.72,UP,81.63
+132992,GN 1/1 S/S Gastronorm - 20cm deep 1x1,1,17.49,25.39,45.17,UP,171.52
+591066,Napkin White 2ply 24cm OC107389  8x300ea,1,49.89,69.54,39.39,UP,169.32
+554,Brakes Green Split Peas      1x3kg,1,6.4,4.02,-37.19,DOWN,10.42
+5026266,Dr.Oetker Prof Madagscn Van Extr 1x500ml,1,5.99,8.2,36.89,UP,83.57
+10230,Cucumber Single BB                1xEach,1,0.58,0.79,36.21,UP,7.64
+1622,Brakes Cashew Kernels              1x1Kg,1,13.17,17.78,35.0,UP,48.73
+29379,Brakes Honey Portions            100x20g,1,18.93,12.51,-33.91,DOWN,43.95
+4116,Brake Raspberries                   500g,1,6.69,8.92,33.33,UP,24.53
+150305,Hellmanns Vegan Mayonnaise         1x5lt,1,23.99,16.48,-31.3,DOWN,40.47
+5002322,Sysco Classic Extr Virgn OliveOil 1x2ltr,1,9.21,11.8,28.12,UP,21.01
+88308,Brks White 2ply Napkin 40cm 2x300,1,23.46,17.34,-26.09,DOWN,75.48
+88427,Tetley Decaf DfwString Envelopes 6x25,1,9.99,12.52,25.33,UP,32.5
+89921,PG Tips Envelope Tea Bags          1x200,1,10.29,12.88,25.17,UP,36.05
+12876,Mcdougalls Dark Chocolate Chips  1x1.1kg,1,10.58,13.24,25.14,UP,23.82
+132853,Stainless Steel Speed Peeler CE      1x1,1,4.59,3.49,-23.97,DOWN,30.12
+88289,Brakes White 2ply Napkin 33cm 2x300,1,12.02,9.21,-23.38,DOWN,33.25
+150943,Beechdean Classic Vanilla Ice Cream 1x5l,1,14.32,10.99,-23.25,DOWN,64.94
+8796,Brakes Pecan Nuts                  1x1kg,1,19.36,23.82,23.04,UP,67.0
+3243,Sysco Classic Sweetcorn     1kg,1,2.58,1.99,-22.87,DOWN,33.76
+71128,Brake Saltd Dairy Butter (70055) 20x250g,1,40.46,49.38,22.05,UP,188.6
+88932,Brakes Wholegrain Mustard     1x2.27ltr,1,10.0,7.84,-21.6,DOWN,25.68
+118844,Pipers Crisps Anglesey Sea Salt   24x40g,1,11.99,14.46,20.6,UP,93.81
+31817,LaBo Banqueting Roll Selection      3x25,1,15.62,12.44,-20.36,DOWN,165.46
+150803,Wildfarmed Slcd Sour Seed Bloomer 8x800g,1,31.99,38.22,19.47,UP,70.21
+5874,Brakes Flaked Almonds              1x1kg,1,17.99,14.54,-19.18,DOWN,119.77
+113142,25mm Allergen Label Soy Beans CE  1x1000,1,4.29,5.1,18.88,UP,9.39
+152601,Milk Belgian Couverture Choc 1x2.5kg,1,38.01,30.95,-18.57,DOWN,68.96
+123367,Honeybuns GF Cinder Toffee Traybake  1x1,1,19.36,22.89,18.23,UP,84.5
+150493,Glebe Farm Barista Almond Drink 6x1ltr,1,10.49,12.23,16.59,UP,33.21
+134020,Vegan Mixed Berry Injected Muffin   1x30,1,25.62,29.8,16.32,UP,115.02
+24762,Fairtrade Demerera Sugar Sticks   1x1000,1,19.29,16.26,-15.71,DOWN,132.0
+244,Sysco Class  Plum Toms in Juice 1x2.55kg,1,4.09,3.45,-15.65,DOWN,188.36
+106066,FT Icing Sugar                     1x1kg,1,3.74,3.16,-15.51,DOWN,16.96
+87867,Blue Dragon Soy Sauce             1x1ltr,1,5.03,4.25,-15.51,DOWN,9.28
+3625,"LaBo Sesame Seed Bun 5            1x48""",1,8.2,9.42,14.88,UP,50.42
+136148,Carrot Wedges PK                 1x2.5kg,1,7.91,6.76,-14.54,DOWN,51.92
+450382,Loaf Brown Thick               6xEach PK,1,9.93,11.37,14.5,UP,42.6
+125122,Sponge Scourer                      1x10,1,1.48,1.69,14.19,UP,45.01
+71003,Brie (Whole 60%)   522705          1x3kg,1,27.93,31.82,13.93,UP,59.75
+33889,Olive Oil                 1x2ltr,1,28.36,24.54,-13.47,DOWN,81.26
+113655,ALPRO Coconut For Professionals   1x1ltr,1,2.01,1.74,-13.43,DOWN,293.19
+129274,Brakes Cooking & Baking       24x250g,1,15.76,17.78,12.82,UP,49.3
+343,Glendelight                       1x1ltr,1,3.59,4.02,11.98,UP,46.09
+127211,Violife Prosociano VG Wedge       1x150g,1,3.02,3.38,11.92,UP,47.46
+88887,Ex Virgin Olive Oil       1x5ltr,1,49.02,43.19,-11.89,DOWN,141.23
+113885,Herb Coriander Bunched BB         1x100g,1,1.1,1.23,11.82,UP,9.06
+10545,Mushrooms Portabello PK            1.5kg,1,6.99,7.77,11.16,UP,75.36
+119329,Shield Blue Rubber Gloves Med GR03M 1x12,1,6.39,7.09,10.95,UP,13.48
+149786,McD Jelly Crystals Strwberry Vgn 1x3.5kg,1,27.5,24.59,-10.58,DOWN,52.09
+12008,Coconut BB                          Each,1,0.86,0.95,10.47,UP,4.39
+71766,Yeo Strawbry Yogurt Organic       12x80g,1,3.45,3.81,10.43,UP,11.07
+113713,Yeo Organic Mango & Vanill Yogurt 12x80g,1,3.45,3.81,10.43,UP,7.26
+150519,Wildfarmed Sourdough White Bloomer   1x8,1,35.63,31.99,-10.22,DOWN,67.62
+5011992,Olympus FETA PDO Cheese           1x900g,1,9.5,10.43,9.79,UP,60.72
+149881,Kidderton Ash Goats Cheese 9x150g,1,29.99,32.75,9.2,UP,62.74
+33325,Blueberries                   1x1kg,1,3.44,3.75,9.01,UP,58.14
+89849,Brakes Cranberries                 1x1kg,1,8.99,9.78,8.79,UP,28.55
+85842,Sysco Classic Custard Powder     1x3.5kg,1,12.3,11.22,-8.78,DOWN,23.52
+135418,Sheese Mat Cheddar Grated Vegan      1kg,1,9.49,10.29,8.43,UP,67.23
+149528,Just Live Raisin Almond Granola    4x2kg,1,23.25,25.19,8.34,UP,141.44
+118708,Diced Butternut Squash 20mm BB     1x1kg,1,3.48,3.77,8.33,UP,118.9
+26941,Brakes Golden Syrup Poly  7.26kg,1,19.14,17.56,-8.25,DOWN,54.26
+151774,Sysco Classic Slice Mixed Pepper 1x2.5kg,1,4.89,4.49,-8.18,DOWN,37.52
+19839,Sysco Classic Chopped Tomato in Jce 800g,1,1.72,1.58,-8.14,DOWN,98.16
+135220,Brake Vegan Chocolate Ice Cream   1x4ltr,1,9.93,10.72,7.96,UP,62.74
+33709,Sysco Classic Ground Nutmeg    1x450g,1,8.34,8.99,7.79,UP,17.33
+152602,Dark Belgian Couverture Choc  1x2.5kg,1,35.27,32.68,-7.34,DOWN,100.63
+25148,Osprio Porridge Oats               1x2kg,1,2.87,2.66,-7.32,DOWN,77.63
+3894,Sysco Classic Medium Cut Chips   6x2.5kg,1,22.49,20.89,-7.11,DOWN,65.87
+10844,Sysco Classic Pumpkin Seeds       1x430g,1,9.21,9.86,7.06,UP,48.0
+124869,Garofalo G/F Penne Pasta          1x400g,1,2.01,2.15,6.97,UP,66.0
+133532,Violife Original Creamy       1x200g,1,2.01,2.15,6.97,UP,10.47
+71004,Paysan Breton Le Brie              1x1kg,1,9.35,10.0,6.95,UP,48.05
+149869,Go Free Crisp Rice Cereal         4x350g,1,9.64,10.29,6.74,UP,19.93
+74153,Brakes Margarine                     2kg,1,4.38,4.67,6.62,UP,36.49
+134489,Butlers Brit Trio Cheeseboard     6x155g,1,19.99,21.3,6.55,UP,41.29
+10143,Red Kidney Beans     1x800g (KC1),1,1.55,1.65,6.45,UP,43.8
+3097,Walkers Oatcake Refills Bisc      24x75g,1,7.91,8.42,6.45,UP,16.33
+134991,Banquet Dor Apple Pie           1x1.25kg,1,7.98,7.48,-6.27,DOWN,106.22
+74897,Salad Cheese                        400g,1,5.75,5.39,-6.26,DOWN,55.34
+131420,Sysco Classic Sumac               1x500g,1,11.58,12.3,6.22,UP,23.88
+71129,Sysco Clas Mild White Cheddar min 4.75kg,1,29.79,31.59,6.04,UP,61.38
+89918,Swing Bin Liners  (600917)         1x100,1,2.51,2.66,5.98,UP,18.17
+117855,Mini Fresh Goats Cheese Log       6x125g,1,11.22,11.87,5.79,UP,58.05
+33351,Sysco Essential Medium Cut Chip 4x2.27kg,1,12.45,11.73,-5.78,DOWN,96.72
+125668,LaBo Vegan Brioche Styl Burger Bun45x80g,1,18.93,20.01,5.71,UP,57.87
+103604,Coolicious FrzYoghurt Strawberry 1x4ltr,1,5.99,6.33,5.68,UP,61.94
+103605,Coolicious Frozen Yoghurt  Mango 1x4ltr,1,5.99,6.33,5.68,UP,61.94
+134286,Sysco Classic Fennel seeds        1x330g,1,3.95,4.17,5.57,UP,8.12
+152077,Noels Gherkins Sliced Dill 1x2.45kg,1,11.66,12.3,5.49,UP,35.62
+113099,La Bo Artisan Sourdough loaf         1x4,1,14.82,15.62,5.4,UP,30.44
+149911,Granarolo Parmigiano Reg Grate 1x1kg,1,22.82,24.04,5.35,UP,46.86
+125141,Plastic Kentucky Holder Green CE     1x1,1,1.5,1.58,5.33,UP,10.82
+133102,Mobile Storage Container & Lid 60ltr 1x1,1,39.79,41.89,5.28,UP,203.15
+113100,La Bo Artisan Sourdough Seeded Loaf  1X4,1,14.97,15.76,5.28,UP,30.73
+85099,Priory Falls Still Wat PET      30x330ml,1,6.83,7.19,5.27,UP,103.89
+15785,Caterer Butter Beans            1x2.55kg,1,5.54,5.25,-5.23,DOWN,117.24
+133624,Ubley Thick Creamy Peach Yog     12x110g,1,4.24,4.46,5.19,UP,17.4
+149763,DWBH Donut Queen V                  1x24,1,14.75,13.99,-5.15,DOWN,114.2
+89781,Sysco Classic Chopped Dates        1x3kg,1,15.54,16.34,5.15,UP,31.88
+105129,Beetroot Longlife BB              1x500g,1,0.97,1.02,5.15,UP,31.57
+34415,Penne Rigate                     4x2.5kg,1,29.51,31.02,5.12,UP,60.53
+126923,Tinned Jackfruit                 1x2.8kg,1,11.3,11.87,5.04,UP,227.14
+88519,Brakes Basmati Rice                1x5kg,1,13.1,12.45,-4.96,DOWN,25.55
+125144,PY Kentucky Mop Head 16oz 1 x 1,1,1.43,1.5,4.9,UP,20.72
+470655,Callebaut 70% Dark Choc Callet   1x2.5Kg,1,56.56,53.92,-4.67,DOWN,110.48
+10317,Kp Ready Salted                 1x48pckt,1,24.83,25.98,4.63,UP,388.55
+18422,GVD Set Soured Cream   1x2kg,1,14.1,14.75,4.61,UP,71.15
+85184,Brakes Digestive Rounds          12x300g,1,10.16,10.62,4.53,UP,83.58
+107642,Migi CentreFeed Blue Wipe 380Sht150m 1X6,1,15.9,16.62,4.53,UP,65.04
+10513,Brake Ess Blue Centerfeed 1ply 250m  1x6,1,14.46,15.11,4.5,UP,29.57
+74597,Rowan Glen Low Fat Mix Tray      12x125g,1,6.83,6.54,-4.25,DOWN,20.2
+136160,Ice Club Crushed Ice             5x1.8kg,1,3.59,3.74,4.18,UP,10.92
+150564,Large Portobello Mushrooms PK    1x1.5kg,1,7.47,7.77,4.02,UP,30.78
+89798,Northwood C/Fd Blue Wipe 2pl 200s 80m1x6,1,14.82,15.4,3.91,UP,45.04
+33596,Sysco Classic Bicarbonate Of Soda 1kg,1,3.95,4.1,3.8,UP,12.15
+152966,Vegan Vanilla with Pod Ice Cream  1x5ltr,1,16.62,17.2,3.49,UP,84.84
+102622,Carters Star Lemonade             8x2ltr,1,6.26,6.47,3.35,UP,25.46
+104268,Carters Diet Lemonade             8x2ltr,1,6.26,6.47,3.35,UP,12.73
+32200,Sysco Cl Dairy Vanilla & Pods I/Crm 1x4L,1,10.86,11.22,3.31,UP,154.2
+127344,Brakes Vegan Carrot & Pistachio T/C 1x18,1,22.24,22.96,3.24,UP,113.36
+151834,LaBo Shokupan Glazed Burger Bun     1x48,1,23.99,24.76,3.21,UP,72.74
+132835,RTB Vegan Raspberry Croissant     44x90g,1,25.62,26.42,3.12,UP,104.88
+132721,Curtis Chia Seeds                 1x450g,1,2.58,2.66,3.1,UP,96.58
+89851,Brakes Dried Papaya                1x1kg,1,9.14,9.42,3.06,UP,18.56
+74455,Org Whole Milk (Blue)               1x2L,1,2.66,2.58,-3.01,DOWN,73.04
+131602,Violife Original Sliced          1x200g,1,2.11,2.05,-2.84,DOWN,53.96
+113734,Schar Ciabatta Roll GF 1000030402 6x200g,1,13.89,14.25,2.59,UP,84.42
+149944,Sysco Classic Cous Cous            1x1kg,1,3.3,3.38,2.42,UP,134.24
+149035,DrSchar GF & V Brioche Burger Bun   1x24,1,27.35,28.0,2.38,UP,111.35
+118169,Edamame Beans in pods       1x1kg,1,3.38,3.3,-2.37,DOWN,53.28
+135420,Sheese Mozzar Style Grated Vegan     1kg,1,9.49,9.71,2.32,UP,86.51
+15775,Brake Monterey Jack Slices         1x1kg,1,15.76,15.4,-2.28,DOWN,156.16
+149597,Dr Oetker Prof GF Baking Powder   1x500g,1,3.09,3.16,2.27,UP,53.09
+8932,Small Blue Vinyl Glove Pwdr GD11S 1x100,1,4.89,4.99,2.04,UP,19.76
+53880,Sysco Classic 12in Flour Tortillas  4x18,1,21.66,22.1,2.03,UP,153.82
+125123,Handle aluminium 135cm Green 1 x 1,1,3.52,3.59,1.99,UP,17.88
+86519,Blue Large Vinyl Gloves Pwd GD11L  1x100,1,5.09,5.19,1.96,UP,30.84
+110079,Snack Essent Salted Cashews        1x1kg,1,14.54,14.82,1.93,UP,88.08
+85547,Vinyl Gloves Clear Med  Pwd GD47M  1x100,1,5.19,5.29,1.93,UP,31.24
+150520,Wildfarmed Sourdough Seeded Bloomer  1x8,1,37.58,38.3,1.92,UP,75.88
+111263,"Labo Tortilla Wraps 8              12x8""",1,11.51,11.73,1.91,UP,46.7
+71026,Greek Feta Cheese                  2x1kg,1,34.26,34.91,1.9,UP,138.99
+130434,LaBo 4in Vegan Potato Burger Bun    1x45,1,22.6,23.03,1.9,UP,90.83
+149229,Doughboys Pizza Base 12in        25x210g,1,54.21,55.22,1.86,UP,163.64
+12058,Passion Fruit BB                 10 Pack,1,3.24,3.3,1.85,UP,16.38
+89524,Sysco Choc Delight Mix          1x600g,1,4.38,4.46,1.83,UP,8.84
+33599,Sysco Classiic Std Curry Powder 1x500g,1,7.77,7.91,1.8,UP,54.95
+149369,Framptons Prof Oat Barista Drink 12x1ltr,1,16.26,16.55,1.78,UP,146.63
+136145,Ice Club Ice Cubes               5x1.8kg,1,3.95,4.02,1.77,UP,39.78
+71955,Low Fat Natural Yoghurt          12x115g,1,4.02,3.95,-1.74,DOWN,11.99
+132836,Clear Vinyl P/F Glove XL (GD09Xl) 1x100,1,5.79,5.89,1.73,UP,17.57
+132839,Clear Vinyl Pwd Dis Glove XL GD47XL1x100,1,5.79,5.89,1.73,UP,17.57
+151025,Hazlemere Distilled Vinegar 1x5ltr,1,4.1,4.17,1.71,UP,12.37
+150171,Piero Fornelli Penne Pasta         1x3kg,1,4.74,4.82,1.69,UP,19.12
+150170,Piero Fornelli Spaghetti           1x3kg,1,4.74,4.82,1.69,UP,9.56
+89843,Stainless Steel Scourers 40g 824/40 1x10,1,4.17,4.24,1.68,UP,16.89
+100211,Pitted Dates                       1x3kg,1,13.17,13.38,1.59,UP,26.55
+149258,Sysco Classic Hash Browns        1x2.5kg,1,5.1,5.18,1.57,UP,20.48
+151209,St/St Gastronorm Pan 1/3 40mm Deep   1x1,1,4.53,4.6,1.55,UP,50.39
+20964,Roddas Cornish Clotted Cream       907g,1,9.78,9.93,1.53,UP,19.71
+2351,Instant Dried Yeast               1x500g,1,4.67,4.74,1.5,UP,28.3
+86515,Hairnet Blue          1x100,1,6.99,7.09,1.43,UP,70.7
+119330,Shield Blue Rubber Gloves Lrg GR03L 1x12,1,6.99,7.09,1.43,UP,14.08
+71508,Brake Quartr Blue Stiltn Apx    RT 2.0kg,1,25.7,26.06,1.4,UP,51.76
+75350,LATBRI Cows Milk Mozz Ball       12x125g,1,15.83,16.05,1.39,UP,63.76
+124230,Black Compactor Sack (P B116)  1x100,1,15.83,16.05,1.39,UP,31.88
+86406,Blue piping Bag 18in 1x100 Sp BAGS   001,1,15.9,16.12,1.38,UP,48.14
+145942,Duni Napkins 2ply 40x40cm White    5x300,1,42.4,42.98,1.37,UP,171.34
+119645,Kalamata Olives (Whole)            1x1kg,1,10.36,10.5,1.35,UP,239.54
+5012635,DiLecce Pitted Kalam Olives 1x3kg,1,31.89,32.32,1.35,UP,159.88
+85128,Sweetcorn                 1x2.1kg,1,5.18,5.25,1.35,UP,104.72
+149039,DrSchar GF & V Seeded Sandwich Loaf  1x6,1,26.92,27.28,1.34,UP,54.2
+86647,Baking Parch Refill45cmx50m(cs)21C32 1x3,1,32.32,32.75,1.33,UP,129.71
+107389,24cm 2ply White Napkins  8x300,1,49.24,49.89,1.32,UP,247.5
+21357,Black Sack Compactor (P B111) 100x1,1,27.28,27.64,1.32,UP,220.4
+145986,Bridor Fully Baked Pain au Choc   20x70g,1,27.28,27.64,1.32,UP,82.2
+555338,Rational Cleaner Tablets Red       1x100,1,129.49,131.19,1.31,UP,390.17
+114956,GF Plain White Flour (105860)      5x1kg,1,10.65,10.79,1.31,UP,42.74
+135399,Golden Chef Salted Tortilla Chip 12x300g,1,16.05,16.26,1.31,UP,32.31
+114957,Freeby Self Raising Flour GF       5x1kg,1,10.65,10.79,1.31,UP,21.44
+87722,Black Ex Heavy Duty Sacks (PB114)  1x100,1,22.31,22.6,1.3,UP,246.28
+10729,Sunblaze Sundried Tomato In Veg Oil1x1kg,1,11.51,11.66,1.3,UP,69.81
+124867,Kikkoman Tamari G/F Soy Sauce     1x1Ltr,1,5.54,5.61,1.26,UP,312.27
+127716,Miller?'s Savoury Biscuit Selec   12x125g,1,17.56,17.78,1.25,UP,88.24
+152151,Sysco Classic Sweetcorn in Water 12x340g,1,11.3,11.44,1.24,UP,350.58
+152058,Unearthed Pttd Green Olive       1x3.8kg,1,17.7,17.92,1.24,UP,88.94
+148580,Freee GF Org Cornflakes Cereal    20x30g,1,11.3,11.44,1.24,UP,22.74
+5012467,Ardita Italian LaPolpa Chop Tom 6x2.5kg,1,23.97,24.26,1.21,UP,72.2
+105854,Lucky Boat Noodle No.1             1x9kg,1,24.11,24.4,1.2,UP,48.51
+107035,Maldon Sea Salt Tub              1x1.4kg,1,11.66,11.8,1.2,UP,23.46
+26719,Real Crisps Sea Salt              48x35g,1,24.9,25.19,1.16,UP,398.98
+121806,Clipper FTrade Org Peppermint En   1x250,1,19.36,19.58,1.14,UP,38.94
+152261,Nairns GF Wholegrain Cracker      60x12g,1,12.81,12.95,1.09,UP,25.76
+150992,Ardo Green Asparagus Spears        1x1kg,1,7.98,8.06,1.0,UP,288.72
+152372,Prepared Banana Leaves BB        1x500g,1,7.98,8.06,1.0,UP,63.92
+555634,"Removable ShelfLife Label 4x2"" CE 1x500""",1,7.12,7.19,0.98,UP,43.0
+122912,Blue Nitrile Gloves Lg GN90L       1x200,1,10.29,10.39,0.97,UP,92.91
+122911,Blue Nitrile PF Glove Med GN90M    1x200,1,10.29,10.39,0.97,UP,62.04
+568,Brakes Semolina                    1x3kg,1,7.48,7.55,0.94,UP,37.61
+111396,Sysco Premium Fresh Orange     1x2.27ltr,1,7.7,7.77,0.91,UP,30.94
+119509,Drivers Pickled Gherkins        1x2.25kg,1,7.84,7.91,0.89,UP,23.59
+133979,Sun Pat Crunchy Peanut Butter      3x1kg,1,20.58,20.73,0.73,UP,61.89
+591902,The Tofoo Co. Lightly Spice Pieces 2x1kg,1,22.74,22.89,0.66,UP,547.86
+132776,Alpro Oat Barista Gluten Free    12x1ltr,1,21.81,21.95,0.64,UP,153.09
+130709,Halloumi                          6x750g,1,46.07,46.36,0.63,UP,462.15
+85788,El Paso Taco Shells              10x260g,1,22.6,22.74,0.62,UP,136.02
+450386,Loaf White Thick               6xEach PK,1,11.3,11.37,0.62,UP,45.34
+591254,Rational Cleaner Tabl Red OC555338 1x100,1,131.19,131.99,0.61,UP,263.18
+555874,Rational Care Tablets Blue         1x150,1,131.09,131.89,0.61,UP,262.98
+591137,Nocellara Olives Whole OC 119646   1x1kg,1,11.73,11.8,0.6,UP,70.59
+149497,Stute Raspberry Seeedless Jam NAS 6x430g,1,13.38,13.46,0.6,UP,66.98
+5000093,"3.5 Glazed Burger Bun 50g          2x21""",1,11.73,11.8,0.6,UP,58.93
+135345,Stute NAS Fine Orange Marmalade   6x430g,1,13.38,13.46,0.6,UP,40.22
+1126,Walkers Shortbread Fingers         120x2,1,37.22,37.43,0.56,UP,448.95
+101767,Mission 12in Wheatbran Tortillas  1x4x18,1,27.64,27.78,0.51,UP,360.72
+136364,Crepe Cuis Vegan Pancake Americn 120x40g,1,30.23,30.38,0.5,UP,121.22
+521115,Yamas Greek Feta                  1x900g,1,13.89,13.96,0.5,UP,69.59
+151762,Kingsmill 50/50 Med Sliced Bread  8x800g,1,15.11,15.18,0.46,UP,106.12
+150845,Bite Churros Filled Cocoa Cream  1x1.7kg,1,15.69,15.76,0.45,UP,141.7
+126653,Coconut Creamed (KTC)          12x200g,1,16.19,16.26,0.43,UP,32.45
+5002473,Nairns Gluten Free Biscuits         1x48,1,16.7,16.77,0.42,UP,870.71
+591017,GV Dairy Cheese Soft FFat OC 18421 1x2kg,1,17.63,17.7,0.4,UP,353.72
+135270,British Crisp Co Sea Salt         36x40g,1,18.57,18.64,0.38,UP,55.85
