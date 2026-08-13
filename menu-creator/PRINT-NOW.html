@@ -27,8 +27,8 @@ textarea{min-height:220px;resize:vertical}
 .dish-name{font-family:Georgia,serif;font-size:22px;font-weight:700;margin:0 0 6px;line-height:1.25}
 .dish-desc{font-size:12px;font-style:italic;color:#6b7770;margin:0 auto 6px;max-width:520px;line-height:1.45}
 .dish-contains{font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase}
-.dish-diet{font-size:8px;color:var(--accent);font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin-top:3px;line-height:1.25}
-.diet-heading{font-family:Georgia,serif;font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);text-align:center;margin:16px 0 10px}
+.dish-diet{font-size:7px;color:var(--accent);font-weight:500;letter-spacing:.02em;text-transform:none;margin-top:2px;line-height:1.2}
+.diet-heading{font-family:Georgia,serif;font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:none;color:var(--accent);text-align:center;margin:14px 0 8px}
 .info{margin-top:28px;padding-top:14px;border-top:2px solid var(--gold);text-align:center}
 .info h2{font-family:Georgia,serif;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;font-size:18px;margin:0 0 8px}
 .info p{font-size:11px;line-height:1.55;max-width:480px;margin:0 auto 8px;color:#3c463f}
@@ -183,7 +183,7 @@ function containsLine(a){
 }
 function dietLine(d){
   if(!d||!d.length) return "";
-  return d.length===1 ? ("Suitable for "+d[0]) : ("Suitable for "+d.slice(0,-1).join(", ")+" and "+d[d.length-1]);
+  return d.join(" | ");
 }
 function render(dishes, title){
   const body = dishes.length ? dishes.map(d=> isDietHeadingDish(d) ? `

@@ -363,8 +363,8 @@
   }
   .dish-desc{font-size:12.5px;line-height:1.5;color:#3c463f;max-width:540px;margin:0 auto 4px;font-style:italic;}
   .dish-contains{font-size:11px;letter-spacing:.06em;color:var(--gold);text-transform:uppercase;font-weight:700;margin-top:2px;}
-  .dish-diet{font-size:8px;letter-spacing:.06em;color:var(--accent);text-transform:uppercase;font-weight:500;margin-top:3px;line-height:1.25;}
-  .diet-heading{font-family:var(--serif);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);text-align:center;margin:16px 0 10px;}
+  .dish-diet{font-size:7px;letter-spacing:.02em;color:var(--accent);text-transform:none;font-weight:500;margin-top:2px;line-height:1.2;}
+  .diet-heading{font-family:var(--serif);font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:none;color:var(--accent);text-align:center;margin:14px 0 8px;}
 
   /* allergen info block (same page, below dishes) */
   .info-block{
@@ -2502,7 +2502,7 @@ function applyWordAlign(s){
 function wordTpl(tpl){
   const t=tpl||data.template||"classic";
   const map={
-    classic:{wrap:"border:3px double #b08a3e;padding:20pt 18pt;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;color:#1f2a24;",logo:"font-family:Georgia,serif;font-size:15pt;color:#2f6b4f;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#3c463f;",allg:"text-align:center;font-size:8pt;color:#b08a3e;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:7pt;color:#2f6b4f;text-transform:uppercase;font-weight:500;",info:"color:#2f6b4f;",rule:"border-top:2px solid #b08a3e;"},
+    classic:{wrap:"border:3px double #b08a3e;padding:20pt 18pt;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;color:#1f2a24;",logo:"font-family:Georgia,serif;font-size:15pt;color:#2f6b4f;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#3c463f;",allg:"text-align:center;font-size:8pt;color:#b08a3e;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:6.5pt;color:#2f6b4f;font-weight:500;",info:"color:#2f6b4f;",rule:"border-top:2px solid #b08a3e;"},
     modern:{wrap:"border-left:4px solid #111;padding:24pt 22pt;background:#fafafa;",bg:"",title:"font-family:Arial,sans-serif;font-size:22pt;letter-spacing:6px;text-transform:uppercase;border-bottom:1px solid #111;color:#111;",logo:"font-family:Arial,sans-serif;font-size:14pt;color:#111;font-weight:bold;",dish:"font-family:Arial,sans-serif;font-size:11pt;font-weight:bold;text-transform:uppercase;border-left:3px solid #111;padding-left:8pt;",desc:"font-size:9.5pt;color:#444;padding-left:11pt;",allg:"font-size:8pt;color:#111;text-transform:uppercase;font-weight:bold;padding-left:11pt;",diet:"font-size:7pt;color:#555;padding-left:11pt;",info:"color:#111;",rule:"border-top:1px solid #111;"},
     luxury:{wrap:"border:2px solid #c9a84c;padding:22pt 20pt;background:#1a1f2e;",bg:"background:#1a1f2e;",title:"text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:4px;text-transform:uppercase;border-bottom:1px solid #c9a84c;color:#f5e6c8;",logo:"font-family:Georgia,serif;font-size:15pt;color:#c9a84c;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#f5e6c8;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#c4b89a;",allg:"text-align:center;font-size:8pt;color:#c9a84c;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:7pt;color:#8fbc8f;text-transform:uppercase;font-weight:500;",info:"color:#c9a84c;",rule:"border-top:1px solid #c9a84c;",body:"color:#c4b89a;"},
     botanical:{wrap:"border:2px solid #5a7d5a;padding:20pt 18pt;background:#f7f9f4;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:19pt;color:#3d5c3d;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:15pt;color:#5a7d5a;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;color:#3d5c3d;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#4a6048;",allg:"text-align:center;font-size:8pt;color:#5a7d5a;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:7pt;color:#3d5c3d;text-transform:uppercase;font-weight:500;",info:"color:#3d5c3d;",rule:"border-top:none;background:#eef3ea;padding:10pt;border-radius:8pt;"},
@@ -2615,8 +2615,7 @@ function containsLine(a){
 }
 function dietLine(d){
   if(!d||!d.length) return "";
-  if(d.length===1) return "Suitable for "+d[0];
-  return "Suitable for "+d.slice(0,-1).join(", ")+" and "+d[d.length-1];
+  return d.join(" | ");
 }
 
 function fitPages(){

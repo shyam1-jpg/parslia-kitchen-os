@@ -15,7 +15,7 @@ OR FIX KITELINE
 2. Restart Kiteline
 3. Open Menu Creator
 4. Press Ctrl+Shift+R
-5. Confirm left panel shows: Build simple-v1.4
+5. Confirm left panel shows: Build simple-v1.5
 
 Then:
 - Paste into "Paste menu → dishes"

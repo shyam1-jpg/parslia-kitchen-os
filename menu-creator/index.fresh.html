@@ -73,8 +73,8 @@ textarea{min-height:90px;resize:vertical}
 .dish-name{font-family:var(--serif);font-size:16px;font-weight:700;margin:0 0 4px}
 .dish-desc{font-size:12.5px;font-style:italic;color:#3c463f;margin:0 0 4px}
 .dish-contains{font-size:11px;color:var(--gold);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-.dish-diet{font-size:8px;color:var(--accent);font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin-top:3px;line-height:1.25}
-.diet-heading{font-family:var(--serif);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);text-align:center;margin:16px 0 10px}
+.dish-diet{font-size:7px;color:var(--accent);font-weight:500;letter-spacing:.02em;text-transform:none;margin-top:2px;line-height:1.2}
+.diet-heading{font-family:var(--serif);font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:none;color:var(--accent);text-align:center;margin:14px 0 8px}
 .info-block{margin-top:28px;padding-top:14px;border-top:2px solid var(--gold);text-align:center}
 .info-title{font-family:var(--serif);font-size:18px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin:0 0 4px}
 .info-sub{font-size:10.5px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin:0 0 10px}
@@ -668,8 +668,7 @@ function containsLine(a){
 }
 function dietLine(d){
   if(!d||!d.length) return "";
-  if(d.length===1) return "Suitable for "+d[0];
-  return "Suitable for "+d.slice(0,-1).join(", ")+" and "+d[d.length-1];
+  return d.join(" | ");
 }
 
 /* ---- Render ---- */
@@ -840,7 +839,7 @@ function buildWordPage(m, idx){
     <p style="text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;margin:9pt 0 2pt;">${esc(d.name)}</p>
     ${d.desc?`<p style="text-align:center;font-style:italic;font-size:9.5pt;margin:0 0 3pt;">${esc(d.desc)}</p>`:""}
     ${d.allergens&&d.allergens.length?`<p style="text-align:center;font-size:8pt;color:#b08a3e;font-weight:bold;margin:0;">${esc(containsLine(d.allergens))}</p>`:""}
-    ${d.diet&&d.diet.length?`<p style="text-align:center;font-size:7pt;color:#2f6b4f;font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin:1pt 0 0;">${esc(dietLine(d.diet))}</p>`:""}
+    ${d.diet&&d.diet.length?`<p style="text-align:center;font-size:6.5pt;color:#2f6b4f;font-weight:500;margin:1pt 0 0;">${esc(dietLine(d.diet))}</p>`:""}
   `).join("");
   const info=safeDisclaimer(data.infoText||DEFAULT_INFO).split(/\n{2,}/).map(p=>`<p style="font-size:8.5pt;text-align:center;margin:0 0 4pt;">${esc(p)}</p>`).join("");
   return `<div style="${idx?"page-break-before:always;":""}">
