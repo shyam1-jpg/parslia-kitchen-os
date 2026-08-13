@@ -1,6 +1,6 @@
 # Parslia iOS App Store submission checklist
 
-Updated 12 August 2026. App Store Connect app ID: `6797909735`. Bundle ID: `app.parslia.kitchen`.
+Updated 13 August 2026. App Store Connect app ID: `6797909735`. Bundle ID: `app.parslia.kitchen`.
 
 Production Hercules application URL: `https://parslia-kitchen-os-667132.onhercules.app/`.
 
@@ -8,17 +8,17 @@ Production Hercules application URL: `https://parslia-kitchen-os-667132.onhercul
 
 - Subscription group reference name: **Parslia Plans** — configured, Apple group ID `22305600`
 - Group display name: **Parslia Plans**
-- Required order: rank 1 Business; rank 2 Professional; rank 3 Starter (upgrades become effective immediately; downgrades follow Apple’s service rules). **App Store Connect still needs the newly created Business product moved above Professional.**
+- Subscription order verified: rank 1 Business; rank 2 Professional; rank 3 Starter. Upgrades become effective immediately; downgrades follow Apple’s service rules.
 - `app.parslia.kitchen.starter.monthly` — Starter Monthly — £39/month — Apple ID `6800864623`
 - `app.parslia.kitchen.starter.annual` — Starter Annual — £390/year — Apple ID `6800863077`
 - `app.parslia.kitchen.pro.monthly` — Professional Monthly — £79/month — Apple ID `6800861515`
 - `app.parslia.kitchen.pro.annual` — Professional Annual — £790/year — Apple ID `6800859004`
 - `app.parslia.kitchen.business.monthly` — Business Monthly — £149/month — Apple ID `6800918531`
 - Add-on subscription group: **Parslia Add-ons** — configured, Apple group ID `22305966`, so the booster can coexist with one product from Parslia Plans.
-- `app.parslia.kitchen.ai.booster.monthly` — AI Image Booster — £9.99/month — Apple ID `6800927927`; availability, price, localization and review assets still need final verification.
+- `app.parslia.kitchen.ai.booster.monthly` — AI Image Booster — £9.99/month — Apple ID `6800927927`; availability, price, localization, group display name and review assets verified. State: **Ready to Submit**.
 - **Free Trial / 2 Weeks** applies to every core-plan product for new eligible subscribers (12 August 2026–11 August 2036). Apple determines eligibility once per core subscription group. The booster has no separate trial.
 - A 16-day Billing Grace Period is enabled for all renewals in Production and Sandbox.
-- Product icons, localisations, review notes and the refreshed paywall review screenshot are uploaded for Business and the existing monthly/Professional products. Apple browser security stopped the final Starter Annual metadata refresh; its price schedule is updated, but its review text/screenshot should be checked once in App Store Connect.
+- All six products have complete localisations, review notes, promotional icons and review screenshots. Apple reports all six products as **Ready to Submit**. Starter Annual review wording is corrected to £390/year.
 - Subscription review notes: “StoreKit 2 paywall is opened from View plans in the navigation bar. Use the supplied review account, select any plan, and use Apple sandbox purchase controls. Restore Purchases and Manage Subscription are on the same screen.”
 
 ## URLs and agreements
@@ -29,6 +29,9 @@ Production Hercules application URL: `https://parslia-kitchen-os-667132.onhercul
 - Subscription terms: `https://parslia.app/subscription-terms.html`
 - Licence: Apple Standard EULA: `https://www.apple.com/legal/internet-services/itunes/dev/stdeula/`
 - All four public pages are published and verified. The account holder should still have the legal drafts reviewed for the final business entity wording.
+- Free Apps Agreement: **Active**, 3 August 2026–4 August 2027.
+- Paid Apps Agreement: **New**. Apple requires the account holder to update the legal entity, sign the agreement, complete banking and submit the required tax forms before paid subscriptions can be sold.
+- EU Digital Services Act trader status: **not completed**. The account holder must complete Apple’s compliance flow truthfully.
 
 ## App Privacy — published 12 August 2026
 
@@ -57,27 +60,28 @@ Draft declaration: “Parslia displays content created and owned by Parslia, con
 
 ## Build, media and review
 
-- No owned Mac is required: `.github/workflows/ios-cloud-build.yml` runs the build on GitHub's macOS runner. Add the four encrypted Apple signing secrets documented in `ios/README.md`, then manually run the workflow with `upload_to_app_store` enabled. Never commit or paste the `.p8` private key into a support conversation.
+- No owned Mac is required: `.github/workflows/ios-cloud-build.yml` runs the build on GitHub's macOS runner. The eight required Apple signing and App Store Connect secrets are configured in GitHub. Never commit or paste the `.p8` private key into a support conversation.
 - Generate `Parslia.xcodeproj` on a Mac with XcodeGen: `cd ios && xcodegen generate`.
 - Set the Apple Developer Team and Automatic Signing; confirm the registered bundle ID.
 - Add the approved 1024×1024 icon to `Assets.xcassets/AppIcon.appiconset` and verify it is opaque with no alpha.
 - Run unit tests, StoreKit local tests, then sandbox on a physical device/TestFlight.
 - Verify new purchase, trial, restore, cancellation, upgrades and downgrades across Starter/Professional/Business, independent booster renewal, billing retry, expiry and repurchase.
-- Upload an archive through Xcode, select the build in App Store Connect, export-compliance answer No (subject to final build review), and provide a working demo account.
-- Screenshots: up to 10 per device class. Required current App Store Connect slots should include iPhone 6.7-inch and iPad 13-inch if iPad remains supported. Ensure screenshots show the actual shipping UI and no placeholder data.
+- Build 9 was signed, uploaded and validated by Apple. A replacement build is required after the final native-entitlement bridge hardening is merged and tested.
+- Five opaque 1242×2688 iPhone screenshots are uploaded and Apple reports each asset as **Complete**. The rejected transparent iPhone and iPad copies were removed. The iPhone-only target does not require iPad screenshots.
 - Submit subscriptions with the first app version. Confirm Paid Applications Agreement, banking and tax information are active.
 
-## App Store Connect status — completed 12 August 2026
+## App Store Connect status — verified 13 August 2026
 
 - App subtitle saved: **Kitchen OS for chefs**.
 - Apple Standard EULA selected; primary category Business and secondary category Food & Drink.
 - Privacy Policy URL and Support URL point to the live Parslia pages.
-- Five iPhone 6.5-inch screenshots are uploaded. Apple accepts up to 10; more are optional.
+- Five iPhone 6.5-inch screenshots are uploaded, opaque and accepted by Apple’s media processor. Apple accepts up to 10; more are optional.
 - The Xcode target is explicitly iPhone-only (`TARGETED_DEVICE_FAMILY = 1`), so iPad screenshots are not required for this release.
 - Release mode changed to **Manual release** so approval does not publish the app unexpectedly.
 - App Privacy answers are fully configured and published; data is declared as linked where applicable and not used for tracking.
 - Content Rights is intentionally left for the account holder’s truthful legal confirmation.
-- No signed build is uploaded yet, so the app and first subscriptions cannot yet be added to the review submission.
+- Build 9 is uploaded, valid and attached to version 1.0. Do not add the version for review until the replacement build containing the final native bridge fix is uploaded and selected.
+- Paid Apps Agreement, legal-entity update, banking, tax, DSA trader status and Content Rights are the remaining account-holder actions.
 
 ## Feature entitlement decision
 
@@ -86,7 +90,7 @@ Draft declaration: “Parslia displays content created and owned by Parslia, con
 - Professional: all Starter features, up to 30 staff and 100 AI recipe images/month, plus advanced costing, invoice scanning, auto-ordering, PIN/time-clock controls, advanced compliance/labels, reports and priority support.
 - Business: all Professional features, up to three locations, up to 100 staff and 250 AI recipe images/month, plus central multi-location control, comparisons, permissions and exportable group reports.
 - AI Image Booster: adds 50 AI recipe images/month to an active core plan; it never grants core access on its own.
-- The native shell exposes this verified entitlement to the Hercules web app as `window.ParsliaNativeEntitlement` and emits `parslia-entitlement-changed`. The Hercules application must consume that event and enforce the same checks on every paid action; hiding navigation alone is not sufficient.
+- The native shell exposes this verified entitlement to the Hercules web app as `window.ParsliaNativeEntitlement` and emits `parslia-entitlement-changed`. The published Hercules application consumes both values for route/feature gating. The iOS shell reapplies the entitlement after every completed page navigation and routes website purchase requests to the native StoreKit paywall.
 
 ## Server hardening recommended before scale
 

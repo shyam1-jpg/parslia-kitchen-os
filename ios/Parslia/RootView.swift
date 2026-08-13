@@ -11,7 +11,8 @@ struct RootView: View {
             ParsliaWebView(
                 url: URL(string: "https://parslia-kitchen-os-667132.onhercules.app/")!,
                 entitlement: store.tier,
-                hasAIImageBooster: store.hasAIImageBooster
+                hasAIImageBooster: store.hasAIImageBooster,
+                onPurchaseRequested: { showPlans = true }
             )
                 .navigationTitle("Parslia")
                 .navigationBarTitleDisplayMode(.inline)
@@ -26,18 +27,61 @@ struct RootView: View {
 }
 
 struct ParsliaWebView: UIViewRepresentable {
+    private static let appHost = "parslia-kitchen-os-667132.onhercules.app"
+
     let url: URL
     let entitlement: EntitlementTier
     let hasAIImageBooster: Bool
+    let onPurchaseRequested: () -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(
+            entitlement: entitlement,
+            hasAIImageBooster: hasAIImageBooster,
+            onPurchaseRequested: onPurchaseRequested
+        )
+    }
+
     func makeUIView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
+        let purchaseBridge = WKUserScript(
+            source: """
+            if (window.location.hostname === "\(Self.appHost)") {
+                window.parsliaNativePurchase = function() {
+                    window.webkit.messageHandlers.parsliaPurchase.postMessage({});
+                };
+            }
+            """,
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: true
+        )
+        configuration.userContentController.addUserScript(purchaseBridge)
+        configuration.userContentController.add(context.coordinator, name: "parsliaPurchase")
         let view = WKWebView(frame: .zero, configuration: configuration)
+        view.navigationDelegate = context.coordinator
         view.allowsBackForwardNavigationGestures = true
         view.load(URLRequest(url: url))
         return view
     }
+
     func updateUIView(_ uiView: WKWebView, context: Context) {
+        context.coordinator.update(
+            entitlement: entitlement,
+            hasAIImageBooster: hasAIImageBooster
+        )
+        context.coordinator.injectEntitlement(into: uiView)
+    }
+
+    static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
+        uiView.configuration.userContentController.removeScriptMessageHandler(forName: "parsliaPurchase")
+        uiView.navigationDelegate = nil
+    }
+
+    private static func entitlementJavaScript(
+        entitlement: EntitlementTier,
+        hasAIImageBooster: Bool
+    ) -> String? {
         let plan = switch entitlement {
         case .free: "free"
         case .starter: "starter"
@@ -47,8 +91,50 @@ struct ParsliaWebView: UIViewRepresentable {
         let features = ParsliaFeature.allCases.filter { $0.isAvailable(with: entitlement) }.map(\.rawValue)
         let addOns = hasAIImageBooster ? ["aiImageBooster"] : []
         let data = try? JSONSerialization.data(withJSONObject: ["plan": plan, "features": features, "addOns": addOns])
-        guard let data, let json = String(data: data, encoding: .utf8) else { return }
-        uiView.evaluateJavaScript("window.ParsliaNativeEntitlement=\(json);window.dispatchEvent(new CustomEvent('parslia-entitlement-changed',{detail:window.ParsliaNativeEntitlement}));")
+        guard let data, let json = String(data: data, encoding: .utf8) else { return nil }
+        return "window.ParsliaNativeEntitlement=\(json);window.dispatchEvent(new CustomEvent('parslia-entitlement-changed',{detail:window.ParsliaNativeEntitlement}));"
+    }
+
+    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
+        private var entitlement: EntitlementTier
+        private var hasAIImageBooster: Bool
+        private let onPurchaseRequested: () -> Void
+
+        init(
+            entitlement: EntitlementTier,
+            hasAIImageBooster: Bool,
+            onPurchaseRequested: @escaping () -> Void
+        ) {
+            self.entitlement = entitlement
+            self.hasAIImageBooster = hasAIImageBooster
+            self.onPurchaseRequested = onPurchaseRequested
+        }
+
+        func update(entitlement: EntitlementTier, hasAIImageBooster: Bool) {
+            self.entitlement = entitlement
+            self.hasAIImageBooster = hasAIImageBooster
+        }
+
+        func injectEntitlement(into webView: WKWebView) {
+            guard webView.url?.host == ParsliaWebView.appHost else { return }
+            guard let script = ParsliaWebView.entitlementJavaScript(
+                entitlement: entitlement,
+                hasAIImageBooster: hasAIImageBooster
+            ) else { return }
+            webView.evaluateJavaScript(script)
+        }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            injectEntitlement(into: webView)
+        }
+
+        func userContentController(
+            _ userContentController: WKUserContentController,
+            didReceive message: WKScriptMessage
+        ) {
+            guard message.name == "parsliaPurchase" else { return }
+            onPurchaseRequested()
+        }
     }
 }
 
