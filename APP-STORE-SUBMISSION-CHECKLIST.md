@@ -66,7 +66,7 @@ Draft declaration: “Parslia displays content created and owned by Parslia, con
 - Add the approved 1024×1024 icon to `Assets.xcassets/AppIcon.appiconset` and verify it is opaque with no alpha.
 - Run unit tests, StoreKit local tests, then sandbox on a physical device/TestFlight.
 - Verify new purchase, trial, restore, cancellation, upgrades and downgrades across Starter/Professional/Business, independent booster renewal, billing retry, expiry and repurchase.
-- Build 9 was signed, uploaded and validated by Apple. A replacement build is required after the final native-entitlement bridge hardening is merged and tested.
+- Build 11 was generated from merged commit `305d9e3`, passed the Xcode 26.3 cloud test suite, was signed with the App Store profile, uploaded successfully, validated by Apple and attached to version 1.0. Apple build ID: `d3bc8ee4-fdbf-4456-a54c-1138d61ea747`.
 - Five opaque 1242×2688 iPhone screenshots are uploaded and Apple reports each asset as **Complete**. The rejected transparent iPhone and iPad copies were removed. The iPhone-only target does not require iPad screenshots.
 - Submit subscriptions with the first app version. Confirm Paid Applications Agreement, banking and tax information are active.
 
@@ -80,7 +80,7 @@ Draft declaration: “Parslia displays content created and owned by Parslia, con
 - Release mode changed to **Manual release** so approval does not publish the app unexpectedly.
 - App Privacy answers are fully configured and published; data is declared as linked where applicable and not used for tracking.
 - Content Rights is intentionally left for the account holder’s truthful legal confirmation.
-- Build 9 is uploaded, valid and attached to version 1.0. Do not add the version for review until the replacement build containing the final native bridge fix is uploaded and selected.
+- Build 11 is uploaded, **Valid**, App Store eligible and attached to version 1.0. It contains the final native entitlement-navigation and purchase-paywall bridge fixes.
 - Paid Apps Agreement, legal-entity update, banking, tax, DSA trader status and Content Rights are the remaining account-holder actions.
 
 ## Feature entitlement decision
