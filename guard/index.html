@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guard — see who used this browser</title>
+  <meta name="description" content="Web Guard: open in any browser to log who is here, capture a photo, and record files they pick — no desktop install." />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,600;6..72,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+
+  <header class="top">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <div>
+        <p class="eyebrow">Browser app · no install</p>
+        <h1>Guard</h1>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span class="chip" id="statusChip">Idle</span>
+      <button type="button" class="ghost" id="lockBtn" hidden>Lock</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Lock screen -->
+    <section class="panel" id="lockPanel">
+      <h2>Owner unlock</h2>
+      <p class="lead">Set a PIN the first time. Only you can view the activity log.</p>
+      <form id="pinForm" class="pin-form">
+        <label>
+          PIN
+          <input id="pinInput" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="4–12 digits" required />
+        </label>
+        <button class="primary" type="submit" id="pinSubmit">Unlock</button>
+      </form>
+      <p class="hint" id="pinHint">First visit: enter a new PIN to create it.</p>
+    </section>
+
+    <!-- Main app -->
+    <section id="appPanel" hidden>
+      <section class="hero-card">
+        <p class="label">Web Guard</p>
+        <h2 class="who" id="whoLine">Ready</h2>
+        <p class="meta" id="metaLine">Works in Chrome, Edge, or Safari — no desktop app.</p>
+        <div class="cta-row">
+          <button type="button" class="primary" id="startBtn">Start watching</button>
+          <button type="button" class="secondary" id="stopBtn" disabled>Stop</button>
+          <button type="button" class="secondary" id="snapBtn" disabled>Photo now</button>
+          <button type="button" class="secondary" id="screenBtn" disabled>Screen shot</button>
+        </div>
+        <p class="hint">When watching is on: webcam photo + activity are saved in this browser. Optionally pick files to log.</p>
+      </section>
+
+      <section class="grid-2">
+        <div class="card">
+          <h3>Live camera</h3>
+          <video id="cam" playsinline autoplay muted></video>
+          <canvas id="canvas" hidden></canvas>
+          <p class="hint">Allow camera when asked — that is how you see who was here.</p>
+        </div>
+        <div class="card">
+          <h3>Log a file they used</h3>
+          <p class="hint">Browsers cannot see your whole PC. Pick a file (or folder in Chrome) to record it with a photo.</p>
+          <div class="cta-row">
+            <button type="button" class="secondary" id="pickFileBtn">Pick file</button>
+            <button type="button" class="secondary" id="pickFolderBtn">Pick folder</button>
+          </div>
+          <input id="fileInput" type="file" multiple hidden />
+        </div>
+      </section>
+
+      <nav class="tabs" role="tablist">
+        <button type="button" class="tab active" data-tab="timeline">Timeline</button>
+        <button type="button" class="tab" data-tab="photos">Photos</button>
+        <button type="button" class="tab" data-tab="files">Files</button>
+      </nav>
+
+      <section class="list-panel active" id="panel-timeline"></section>
+      <section class="list-panel" id="panel-photos"></section>
+      <section class="list-panel" id="panel-files"></section>
+
+      <section class="danger-zone">
+        <button type="button" class="ghost danger" id="clearBtn">Clear all saved data on this device</button>
+      </section>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Data stays in <strong>this browser only</strong> (not uploaded). Open from phone or PC the same way — it is a webpage.</p>
+    <p class="hint">Tip: bookmark this page. On Chrome desktop you can also use menu → Cast / Save and share → Install page as app.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

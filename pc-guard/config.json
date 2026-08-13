@@ -1,0 +1,12 @@
+{
+  "watch_folders": [],
+  "idle_seconds": 120,
+  "webcam_on_activity": false,
+  "screenshot_on_file_use": true,
+  "webcam_on_file_use": false,
+  "screenshot_min_interval_seconds": 0.8,
+  "dashboard_port": 8787,
+  "log_active_window": true,
+  "window_poll_seconds": 5,
+  "recent_poll_seconds": 3
+}

@@ -1,0 +1,10 @@
+Guard is a WEBPAGE now (not a PC desktop app).
+
+Open the folder named:  guard
+Then open:  index.html
+
+Or after publish, open:  your-site/guard/
+
+No START.bat needed.
+No Python needed.
+No Chrome localhost needed.
