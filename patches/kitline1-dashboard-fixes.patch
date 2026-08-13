@@ -1,0 +1,3117 @@
+From 09d64a4d85d76516930485e2a1b36deea0f19bfd Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Fri, 24 Jul 2026 23:29:24 +0000
+Subject: [PATCH 1/8] Add kitchen Clock In/Out kiosk with PIN pad and home
+ widget
+
+Promote Clock In/Out into Live Ops, add PIN-pad kiosk (auto toggle),
+staff cards, today's attendance log, home dashboard widget, demo PINs
+for all kitchens, and persistent clock sessions.
+---
+ css/styles.css       |  47 ++++-
+ js/app.js            | 142 ++++++++++++---
+ js/store.js          | 127 +++++++++++---
+ js/views.js          | 398 +++++++++++++++++++++++++++++++------------
+ server/sensor-sim.js |   3 +-
+ 5 files changed, 566 insertions(+), 151 deletions(-)
+
+diff --git a/css/styles.css b/css/styles.css
+index 32adcc7..f61c293 100644
+--- a/css/styles.css
++++ b/css/styles.css
+@@ -25,12 +25,54 @@ html, body { height: 100%; }
+ .wf-item:hover { background:#f8fafc; }
+ .wf-item.wf-live-row { border-color:#fde68a; background:#fffbeb; }
+ .wf-item.wf-overdue-row { border-color:#fecaca; background:#fef2f2; }
+-.wf-dot { font-size:.85rem; line-height:1; flex:none; margin-top:.15rem; }
++.wf-dot {
++  width:9px; height:9px; border-radius:999px; flex:none; margin-top:.35rem;
++  display:inline-block; background:#94a3b8; box-shadow:0 0 0 2px rgba(148,163,184,.2);
++}
++.wf-dot--green { background:#16a34a; box-shadow:0 0 0 2px rgba(22,163,74,.18); }
++.wf-dot--amber { background:#d97706; box-shadow:0 0 0 2px rgba(217,119,6,.18); }
++.wf-dot--red { background:#dc2626; box-shadow:0 0 0 2px rgba(220,38,38,.18); }
++.wf-dot--blue { background:#2563eb; box-shadow:0 0 0 2px rgba(37,99,235,.18); }
++.badge .wf-dot { margin-top:0; }
+ .wf-status-panel { border-left:4px solid #e2e8f0; }
+ .wf-status-panel.ok { border-color:#14b8a6; }
+ .wf-status-panel.warn { border-color:#f59e0b; }
+ .wf-status-panel.bad { border-color:#ef4444; }
+ 
++/* Clock In / Out kiosk */
++.clock-kiosk { background:linear-gradient(180deg,#f0fdfa 0%,#ffffff 55%); }
++.clock-live-time { font-size:2.75rem; font-weight:800; letter-spacing:-0.03em; color:#0f766e; font-variant-numeric:tabular-nums; line-height:1; }
++.clock-pin-display {
++  font-size:1.75rem; font-weight:700; letter-spacing:.45em; text-align:center;
++  padding:.75rem 1rem; border-radius:.85rem; background:#fff; border:1px solid #d1fae5;
++  color:#0f766e; min-height:3.25rem;
++}
++.clock-pad { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; max-width:16rem; margin:0 auto; }
++.clock-pad-key {
++  height:3.1rem; border-radius:.8rem; border:1px solid #e2e8f0; background:#fff;
++  font-weight:700; font-size:1.15rem; color:#0f172a; transition:background .12s, transform .08s;
++}
++.clock-pad-key:hover { background:#f8fafc; }
++.clock-pad-key:active { transform:scale(.97); background:#ecfdf5; }
++.clock-staff-card {
++  background:#fff; border:1px solid #e9eef5; border-radius:1rem; padding:1rem;
++  transition:border-color .15s, box-shadow .15s;
++}
++.clock-staff-card:hover { border-color:#99f6e4; box-shadow:0 8px 20px -14px rgba(15,118,110,.45); }
++.clock-staff-card--in { border-color:#6ee7b7; background:#f0fdf4; }
++
++/* header notifications dropdown */
++.notif-wrap { position:relative; }
++.notif-panel {
++  position:absolute; right:0; top:calc(100% + .5rem); width:min(22rem, calc(100vw - 2rem));
++  background:#fff; border:1px solid #e2e8f0; border-radius:.9rem;
++  box-shadow:0 18px 40px -18px rgba(15,23,42,.35); z-index:80; overflow:hidden;
++}
++.notif-panel.hidden { display:none; }
++.notif-item { display:flex; gap:.75rem; padding:.85rem 1rem; border-bottom:1px solid #f1f5f9; text-align:left; width:100%; background:#fff; }
++.notif-item:hover { background:#f8fafc; }
++.notif-item:last-child { border-bottom:0; }
++
+ /* layout */
+ .app-shell { display: grid; grid-template-columns: var(--side) 1fr; min-height: 100vh; }
+ .mobile-nav-btn { display: none; }
+@@ -42,6 +84,7 @@ html, body { height: 100%; }
+     position: fixed; inset: 0 auto 0 0; width: min(var(--side), 85vw); z-index: 60;
+     transform: translateX(-100%); transition: transform .2s ease;
+     box-shadow: 0 0 0 0 rgba(0,0,0,0);
++    max-height: 100dvh; overflow: hidden;
+   }
+   .sidebar.open { transform: translateX(0); box-shadow: 8px 0 30px rgba(0,0,0,.35); }
+   .sidebar-overlay {
+@@ -49,6 +92,8 @@ html, body { height: 100%; }
+     opacity: 0; pointer-events: none; transition: opacity .2s ease;
+   }
+   .sidebar-overlay.open { display: block; opacity: 1; pointer-events: auto; }
++  #view { padding: 1rem !important; }
++  header .select { max-width: 42vw; }
+ }
+ 
+ /* marketing site mobile nav */
+diff --git a/js/app.js b/js/app.js
+index 64e90c2..f041a2a 100644
+--- a/js/app.js
++++ b/js/app.js
+@@ -14,6 +14,8 @@
+     { id:'wfout', label:'Outstanding', icon:'layers' },
+     { id:'wfod', label:'Overdue', icon:'alert' },
+     { id:'wfstaff', label:'Staff Working', icon:'team' },
++    { id:'clock', label:'Clock In/Out', icon:'clock' },
++    { id:'rota', label:'Rota', icon:'team' },
+     { id:'wfdel', label:'Deliveries Today', icon:'truck' },
+     { id:'wfprod', label:'Food Production', icon:'recipe' },
+     { id:'wfclean', label:'Cleaning Status', icon:'check' },
+@@ -44,6 +46,7 @@
+     { id:'foodcost', label:'Food Cost', icon:'coin' },
+     { id:'manual', label:'User Manual', icon:'help' },
+     { sep:'Products' },
++    { id:'safeserve', label:'SafeServe', icon:'check' },
+     { id:'allerq', label:'MenuGuard', icon:'allerq' },
+     { id:'labels', label:'LabelSmart', icon:'labels' },
+     { id:'waste', label:'WasteWise', icon:'waste' },
+@@ -903,7 +906,18 @@
+       const view = (V[r] || V.home)();
+       const navRoute = r;
+       const site = S.site();
+-      const openAlerts = (S.db.alerts || []).filter(a => a.status==='open').length;
++      const siteAlerts = (S.db.alerts || []).filter(a => a.status === 'open' && a.site === S.db.currentSite);
++      const openAlerts = siteAlerts.length;
++      const notifPreview = siteAlerts.slice(0, 6).map((a) => {
++        const sev = a.severity === 'critical' ? '#dc2626' : a.severity === 'warning' ? '#d97706' : '#3b82f6';
++        return `<button type="button" class="notif-item" data-go="alerts">
++          <span class="pulse-dot mt-1.5" style="background:${sev}"></span>
++          <span class="min-w-0 flex-1">
++            <span class="block text-sm font-semibold text-ink-800 truncate">${escapeHtml(a.title || 'Alert')}</span>
++            <span class="block text-xs text-ink-400 truncate">${escapeHtml(a.detail || a.severity || '')}</span>
++          </span>
++        </button>`;
++      }).join('');
+ 
+       document.getElementById('root').innerHTML = `
+         <div id="sidebarOverlay" class="sidebar-overlay"></div>
+@@ -916,7 +930,7 @@
+             <nav class="flex-1 space-y-1 overflow-auto">
+               ${NAV.filter(n => n.sep!==undefined || canAccess(n.id, me.rank)).map(n => n.sep!==undefined
+                 ? `<div class="text-[10px] uppercase tracking-wider text-ink-500 font-bold px-3 pt-4 pb-1">${n.sepKey?t('nav.'+n.sepKey,n.sep):n.sep==='Products'?t('nav.products','Products'):n.sep}</div>`
+-                : `<a class="nav-link ${navRoute===n.id?'active':''}" href="#${n.id}">${icon(n.icon)} <span>${t('nav.'+n.id, n.label)}</span>${n.id==='alerts'&&openAlerts?`<span class="ml-auto badge badge-red">${openAlerts}</span>`:''}</a>`
++                : `<a class="nav-link ${navRoute===n.id || (n.id==='safeserve' && navRoute==='haccp') || (n.id==='haccp' && navRoute==='safeserve')?'active':''}" href="#${n.id}">${icon(n.icon)} <span>${t('nav.'+n.id, n.label)}</span>${n.id==='alerts'&&openAlerts?`<span class="ml-auto badge badge-red">${openAlerts}</span>`:''}</a>`
+               ).join('')}
+             </nav>
+             <div class="border-t border-white/10 pt-3 mt-3">
+@@ -931,19 +945,33 @@
+ 
+           <main class="min-w-0">
+             <header class="bg-white border-b border-ink-100 px-5 py-3 flex items-center justify-between sticky top-0 z-30">
+-              <div class="flex items-center gap-3">
++              <div class="flex items-center gap-3 min-w-0">
+                 <button class="mobile-nav-btn btn btn-ghost btn-sm !px-2" id="menuBtn" aria-label="Open menu">${icon('menu','w-5 h-5')}</button>
+-                <select id="siteSwitch" class="select !w-auto !py-1.5 font-semibold text-sm">
++                <select id="siteSwitch" class="select !w-auto !max-w-[12rem] sm:!max-w-none !py-1.5 font-semibold text-sm">
+                   ${S.db.sites.map(s=>`<option value="${s.id}" ${s.id===S.db.currentSite?'selected':''}>${s.name}</option>`).join('')}
+                 </select>
+                 <span class="hidden sm:flex items-center gap-1.5 text-xs text-ink-400"><span class="pulse-dot pulse-live"></span> ${t('top.live','Live')}</span>
+               </div>
+               <div class="flex items-center gap-2.5">
+-                <button id="paletteBtn" class="flex items-center gap-2 text-sm text-ink-400 border border-ink-200 rounded-lg px-3 py-1.5 hover:bg-ink-50">${icon('search','w-4 h-4')} <span class="hidden md:inline">${t('top.search','Search…')}</span></button>
++                <button id="paletteBtn" class="flex items-center gap-2 text-sm text-ink-400 border border-ink-200 rounded-lg px-3 py-1.5 hover:bg-ink-50" title="Search (Ctrl/⌘ K)">${icon('search','w-4 h-4')} <span class="hidden md:inline">${t('top.search','Search…')}</span><kbd class="hidden lg:inline text-[10px] border border-ink-200 rounded px-1 ml-1">⌘K</kbd></button>
+                 <select id="langSel" class="select !w-auto !py-1.5 text-sm" title="Language">
+                   ${(window.I18n?window.I18n.langs:['en']).map(l=>`<option value="${l}" ${window.I18n&&l===window.I18n.lang?'selected':''}>${window.I18n?window.I18n.langName(l):l}</option>`).join('')}
+                 </select>
+-                <a href="#alerts" class="relative text-ink-500 hover:text-ink-800">${icon('bell','w-5 h-5')}${openAlerts?`<span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">${openAlerts}</span>`:''}</a>
++                <div class="notif-wrap">
++                  <button type="button" id="notifBtn" class="relative text-ink-500 hover:text-ink-800" aria-label="Notifications" aria-expanded="false">${icon('bell','w-5 h-5')}${openAlerts?`<span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">${openAlerts > 9 ? '9+' : openAlerts}</span>`:''}</button>
++                  <div id="notifPanel" class="notif-panel hidden" role="menu">
++                    <div class="px-4 py-3 border-b border-ink-100 flex items-center justify-between">
++                      <div class="font-bold text-sm">Notifications</div>
++                      <span class="badge ${openAlerts ? 'badge-red' : 'badge-green'}">${openAlerts} open</span>
++                    </div>
++                    <div class="max-h-72 overflow-auto">
++                      ${openAlerts ? notifPreview : `<div class="px-4 py-8 text-center text-sm text-ink-400">No open alerts for ${escapeHtml(site.name || 'this kitchen')}.</div>`}
++                    </div>
++                    <div class="px-3 py-2 border-t border-ink-100 bg-ink-50">
++                      <a href="#alerts" class="btn btn-ghost btn-sm w-full justify-center">View all alerts</a>
++                    </div>
++                  </div>
++                </div>
+                 <button id="headerLogout" class="btn btn-ghost btn-sm text-ink-600">${icon('logout','w-4 h-4')} <span class="hidden sm:inline">Sign out</span></button>
+               </div>
+             </header>
+@@ -957,11 +985,48 @@
+       document.getElementById('closeNav')?.addEventListener('click', () => this.closeMobileNav());
+       document.getElementById('sidebarOverlay')?.addEventListener('click', () => this.closeMobileNav());
+       document.querySelectorAll('#sidebar .nav-link').forEach(a => a.addEventListener('click', () => this.closeMobileNav()));
+-      document.getElementById('siteSwitch').onchange = (e) => { S.setSite(e.target.value); this.render(); };
++      document.getElementById('siteSwitch').onchange = (e) => {
++        S.setSite(e.target.value);
++        // Reset list pages when switching kitchens so counts/pages match the new site
++        window.WfPage = {};
++        this.render();
++      };
+       const langSel = document.getElementById('langSel');
+       if (langSel) langSel.onchange = (e) => { if (window.I18n) window.I18n.setLang(e.target.value); this.render(); };
+       const pb = document.getElementById('paletteBtn');
+       if (pb) pb.onclick = () => this.openPalette();
++      const notifBtn = document.getElementById('notifBtn');
++      const notifPanel = document.getElementById('notifPanel');
++      if (notifBtn && notifPanel) {
++        const closeNotif = () => {
++          notifPanel.classList.add('hidden');
++          notifBtn.setAttribute('aria-expanded', 'false');
++        };
++        notifBtn.onclick = (e) => {
++          e.stopPropagation();
++          const willOpen = notifPanel.classList.contains('hidden');
++          document.querySelectorAll('.notif-panel').forEach((p) => p.classList.add('hidden'));
++          if (willOpen) {
++            notifPanel.classList.remove('hidden');
++            notifBtn.setAttribute('aria-expanded', 'true');
++          } else {
++            closeNotif();
++          }
++        };
++        notifPanel.onclick = (e) => e.stopPropagation();
++        notifPanel.querySelectorAll('[data-go]').forEach((el) => {
++          el.onclick = () => { closeNotif(); location.hash = el.dataset.go; };
++        });
++        if (!this._notifOutsideBound) {
++          this._notifOutsideBound = true;
++          document.addEventListener('click', () => {
++            const panel = document.getElementById('notifPanel');
++            const btn = document.getElementById('notifBtn');
++            if (panel) panel.classList.add('hidden');
++            if (btn) btn.setAttribute('aria-expanded', 'false');
++          });
++        }
++      }
+       document.querySelectorAll('[data-nav]').forEach(el => el.onclick = () => { location.hash = el.dataset.nav; });
+       if (view.mount) view.mount();
+       } catch (err) {
+@@ -986,25 +1051,62 @@
+     openPalette() {
+       if (!this.authed()) return;
+       const meRank = currentUser().rank;
++      const fuzzy = (hay, q) => {
++        const h = (hay || '').toLowerCase();
++        const parts = (q || '').toLowerCase().trim().split(/\s+/).filter(Boolean);
++        if (!parts.length) return true;
++        return parts.every((p) => h.includes(p));
++      };
+       const dests = NAV.filter(n => n.sep === undefined && canAccess(n.id, meRank)).map(n => ({
+-        label: t('nav.'+n.id, n.label), hint: 'Go to', icon: n.icon, run: () => { location.hash = n.id; }
++        label: t('nav.'+n.id, n.label), hint: 'Page', icon: n.icon, run: () => { location.hash = n.id; },
++        search: t('nav.'+n.id, n.label) + ' ' + n.id
++      }));
++      const siteItems = (S.db.sites || []).map((s) => ({
++        label: s.name, hint: 'Kitchen', icon: 'sites',
++        search: [s.name, s.city, s.type, s.manager].join(' '),
++        run: () => { S.setSite(s.id); window.WfPage = {}; location.hash = 'home'; this.render(); }
++      }));
++      const staffItems = (S.db.team || []).slice(0, 80).map((m) => ({
++        label: m.name, hint: m.role || 'Staff', icon: 'team',
++        search: [m.name, m.role, m.email, m.siteId].join(' '),
++        run: () => {
++          if (m.siteId && m.siteId !== S.db.currentSite) S.setSite(m.siteId);
++          location.hash = 'team';
++        }
++      }));
++      const taskItems = S.workflowsForSite(S.db.currentSite).slice(0, 120).map((w) => ({
++        label: w.label, hint: (w.status || 'task').replace('_', ' '), icon: 'check',
++        search: [w.label, w.category, w.status, w.assignee].join(' '),
++        run: () => {
++          location.hash = 'wflive';
++          setTimeout(() => {
++            const el = document.querySelector(`[data-wf-open="${w.id}"]`);
++            if (el) el.click();
++            else if (w.route) location.hash = w.route;
++          }, 50);
++        }
+       }));
+       const actions = [
+-        ...(canAccess('sites', meRank) ? [{ label: t('nav.sites','Sites')+': switch site', hint:'Action', icon:'sites', run: () => { location.hash = 'sites'; } }] : []),
+-        ...(canAccess('settings', meRank) ? [{ label: 'Reset demo data', hint:'Danger', icon:'settings', run: () => { location.hash = 'settings'; } }] : []),
+-        { label: 'Sign out', hint:'Account', icon:'logout', run: () => this.signOut() },
++        ...(canAccess('sites', meRank) ? [{ label: 'Switch kitchen…', hint:'Action', icon:'sites', search:'switch kitchen site', run: () => { location.hash = 'sites'; } }] : []),
++        ...(canAccess('settings', meRank) ? [{ label: 'Open settings', hint:'Action', icon:'settings', search:'settings pin billing', run: () => { location.hash = 'settings'; } }] : []),
++        { label: 'Sign out', hint:'Account', icon:'logout', search:'sign out logout', run: () => this.signOut() },
+       ];
+-      const items = dests.concat(actions);
++      let items = dests.concat(actions);
+       const layer = document.getElementById('modal-layer');
+       layer.classList.remove('hidden');
+       const render = (q) => {
+-        const filtered = items.filter(i => i.label.toLowerCase().includes(q.toLowerCase()));
++        const query = (q || '').trim();
++        const pool = query.length
++          ? dests.concat(siteItems, staffItems, taskItems, actions)
++          : dests.concat(actions);
++        const filtered = pool.filter((i) => fuzzy(i.search || i.label, query)).slice(0, 40);
++        items = filtered;
+         layer.querySelector('#cpList').innerHTML = filtered.length ? filtered.map((i, idx) =>
+-          `<button class="cp-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left ${idx===0?'bg-brand-50':''}" data-i="${items.indexOf(i)}">
++          `<button class="cp-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left ${idx===0?'bg-brand-50':''}" data-i="${idx}">
+             <span class="text-ink-400">${icon(i.icon,'w-4 h-4')}</span>
+-            <span class="flex-1 text-sm font-medium">${i.label}</span>
+-            <span class="text-[10px] text-ink-400 uppercase tracking-wide">${i.hint}</span>
+-          </button>`).join('') : '<div class="px-3 py-6 text-center text-ink-400 text-sm">No results</div>';
++            <span class="flex-1 text-sm font-medium truncate">${escapeHtml(i.label)}</span>
++            <span class="text-[10px] text-ink-400 uppercase tracking-wide flex-none">${escapeHtml(i.hint)}</span>
++          </button>`).join('') : '<div class="px-3 py-6 text-center text-ink-400 text-sm">No results — try a task, staff name, or kitchen</div>';
+         layer.querySelectorAll('.cp-item').forEach(b => b.onclick = () => { const it = items[+b.dataset.i]; UI.closeModal(); it.run(); });
+       };
+       layer.innerHTML = `
+@@ -1013,7 +1115,7 @@
+           <div class="modal-card card w-full max-w-lg overflow-hidden">
+             <div class="flex items-center gap-2 px-4 py-3 border-b border-ink-100">
+               ${icon('search','w-5 h-5 text-ink-400')}
+-              <input id="cpInput" class="flex-1 outline-none text-sm" placeholder="Type to search pages and actions…" autocomplete="off">
++              <input id="cpInput" class="flex-1 outline-none text-sm" placeholder="Search tasks, staff, kitchens, pages…" autocomplete="off">
+               <span class="text-[10px] text-ink-400 border border-ink-200 rounded px-1.5 py-0.5">ESC</span>
+             </div>
+             <div id="cpList" class="p-2 max-h-80 overflow-auto"></div>
+@@ -1043,7 +1145,7 @@
+         if (S.remote) {
+           const wfChanged = S.tickWorkflows();
+           const changed = await S.pullLive();
+-          if ((changed || wfChanged) && /^(home|hub|wflive|wfdone|wfout|wfod|wfstaff|wfdel|wfprod|wfclean|wfhaccp|wfperf|dashboard|temps|alerts|maintenance)$/.test(this.route) && !document.querySelector('#modal-layer').innerHTML) {
++          if ((changed || wfChanged) && /^(home|hub|wflive|wfdone|wfout|wfod|wfstaff|clock|wfdel|wfprod|wfclean|wfhaccp|wfperf|dashboard|temps|alerts|maintenance)$/.test(this.route) && !document.querySelector('#modal-layer').innerHTML) {
+             this.render();
+           }
+           return;
+@@ -1078,7 +1180,7 @@
+         } else if (wfChanged && /^(home|hub|wflive|wfdone|wfout|wfod|wfstaff|wfdel|wfprod|wfclean|wfhaccp|wfperf)$/.test(this.route) && !document.querySelector('#modal-layer').innerHTML) {
+           this.render();
+         }
+-      }, 5000);
++      }, 30000);
+     },
+   };
+ 
+diff --git a/js/store.js b/js/store.js
+index 0266c5d..99a591c 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -149,18 +149,18 @@
+       { id:'u_gov_chef', name:'Ravi Patel', role:'Head Chef', email:'ravi@govindas.demo', phone:'+44 7700 900202', siteId:'site_govindas', initials:'RP', access:'Manager', clockPin:'6666' },
+       { id:'u_gov_prep', name:'Lena Park', role:'Prep Lead', email:'prep@govindas.demo', phone:'+44 7700 900203', siteId:'site_govindas', initials:'LP', access:'Staff', clockPin:'7777' },
+       { id:'u_gov_kp', name:'Tom Hughes', role:'Kitchen Porter', email:'kp@govindas.demo', phone:'+44 7700 900204', siteId:'site_govindas', initials:'TH', access:'Staff', clockPin:'8888' },
+-      { id:'u_sarah', name:'Sarah Mitchell', role:'Head Chef', email:'sarah@kiteline.uk', siteId:'site_grove', initials:'SM', access:'Admin' },
+-      { id:'u_james', name:'James Okafor', role:'Sous Chef', email:'james@kiteline.uk', siteId:'site_grove', initials:'JO', access:'Staff' },
+-      { id:'u_lena', name:'Lena Park', role:'Kitchen Manager', email:'lena@kiteline.uk', siteId:'site_dock', initials:'LP', access:'Manager' },
+-      { id:'u_marco', name:'Marco Rossi', role:'Chef de Partie', email:'marco@kiteline.uk', siteId:'site_dock', initials:'MR', access:'Staff' },
+-      { id:'u_amy', name:'Amy Chen', role:'Compliance Lead', email:'amy@kiteline.uk', siteId:'site_quay', initials:'AC', access:'Manager' },
+-      { id:'u_david', name:'David Okonkwo', role:'Head Chef', email:'david@kiteline.uk', siteId:'site_apex', initials:'DO', access:'Manager' },
+-      { id:'u_fiona', name:'Fiona Walsh', role:'Pub Manager', email:'fiona@kiteline.uk', siteId:'site_crown', initials:'FW', access:'Manager' },
+-      { id:'u_tom', name:'Tom Hughes', role:'Head Barista', email:'tom@kiteline.uk', siteId:'site_river', initials:'TH', access:'Staff' },
+-      { id:'u_priya', name:'Priya Sharma', role:'Ops Lead', email:'priya@kiteline.uk', siteId:'site_studio', initials:'PS', access:'Manager' },
+-      { id:'u_ewan', name:'Ewan Fraser', role:'Training Chef', email:'ewan@kiteline.uk', siteId:'site_academy', initials:'EF', access:'Manager' },
+-      { id:'u_nina', name:'Nina Kostova', role:'Head Chef', email:'nina@kiteline.uk', siteId:'site_marina', initials:'NK', access:'Manager' },
+-      { id:'u_raj', name:'Raj Patel', role:'Food Court Manager', email:'raj@kiteline.uk', siteId:'site_heathrow', initials:'RP', access:'Manager' },
++      { id:'u_sarah', name:'Sarah Mitchell', role:'Head Chef', email:'sarah@kiteline.uk', siteId:'site_grove', initials:'SM', access:'Admin', clockPin:'1234' },
++      { id:'u_james', name:'James Okafor', role:'Sous Chef', email:'james@kiteline.uk', siteId:'site_grove', initials:'JO', access:'Staff', clockPin:'2345' },
++      { id:'u_lena', name:'Lena Park', role:'Kitchen Manager', email:'lena@kiteline.uk', siteId:'site_dock', initials:'LP', access:'Manager', clockPin:'3456' },
++      { id:'u_marco', name:'Marco Rossi', role:'Chef de Partie', email:'marco@kiteline.uk', siteId:'site_dock', initials:'MR', access:'Staff', clockPin:'4567' },
++      { id:'u_amy', name:'Amy Chen', role:'Compliance Lead', email:'amy@kiteline.uk', siteId:'site_quay', initials:'AC', access:'Manager', clockPin:'5678' },
++      { id:'u_david', name:'David Okonkwo', role:'Head Chef', email:'david@kiteline.uk', siteId:'site_apex', initials:'DO', access:'Manager', clockPin:'6789' },
++      { id:'u_fiona', name:'Fiona Walsh', role:'Pub Manager', email:'fiona@kiteline.uk', siteId:'site_crown', initials:'FW', access:'Manager', clockPin:'7890' },
++      { id:'u_tom', name:'Tom Hughes', role:'Head Barista', email:'tom@kiteline.uk', siteId:'site_river', initials:'TH', access:'Staff', clockPin:'8901' },
++      { id:'u_priya', name:'Priya Sharma', role:'Ops Lead', email:'priya@kiteline.uk', siteId:'site_studio', initials:'PS', access:'Manager', clockPin:'9012' },
++      { id:'u_ewan', name:'Ewan Fraser', role:'Training Chef', email:'ewan@kiteline.uk', siteId:'site_academy', initials:'EF', access:'Manager', clockPin:'1122' },
++      { id:'u_nina', name:'Nina Kostova', role:'Head Chef', email:'nina@kiteline.uk', siteId:'site_marina', initials:'NK', access:'Manager', clockPin:'2233' },
++      { id:'u_raj', name:'Raj Patel', role:'Food Court Manager', email:'raj@kiteline.uk', siteId:'site_heathrow', initials:'RP', access:'Manager', clockPin:'3344' },
+     ];
+ 
+     // LoRaWAN sensors — rich metadata for audit-grade monitoring
+@@ -405,8 +405,13 @@
+       { id:uid(), user:'u_lena',  action:'Acknowledged alert: Closing checklist overdue', at:hoursAgo(1.9) },
+     ];
+ 
+-    // Live kitchen workflows — supplier, prep, temps, H&S, HACCP
+-    const workflows = seedWorkflows('site_grove');
++    // Live kitchen workflows — per site so the kitchen switcher changes data
++    const workflows = sites.flatMap((s) => {
++      const pack = seedWorkflows(s.id);
++      // Full pack for flagship demos; compact pack for the rest (keeps localStorage lean)
++      if (['site_grove', 'site_dock', 'site_vedanta', 'site_govindas', 'site_quay'].includes(s.id)) return pack;
++      return pack.slice(0, 40);
++    });
+ 
+     // Approved suppliers register (due-diligence)
+     const suppliers = [
+@@ -667,6 +672,26 @@
+     </div>`;
+   }
+ 
++  /** Ensure every site has its own workflow pack (fixes kitchen switcher showing Grove-only data). */
++  function ensureWorkflowsForAllSites(db) {
++    if (!db || !Array.isArray(db.workflows) || !Array.isArray(db.sites)) return false;
++    const counts = {};
++    db.workflows.forEach((w) => { counts[w.site] = (counts[w.site] || 0) + 1; });
++    let changed = false;
++    db.sites.forEach((site) => {
++      const n = counts[site.id] || 0;
++      if (n >= 30) return;
++      const pack = seedWorkflows(site.id);
++      const size = ['site_grove', 'site_dock', 'site_vedanta', 'site_govindas', 'site_quay'].includes(site.id) ? pack.length : 40;
++      const next = pack.slice(0, size);
++      db.workflows = db.workflows.filter((w) => w.site !== site.id).concat(next);
++      counts[site.id] = next.length;
++      changed = true;
++    });
++    if (changed) db._workflowsPerSite = 1;
++    return changed;
++  }
++
+   // Ensure a loaded/synced db has every collection the current app expects.
+   function ensureShape(db) {
+     if (!db || typeof db !== 'object') return seed();
+@@ -695,6 +720,9 @@
+       if ((db.team || []).length < 10) db.team = s.team;
+       if (!db.workflows || db.workflows.length < 90) db.workflows = s.workflows;
+       if ((db.recipes || []).length < 100) db.recipes = s.recipes;
++      if (ensureWorkflowsForAllSites(db)) {
++        try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {}
++      }
+     }
+     if (window.Rota && window.Rota.ensureDemo) window.Rota.ensureDemo(db);
+     if (!isPrivate) ensurePilots(db);
+@@ -731,6 +759,9 @@
+       try {
+         const serverState = await window.Api.getState();
+         if (serverState) {
++          // Keep local clock/attendance if the server blob is older/empty (prevents refresh wipe)
++          const localClocks = Array.isArray(this.db.clockSessions) ? this.db.clockSessions.slice() : [];
++          const localAttendance = Array.isArray(this.db.attendanceLog) ? this.db.attendanceLog.slice() : [];
+           const isPrivate = !!(serverState._tenantPrivate || serverState._isPrivate);
+           const needsPilot = !isPrivate && (
+             !PILOT_SITE_IDS.every((id) => (serverState.sites || []).some((s) => s.id === id))
+@@ -740,8 +771,19 @@
+             || (serverState.sites || []).length < 10 || (serverState.sensors || []).length < 20
+             || (serverState.workflows || []).length < 90);
+           this.db = ensureShape(serverState);
++          const byId = {};
++          (this.db.clockSessions || []).forEach((c) => { byId[c.id] = c; });
++          localClocks.forEach((c) => {
++            const cur = byId[c.id];
++            if (!cur) { byId[c.id] = c; return; }
++            const curLen = (cur.sessions || []).length;
++            const locLen = (c.sessions || []).length;
++            if (locLen > curLen) byId[c.id] = c;
++          });
++          this.db.clockSessions = Object.values(byId);
++          if (!(this.db.attendanceLog || []).length && localAttendance.length) this.db.attendanceLog = localAttendance;
+           save(this.db);
+-          if (missing || needsPilot) await window.Api.putState(this.db).catch(() => {}); // persist newly-added collections
++          if (missing || needsPilot || localClocks.length) await window.Api.putState(this.db).catch(() => {});
+         } else {
+           await window.Api.putState(this.db); // upload local seed on first run
+         }
+@@ -806,23 +848,25 @@
+       return (this.db.workflows || []).filter(w => w.site === (id || this.db.currentSite));
+     },
+     tickWorkflows() {
+-      const site = this.db.currentSite;
+-      const wfs = this.workflowsForSite(site);
+-      if (!wfs.length) return false;
++      // Recalculate overdue across all sites so badges stay accurate after kitchen switches
++      const all = this.db.workflows || [];
++      if (!all.length) return false;
+       let changed = false;
+       const ts = Date.now();
+-      wfs.forEach(w => {
++      all.forEach(w => {
+         if (w.status !== 'completed' && w.dueAt && new Date(w.dueAt).getTime() < ts && w.status !== 'overdue') {
+           w.status = 'overdue'; w.updatedAt = now(); changed = true;
+         }
+       });
++      const site = this.db.currentSite;
++      const wfs = this.workflowsForSite(site);
+       const sched = wfs.filter(w => w.status === 'scheduled');
+-      if (sched.length && Math.random() < 0.45) {
++      if (sched.length && Math.random() < 0.35) {
+         const w = sched[Math.floor(Math.random() * sched.length)];
+         w.status = 'in_progress'; w.startedAt = now(); w.updatedAt = now(); changed = true;
+       }
+       const prog = wfs.filter(w => w.status === 'in_progress');
+-      if (prog.length && Math.random() < 0.5) {
++      if (prog.length && Math.random() < 0.4) {
+         const w = prog[Math.floor(Math.random() * prog.length)];
+         w.status = 'completed'; w.completedAt = now(); w.updatedAt = now();
+         this.db.activity.unshift({ id: uid(), user: w.assignee, action: w.label, at: now() });
+@@ -832,6 +876,19 @@
+       if (changed) save(this.db);
+       return changed;
+     },
++    completeWorkflow(id) {
++      const w = (this.db.workflows || []).find(x => x.id === id);
++      if (!w || w.status === 'completed') return false;
++      w.status = 'completed';
++      w.completedAt = now();
++      w.updatedAt = now();
++      this.logActivity(w.assignee, 'Completed: ' + w.label);
++      this.persist();
++      return true;
++    },
++    overdueCount(siteId) {
++      return this.workflowsForSite(siteId).filter(w => w.status === 'overdue').length;
++    },
+   };
+ 
+   const ROTA_STATUS = {
+@@ -957,23 +1014,49 @@
+   function rotaEnsureDemo(db) {
+     const site = db.currentSite || 'site_grove';
+     if (!(db.rotaShifts || []).some(s => s.site === site)) rotaSeedForSite(db, site);
+-    ['site_vedanta', 'site_govindas'].forEach((sid) => {
++    ['site_vedanta', 'site_govindas', 'site_grove', 'site_dock', 'site_quay'].forEach((sid) => {
+       if (!(db.rotaShifts || []).some(s => s.site === sid)) rotaSeedForSite(db, sid);
+     });
++    // Ensure every team member has a clock PIN for kitchen kiosk use
++    (db.team || []).forEach((m, idx) => {
++      if (!m.clockPin && !m.pin) m.clockPin = String(1000 + ((idx + 1) * 111) % 9000).padStart(4, '0').slice(0, 4);
++    });
++    if (!Array.isArray(db.clockSessions)) db.clockSessions = [];
++    if (!Array.isArray(db.attendanceLog)) db.attendanceLog = [];
+     return db;
+   }
+ 
++  function rotaFindByPin(db, site, pin) {
++    const code = String(pin || '').trim();
++    if (!/^\d{4}$/.test(code)) return null;
++    return rotaTeamForSite(db, site).find((m) => String(m.clockPin || m.pin || '') === code) || null;
++  }
++
++  function rotaToggleByPin(db, site, pin, byUserId) {
++    const member = rotaFindByPin(db, site, pin);
++    if (!member) return { ok: false, reason: 'Unknown PIN' };
++    const on = rotaIsClockedIn(db, site, member.id);
++    const res = on ? rotaClockOut(db, site, member.id, byUserId) : rotaClockIn(db, site, member.id, byUserId);
++    if (!res.ok) return res;
++    return { ok: true, member, action: on ? 'out' : 'in', doc: res.doc };
++  }
++
+   window.Rota = {
+     ROTA_STATUS, dateKey: rotaDateKey, teamForSite: rotaTeamForSite,
+     getShift: rotaGetShift, getClock: rotaGetClock, isClockedIn: rotaIsClockedIn,
+     clockedInStaff: rotaClockedInStaff, clockIn: rotaClockIn, clockOut: rotaClockOut,
+     setShift: rotaSetShift, weekDates: rotaWeekDates, dayLabel: rotaDayLabel,
+     verifyPin: rotaVerifyPin, seedRotaForSite: rotaSeedForSite, ensureDemo: rotaEnsureDemo,
++    findByPin: rotaFindByPin, toggleByPin: rotaToggleByPin,
+     scheduledToday(db, site, date) {
+       const d = date || rotaDateKey();
+       return rotaTeamForSite(db, site).map(m => ({ member: m, shift: rotaGetShift(db, site, m.id, d) }))
+         .filter(x => x.shift && x.shift.status === 'scheduled');
+     },
++    todayLog(db, site, date) {
++      const d = date || rotaDateKey();
++      return (db.attendanceLog || []).filter((a) => a.site === site && String(a.at || '').slice(0, 10) === d);
++    },
+   };
+ 
+   window.Store = Store;
+diff --git a/js/views.js b/js/views.js
+index 04b2cc4..9342e25 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -384,9 +384,14 @@
+       </tr>`;
+     }).join('');
+     const html = `
+-      ${sectionHeader('Temperature Monitoring','10 live LoRaWAN probes per site ? 24/7 auto-logging ? EC 852/2004 compliant audit trail', `
++      ${sectionHeader('Temperature Monitoring','Live LoRaWAN probes per site · auto-logging · EC 852/2004 audit trail', `
+         <button class="btn btn-ghost btn-sm" data-act="manual">${icon('plus','ico')} Manual reading</button>
+         <button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add sensor</button>`)}
++      <div class="card card-pad mb-4 flex flex-wrap items-center gap-3 border-l-4 border-brand-500 bg-brand-50/40">
++        <span class="pulse-dot pulse-live"></span>
++        <div class="text-sm flex-1"><b>Live readings</b> · cards refresh automatically · last UI refresh ${new Date().toLocaleTimeString('en-GB')}</div>
++        <div class="text-xs text-ink-500">Hardware ingest every 5 min via <code>/api/ingest</code></div>
++      </div>
+       <div class="grid sm:grid-cols-4 gap-4 mb-5">
+         <div class="kpi"><div class="text-xs text-ink-500">Sensors (this site)</div><div class="v">${sensors.length}</div></div>
+         <div class="kpi"><div class="text-xs text-ink-500">In range</div><div class="v text-brand-600">${counts.ok}</div></div>
+@@ -2181,21 +2186,77 @@
+ 
+   /* ---------------- HOME / LIVE WORKFLOW DASHBOARD ---------------- */
+   const WF_META = {
+-    completed: { dot:'??', badge:'badge-green', row:'', label:'Completed' },
+-    in_progress: { dot:'??', badge:'badge-amber', row:'wf-live-row', label:'In Progress' },
+-    overdue: { dot:'??', badge:'badge-red', row:'wf-overdue-row', label:'Overdue' },
+-    scheduled: { dot:'??', badge:'badge-blue', row:'', label:'Scheduled' },
++    completed: { tone:'green', badge:'badge-green', row:'', label:'Completed' },
++    in_progress: { tone:'amber', badge:'badge-amber', row:'wf-live-row', label:'In Progress' },
++    overdue: { tone:'red', badge:'badge-red', row:'wf-overdue-row', label:'Overdue' },
++    scheduled: { tone:'blue', badge:'badge-blue', row:'', label:'Scheduled' },
++  };
++  const wfDot = (status) => {
++    const m = WF_META[status] || WF_META.scheduled;
++    return `<span class="wf-dot wf-dot--${m.tone}" aria-hidden="true"></span>`;
+   };
++  const wfLegend = () => Object.keys(WF_META).map((k) => {
++    const m = WF_META[k];
++    return `<span class="badge ${m.badge}">${wfDot(k)} ${m.label}</span>`;
++  }).join('');
+   const isToday = (iso) => iso && new Date(iso).toDateString() === new Date().toDateString();
++
++  function openWorkflowDetail(w) {
++    if (!w) return;
++    const m = WF_META[w.status] || WF_META.scheduled;
++    const who = S.member(w.assignee);
++    const site = S.site(w.site);
++    const steps = [
++      'Confirm task requirements and PPE / hygiene rules',
++      'Complete the work and record evidence (photo / temp / note)',
++      'Sign off or escalate corrective action if out of range',
++    ];
++    modal(escapeHtml(w.label), `<div class="space-y-4">
++      <div class="flex flex-wrap items-center gap-2">
++        <span class="badge ${m.badge}">${wfDot(w.status)} ${m.label}</span>
++        <span class="badge badge-gray">${escapeHtml(w.category)}</span>
++      </div>
++      <div class="grid sm:grid-cols-2 gap-3 text-sm">
++        <div><div class="text-xs text-ink-400 uppercase font-bold">Assigned to</div><div class="font-semibold">${escapeHtml(who.name)}</div><div class="text-xs text-ink-400">${escapeHtml(who.role || '')}</div></div>
++        <div><div class="text-xs text-ink-400 uppercase font-bold">Kitchen</div><div class="font-semibold">${escapeHtml(site.name || w.site)}</div></div>
++        <div><div class="text-xs text-ink-400 uppercase font-bold">Due</div><div>${w.dueAt ? fmt.ago(w.dueAt) : '—'} <span class="text-ink-400 text-xs">${w.dueAt ? '(' + new Date(w.dueAt).toLocaleString('en-GB') + ')' : ''}</span></div></div>
++        <div><div class="text-xs text-ink-400 uppercase font-bold">Updated</div><div>${fmt.ago(w.updatedAt || w.completedAt || w.startedAt || w.dueAt)}</div></div>
++      </div>
++      <div>
++        <div class="text-xs text-ink-400 uppercase font-bold mb-2">Sub-steps</div>
++        <ol class="list-decimal pl-5 space-y-1 text-sm text-ink-700">${steps.map(s => `<li>${s}</li>`).join('')}</ol>
++      </div>
++      <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm">
++        <div class="font-bold text-amber-900 mb-1">Corrective actions</div>
++        <p class="text-ink-600 text-xs">${w.status === 'overdue'
++          ? 'Escalate to the duty manager, complete the check immediately, and log why it was late.'
++          : 'If limits are breached, stop service for that item, notify the manager, and record the corrective action in HACCP / Incidents.'}</p>
++      </div>
++      <div class="flex flex-wrap gap-2">
++        ${w.status !== 'completed' ? `<button type="button" class="btn btn-primary flex-1" id="wfCompleteBtn">Mark completed</button>` : ''}
++        ${w.route ? `<button type="button" class="btn btn-ghost flex-1" id="wfModuleBtn">Open ${escapeHtml(w.route)}</button>` : ''}
++      </div>
++    </div>`, { wide: true });
++    const done = document.getElementById('wfCompleteBtn');
++    if (done) done.onclick = () => {
++      if (S.completeWorkflow(w.id)) {
++        closeModal();
++        toast('Task completed · overdue count updated');
++        window.App.render();
++      }
++    };
++    const mod = document.getElementById('wfModuleBtn');
++    if (mod) mod.onclick = () => { closeModal(); location.hash = w.route; };
++  }
++
+   function wfItemHtml(w) {
+     const m = WF_META[w.status] || WF_META.scheduled;
+     const who = S.member(w.assignee);
+-    const go = w.route ? ` data-go="${w.route}" role="button" tabindex="0"` : '';
+-    return `<div class="wf-item ${m.row} fade-in"${go}>
+-      <span class="wf-dot">${m.dot}</span>
++    return `<div class="wf-item ${m.row} fade-in" data-wf-open="${escapeHtml(w.id)}" role="button" tabindex="0">
++      ${wfDot(w.status)}
+       <div class="flex-1 min-w-0">
+         <div class="text-sm font-semibold">${escapeHtml(w.label)}</div>
+-        <div class="text-xs text-ink-400">${escapeHtml(w.category)} ? ${escapeHtml(who.name)} ? ${fmt.ago(w.updatedAt || w.completedAt || w.startedAt || w.dueAt)}</div>
++        <div class="text-xs text-ink-400">${escapeHtml(w.category)} · ${escapeHtml(who.name)} · ${fmt.ago(w.updatedAt || w.completedAt || w.startedAt || w.dueAt)}</div>
+       </div>
+       <span class="badge ${m.badge} flex-none text-[10px]">${m.label}</span>
+     </div>`;
+@@ -2204,38 +2265,55 @@
+   const WF_PAGE_SIZE = 10;
+   window.WfPage = window.WfPage || {};
+   function wfPaginate(routeId, items) {
+-    const total = Math.max(1, Math.ceil(items.length / WF_PAGE_SIZE));
++    const total = Math.max(1, Math.ceil(items.length / WF_PAGE_SIZE) || 1);
+     const pg = Math.min(Math.max(0, window.WfPage[routeId] || 0), total - 1);
+     window.WfPage[routeId] = pg;
+     const slice = items.slice(pg * WF_PAGE_SIZE, (pg + 1) * WF_PAGE_SIZE);
+-    const pages = Array.from({ length: total }, (_, i) =>
+-      `<button class="btn btn-sm ${i === pg ? 'btn-primary' : 'btn-ghost'}" data-wfpg="${routeId}:${i}">${i + 1}</button>`
+-    ).join('');
+-    return { slice, pg, total, pages, start: pg * WF_PAGE_SIZE + 1, end: Math.min((pg + 1) * WF_PAGE_SIZE, items.length) };
++    const pageBtns = [];
++    const windowSize = 7;
++    let start = Math.max(0, pg - Math.floor(windowSize / 2));
++    let end = Math.min(total, start + windowSize);
++    start = Math.max(0, end - windowSize);
++    if (start > 0) pageBtns.push(`<button type="button" class="btn btn-sm btn-ghost" data-wfpg="${routeId}:0">1</button><span class="text-ink-300 px-1">…</span>`);
++    for (let i = start; i < end; i++) {
++      pageBtns.push(`<button type="button" class="btn btn-sm ${i === pg ? 'btn-primary' : 'btn-ghost'}" data-wfpg="${routeId}:${i}">${i + 1}</button>`);
++    }
++    if (end < total) pageBtns.push(`<span class="text-ink-300 px-1">…</span><button type="button" class="btn btn-sm btn-ghost" data-wfpg="${routeId}:${total - 1}">${total}</button>`);
++    const pages = `
++      <button type="button" class="btn btn-sm btn-ghost" data-wfpg="${routeId}:${Math.max(0, pg - 1)}" ${pg === 0 ? 'disabled' : ''}>Prev</button>
++      ${pageBtns.join('')}
++      <button type="button" class="btn btn-sm btn-ghost" data-wfpg="${routeId}:${Math.min(total - 1, pg + 1)}" ${pg >= total - 1 ? 'disabled' : ''}>Next</button>`;
++    return { slice, pg, total, pages, start: items.length ? pg * WF_PAGE_SIZE + 1 : 0, end: Math.min((pg + 1) * WF_PAGE_SIZE, items.length) };
+   }
+   function wfTableRow(w) {
+     const m = WF_META[w.status] || WF_META.scheduled;
+     const who = S.member(w.assignee);
+     return `<tr class="fade-in">
+-      <td>${m.dot}</td>
++      <td>${wfDot(w.status)}</td>
+       <td><div class="font-semibold text-sm">${escapeHtml(w.label)}</div></td>
+       <td class="text-xs text-ink-500">${escapeHtml(w.category)}</td>
+       <td>${escapeHtml(who.name)}</td>
+       <td><span class="badge ${m.badge}">${m.label}</span></td>
+       <td class="text-xs text-ink-400">${fmt.ago(w.updatedAt || w.completedAt || w.dueAt)}</td>
+-      <td>${w.route ? `<a href="#${w.route}" class="text-brand-600 text-xs font-semibold">Open</a>` : '?'}</td>
++      <td><button type="button" class="text-brand-600 text-xs font-semibold" data-wf-open="${escapeHtml(w.id)}">Open</button></td>
+     </tr>`;
+   }
++  function bindWorkflowOpeners(root) {
++    (root || document).querySelectorAll('[data-wf-open]').forEach((el) => {
++      el.style.cursor = 'pointer';
++      el.onclick = (e) => {
++        e.preventDefault();
++        e.stopPropagation();
++        const w = (S.db.workflows || []).find((x) => x.id === el.dataset.wfOpen);
++        openWorkflowDetail(w);
++      };
++    });
++  }
+   function workflowListPage(routeId, title, subtitle, iconName, items, extraHtml) {
+     const pag = wfPaginate(routeId, items);
+     const html = `
+-      ${sectionHeader(title, subtitle + ` ? ${items.length} total ? 10 per page`, `<a href="#home" class="btn btn-ghost btn-sm">${icon('chevron','ico')} Back to Home</a>`)}
+-      <div class="flex flex-wrap gap-2 mb-4 text-xs">
+-        <span class="badge badge-green">?? Completed</span>
+-        <span class="badge badge-amber">?? In Progress</span>
+-        <span class="badge badge-red">?? Overdue</span>
+-        <span class="badge badge-blue">?? Scheduled</span>
+-      </div>
++      ${sectionHeader(title, subtitle + ` · ${items.length} total · 10 per page`, `<button type="button" class="btn btn-ghost btn-sm" data-go="home">${icon('chevron','ico')} Back to Home</button>`)}
++      <div class="flex flex-wrap gap-2 mb-4 text-xs">${wfLegend()}</div>
+       ${extraHtml || ''}
+       <div class="card overflow-hidden mb-4">
+         <table class="table">
+@@ -2244,19 +2322,18 @@
+         </table>
+       </div>
+       <div class="flex flex-wrap items-center justify-between gap-3">
+-        <div class="text-sm text-ink-500">Showing ${items.length ? pag.start : 0}?${pag.end} of ${items.length} ? Page ${pag.pg + 1} of ${pag.total}</div>
+-        <div class="flex flex-wrap gap-1">${pag.pages}</div>
++        <div class="text-sm text-ink-500">Showing ${pag.start}–${pag.end} of ${items.length} · Page ${pag.pg + 1} of ${pag.total}</div>
++        <div class="flex flex-wrap gap-1 items-center">${pag.pages}</div>
+       </div>`;
+     return { title, html, mount() {
+-      document.querySelectorAll('[data-wfpg]').forEach(b => b.onclick = () => {
++      document.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => { location.hash = b.dataset.go; });
++      document.querySelectorAll('[data-wfpg]').forEach((b) => b.onclick = () => {
++        if (b.disabled) return;
+         const [rid, p] = b.dataset.wfpg.split(':');
+         window.WfPage[rid] = parseInt(p, 10);
+         window.App.render();
+       });
+-      document.querySelectorAll('.wf-item[data-go]').forEach(el => {
+-        el.style.cursor = 'pointer';
+-        el.onclick = () => { location.hash = el.dataset.go; };
+-      });
++      bindWorkflowOpeners();
+     }};
+   }
+ 
+@@ -2429,7 +2506,7 @@
+     // product tiles
+     const wasteKg = db.waste.filter(w=>w.site===site).reduce((n,w)=>n+w.kg,0);
+     const products = [
+-      { name:'SafeServe', tag:'HACCP, checklists & live temperatures', icon:'check', route:'haccp', color:'#0d9488',
++      { name:'SafeServe', tag:'HACCP, checklists & live temperatures', icon:'check', route:'safeserve', color:'#0d9488',
+         stat: tempCompliance+'% compliant', sub: breaches?(breaches+' breach(es) now'):'all in range' },
+       { name:'MenuGuard', tag:'Allergen menus with QR codes', icon:'allerq', route:'allerq', color:'#2563eb',
+         stat: db.menus.length+' menus', sub:'14 statutory allergens' },
+@@ -2438,7 +2515,7 @@
+       { name:'WasteWise', tag:'Track & cut food waste', icon:'waste', route:'waste', color:'#dc2626',
+         stat: wasteKg.toFixed(1)+' kg', sub:'logged this period' },
+     ];
+-    const tiles = products.map(p=>`<button class="card text-left overflow-hidden hover:shadow-xl transition-all hover:-translate-y-0.5 fade-in group" data-go="${p.route}">
++    const tiles = products.map(p=>`<button type="button" class="card text-left overflow-hidden hover:shadow-xl transition-all hover:-translate-y-0.5 fade-in group" data-go="${p.route}">
+       <div class="px-5 pt-5 pb-4" style="background:linear-gradient(135deg,${p.color}14,#ffffff)">
+         <div class="flex items-center justify-between mb-4">
+           <span class="w-14 h-14 rounded-2xl flex items-center justify-center flex-none shadow-sm" style="background:${p.color};color:#fff">${icon(p.icon,'w-7 h-7')}</span>
+@@ -2449,7 +2526,7 @@
+       </div>
+       <div class="px-5 py-3 flex items-center justify-between border-t border-ink-50">
+         <span class="text-xs text-ink-400">${p.sub}</span>
+-        <span class="btn btn-sm text-white group-hover:brightness-110" style="background:${p.color}">Launch ${icon('chevron','w-4 h-4')}</span>
++        <span class="btn btn-sm text-white group-hover:brightness-110 pointer-events-none" style="background:${p.color}">Launch ${icon('chevron','w-4 h-4')}</span>
+       </div>
+     </button>`).join('');
+ 
+@@ -2517,9 +2594,9 @@
+         <div class="h-2 rounded-full bg-ink-100 overflow-hidden mb-4"><div class="h-full bg-brand-500 transition-all" style="width:${Math.round(msDone / milestones.length * 100)}%"></div></div>
+         <div class="space-y-2">
+           ${milestones.map(m => `<div class="flex items-center gap-3 text-sm py-1">
+-            <span class="w-5 text-center ${m.done ? 'text-brand-600 font-bold' : 'text-ink-300'}">${m.done ? '?' : '?'}</span>
++            <span class="w-5 text-center ${m.done ? 'text-brand-600 font-bold' : 'text-ink-300'}">${m.done ? '✓' : '○'}</span>
+             <span class="flex-1 ${m.done ? 'text-ink-500' : 'font-medium text-ink-800'}">${escapeHtml(m.label)}</span>
+-            ${!m.done && m.route ? `<button class="btn btn-ghost btn-sm" data-go="${m.route}">Go ?</button>` : ''}
++            ${!m.done && m.route ? `<button class="btn btn-ghost btn-sm" data-go="${m.route}">Go →</button>` : ''}
+           </div>`).join('')}
+         </div>
+       </div>`;
+@@ -2550,12 +2627,7 @@
+           <h1 class="text-2xl font-extrabold">${greet}, ${escapeHtml(firstName)}</h1>
+           <p class="text-ink-500 text-sm">${escapeHtml(siteName)} ? Retreat centre kitchen ? ${fmt.date(S.now())}</p>
+         </div>
+-        <div class="flex flex-wrap gap-2 text-xs">
+-          <span class="badge badge-green">?? Completed</span>
+-          <span class="badge badge-amber">?? In Progress</span>
+-          <span class="badge badge-red">?? Overdue</span>
+-          <span class="badge badge-blue">?? Scheduled</span>
+-        </div>
++        <div class="flex flex-wrap gap-2 text-xs">${wfLegend()}</div>
+       </div>
+       ${openAlerts?`<div class="card card-pad mb-5 flex items-center gap-3 border-l-4 border-red-500 bg-red-50">
+         ${icon('alert','w-5 h-5 text-red-600')}<div class="text-sm"><b>${openAlerts} open alert(s)</b> at this site.</div>
+@@ -2576,22 +2648,30 @@
+         <div class="xl:col-span-2 card card-pad">
+           <div class="flex items-center justify-between mb-3">
+             <h2 class="font-bold flex items-center gap-2">${icon('temp','w-5 h-5 text-amber-500')} Happening Now</h2>
+-            <a href="#wflive" class="text-xs text-brand-600 font-semibold">All pages (10 each) ?</a>
++            <a href="#wflive" class="text-xs text-brand-600 font-semibold">All pages (10 each) →</a>
+           </div>
+-          <div class="wf-feed space-y-2" id="wf-live">${live.length ? live.map(wfItemHtml).join('') : '<p class="text-ink-400 text-sm py-4 text-center">No active tasks ? kitchen is between service periods.</p>'}</div>
++          <div class="wf-feed space-y-2" id="wf-live" data-live-poll="30">${live.length ? live.map(wfItemHtml).join('') : '<p class="text-ink-400 text-sm py-4 text-center">No active tasks — kitchen is between service periods.</p>'}</div>
++          <p class="text-[10px] text-ink-400 mt-2">Auto-refreshes every 30 seconds · last update ${new Date().toLocaleTimeString('en-GB')}</p>
+         </div>
+         <div class="space-y-5">
+           <div class="card card-pad">
+-            <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('team','w-5 h-5 text-brand-600')} Staff Currently Working</h2><a href="#wfstaff" class="text-xs text-brand-600 font-semibold">View all ?</a></div>
++            <div class="flex items-center justify-between mb-3">
++              <h2 class="font-bold flex items-center gap-2">${icon('clock','w-5 h-5 text-brand-600')} Clock In / Out</h2>
++              <a href="#clock" class="text-xs text-brand-600 font-semibold">Full kiosk →</a>
++            </div>
++            ${typeof clockKioskHtml === 'function' ? clockKioskHtml(site, { compact: true }) : `<a href="#clock" class="btn btn-primary w-full">Open Clock In / Out</a>`}
++          </div>
++          <div class="card card-pad">
++            <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('team','w-5 h-5 text-brand-600')} Staff Currently Working</h2><a href="#wfstaff" class="text-xs text-brand-600 font-semibold">View all →</a></div>
+             ${staffActive.length ? staffActive.map(s=>`<div class="flex items-center gap-3 py-2 border-b border-ink-50 last:border-0">
+               <div class="w-9 h-9 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-sm">${s.initials}</div>
+               <div class="flex-1 min-w-0"><div class="font-semibold text-sm">${escapeHtml(s.name)}</div><div class="text-xs text-ink-400">${s.tasks.length ? s.tasks.length + ' active task' + (s.tasks.length>1?'s':'') : (s.onClock ? 'Clocked in' : 'On shift')}</div></div>
+               <span class="badge ${s.onClock ? 'badge-green' : 'badge-amber'}">${s.onClock ? 'Clocked in' : 'Active'}</span>
+-            </div>`).join('') : '<p class="text-ink-400 text-sm">No one clocked in ? use <a href="#clock" class="text-brand-600 font-semibold">Clock In / Out</a>.</p>'}
++            </div>`).join('') : '<p class="text-ink-400 text-sm">No one clocked in — use <a href="#clock" class="text-brand-600 font-semibold">Clock In / Out</a>.</p>'}
+           </div>
+           <div class="card card-pad">
+-            <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('alert','w-5 h-5 text-red-500')} Overdue <span class="badge badge-red">${overdue.length}</span></h2><a href="#wfod" class="text-xs text-brand-600 font-semibold">10/page ?</a></div>
+-            <div class="space-y-2 max-h-48 overflow-y-auto">${overdue.length ? overdue.map(wfItemHtml).join('') : '<p class="text-ink-400 text-sm">No overdue tasks ? great work.</p>'}</div>
++            <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('alert','w-5 h-5 text-red-500')} Overdue <span class="badge badge-red">${overdue.length}</span></h2><a href="#wfod" class="text-xs text-brand-600 font-semibold">10/page →</a></div>
++            <div class="space-y-2 max-h-48 overflow-y-auto">${overdue.length ? overdue.map(wfItemHtml).join('') : '<p class="text-ink-400 text-sm">No overdue tasks — great work.</p>'}</div>
+           </div>
+         </div>
+       </div>
+@@ -2644,7 +2724,11 @@
+       </details>`;
+     return { title:'Home', html, mount() {
+       document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{ location.hash = b.dataset.go; });
+-      document.querySelectorAll('.wf-item[data-go]').forEach(el=>{ el.style.cursor='pointer'; el.onclick=()=>{ location.hash=el.dataset.go; }; });
++      bindWorkflowOpeners();
++      if (window.Rota) {
++        window.Rota.ensureDemo(S.db);
++        mountClockKiosk(site);
++      }
+     }};
+   }
+ 
+@@ -2726,10 +2810,10 @@
+ 
+       <h3 class="font-bold mb-3 text-ink-500 text-sm uppercase tracking-wide">Menu engineering matrix</h3>
+       <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+-        ${quad('Star','? Stars','High profit ? high popularity ? promote & protect','#059669')}
+-        ${quad('Plowhorse','?? Plowhorses','Popular but low margin ? re-engineer cost','#d97706')}
+-        ${quad('Puzzle','?? Puzzles','High margin but low sales ? reposition/upsell','#2563eb')}
+-        ${quad('Dog','?? Dogs','Low profit ? low sales ? consider removing','#dc2626')}
++        ${quad('Star','Stars','High profit · high popularity — promote & protect','#059669')}
++        ${quad('Plowhorse','Plowhorses','Popular but low margin — re-engineer cost','#d97706')}
++        ${quad('Puzzle','Puzzles','High margin but low sales — reposition/upsell','#2563eb')}
++        ${quad('Dog','Dogs','Low profit · low sales — consider removing','#dc2626')}
+       </div>
+ 
+       <h3 class="font-bold mb-3 text-ink-500 text-sm uppercase tracking-wide">Dish profitability</h3>
+@@ -3299,7 +3383,7 @@
+         </div>
+         <div class="card card-pad" id="billingCard">
+           <h3 class="font-bold mb-1">Billing</h3>
+-          <p class="text-sm text-ink-500 mb-2" id="billingLine">Checking subscription?</p>
++          <p class="text-sm text-ink-500 mb-2" id="billingLine">Checking subscription…</p>
+           <p class="text-xs text-ink-400 mb-3 hidden" id="billingTeamLine"></p>
+           <div class="flex flex-wrap gap-2" id="billingPlanBtns"></div>
+           <button class="btn btn-ghost btn-sm hidden mt-2" id="billPortal">Manage subscription</button>
+@@ -3313,11 +3397,11 @@
+           <p class="text-xs text-ink-400 mt-2">Email ? Admins. SMS ? Admins + site Managers with a mobile on Team (or NOTIFY_PHONE in server/.env).</p>
+           <button class="btn btn-ghost btn-sm w-full mt-3" id="testemail">${icon('mail','ico')} Send test email</button>
+           <button class="btn btn-ghost btn-sm w-full mt-2" id="testsms">${icon('mail','ico')} Send test SMS</button>
+-          <p class="text-xs text-ink-400 mt-3" id="notifyStatus">Checking notification setup?</p>
++          <p class="text-xs text-ink-400 mt-3" id="notifyStatus">Checking notification setup…</p>
+         </div>
+         <div class="card card-pad lg:col-span-2" id="recipeAiCard">
+-          <h3 class="font-bold mb-1">Recipe AI assistant ? 3 ways to enable</h3>
+-          <p class="text-sm text-ink-500 mb-2" id="recipeAiLine">Checking?</p>
++          <h3 class="font-bold mb-1">Recipe AI assistant — 3 ways to enable</h3>
++          <p class="text-sm text-ink-500 mb-2" id="recipeAiLine">Checking…</p>
+           <p class="text-xs text-ink-400 mb-3" id="recipeAiUsage"></p>
+           <div id="recipeAiServerBits" class="flex flex-wrap gap-2 mb-4 text-[10px] font-semibold uppercase tracking-wide"></div>
+           <div class="grid md:grid-cols-3 gap-4">
+@@ -4065,92 +4149,192 @@
+   }
+ 
+   function clockPinModal(member, onOk) {
+-    modal('Enter PIN ? ' + escapeHtml(member.name), `<div class="space-y-3 text-center">
++    modal('Enter PIN — ' + escapeHtml(member.name), `<div class="space-y-3 text-center">
+       <p class="text-sm text-ink-500">4-digit kitchen PIN</p>
+-      <input id="clockPinIn" class="input text-center text-2xl tracking-[0.4em]" maxlength="4" inputmode="numeric" autocomplete="off" placeholder="????">
++      <input id="clockPinIn" class="input text-center text-2xl tracking-[0.4em]" maxlength="4" inputmode="numeric" autocomplete="off" placeholder="••••">
+       <button type="button" class="btn btn-primary w-full" id="clockPinOk">Confirm</button></div>`, { wide: false });
+     const inp = document.getElementById('clockPinIn');
+     if (inp) inp.focus();
+-    document.getElementById('clockPinOk').onclick = () => {
++    const submit = () => {
+       const pin = (inp && inp.value) || '';
+       if (!window.Rota.verifyPin(member, pin)) return toast('Wrong PIN', 'warn');
+       closeModal();
+       onOk();
+     };
++    document.getElementById('clockPinOk').onclick = submit;
++    if (inp) inp.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
+   }
+ 
+-  function clock() {
++  function bindClockToggle(site) {
+     const R = window.Rota;
+-    const site = S.db.currentSite;
+-    const siteName = S.site(site).name;
+-    if (R) R.ensureDemo(S.db);
++    const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
++    return (memberOrId) => {
++      const member = typeof memberOrId === 'string'
++        ? S.db.team.find((x) => x.id === memberOrId)
++        : memberOrId;
++      if (!member) return;
++      const doToggle = () => {
++        const on = R.isClockedIn(S.db, site, member.id);
++        const res = on ? R.clockOut(S.db, site, member.id, me && me.email) : R.clockIn(S.db, site, member.id, me && me.email);
++        if (!res.ok) return toast(res.reason, 'warn');
++        S.persist();
++        if (S.logActivity) S.logActivity(member.id, on ? 'Clocked out' : 'Clocked in');
++        toast(member.name + (on ? ' clocked out' : ' clocked in'));
++        window.App.render();
++      };
++      if (member.clockPin || member.pin) clockPinModal(member, doToggle);
++      else doToggle();
++    };
++  }
++
++  function clockKioskHtml(site, opts) {
++    opts = opts || {};
++    const R = window.Rota;
++    R.ensureDemo(S.db);
+     const team = R.teamForSite(S.db, site);
+     const today = R.dateKey();
+     const clocked = R.clockedInStaff(S.db, site);
+     const scheduled = R.scheduledToday(S.db, site);
++    const log = (R.todayLog ? R.todayLog(S.db, site, today) : []).slice(0, opts.logLimit || 12);
++    const compact = !!opts.compact;
+ 
+-    const cards = team.map(m => {
++    const cards = team.map((m) => {
+       const on = R.isClockedIn(S.db, site, m.id);
+       const shift = R.getShift(S.db, site, m.id, today);
+       const sess = R.getClock(S.db, site, m.id, today);
+       const last = sess && sess.sessions && sess.sessions.length ? sess.sessions[sess.sessions.length - 1] : null;
+-      const shiftTxt = shift && shift.status === 'scheduled' ? shift.startTime + '?' + shift.endTime : (shift ? R.ROTA_STATUS[shift.status].label : 'No shift');
++      const shiftTxt = shift && shift.status === 'scheduled'
++        ? (shift.startTime + '–' + shift.endTime)
++        : (shift ? R.ROTA_STATUS[shift.status].label : 'No shift');
+       return `<div class="clock-staff-card ${on ? 'clock-staff-card--in' : ''}" data-clock-staff="${escapeHtml(m.id)}">
+         <div class="flex items-center gap-3">
+           <div class="w-12 h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold">${escapeHtml(m.initials)}</div>
+           <div class="flex-1 min-w-0">
+             <div class="font-bold">${escapeHtml(m.name)}</div>
+-            <div class="text-xs text-ink-400">${escapeHtml(m.role)} ? ${escapeHtml(shiftTxt)}</div>
+-            ${last ? `<div class="text-xs text-ink-500 mt-1">${on ? 'In since ' + escapeHtml(last.clockIn) : 'Last out ' + escapeHtml(last.clockOut || '?')}</div>` : ''}
++            <div class="text-xs text-ink-400">${escapeHtml(m.role)} · ${escapeHtml(shiftTxt)}</div>
++            ${last ? `<div class="text-xs text-ink-500 mt-1">${on ? 'In since ' + escapeHtml(last.clockIn) : 'Last out ' + escapeHtml(last.clockOut || '—')}</div>` : ''}
+           </div>
+-          <span class="badge ${on ? 'badge-green' : 'badge-gray'}">${on ? 'Clocked in' : 'Out'}</span>
++          <span class="badge ${on ? 'badge-green' : 'badge-gray'}">${on ? 'In' : 'Out'}</span>
+         </div>
+         <button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'} btn-sm w-full mt-3 clock-toggle-btn">${on ? 'Clock out' : 'Clock in'}</button>
+       </div>`;
+     }).join('');
+ 
+-    const html = `${sectionHeader('Clock In / Out', escapeHtml(siteName) + ' ? ' + today, `<a href="#rota" class="btn btn-ghost btn-sm">${icon('team', 'ico')} Rota</a><a href="#wfstaff" class="btn btn-ghost btn-sm">${icon('team', 'ico')} On shift</a>`)}
+-      <div class="grid sm:grid-cols-3 gap-4 mb-5">
+-        <div class="kpi"><div class="text-xs text-ink-500">Clocked in now</div><div class="v text-brand-600">${clocked.length}</div></div>
+-        <div class="kpi"><div class="text-xs text-ink-500">Scheduled today</div><div class="v">${scheduled.length}</div></div>
+-        <div class="kpi"><div class="text-xs text-ink-500">Team on site</div><div class="v">${team.length}</div></div>
++    const pad = [1,2,3,4,5,6,7,8,9,'C',0,'⌫'].map((k) =>
++      `<button type="button" class="clock-pad-key" data-pad="${k === '⌫' ? 'back' : k === 'C' ? 'clear' : k}">${k}</button>`
++    ).join('');
++
++    const logRows = log.length ? log.map((a) => {
++      const m = S.member(a.staffId);
++      const label = a.action === 'clock_in' ? 'Clocked in' : a.action === 'clock_out' ? 'Clocked out' : a.action;
++      const t = a.at ? new Date(a.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '—';
++      return `<div class="flex items-center justify-between py-2 border-b border-ink-50 last:border-0 text-sm">
++        <span class="font-medium">${escapeHtml(m.name)}</span>
++        <span class="badge ${a.action === 'clock_in' ? 'badge-green' : 'badge-gray'}">${label}</span>
++        <span class="text-ink-400 text-xs font-mono">${t}</span>
++      </div>`;
++    }).join('') : '<p class="text-sm text-ink-400 py-4 text-center">No clock events yet today.</p>';
++
++    return `
++      <div class="grid ${compact ? 'lg:grid-cols-1' : 'lg:grid-cols-5'} gap-5 mb-5">
++        <div class="card card-pad ${compact ? '' : 'lg:col-span-2'} clock-kiosk">
++          <div class="text-center mb-4">
++            <div class="clock-live-time" id="clockLiveTime">--:--</div>
++            <p class="text-sm text-ink-500 mt-1">Enter your 4-digit PIN to clock in or out</p>
++          </div>
++          <div class="clock-pin-display mb-3" id="clockPinDisplay">••••</div>
++          <div class="clock-pad mb-4">${pad}</div>
++          <button type="button" class="btn btn-primary w-full btn-lg" id="clockPinSubmit">Clock in / out</button>
++          <p class="text-xs text-ink-400 text-center mt-3">Demo PINs on Team page · events saved to this kitchen</p>
++        </div>
++        ${compact ? '' : `<div class="lg:col-span-3 space-y-5">
++          <div class="grid sm:grid-cols-3 gap-4">
++            <div class="kpi"><div class="text-xs text-ink-500">Clocked in now</div><div class="v text-brand-600">${clocked.length}</div></div>
++            <div class="kpi"><div class="text-xs text-ink-500">Scheduled today</div><div class="v">${scheduled.length}</div></div>
++            <div class="kpi"><div class="text-xs text-ink-500">Team on site</div><div class="v">${team.length}</div></div>
++          </div>
++          <div class="card card-pad">
++            <div class="flex items-center justify-between mb-3">
++              <h3 class="font-bold flex items-center gap-2">${icon('clock','w-5 h-5 text-brand-600')} Today’s attendance</h3>
++              <span class="badge badge-gray">${today}</span>
++            </div>
++            ${logRows}
++          </div>
++        </div>`}
+       </div>
+-      <div class="card card-pad mb-4 text-center">
+-        <div class="clock-live-time" id="clockLiveTime">--:--</div>
+-        <p class="text-sm text-ink-500 mt-1">Tap your name to clock in or out ? PIN required if set on Team</p>
++      ${compact ? '' : `<h3 class="font-bold mb-3 text-ink-500 text-sm uppercase tracking-wide">Staff — tap to clock</h3>
++      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${cards || '<p class="text-ink-400">No team at this site.</p>'}</div>`}
++      ${compact ? `<div class="flex flex-wrap gap-2 mt-2">
++        <a href="#clock" class="btn btn-primary btn-sm">${icon('clock','ico')} Open full clock</a>
++        <a href="#rota" class="btn btn-ghost btn-sm">${icon('team','ico')} Rota</a>
+       </div>
+-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${cards || '<p class="text-ink-400">No team at this site.</p>'}</div>`;
++      <div class="mt-4 space-y-2">${clocked.length ? clocked.slice(0,5).map((m)=>`<div class="flex items-center gap-2 text-sm"><span class="badge badge-green">In</span><span class="font-medium">${escapeHtml(m.name)}</span></div>`).join('') : '<p class="text-sm text-ink-400">Nobody clocked in yet.</p>'}</div>` : ''}
++    `;
++  }
+ 
+-    return { title: 'Clock In / Out', html, mount() {
+-      const tick = () => {
+-        const el = document.getElementById('clockLiveTime');
+-        if (el) el.textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
++  function mountClockKiosk(site) {
++    const R = window.Rota;
++    const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
++    let pin = '';
++    const display = document.getElementById('clockPinDisplay');
++    const paint = () => {
++      if (display) display.textContent = pin ? String(pin).padEnd(4, '•') : '••••';
++    };
++    paint();
++    const tick = () => {
++      const el = document.getElementById('clockLiveTime');
++      if (el) el.textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
++    };
++    tick();
++    if (window._clockIv) clearInterval(window._clockIv);
++    window._clockIv = setInterval(tick, 1000);
++
++    const submitPin = () => {
++      if (pin.length !== 4) return toast('Enter a 4-digit PIN', 'warn');
++      const res = R.toggleByPin(S.db, site, pin, me && me.email);
++      pin = '';
++      paint();
++      if (!res.ok) return toast(res.reason || 'PIN failed', 'warn');
++      S.persist();
++      if (S.logActivity) S.logActivity(res.member.id, res.action === 'in' ? 'Clocked in' : 'Clocked out');
++      toast(res.member.name + (res.action === 'in' ? ' clocked in' : ' clocked out'));
++      window.App.render();
++    };
++
++    document.querySelectorAll('[data-pad]').forEach((b) => {
++      b.onclick = () => {
++        const k = b.dataset.pad;
++        if (k === 'clear') pin = '';
++        else if (k === 'back') pin = pin.slice(0, -1);
++        else if (pin.length < 4) pin += k;
++        paint();
++        if (pin.length === 4) submitPin();
+       };
+-      tick();
+-      const iv = setInterval(tick, 1000);
+-      const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
+-      document.querySelectorAll('[data-clock-staff]').forEach(card => {
+-        const btn = card.querySelector('.clock-toggle-btn');
+-        if (!btn) return;
+-        btn.onclick = (e) => {
+-          e.stopPropagation();
+-          const id = card.dataset.clockStaff;
+-          const member = S.db.team.find(x => x.id === id);
+-          if (!member) return;
+-          const doToggle = () => {
+-            const on = R.isClockedIn(S.db, site, id);
+-            const res = on ? R.clockOut(S.db, site, id, me && me.email) : R.clockIn(S.db, site, id, me && me.email);
+-            if (!res.ok) return toast(res.reason, 'warn');
+-            S.persist();
+-            if (S.logActivity) S.logActivity(id, on ? 'Clocked out' : 'Clocked in');
+-            toast(member.name + (on ? ' clocked out' : ' clocked in'));
+-            window.App.render();
+-          };
+-          if (member.clockPin || member.pin) clockPinModal(member, doToggle);
+-          else doToggle();
+-        };
+-      });
+-      window._clockIv = iv;
++    });
++    const submitBtn = document.getElementById('clockPinSubmit');
++    if (submitBtn) submitBtn.onclick = submitPin;
++
++    const toggle = bindClockToggle(site);
++    document.querySelectorAll('[data-clock-staff]').forEach((card) => {
++      const btn = card.querySelector('.clock-toggle-btn');
++      if (!btn) return;
++      btn.onclick = (e) => { e.stopPropagation(); toggle(card.dataset.clockStaff); };
++      card.onclick = () => toggle(card.dataset.clockStaff);
++    });
++  }
++
++  function clock() {
++    const R = window.Rota;
++    const site = S.db.currentSite;
++    const siteName = S.site(site).name;
++    if (R) R.ensureDemo(S.db);
++    const today = R.dateKey();
++    const html = `${sectionHeader('Clock In / Out', escapeHtml(siteName) + ' · ' + today, `<a href="#rota" class="btn btn-ghost btn-sm">${icon('team', 'ico')} Rota</a><a href="#wfstaff" class="btn btn-ghost btn-sm">${icon('team', 'ico')} On shift</a><button type="button" class="btn btn-ghost btn-sm" data-go="home">${icon('chevron','ico')} Home</button>`)}
++      ${clockKioskHtml(site, { compact: false })}`;
++
++    return { title: 'Clock In / Out', html, mount() {
++      document.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => { location.hash = b.dataset.go; });
++      mountClockKiosk(site);
+     }};
+   }
+ 
+@@ -4236,5 +4420,5 @@
+     }};
+   }
+ 
+-  window.Views = { home: hub, hub, wflive, wfdone, wfout, wfod, wfstaff, wfdel, wfprod, wfclean, wfhaccp, wfperf, foodcost, taskoverview, deliveries, dashboard, temps, alerts, haccp, records, sites, reports, team, recipes, suppliers, training, incidents, maintenance, assets, batches, cooling, phlogs, holding, allerq, labels, waste, manual, settings, clock, rota };
++  window.Views = { home: hub, hub, wflive, wfdone, wfout, wfod, wfstaff, wfdel, wfprod, wfclean, wfhaccp, wfperf, foodcost, taskoverview, deliveries, dashboard, temps, alerts, haccp, safeserve: haccp, records, sites, reports, team, recipes, suppliers, training, incidents, maintenance, assets, batches, cooling, phlogs, holding, allerq, labels, waste, manual, settings, clock, rota };
+ })();
+diff --git a/server/sensor-sim.js b/server/sensor-sim.js
+index 1a12fe9..9e27b1e 100644
+--- a/server/sensor-sim.js
++++ b/server/sensor-sim.js
+@@ -8,7 +8,8 @@ const path = require('path');
+ 
+ const HOST = process.env.SENSOR_HOST || 'http://localhost:4001';
+ const KEY = process.env.INGEST_KEY || 'kiteline-demo-key';
+-const INTERVAL = +(process.env.SENSOR_INTERVAL_MS || 45000);
++// Default 5 minutes — matches typical LoRaWAN fridge probe cadence
++const INTERVAL = +(process.env.SENSOR_INTERVAL_MS || 300000);
+ const DB_FILE = path.join(process.env.DATA_DIR || path.join(__dirname, 'data'), 'db.json');
+ 
+ const FALLBACK = [
+-- 
+2.43.0
+
+
+From 967cfda1d6f61e3c2cffa68c6c4ea19a5f254a2a Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Fri, 24 Jul 2026 23:51:15 +0000
+Subject: [PATCH 2/8] Premium Clock In/Out kiosk matching Kiteline brand
+
+Restyle the clock as a dark-teal glass kiosk with Sora type, PIN
+slot animation, gradient CTA, premium staff cards, and attendance
+panel so it feels pro rather than a plain form.
+---
+ css/styles.css | 226 +++++++++++++++++++++++++++++++++++++++++++++----
+ index.html     |   5 +-
+ js/views.js    | 130 ++++++++++++++++++----------
+ 3 files changed, 296 insertions(+), 65 deletions(-)
+
+diff --git a/css/styles.css b/css/styles.css
+index f61c293..9e034d3 100644
+--- a/css/styles.css
++++ b/css/styles.css
+@@ -39,27 +39,219 @@ html, body { height: 100%; }
+ .wf-status-panel.warn { border-color:#f59e0b; }
+ .wf-status-panel.bad { border-color:#ef4444; }
+ 
+-/* Clock In / Out kiosk */
+-.clock-kiosk { background:linear-gradient(180deg,#f0fdfa 0%,#ffffff 55%); }
+-.clock-live-time { font-size:2.75rem; font-weight:800; letter-spacing:-0.03em; color:#0f766e; font-variant-numeric:tabular-nums; line-height:1; }
+-.clock-pin-display {
+-  font-size:1.75rem; font-weight:700; letter-spacing:.45em; text-align:center;
+-  padding:.75rem 1rem; border-radius:.85rem; background:#fff; border:1px solid #d1fae5;
+-  color:#0f766e; min-height:3.25rem;
+-}
+-.clock-pad { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; max-width:16rem; margin:0 auto; }
++/* ========== Premium Clock In / Out kiosk (Kiteline teal) ========== */
++.clock-shell {
++  --ck-ink: #042f2e;
++  --ck-panel: #0b1220;
++  --ck-panel-2: #115e59;
++  --ck-accent: #14b8a6;
++  --ck-accent-2: #2dd4bf;
++  --ck-glow: rgba(20,184,166,.35);
++  font-family: 'Sora', Inter, system-ui, sans-serif;
++}
++.clock-kiosk {
++  position: relative;
++  overflow: hidden;
++  border: 1px solid rgba(94,234,212,.22);
++  background:
++    radial-gradient(120% 80% at 10% -10%, rgba(45,212,191,.28), transparent 55%),
++    radial-gradient(90% 70% at 100% 100%, rgba(13,148,136,.35), transparent 50%),
++    linear-gradient(165deg, #0b1220 0%, #0f766e 52%, #042f2e 100%);
++  color: #ecfdf5;
++  box-shadow:
++    0 24px 50px -28px rgba(4,47,46,.65),
++    inset 0 1px 0 rgba(255,255,255,.08);
++  animation: clock-rise .45s ease both;
++}
++.clock-kiosk::before {
++  content: '';
++  position: absolute; inset: 0;
++  background-image:
++    linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
++    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
++  background-size: 28px 28px;
++  mask-image: linear-gradient(180deg, rgba(0,0,0,.55), transparent 75%);
++  pointer-events: none;
++}
++.clock-kiosk > * { position: relative; z-index: 1; }
++@keyframes clock-rise {
++  from { opacity: 0; transform: translateY(10px) scale(.985); }
++  to { opacity: 1; transform: none; }
++}
++.clock-kiosk__eyebrow {
++  display: inline-flex; align-items: center; gap: .45rem;
++  font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
++  color: #99f6e4; margin-bottom: .65rem;
++}
++.clock-kiosk__eyebrow .pulse-dot { background: #2dd4bf; box-shadow: 0 0 0 0 var(--ck-glow); animation: pulse 1.8s infinite; }
++.clock-kiosk__site {
++  font-size: .82rem; font-weight: 600; color: rgba(236,253,245,.72); margin-bottom: .35rem;
++}
++.clock-live-time {
++  font-size: clamp(2.6rem, 6vw, 3.4rem); font-weight: 800; letter-spacing: -0.04em;
++  color: #fff; font-variant-numeric: tabular-nums; line-height: 1;
++  text-shadow: 0 8px 30px rgba(0,0,0,.35);
++}
++.clock-live-date {
++  margin-top: .4rem; font-size: .78rem; font-weight: 500; letter-spacing: .04em;
++  color: rgba(204,251,241,.7);
++}
++.clock-pin-slots {
++  display: flex; justify-content: center; gap: .65rem; margin: 1.15rem 0 1rem;
++}
++.clock-pin-slot {
++  width: 2.55rem; height: 3.1rem; border-radius: .85rem;
++  border: 1px solid rgba(153,246,228,.28);
++  background: rgba(4,47,46,.45);
++  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
++  display: flex; align-items: center; justify-content: center;
++  transition: border-color .15s, box-shadow .15s, transform .15s;
++}
++.clock-pin-slot.is-filled {
++  border-color: rgba(45,212,191,.75);
++  box-shadow: 0 0 0 3px rgba(20,184,166,.2), inset 0 1px 0 rgba(255,255,255,.1);
++  transform: translateY(-1px);
++}
++.clock-pin-slot__dot {
++  width: .7rem; height: .7rem; border-radius: 999px; background: #2dd4bf;
++  box-shadow: 0 0 12px rgba(45,212,191,.7);
++  transform: scale(0); transition: transform .12s ease;
++}
++.clock-pin-slot.is-filled .clock-pin-slot__dot { transform: scale(1); }
++.clock-pad {
++  display: grid; grid-template-columns: repeat(3, 1fr); gap: .55rem;
++  max-width: 17.5rem; margin: 0 auto 1rem;
++}
+ .clock-pad-key {
+-  height:3.1rem; border-radius:.8rem; border:1px solid #e2e8f0; background:#fff;
+-  font-weight:700; font-size:1.15rem; color:#0f172a; transition:background .12s, transform .08s;
++  height: 3.35rem; border-radius: 1rem;
++  border: 1px solid rgba(255,255,255,.1);
++  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
++  backdrop-filter: blur(8px);
++  font-family: inherit; font-weight: 700; font-size: 1.2rem; color: #f0fdfa;
++  transition: transform .1s, background .15s, border-color .15s, box-shadow .15s;
++  box-shadow: 0 8px 16px -12px rgba(0,0,0,.55);
++}
++.clock-pad-key:hover {
++  background: linear-gradient(180deg, rgba(45,212,191,.28), rgba(13,148,136,.18));
++  border-color: rgba(94,234,212,.45);
++}
++.clock-pad-key:active {
++  transform: scale(.96);
++  box-shadow: 0 0 0 3px rgba(20,184,166,.25);
++}
++.clock-pad-key--muted { color: #99f6e4; font-size: .85rem; letter-spacing: .06em; }
++.clock-cta {
++  width: 100%;
++  display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
++  padding: .95rem 1.1rem; border-radius: 1rem; border: 0;
++  font-family: inherit; font-weight: 700; font-size: .95rem; letter-spacing: .02em;
++  color: #042f2e;
++  background: linear-gradient(135deg, #5eead4 0%, #14b8a6 55%, #0d9488 100%);
++  box-shadow: 0 14px 28px -14px rgba(20,184,166,.85), inset 0 1px 0 rgba(255,255,255,.35);
++  transition: transform .12s, filter .12s;
++}
++.clock-cta:hover { filter: brightness(1.05); transform: translateY(-1px); }
++.clock-cta:active { transform: translateY(0); }
++.clock-kiosk__hint {
++  margin-top: .85rem; text-align: center; font-size: .7rem; color: rgba(204,251,241,.55);
++}
++.clock-kiosk.clock-kiosk--flash {
++  animation: clock-flash .7s ease;
++}
++@keyframes clock-flash {
++  0% { box-shadow: 0 0 0 0 rgba(45,212,191,.0); }
++  35% { box-shadow: 0 0 0 6px rgba(45,212,191,.35), 0 24px 50px -28px rgba(4,47,46,.65); }
++  100% { box-shadow: 0 24px 50px -28px rgba(4,47,46,.65); }
+ }
+-.clock-pad-key:hover { background:#f8fafc; }
+-.clock-pad-key:active { transform:scale(.97); background:#ecfdf5; }
++
++.clock-side-panel {
++  border: 1px solid #d1fae5;
++  background:
++    linear-gradient(180deg, rgba(240,253,250,.95), #fff 40%),
++    #fff;
++  box-shadow: 0 18px 40px -30px rgba(15,118,110,.45);
++}
++.clock-stat {
++  border-radius: 1.1rem; padding: 1rem 1.1rem;
++  border: 1px solid #ccfbf1;
++  background: linear-gradient(160deg, #f0fdfa, #fff);
++}
++.clock-stat__label {
++  font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #0f766e;
++}
++.clock-stat__value {
++  margin-top: .25rem; font-size: 1.85rem; font-weight: 800; color: #115e59; font-family: 'Sora', Inter, sans-serif;
++  font-variant-numeric: tabular-nums;
++}
++.clock-log {
++  border-radius: 1.15rem; border: 1px solid #e2e8f0; background: #fff; overflow: hidden;
++}
++.clock-log__head {
++  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
++  padding: .95rem 1.1rem;
++  background: linear-gradient(90deg, #0f766e, #0d9488);
++  color: #ecfdf5;
++}
++.clock-log__head h3 { font-size: .95rem; font-weight: 700; margin: 0; display:flex; align-items:center; gap:.45rem; }
++.clock-log__body { padding: .35rem .85rem .85rem; max-height: 16rem; overflow: auto; }
++.clock-log-row {
++  display: grid; grid-template-columns: 1fr auto auto; gap: .75rem; align-items: center;
++  padding: .7rem .35rem; border-bottom: 1px solid #f1f5f9; font-size: .86rem;
++}
++.clock-log-row:last-child { border-bottom: 0; }
++.clock-log-row__name { font-weight: 650; color: #134e4a; }
++.clock-log-row__time { font-variant-numeric: tabular-nums; color: #64748b; font-size: .75rem; font-weight: 600; }
++
+ .clock-staff-card {
+-  background:#fff; border:1px solid #e9eef5; border-radius:1rem; padding:1rem;
+-  transition:border-color .15s, box-shadow .15s;
++  position: relative; overflow: hidden;
++  background: #fff; border: 1px solid #e2e8f0; border-radius: 1.15rem; padding: 1.05rem;
++  transition: transform .15s, border-color .15s, box-shadow .15s;
++  cursor: pointer;
+ }
+-.clock-staff-card:hover { border-color:#99f6e4; box-shadow:0 8px 20px -14px rgba(15,118,110,.45); }
+-.clock-staff-card--in { border-color:#6ee7b7; background:#f0fdf4; }
++.clock-staff-card::after {
++  content: ''; position: absolute; inset: auto 0 0 0; height: 3px;
++  background: linear-gradient(90deg, transparent, #14b8a6, transparent);
++  opacity: 0; transition: opacity .15s;
++}
++.clock-staff-card:hover {
++  border-color: #99f6e4; transform: translateY(-2px);
++  box-shadow: 0 16px 30px -20px rgba(15,118,110,.55);
++}
++.clock-staff-card:hover::after { opacity: 1; }
++.clock-staff-card--in {
++  border-color: #5eead4;
++  background: linear-gradient(160deg, #ecfdf5, #fff 55%);
++  box-shadow: 0 0 0 1px rgba(20,184,166,.12);
++}
++.clock-staff-card--in::after { opacity: 1; background: linear-gradient(90deg, #0d9488, #2dd4bf, #0d9488); }
++.clock-avatar {
++  width: 2.85rem; height: 2.85rem; border-radius: 999px; flex: none;
++  display: flex; align-items: center; justify-content: center;
++  font-weight: 800; font-size: .85rem; color: #042f2e;
++  background: linear-gradient(135deg, #5eead4, #0d9488);
++  box-shadow: 0 8px 16px -10px rgba(13,148,136,.8);
++}
++.clock-staff-card--in .clock-avatar {
++  background: linear-gradient(135deg, #34d399, #059669);
++}
++.clock-toggle-btn { width: 100%; margin-top: .85rem; }
++.clock-section-title {
++  font-family: 'Sora', Inter, sans-serif;
++  font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
++  color: #0f766e; margin: 0 0 .85rem;
++}
++.clock-home-widget .clock-kiosk { padding: 1.15rem 1.1rem 1.2rem; border-radius: 1.15rem; }
++.clock-home-widget .clock-live-time { font-size: 2.2rem; }
++.clock-home-widget .clock-pad { max-width: 100%; gap: .45rem; }
++.clock-home-widget .clock-pad-key { height: 2.85rem; font-size: 1.05rem; }
++.clock-home-widget .clock-pin-slot { width: 2.2rem; height: 2.65rem; }
++.clock-onshift-chip {
++  display: inline-flex; align-items: center; gap: .4rem;
++  padding: .35rem .65rem; border-radius: 999px;
++  background: rgba(240,253,250,.12); border: 1px solid rgba(153,246,228,.25);
++  color: #ccfbf1; font-size: .72rem; font-weight: 600;
++}
++.clock-onshift-chip .dot { width: .45rem; height: .45rem; border-radius: 999px; background: #34d399; }
+ 
+ /* header notifications dropdown */
+ .notif-wrap { position:relative; }
+diff --git a/index.html b/index.html
+index 92db234..3a3b032 100644
+--- a/index.html
++++ b/index.html
+@@ -46,8 +46,9 @@
+   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+ 
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+-  <link rel="stylesheet" href="/css/styles.css?v=14" />
++  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
++  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
++  <link rel="stylesheet" href="/css/styles.css?v=15" />
+ </head>
+ <body class="bg-ink-100 text-ink-900 font-sans antialiased">
+   <noscript>
+diff --git a/js/views.js b/js/views.js
+index 9342e25..abeb7e0 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -4192,11 +4192,13 @@
+     const R = window.Rota;
+     R.ensureDemo(S.db);
+     const team = R.teamForSite(S.db, site);
++    const siteName = (S.site(site) || {}).name || 'Kitchen';
+     const today = R.dateKey();
+     const clocked = R.clockedInStaff(S.db, site);
+     const scheduled = R.scheduledToday(S.db, site);
+     const log = (R.todayLog ? R.todayLog(S.db, site, today) : []).slice(0, opts.logLimit || 12);
+     const compact = !!opts.compact;
++    const dateLabel = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
+ 
+     const cards = team.map((m) => {
+       const on = R.isClockedIn(S.db, site, m.id);
+@@ -4208,87 +4210,122 @@
+         : (shift ? R.ROTA_STATUS[shift.status].label : 'No shift');
+       return `<div class="clock-staff-card ${on ? 'clock-staff-card--in' : ''}" data-clock-staff="${escapeHtml(m.id)}">
+         <div class="flex items-center gap-3">
+-          <div class="w-12 h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold">${escapeHtml(m.initials)}</div>
++          <div class="clock-avatar">${escapeHtml(m.initials)}</div>
+           <div class="flex-1 min-w-0">
+-            <div class="font-bold">${escapeHtml(m.name)}</div>
+-            <div class="text-xs text-ink-400">${escapeHtml(m.role)} · ${escapeHtml(shiftTxt)}</div>
+-            ${last ? `<div class="text-xs text-ink-500 mt-1">${on ? 'In since ' + escapeHtml(last.clockIn) : 'Last out ' + escapeHtml(last.clockOut || '—')}</div>` : ''}
++            <div class="font-bold text-ink-900 truncate">${escapeHtml(m.name)}</div>
++            <div class="text-xs text-ink-500 truncate">${escapeHtml(m.role)} · ${escapeHtml(shiftTxt)}</div>
++            ${last ? `<div class="text-xs text-brand-700 mt-1 font-semibold">${on ? 'In since ' + escapeHtml(last.clockIn) : 'Last out ' + escapeHtml(last.clockOut || '—')}</div>` : ''}
+           </div>
+-          <span class="badge ${on ? 'badge-green' : 'badge-gray'}">${on ? 'In' : 'Out'}</span>
++          <span class="badge ${on ? 'badge-green' : 'badge-gray'}">${on ? 'On shift' : 'Out'}</span>
+         </div>
+-        <button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'} btn-sm w-full mt-3 clock-toggle-btn">${on ? 'Clock out' : 'Clock in'}</button>
++        <button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'} btn-sm clock-toggle-btn">${on ? 'Clock out' : 'Clock in'}</button>
+       </div>`;
+     }).join('');
+ 
+-    const pad = [1,2,3,4,5,6,7,8,9,'C',0,'⌫'].map((k) =>
+-      `<button type="button" class="clock-pad-key" data-pad="${k === '⌫' ? 'back' : k === 'C' ? 'clear' : k}">${k}</button>`
++    const padKeys = [
++      ['1', '1'], ['2', '2'], ['3', '3'],
++      ['4', '4'], ['5', '5'], ['6', '6'],
++      ['7', '7'], ['8', '8'], ['9', '9'],
++      ['clear', 'CLR'], ['0', '0'], ['back', '⌫'],
++    ];
++    const pad = padKeys.map(([val, label]) =>
++      `<button type="button" class="clock-pad-key ${val === 'clear' || val === 'back' ? 'clock-pad-key--muted' : ''}" data-pad="${val}">${label}</button>`
++    ).join('');
++
++    const pinSlots = [0, 1, 2, 3].map((i) =>
++      `<div class="clock-pin-slot" data-pin-slot="${i}"><span class="clock-pin-slot__dot"></span></div>`
+     ).join('');
+ 
+     const logRows = log.length ? log.map((a) => {
+       const m = S.member(a.staffId);
+-      const label = a.action === 'clock_in' ? 'Clocked in' : a.action === 'clock_out' ? 'Clocked out' : a.action;
++      const label = a.action === 'clock_in' ? 'In' : a.action === 'clock_out' ? 'Out' : a.action;
+       const t = a.at ? new Date(a.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '—';
+-      return `<div class="flex items-center justify-between py-2 border-b border-ink-50 last:border-0 text-sm">
+-        <span class="font-medium">${escapeHtml(m.name)}</span>
++      return `<div class="clock-log-row">
++        <span class="clock-log-row__name">${escapeHtml(m.name)}</span>
+         <span class="badge ${a.action === 'clock_in' ? 'badge-green' : 'badge-gray'}">${label}</span>
+-        <span class="text-ink-400 text-xs font-mono">${t}</span>
++        <span class="clock-log-row__time">${t}</span>
+       </div>`;
+-    }).join('') : '<p class="text-sm text-ink-400 py-4 text-center">No clock events yet today.</p>';
++    }).join('') : '<p class="text-sm text-ink-400 py-6 text-center">No clock events yet today.</p>';
+ 
+-    return `
+-      <div class="grid ${compact ? 'lg:grid-cols-1' : 'lg:grid-cols-5'} gap-5 mb-5">
+-        <div class="card card-pad ${compact ? '' : 'lg:col-span-2'} clock-kiosk">
+-          <div class="text-center mb-4">
+-            <div class="clock-live-time" id="clockLiveTime">--:--</div>
+-            <p class="text-sm text-ink-500 mt-1">Enter your 4-digit PIN to clock in or out</p>
+-          </div>
+-          <div class="clock-pin-display mb-3" id="clockPinDisplay">••••</div>
+-          <div class="clock-pad mb-4">${pad}</div>
+-          <button type="button" class="btn btn-primary w-full btn-lg" id="clockPinSubmit">Clock in / out</button>
+-          <p class="text-xs text-ink-400 text-center mt-3">Demo PINs on Team page · events saved to this kitchen</p>
++    const kiosk = `
++      <div class="card card-pad clock-kiosk ${compact ? '' : ''}">
++        <div class="text-center">
++          <div class="clock-kiosk__eyebrow"><span class="pulse-dot"></span> Live kitchen clock</div>
++          <div class="clock-kiosk__site">${escapeHtml(siteName)}</div>
++          <div class="clock-live-time" id="clockLiveTime">--:--</div>
++          <div class="clock-live-date" id="clockLiveDate">${escapeHtml(dateLabel)}</div>
+         </div>
+-        ${compact ? '' : `<div class="lg:col-span-3 space-y-5">
+-          <div class="grid sm:grid-cols-3 gap-4">
+-            <div class="kpi"><div class="text-xs text-ink-500">Clocked in now</div><div class="v text-brand-600">${clocked.length}</div></div>
+-            <div class="kpi"><div class="text-xs text-ink-500">Scheduled today</div><div class="v">${scheduled.length}</div></div>
+-            <div class="kpi"><div class="text-xs text-ink-500">Team on site</div><div class="v">${team.length}</div></div>
++        <div class="clock-pin-slots" id="clockPinDisplay" aria-label="PIN entry">${pinSlots}</div>
++        <div class="clock-pad">${pad}</div>
++        <button type="button" class="clock-cta" id="clockPinSubmit">${icon('clock', 'w-5 h-5')} Clock in / out</button>
++        <p class="clock-kiosk__hint">4-digit staff PIN · saved to this kitchen · edit PINs on Team</p>
++        ${compact && clocked.length ? `<div class="flex flex-wrap gap-2 justify-center mt-4">${clocked.slice(0, 4).map((m) =>
++          `<span class="clock-onshift-chip"><span class="dot"></span>${escapeHtml(m.name.split(' ')[0])}</span>`
++        ).join('')}</div>` : ''}
++      </div>`;
++
++    if (compact) {
++      return `<div class="clock-shell clock-home-widget">
++        ${kiosk}
++        <div class="flex flex-wrap gap-2 mt-3">
++          <a href="#clock" class="btn btn-primary btn-sm flex-1">${icon('clock', 'ico')} Full clock kiosk</a>
++          <a href="#rota" class="btn btn-ghost btn-sm">${icon('team', 'ico')} Rota</a>
++        </div>
++      </div>`;
++    }
++
++    return `<div class="clock-shell">
++      <div class="grid lg:grid-cols-5 gap-5 mb-6">
++        <div class="lg:col-span-2">${kiosk}</div>
++        <div class="lg:col-span-3 space-y-4">
++          <div class="grid sm:grid-cols-3 gap-3">
++            <div class="clock-stat"><div class="clock-stat__label">On shift now</div><div class="clock-stat__value">${clocked.length}</div></div>
++            <div class="clock-stat"><div class="clock-stat__label">Scheduled</div><div class="clock-stat__value">${scheduled.length}</div></div>
++            <div class="clock-stat"><div class="clock-stat__label">Team on site</div><div class="clock-stat__value">${team.length}</div></div>
+           </div>
+-          <div class="card card-pad">
+-            <div class="flex items-center justify-between mb-3">
+-              <h3 class="font-bold flex items-center gap-2">${icon('clock','w-5 h-5 text-brand-600')} Today’s attendance</h3>
+-              <span class="badge badge-gray">${today}</span>
++          <div class="clock-log">
++            <div class="clock-log__head">
++              <h3>${icon('clock', 'w-4 h-4')} Today’s attendance</h3>
++              <span class="badge" style="background:rgba(255,255,255,.16);color:#ecfdf5;border:0">${today}</span>
+             </div>
+-            ${logRows}
++            <div class="clock-log__body">${logRows}</div>
+           </div>
+-        </div>`}
+-      </div>
+-      ${compact ? '' : `<h3 class="font-bold mb-3 text-ink-500 text-sm uppercase tracking-wide">Staff — tap to clock</h3>
+-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${cards || '<p class="text-ink-400">No team at this site.</p>'}</div>`}
+-      ${compact ? `<div class="flex flex-wrap gap-2 mt-2">
+-        <a href="#clock" class="btn btn-primary btn-sm">${icon('clock','ico')} Open full clock</a>
+-        <a href="#rota" class="btn btn-ghost btn-sm">${icon('team','ico')} Rota</a>
++        </div>
+       </div>
+-      <div class="mt-4 space-y-2">${clocked.length ? clocked.slice(0,5).map((m)=>`<div class="flex items-center gap-2 text-sm"><span class="badge badge-green">In</span><span class="font-medium">${escapeHtml(m.name)}</span></div>`).join('') : '<p class="text-sm text-ink-400">Nobody clocked in yet.</p>'}</div>` : ''}
+-    `;
++      <h3 class="clock-section-title">Staff roster — tap to clock</h3>
++      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${cards || '<p class="text-ink-400">No team at this site.</p>'}</div>
++    </div>`;
+   }
+ 
+   function mountClockKiosk(site) {
+     const R = window.Rota;
+     const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
+     let pin = '';
+-    const display = document.getElementById('clockPinDisplay');
+     const paint = () => {
+-      if (display) display.textContent = pin ? String(pin).padEnd(4, '•') : '••••';
++      document.querySelectorAll('[data-pin-slot]').forEach((slot) => {
++        const i = parseInt(slot.dataset.pinSlot, 10);
++        slot.classList.toggle('is-filled', i < pin.length);
++      });
+     };
+     paint();
+     const tick = () => {
+       const el = document.getElementById('clockLiveTime');
+       if (el) el.textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
++      const d = document.getElementById('clockLiveDate');
++      if (d) d.textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
+     };
+     tick();
+     if (window._clockIv) clearInterval(window._clockIv);
+     window._clockIv = setInterval(tick, 1000);
+ 
++    const flashKiosk = () => {
++      const panel = document.querySelector('.clock-kiosk');
++      if (!panel) return;
++      panel.classList.remove('clock-kiosk--flash');
++      void panel.offsetWidth;
++      panel.classList.add('clock-kiosk--flash');
++    };
++
+     const submitPin = () => {
+       if (pin.length !== 4) return toast('Enter a 4-digit PIN', 'warn');
+       const res = R.toggleByPin(S.db, site, pin, me && me.email);
+@@ -4297,8 +4334,9 @@
+       if (!res.ok) return toast(res.reason || 'PIN failed', 'warn');
+       S.persist();
+       if (S.logActivity) S.logActivity(res.member.id, res.action === 'in' ? 'Clocked in' : 'Clocked out');
++      flashKiosk();
+       toast(res.member.name + (res.action === 'in' ? ' clocked in' : ' clocked out'));
+-      window.App.render();
++      setTimeout(() => window.App.render(), 280);
+     };
+ 
+     document.querySelectorAll('[data-pad]').forEach((b) => {
+-- 
+2.43.0
+
+
+From 0e8d3101941e75a988a698aaafc33076bbef8828 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sat, 25 Jul 2026 00:02:44 +0000
+Subject: [PATCH 3/8] Polish Clock In/Out page hero and weekend rota cover
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Replace the plain page header with a branded hero, seed weekend
+hospitality shifts so staff are not stuck on “No shift”, and bump
+asset cache versions so redeploys pick up the premium kiosk.
+---
+ css/styles.css | 22 ++++++++++++++++++++++
+ index.html     | 10 +++++-----
+ js/store.js    | 14 ++++++++++++--
+ js/views.js    | 23 +++++++++++++++++------
+ 4 files changed, 56 insertions(+), 13 deletions(-)
+
+diff --git a/css/styles.css b/css/styles.css
+index 9e034d3..53333ee 100644
+--- a/css/styles.css
++++ b/css/styles.css
+@@ -49,6 +49,28 @@ html, body { height: 100%; }
+   --ck-glow: rgba(20,184,166,.35);
+   font-family: 'Sora', Inter, system-ui, sans-serif;
+ }
++.clock-page-hero {
++  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem;
++  padding: 1.15rem 1.25rem;
++  border-radius: 1.25rem;
++  border: 1px solid #ccfbf1;
++  background:
++    radial-gradient(90% 120% at 0% 0%, rgba(45,212,191,.18), transparent 55%),
++    linear-gradient(135deg, #ecfdf5 0%, #fff 55%);
++  box-shadow: 0 14px 30px -24px rgba(15,118,110,.45);
++}
++.clock-page-hero__eyebrow {
++  display: inline-flex; align-items: center; gap: .4rem;
++  font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
++  color: #0f766e; margin-bottom: .35rem;
++}
++.clock-page-hero__title {
++  margin: 0; font-size: clamp(1.6rem, 3vw, 2rem); font-weight: 800; letter-spacing: -0.03em;
++  color: #042f2e; line-height: 1.1;
++}
++.clock-page-hero__sub {
++  margin: .35rem 0 0; font-size: .9rem; font-weight: 500; color: #0f766e;
++}
+ .clock-kiosk {
+   position: relative;
+   overflow: hidden;
+diff --git a/index.html b/index.html
+index 3a3b032..510f734 100644
+--- a/index.html
++++ b/index.html
+@@ -48,7 +48,7 @@
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+-  <link rel="stylesheet" href="/css/styles.css?v=15" />
++  <link rel="stylesheet" href="/css/styles.css?v=16" />
+ </head>
+ <body class="bg-ink-100 text-ink-900 font-sans antialiased">
+   <noscript>
+@@ -102,7 +102,7 @@
+   <!-- Bust stale service-worker / app shell when build changes -->
+   <script>
+   (function () {
+-    var build = '2026-07-01-compliance-print';
++    var build = '2026-07-25-clock-premium';
+     try {
+       if (localStorage.getItem('kiteline.build') !== build) {
+         localStorage.setItem('kiteline.build', build);
+@@ -123,7 +123,7 @@
+   <script src="/js/i18n.js?v=12"></script>
+   <script src="/js/api.js?v=19"></script>
+   <script src="/js/recipe-seeds.js?v=4"></script>
+-  <script src="/js/store.js?v=16"></script>
++  <script src="/js/store.js?v=17"></script>
+   <script src="/js/ui.js?v=14"></script>
+   <script src="/js/security.js?v=1"></script>
+   <script src="/js/compliance.js?v=4"></script>
+@@ -131,9 +131,9 @@
+   <script src="/js/recipe-media.js?v=1"></script>
+   <script src="/js/recipe-ai.js?v=2"></script>
+   <script src="/js/register-form.js?v=6"></script>
+-  <script src="/js/views.js?v=26"></script>
++  <script src="/js/views.js?v=27"></script>
+   <script src="/js/compliance-views.js?v=4"></script>
+-  <script src="/js/app.js?v=31"></script>
++  <script src="/js/app.js?v=32"></script>
+   <script>
+     if ('serviceWorker' in navigator) {
+       window.addEventListener('load', () => {
+diff --git a/js/store.js b/js/store.js
+index 99a591c..1111d1f 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -1000,14 +1000,24 @@
+     const team = rotaTeamForSite(db, siteId);
+     const dates = rotaWeekDates();
+     const patterns = [{ start: '06:00', end: '14:00' }, { start: '09:00', end: '17:00' }, { start: '14:00', end: '22:00' }];
++    const weekend = [{ start: '08:00', end: '16:00' }, { start: '10:00', end: '18:00' }];
+     team.forEach((m, idx) => {
+       dates.forEach((date, di) => {
+         if (rotaGetShift(db, siteId, m.id, date)) return;
+-        if (di >= 5) { rotaSetShift(db, siteId, m.id, date, { status: 'off' }, 'system'); return; }
++        // Hotels/restaurants still run weekends — give light cover shifts (not blank "No shift")
++        if (di >= 5) {
++          if (idx % 3 === 2) {
++            rotaSetShift(db, siteId, m.id, date, { status: 'off' }, 'system');
++          } else {
++            const p = weekend[(idx + di) % weekend.length];
++            rotaSetShift(db, siteId, m.id, date, { status: 'scheduled', startTime: p.start, endTime: p.end }, 'system');
++          }
++          return;
++        }
+         const p = patterns[(idx + di) % patterns.length];
+         rotaSetShift(db, siteId, m.id, date, { status: 'scheduled', startTime: p.start, endTime: p.end }, 'system');
+       });
+-      if (!m.clockPin && !m.pin) m.clockPin = String(1000 + (idx + 1) * 111).slice(0, 4);
++      if (!m.clockPin && !m.pin) m.clockPin = String(1000 + ((idx + 1) * 111) % 9000).padStart(4, '0').slice(0, 4);
+     });
+   }
+ 
+diff --git a/js/views.js b/js/views.js
+index abeb7e0..7de15f8 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -2654,11 +2654,7 @@
+           <p class="text-[10px] text-ink-400 mt-2">Auto-refreshes every 30 seconds · last update ${new Date().toLocaleTimeString('en-GB')}</p>
+         </div>
+         <div class="space-y-5">
+-          <div class="card card-pad">
+-            <div class="flex items-center justify-between mb-3">
+-              <h2 class="font-bold flex items-center gap-2">${icon('clock','w-5 h-5 text-brand-600')} Clock In / Out</h2>
+-              <a href="#clock" class="text-xs text-brand-600 font-semibold">Full kiosk →</a>
+-            </div>
++          <div>
+             ${typeof clockKioskHtml === 'function' ? clockKioskHtml(site, { compact: true }) : `<a href="#clock" class="btn btn-primary w-full">Open Clock In / Out</a>`}
+           </div>
+           <div class="card card-pad">
+@@ -4367,7 +4363,22 @@
+     const siteName = S.site(site).name;
+     if (R) R.ensureDemo(S.db);
+     const today = R.dateKey();
+-    const html = `${sectionHeader('Clock In / Out', escapeHtml(siteName) + ' · ' + today, `<a href="#rota" class="btn btn-ghost btn-sm">${icon('team', 'ico')} Rota</a><a href="#wfstaff" class="btn btn-ghost btn-sm">${icon('team', 'ico')} On shift</a><button type="button" class="btn btn-ghost btn-sm" data-go="home">${icon('chevron','ico')} Home</button>`)}
++    const clocked = R.clockedInStaff(S.db, site).length;
++    const html = `
++      <div class="clock-shell mb-5">
++        <div class="clock-page-hero">
++          <div class="min-w-0">
++            <div class="clock-page-hero__eyebrow"><span class="pulse-dot"></span> Staff attendance</div>
++            <h1 class="clock-page-hero__title">Clock In / Out</h1>
++            <p class="clock-page-hero__sub">${escapeHtml(siteName)} · ${today} · ${clocked} on shift now</p>
++          </div>
++          <div class="flex flex-wrap gap-2">
++            <a href="#rota" class="btn btn-ghost btn-sm">${icon('team', 'ico')} Rota</a>
++            <a href="#wfstaff" class="btn btn-ghost btn-sm">${icon('team', 'ico')} On shift</a>
++            <button type="button" class="btn btn-ghost btn-sm" data-go="home">${icon('chevron','ico')} Home</button>
++          </div>
++        </div>
++      </div>
+       ${clockKioskHtml(site, { compact: false })}`;
+ 
+     return { title: 'Clock In / Out', html, mount() {
+-- 
+2.43.0
+
+
+From 686ed9c8cebe71aa68941edccd549e6b4fd342de Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sat, 25 Jul 2026 00:12:07 +0000
+Subject: [PATCH 4/8] Require PIN for clock in/out with visible demo codes
+
+Always prompt for a 4-digit PIN (premium pad modal), restore known
+demo PINs, show PIN chips on the kiosk and staff cards, and confirm
+success after a valid entry.
+---
+ css/styles.css |  54 +++++++++++++++++++++++
+ index.html     |   8 ++--
+ js/store.js    |  13 +++++-
+ js/views.js    | 116 +++++++++++++++++++++++++++++++++++++++++--------
+ 4 files changed, 166 insertions(+), 25 deletions(-)
+
+diff --git a/css/styles.css b/css/styles.css
+index 53333ee..ef30384 100644
+--- a/css/styles.css
++++ b/css/styles.css
+@@ -275,6 +275,60 @@ html, body { height: 100%; }
+ }
+ .clock-onshift-chip .dot { width: .45rem; height: .45rem; border-radius: 999px; background: #34d399; }
+ 
++.clock-pin-cheatsheet {
++  margin-top: 1rem; padding-top: .9rem;
++  border-top: 1px solid rgba(153,246,228,.18);
++}
++.clock-pin-cheatsheet__title {
++  text-align: center; font-size: .65rem; font-weight: 700;
++  letter-spacing: .12em; text-transform: uppercase; color: rgba(204,251,241,.65);
++  margin-bottom: .55rem;
++}
++.clock-pin-cheatsheet__rows {
++  display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center;
++}
++.clock-pin-chip {
++  display: inline-flex; align-items: center; gap: .4rem;
++  padding: .4rem .65rem; border-radius: 999px; cursor: pointer;
++  border: 1px solid rgba(153,246,228,.35);
++  background: rgba(4,47,46,.4); color: #ecfdf5;
++  font-size: .72rem; font-weight: 600; font-family: inherit;
++  transition: background .12s, border-color .12s, transform .1s;
++}
++.clock-pin-chip b {
++  font-variant-numeric: tabular-nums; letter-spacing: .12em;
++  color: #5eead4; font-weight: 800;
++}
++.clock-pin-chip:hover {
++  background: rgba(20,184,166,.28); border-color: rgba(94,234,212,.65);
++  transform: translateY(-1px);
++}
++.clock-staff-pin {
++  margin-top: .7rem; padding: .4rem .55rem; border-radius: .65rem;
++  background: #f0fdfa; border: 1px dashed #99f6e4;
++  font-size: .72rem; font-weight: 600; color: #0f766e; text-align: center;
++  letter-spacing: .02em;
++}
++.clock-staff-pin b {
++  font-variant-numeric: tabular-nums; letter-spacing: .14em; color: #115e59; margin-left: .25rem;
++}
++.clock-result {
++  position: absolute; inset: 0; z-index: 5;
++  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .65rem;
++  background: rgba(4,47,46,.88); backdrop-filter: blur(6px);
++  color: #ecfdf5; text-align: center; padding: 1.5rem;
++  opacity: 0; pointer-events: none; transition: opacity .2s;
++}
++.clock-result.is-show { opacity: 1; }
++.clock-result__mark {
++  width: 3.25rem; height: 3.25rem; border-radius: 999px;
++  display: flex; align-items: center; justify-content: center;
++  font-size: 1.5rem; font-weight: 800; color: #042f2e;
++  background: linear-gradient(135deg, #5eead4, #14b8a6);
++  box-shadow: 0 12px 28px -12px rgba(45,212,191,.8);
++}
++.clock-result b { color: #fff; }
++
+ /* header notifications dropdown */
+ .notif-wrap { position:relative; }
+ .notif-panel {
+diff --git a/index.html b/index.html
+index 510f734..0f0ab6c 100644
+--- a/index.html
++++ b/index.html
+@@ -48,7 +48,7 @@
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+-  <link rel="stylesheet" href="/css/styles.css?v=16" />
++  <link rel="stylesheet" href="/css/styles.css?v=17" />
+ </head>
+ <body class="bg-ink-100 text-ink-900 font-sans antialiased">
+   <noscript>
+@@ -102,7 +102,7 @@
+   <!-- Bust stale service-worker / app shell when build changes -->
+   <script>
+   (function () {
+-    var build = '2026-07-25-clock-premium';
++    var build = '2026-07-25-clock-pin';
+     try {
+       if (localStorage.getItem('kiteline.build') !== build) {
+         localStorage.setItem('kiteline.build', build);
+@@ -123,7 +123,7 @@
+   <script src="/js/i18n.js?v=12"></script>
+   <script src="/js/api.js?v=19"></script>
+   <script src="/js/recipe-seeds.js?v=4"></script>
+-  <script src="/js/store.js?v=17"></script>
++  <script src="/js/store.js?v=18"></script>
+   <script src="/js/ui.js?v=14"></script>
+   <script src="/js/security.js?v=1"></script>
+   <script src="/js/compliance.js?v=4"></script>
+@@ -131,7 +131,7 @@
+   <script src="/js/recipe-media.js?v=1"></script>
+   <script src="/js/recipe-ai.js?v=2"></script>
+   <script src="/js/register-form.js?v=6"></script>
+-  <script src="/js/views.js?v=27"></script>
++  <script src="/js/views.js?v=28"></script>
+   <script src="/js/compliance-views.js?v=4"></script>
+   <script src="/js/app.js?v=32"></script>
+   <script>
+diff --git a/js/store.js b/js/store.js
+index 1111d1f..045ae1b 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -1021,15 +1021,24 @@
+     });
+   }
+ 
++  const DEMO_CLOCK_PINS = {
++    u_sarah: '1234', u_james: '2345', u_lena: '3456', u_marco: '4567', u_amy: '5678',
++    u_david: '6789', u_fiona: '7890', u_tom: '8901', u_priya: '9012', u_ewan: '1122',
++    u_nina: '2233', u_raj: '3344',
++    u_shyam: '1001', u_ved_chef: '1111', u_ved_sous: '2222', u_ved_kp: '3333', u_ved_comp: '4444',
++    u_gov_mgr: '5555', u_gov_chef: '6666', u_gov_prep: '7777', u_gov_kp: '8888',
++  };
++
+   function rotaEnsureDemo(db) {
+     const site = db.currentSite || 'site_grove';
+     if (!(db.rotaShifts || []).some(s => s.site === site)) rotaSeedForSite(db, site);
+     ['site_vedanta', 'site_govindas', 'site_grove', 'site_dock', 'site_quay'].forEach((sid) => {
+       if (!(db.rotaShifts || []).some(s => s.site === sid)) rotaSeedForSite(db, sid);
+     });
+-    // Ensure every team member has a clock PIN for kitchen kiosk use
++    // Every staff member needs a clock PIN — restore known demo PINs so the kiosk always works
+     (db.team || []).forEach((m, idx) => {
+-      if (!m.clockPin && !m.pin) m.clockPin = String(1000 + ((idx + 1) * 111) % 9000).padStart(4, '0').slice(0, 4);
++      if (DEMO_CLOCK_PINS[m.id]) m.clockPin = DEMO_CLOCK_PINS[m.id];
++      else if (!m.clockPin && !m.pin) m.clockPin = String(1000 + ((idx + 1) * 111) % 9000).padStart(4, '0').slice(0, 4);
+     });
+     if (!Array.isArray(db.clockSessions)) db.clockSessions = [];
+     if (!Array.isArray(db.attendanceLog)) db.attendanceLog = [];
+diff --git a/js/views.js b/js/views.js
+index 7de15f8..8a91718 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -4145,20 +4145,52 @@
+   }
+ 
+   function clockPinModal(member, onOk) {
+-    modal('Enter PIN — ' + escapeHtml(member.name), `<div class="space-y-3 text-center">
+-      <p class="text-sm text-ink-500">4-digit kitchen PIN</p>
+-      <input id="clockPinIn" class="input text-center text-2xl tracking-[0.4em]" maxlength="4" inputmode="numeric" autocomplete="off" placeholder="••••">
+-      <button type="button" class="btn btn-primary w-full" id="clockPinOk">Confirm</button></div>`, { wide: false });
+-    const inp = document.getElementById('clockPinIn');
+-    if (inp) inp.focus();
++    const on = window.Rota && window.Rota.isClockedIn(S.db, S.db.currentSite, member.id);
++    let pin = '';
++    modal('PIN required', `<div class="clock-shell">
++      <div class="clock-kiosk card-pad" style="border-radius:1rem;margin:-0.25rem">
++        <div class="text-center mb-2">
++          <div class="clock-kiosk__eyebrow"><span class="pulse-dot"></span> ${on ? 'Clock out' : 'Clock in'}</div>
++          <div class="text-lg font-extrabold text-white">${escapeHtml(member.name)}</div>
++          <div class="text-xs text-brand-200 mt-1">${escapeHtml(member.role || 'Staff')} · enter 4-digit PIN</div>
++        </div>
++        <div class="clock-pin-slots" id="modalPinSlots">${[0,1,2,3].map((i)=>`<div class="clock-pin-slot" data-modal-pin="${i}"><span class="clock-pin-slot__dot"></span></div>`).join('')}</div>
++        <div class="clock-pad" id="modalPinPad">
++          ${[['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6'],['7','7'],['8','8'],['9','9'],['clear','CLR'],['0','0'],['back','⌫']].map(([v,l])=>
++            `<button type="button" class="clock-pad-key ${v==='clear'||v==='back'?'clock-pad-key--muted':''}" data-modal-pad="${v}">${l}</button>`
++          ).join('')}
++        </div>
++        <button type="button" class="clock-cta" id="clockPinOk">${icon('clock','w-5 h-5')} Confirm ${on ? 'clock out' : 'clock in'}</button>
++      </div>
++    </div>`, { wide: false });
++
++    const paint = () => {
++      document.querySelectorAll('[data-modal-pin]').forEach((slot) => {
++        slot.classList.toggle('is-filled', parseInt(slot.dataset.modalPin, 10) < pin.length);
++      });
++    };
+     const submit = () => {
+-      const pin = (inp && inp.value) || '';
+-      if (!window.Rota.verifyPin(member, pin)) return toast('Wrong PIN', 'warn');
++      if (pin.length !== 4) return toast('Enter your 4-digit PIN', 'warn');
++      if (!window.Rota.verifyPin(member, pin)) {
++        pin = '';
++        paint();
++        return toast('Wrong PIN — try again', 'warn');
++      }
+       closeModal();
+       onOk();
+     };
++    document.querySelectorAll('[data-modal-pad]').forEach((b) => {
++      b.onclick = () => {
++        const k = b.dataset.modalPad;
++        if (k === 'clear') pin = '';
++        else if (k === 'back') pin = pin.slice(0, -1);
++        else if (pin.length < 4) pin += k;
++        paint();
++        if (pin.length === 4) submit();
++      };
++    });
+     document.getElementById('clockPinOk').onclick = submit;
+-    if (inp) inp.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
++    paint();
+   }
+ 
+   function bindClockToggle(site) {
+@@ -4169,6 +4201,11 @@
+         ? S.db.team.find((x) => x.id === memberOrId)
+         : memberOrId;
+       if (!member) return;
++      // Always require PIN for kitchen accountability
++      if (!member.clockPin && !member.pin) {
++        member.clockPin = '0000';
++        S.persist();
++      }
+       const doToggle = () => {
+         const on = R.isClockedIn(S.db, site, member.id);
+         const res = on ? R.clockOut(S.db, site, member.id, me && me.email) : R.clockIn(S.db, site, member.id, me && me.email);
+@@ -4178,8 +4215,7 @@
+         toast(member.name + (on ? ' clocked out' : ' clocked in'));
+         window.App.render();
+       };
+-      if (member.clockPin || member.pin) clockPinModal(member, doToggle);
+-      else doToggle();
++      clockPinModal(member, doToggle);
+     };
+   }
+ 
+@@ -4204,6 +4240,7 @@
+       const shiftTxt = shift && shift.status === 'scheduled'
+         ? (shift.startTime + '–' + shift.endTime)
+         : (shift ? R.ROTA_STATUS[shift.status].label : 'No shift');
++      const pinCode = m.clockPin || m.pin || '————';
+       return `<div class="clock-staff-card ${on ? 'clock-staff-card--in' : ''}" data-clock-staff="${escapeHtml(m.id)}">
+         <div class="flex items-center gap-3">
+           <div class="clock-avatar">${escapeHtml(m.initials)}</div>
+@@ -4214,7 +4251,8 @@
+           </div>
+           <span class="badge ${on ? 'badge-green' : 'badge-gray'}">${on ? 'On shift' : 'Out'}</span>
+         </div>
+-        <button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'} btn-sm clock-toggle-btn">${on ? 'Clock out' : 'Clock in'}</button>
++        <div class="clock-staff-pin">PIN <b>${escapeHtml(String(pinCode))}</b></div>
++        <button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'} btn-sm clock-toggle-btn">${on ? 'Clock out · PIN' : 'Clock in · PIN'}</button>
+       </div>`;
+     }).join('');
+ 
+@@ -4253,9 +4291,19 @@
+         </div>
+         <div class="clock-pin-slots" id="clockPinDisplay" aria-label="PIN entry">${pinSlots}</div>
+         <div class="clock-pad">${pad}</div>
+-        <button type="button" class="clock-cta" id="clockPinSubmit">${icon('clock', 'w-5 h-5')} Clock in / out</button>
+-        <p class="clock-kiosk__hint">4-digit staff PIN · saved to this kitchen · edit PINs on Team</p>
+-        ${compact && clocked.length ? `<div class="flex flex-wrap gap-2 justify-center mt-4">${clocked.slice(0, 4).map((m) =>
++        <button type="button" class="clock-cta" id="clockPinSubmit">${icon('clock', 'w-5 h-5')} Enter PIN to clock</button>
++        <div class="clock-pin-cheatsheet">
++          <div class="clock-pin-cheatsheet__title">Demo PINs — tap or type on pad</div>
++          <div class="clock-pin-cheatsheet__rows">
++            ${team.slice(0, compact ? 2 : 6).map((m) =>
++              `<button type="button" class="clock-pin-chip" data-fill-pin="${escapeHtml(String(m.clockPin || m.pin || ''))}" title="Use this PIN">
++                <span>${escapeHtml(m.name.split(' ')[0])}</span>
++                <b>${escapeHtml(String(m.clockPin || m.pin || '————'))}</b>
++              </button>`
++            ).join('')}
++          </div>
++        </div>
++        ${compact && clocked.length ? `<div class="flex flex-wrap gap-2 justify-center mt-3">${clocked.slice(0, 4).map((m) =>
+           `<span class="clock-onshift-chip"><span class="dot"></span>${escapeHtml(m.name.split(' ')[0])}</span>`
+         ).join('')}</div>` : ''}
+       </div>`;
+@@ -4322,17 +4370,36 @@
+       panel.classList.add('clock-kiosk--flash');
+     };
+ 
++    const showResult = (member, action) => {
++      const panel = document.querySelector('.clock-kiosk');
++      if (!panel) return;
++      let banner = panel.querySelector('.clock-result');
++      if (!banner) {
++        banner = document.createElement('div');
++        banner.className = 'clock-result';
++        panel.appendChild(banner);
++      }
++      banner.innerHTML = `<div class="clock-result__mark">${action === 'in' ? '✓' : '→'}</div>
++        <div><b>${escapeHtml(member.name)}</b> ${action === 'in' ? 'clocked in' : 'clocked out'}</div>`;
++      banner.classList.add('is-show');
++    };
++
+     const submitPin = () => {
+-      if (pin.length !== 4) return toast('Enter a 4-digit PIN', 'warn');
++      if (pin.length !== 4) return toast('Enter your 4-digit PIN', 'warn');
+       const res = R.toggleByPin(S.db, site, pin, me && me.email);
++      if (!res.ok) {
++        pin = '';
++        paint();
++        return toast(res.reason || 'Unknown PIN', 'warn');
++      }
+       pin = '';
+       paint();
+-      if (!res.ok) return toast(res.reason || 'PIN failed', 'warn');
+       S.persist();
+       if (S.logActivity) S.logActivity(res.member.id, res.action === 'in' ? 'Clocked in' : 'Clocked out');
+       flashKiosk();
++      showResult(res.member, res.action);
+       toast(res.member.name + (res.action === 'in' ? ' clocked in' : ' clocked out'));
+-      setTimeout(() => window.App.render(), 280);
++      setTimeout(() => window.App.render(), 900);
+     };
+ 
+     document.querySelectorAll('[data-pad]').forEach((b) => {
+@@ -4345,6 +4412,14 @@
+         if (pin.length === 4) submitPin();
+       };
+     });
++    document.querySelectorAll('[data-fill-pin]').forEach((chip) => {
++      chip.onclick = (e) => {
++        e.preventDefault();
++        pin = String(chip.dataset.fillPin || '').replace(/\D/g, '').slice(0, 4);
++        paint();
++        if (pin.length === 4) submitPin();
++      };
++    });
+     const submitBtn = document.getElementById('clockPinSubmit');
+     if (submitBtn) submitBtn.onclick = submitPin;
+ 
+@@ -4353,7 +4428,10 @@
+       const btn = card.querySelector('.clock-toggle-btn');
+       if (!btn) return;
+       btn.onclick = (e) => { e.stopPropagation(); toggle(card.dataset.clockStaff); };
+-      card.onclick = () => toggle(card.dataset.clockStaff);
++      card.onclick = (e) => {
++        if (e.target.closest('.clock-toggle-btn')) return;
++        toggle(card.dataset.clockStaff);
++      };
+     });
+   }
+ 
+-- 
+2.43.0
+
+
+From a5b2b8199d3920efca1ccb554fc1e7d99db5acb4 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sat, 25 Jul 2026 00:27:56 +0000
+Subject: [PATCH 5/8] Fix clock PIN lookup across kitchens
+
+Resolve staff by PIN on any site, clock against their kitchen, and
+re-ensure demo PINs before submit so stale storage still works.
+---
+ js/store.js | 15 ++++++++++-----
+ js/views.js | 34 ++++++++++++++++++++++------------
+ 2 files changed, 32 insertions(+), 17 deletions(-)
+
+diff --git a/js/store.js b/js/store.js
+index 045ae1b..eaa48b6 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -1048,16 +1048,21 @@
+   function rotaFindByPin(db, site, pin) {
+     const code = String(pin || '').trim();
+     if (!/^\d{4}$/.test(code)) return null;
+-    return rotaTeamForSite(db, site).find((m) => String(m.clockPin || m.pin || '') === code) || null;
++    // Prefer current kitchen, then fall back to any site (multi-kitchen orgs)
++    const local = rotaTeamForSite(db, site).find((m) => String(m.clockPin || m.pin || '') === code);
++    if (local) return local;
++    return (db.team || []).find((m) => String(m.clockPin || m.pin || '') === code) || null;
+   }
+ 
+   function rotaToggleByPin(db, site, pin, byUserId) {
+     const member = rotaFindByPin(db, site, pin);
+-    if (!member) return { ok: false, reason: 'Unknown PIN' };
+-    const on = rotaIsClockedIn(db, site, member.id);
+-    const res = on ? rotaClockOut(db, site, member.id, byUserId) : rotaClockIn(db, site, member.id, byUserId);
++    if (!member) return { ok: false, reason: 'Unknown PIN — use a staff PIN from this kitchen' };
++    // Clock against the member's own kitchen so PIN works even if site switcher differs
++    const clockSite = member.siteId || site;
++    const on = rotaIsClockedIn(db, clockSite, member.id);
++    const res = on ? rotaClockOut(db, clockSite, member.id, byUserId) : rotaClockIn(db, clockSite, member.id, byUserId);
+     if (!res.ok) return res;
+-    return { ok: true, member, action: on ? 'out' : 'in', doc: res.doc };
++    return { ok: true, member, action: on ? 'out' : 'in', doc: res.doc, site: clockSite };
+   }
+ 
+   window.Rota = {
+diff --git a/js/views.js b/js/views.js
+index 8a91718..6f0cd2d 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -4385,21 +4385,31 @@
+     };
+ 
+     const submitPin = () => {
+-      if (pin.length !== 4) return toast('Enter your 4-digit PIN', 'warn');
+-      const res = R.toggleByPin(S.db, site, pin, me && me.email);
+-      if (!res.ok) {
++      try {
++        if (pin.length !== 4) return toast('Enter your 4-digit PIN', 'warn');
++        // Re-ensure PINs exist (covers stale localStorage from older demos)
++        R.ensureDemo(S.db);
++        const entered = pin;
++        const res = R.toggleByPin(S.db, site, entered, me && me.email);
++        if (!res.ok) {
++          pin = '';
++          paint();
++          return toast(res.reason || 'Unknown PIN', 'warn');
++        }
++        // If they clocked for another kitchen, switch the view so status updates
++        if (res.site && res.site !== S.db.currentSite) S.setSite(res.site);
+         pin = '';
+         paint();
+-        return toast(res.reason || 'Unknown PIN', 'warn');
++        S.persist();
++        if (S.logActivity) S.logActivity(res.member.id, res.action === 'in' ? 'Clocked in' : 'Clocked out');
++        flashKiosk();
++        showResult(res.member, res.action);
++        toast(res.member.name + (res.action === 'in' ? ' clocked in' : ' clocked out'));
++        setTimeout(() => window.App.render(), 900);
++      } catch (err) {
++        console.error('Clock PIN error', err);
++        toast('Clock failed — try again', 'error');
+       }
+-      pin = '';
+-      paint();
+-      S.persist();
+-      if (S.logActivity) S.logActivity(res.member.id, res.action === 'in' ? 'Clocked in' : 'Clocked out');
+-      flashKiosk();
+-      showResult(res.member, res.action);
+-      toast(res.member.name + (res.action === 'in' ? ' clocked in' : ' clocked out'));
+-      setTimeout(() => window.App.render(), 900);
+     };
+ 
+     document.querySelectorAll('[data-pad]').forEach((b) => {
+-- 
+2.43.0
+
+
+From a0065de6d7a3790072fd19fa9aff56c7f2c9d61a Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sat, 25 Jul 2026 00:41:14 +0000
+Subject: [PATCH 6/8] Fix PIN clock-in: single shell so pad clicks register
+
+Wrap hero + kiosk in one #clockShell so PIN chips/pad handlers
+contain the controls. Require PIN with visible demo codes (Sarah 1234).
+---
+ css/styles.css |   6 +++
+ index.html     |   8 ++--
+ js/views.js    | 127 ++++++++++++++++++++++++++++---------------------
+ 3 files changed, 84 insertions(+), 57 deletions(-)
+
+diff --git a/css/styles.css b/css/styles.css
+index ef30384..2e7da55 100644
+--- a/css/styles.css
++++ b/css/styles.css
+@@ -328,6 +328,12 @@ html, body { height: 100%; }
+   box-shadow: 0 12px 28px -12px rgba(45,212,191,.8);
+ }
+ .clock-result b { color: #fff; }
++.clock-pin-error {
++  margin: .65rem 0 0; text-align: center; font-size: .78rem; font-weight: 700;
++  color: #fecaca; background: rgba(127,29,29,.35); border: 1px solid rgba(248,113,113,.35);
++  border-radius: .65rem; padding: .45rem .6rem;
++}
++.clock-pin-error.hidden { display: none; }
+ 
+ /* header notifications dropdown */
+ .notif-wrap { position:relative; }
+diff --git a/index.html b/index.html
+index 0f0ab6c..564cda5 100644
+--- a/index.html
++++ b/index.html
+@@ -48,7 +48,7 @@
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+-  <link rel="stylesheet" href="/css/styles.css?v=17" />
++  <link rel="stylesheet" href="/css/styles.css?v=19" />
+ </head>
+ <body class="bg-ink-100 text-ink-900 font-sans antialiased">
+   <noscript>
+@@ -102,7 +102,7 @@
+   <!-- Bust stale service-worker / app shell when build changes -->
+   <script>
+   (function () {
+-    var build = '2026-07-25-clock-pin';
++    var build = '2026-07-25-clock-pin-4';
+     try {
+       if (localStorage.getItem('kiteline.build') !== build) {
+         localStorage.setItem('kiteline.build', build);
+@@ -123,7 +123,7 @@
+   <script src="/js/i18n.js?v=12"></script>
+   <script src="/js/api.js?v=19"></script>
+   <script src="/js/recipe-seeds.js?v=4"></script>
+-  <script src="/js/store.js?v=18"></script>
++  <script src="/js/store.js?v=19"></script>
+   <script src="/js/ui.js?v=14"></script>
+   <script src="/js/security.js?v=1"></script>
+   <script src="/js/compliance.js?v=4"></script>
+@@ -131,7 +131,7 @@
+   <script src="/js/recipe-media.js?v=1"></script>
+   <script src="/js/recipe-ai.js?v=2"></script>
+   <script src="/js/register-form.js?v=6"></script>
+-  <script src="/js/views.js?v=28"></script>
++  <script src="/js/views.js?v=31"></script>
+   <script src="/js/compliance-views.js?v=4"></script>
+   <script src="/js/app.js?v=32"></script>
+   <script>
+diff --git a/js/views.js b/js/views.js
+index 6f0cd2d..e7d6bd2 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -4292,8 +4292,9 @@
+         <div class="clock-pin-slots" id="clockPinDisplay" aria-label="PIN entry">${pinSlots}</div>
+         <div class="clock-pad">${pad}</div>
+         <button type="button" class="clock-cta" id="clockPinSubmit">${icon('clock', 'w-5 h-5')} Enter PIN to clock</button>
++        <p class="clock-pin-error hidden" id="clockPinError" role="alert"></p>
+         <div class="clock-pin-cheatsheet">
+-          <div class="clock-pin-cheatsheet__title">Demo PINs — tap or type on pad</div>
++          <div class="clock-pin-cheatsheet__title">Demo PINs — tap chip or type on pad</div>
+           <div class="clock-pin-cheatsheet__rows">
+             ${team.slice(0, compact ? 2 : 6).map((m) =>
+               `<button type="button" class="clock-pin-chip" data-fill-pin="${escapeHtml(String(m.clockPin || m.pin || ''))}" title="Use this PIN">
+@@ -4309,7 +4310,7 @@
+       </div>`;
+ 
+     if (compact) {
+-      return `<div class="clock-shell clock-home-widget">
++      return `<div class="clock-shell clock-home-widget" id="clockShell">
+         ${kiosk}
+         <div class="flex flex-wrap gap-2 mt-3">
+           <a href="#clock" class="btn btn-primary btn-sm flex-1">${icon('clock', 'ico')} Full clock kiosk</a>
+@@ -4318,7 +4319,7 @@
+       </div>`;
+     }
+ 
+-    return `<div class="clock-shell">
++    const body = `
+       <div class="grid lg:grid-cols-5 gap-5 mb-6">
+         <div class="lg:col-span-2">${kiosk}</div>
+         <div class="lg:col-span-3 space-y-4">
+@@ -4337,18 +4338,36 @@
+         </div>
+       </div>
+       <h3 class="clock-section-title">Staff roster — tap to clock</h3>
+-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${cards || '<p class="text-ink-400">No team at this site.</p>'}</div>
+-    </div>`;
++      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${cards || '<p class="text-ink-400">No team at this site.</p>'}</div>`;
++
++    // When nested inside clock() page shell, don't wrap another .clock-shell
++    if (opts.nested) return body;
++    return `<div class="clock-shell" id="clockShell">${body}</div>`;
+   }
+ 
+   function mountClockKiosk(site) {
+     const R = window.Rota;
++    if (!R) {
++      toast('Clock module failed to load', 'error');
++      return;
++    }
++    R.ensureDemo(S.db);
+     const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
+-    let pin = '';
++    const panel = document.querySelector('.clock-kiosk');
++    const shell = document.getElementById('clockShell') || (panel && panel.closest('.clock-shell')) || document.querySelector('.clock-shell');
++    if (!panel) return;
++    const state = { pin: '' };
++    const errEl = document.getElementById('clockPinError');
++    const setErr = (msg) => {
++      if (!errEl) { if (msg) toast(msg, 'warn'); return; }
++      if (!msg) { errEl.classList.add('hidden'); errEl.textContent = ''; return; }
++      errEl.textContent = msg;
++      errEl.classList.remove('hidden');
++    };
+     const paint = () => {
+-      document.querySelectorAll('[data-pin-slot]').forEach((slot) => {
++      panel.querySelectorAll('[data-pin-slot]').forEach((slot) => {
+         const i = parseInt(slot.dataset.pinSlot, 10);
+-        slot.classList.toggle('is-filled', i < pin.length);
++        slot.classList.toggle('is-filled', i < state.pin.length);
+       });
+     };
+     paint();
+@@ -4363,16 +4382,12 @@
+     window._clockIv = setInterval(tick, 1000);
+ 
+     const flashKiosk = () => {
+-      const panel = document.querySelector('.clock-kiosk');
+-      if (!panel) return;
+       panel.classList.remove('clock-kiosk--flash');
+       void panel.offsetWidth;
+       panel.classList.add('clock-kiosk--flash');
+     };
+ 
+     const showResult = (member, action) => {
+-      const panel = document.querySelector('.clock-kiosk');
+-      if (!panel) return;
+       let banner = panel.querySelector('.clock-result');
+       if (!banner) {
+         banner = document.createElement('div');
+@@ -4384,21 +4399,27 @@
+       banner.classList.add('is-show');
+     };
+ 
+-    const submitPin = () => {
++    const submitPin = (forcedPin) => {
+       try {
+-        if (pin.length !== 4) return toast('Enter your 4-digit PIN', 'warn');
+-        // Re-ensure PINs exist (covers stale localStorage from older demos)
++        setErr('');
++        if (forcedPin != null) state.pin = String(forcedPin).replace(/\D/g, '').slice(0, 4);
++        paint();
++        if (state.pin.length !== 4) {
++          setErr('Enter your 4-digit PIN');
++          return toast('Enter your 4-digit PIN', 'warn');
++        }
+         R.ensureDemo(S.db);
+-        const entered = pin;
+-        const res = R.toggleByPin(S.db, site, entered, me && me.email);
++        const entered = state.pin;
++        const activeSite = S.db.currentSite || site;
++        const res = R.toggleByPin(S.db, activeSite, entered, me && me.email);
+         if (!res.ok) {
+-          pin = '';
++          state.pin = '';
+           paint();
++          setErr(res.reason || 'Unknown PIN');
+           return toast(res.reason || 'Unknown PIN', 'warn');
+         }
+-        // If they clocked for another kitchen, switch the view so status updates
+         if (res.site && res.site !== S.db.currentSite) S.setSite(res.site);
+-        pin = '';
++        state.pin = '';
+         paint();
+         S.persist();
+         if (S.logActivity) S.logActivity(res.member.id, res.action === 'in' ? 'Clocked in' : 'Clocked out');
+@@ -4408,41 +4429,41 @@
+         setTimeout(() => window.App.render(), 900);
+       } catch (err) {
+         console.error('Clock PIN error', err);
++        setErr('Clock failed — ' + (err && err.message ? err.message : 'try again'));
+         toast('Clock failed — try again', 'error');
+       }
+     };
+ 
+-    document.querySelectorAll('[data-pad]').forEach((b) => {
+-      b.onclick = () => {
+-        const k = b.dataset.pad;
+-        if (k === 'clear') pin = '';
+-        else if (k === 'back') pin = pin.slice(0, -1);
+-        else if (pin.length < 4) pin += k;
++    // Fresh onclick each mount (avoids stale closures after App.render)
++    const clickRoot = shell || panel;
++    clickRoot.onclick = (e) => {
++      const pad = e.target.closest('[data-pad]');
++      if (pad && clickRoot.contains(pad)) {
++        const k = pad.dataset.pad;
++        if (k === 'clear') state.pin = '';
++        else if (k === 'back') state.pin = state.pin.slice(0, -1);
++        else if (/^\d$/.test(k) && state.pin.length < 4) state.pin += k;
+         paint();
+-        if (pin.length === 4) submitPin();
+-      };
+-    });
+-    document.querySelectorAll('[data-fill-pin]').forEach((chip) => {
+-      chip.onclick = (e) => {
++        setErr('');
++        if (state.pin.length === 4) submitPin();
++        return;
++      }
++      const chip = e.target.closest('[data-fill-pin]');
++      if (chip && clickRoot.contains(chip)) {
+         e.preventDefault();
+-        pin = String(chip.dataset.fillPin || '').replace(/\D/g, '').slice(0, 4);
+-        paint();
+-        if (pin.length === 4) submitPin();
+-      };
+-    });
+-    const submitBtn = document.getElementById('clockPinSubmit');
+-    if (submitBtn) submitBtn.onclick = submitPin;
+-
+-    const toggle = bindClockToggle(site);
+-    document.querySelectorAll('[data-clock-staff]').forEach((card) => {
+-      const btn = card.querySelector('.clock-toggle-btn');
+-      if (!btn) return;
+-      btn.onclick = (e) => { e.stopPropagation(); toggle(card.dataset.clockStaff); };
+-      card.onclick = (e) => {
+-        if (e.target.closest('.clock-toggle-btn')) return;
+-        toggle(card.dataset.clockStaff);
+-      };
+-    });
++        submitPin(chip.getAttribute('data-fill-pin'));
++        return;
++      }
++      if (e.target.closest('#clockPinSubmit')) {
++        e.preventDefault();
++        submitPin();
++        return;
++      }
++      const staff = e.target.closest('[data-clock-staff]');
++      if (staff && clickRoot.contains(staff) && !e.target.closest('.clock-kiosk')) {
++        bindClockToggle(S.db.currentSite || site)(staff.getAttribute('data-clock-staff'));
++      }
++    };
+   }
+ 
+   function clock() {
+@@ -4453,8 +4474,8 @@
+     const today = R.dateKey();
+     const clocked = R.clockedInStaff(S.db, site).length;
+     const html = `
+-      <div class="clock-shell mb-5">
+-        <div class="clock-page-hero">
++      <div class="clock-shell" id="clockShell">
++        <div class="clock-page-hero mb-5">
+           <div class="min-w-0">
+             <div class="clock-page-hero__eyebrow"><span class="pulse-dot"></span> Staff attendance</div>
+             <h1 class="clock-page-hero__title">Clock In / Out</h1>
+@@ -4466,8 +4487,8 @@
+             <button type="button" class="btn btn-ghost btn-sm" data-go="home">${icon('chevron','ico')} Home</button>
+           </div>
+         </div>
+-      </div>
+-      ${clockKioskHtml(site, { compact: false })}`;
++        ${clockKioskHtml(site, { compact: false, nested: true })}
++      </div>`;
+ 
+     return { title: 'Clock In / Out', html, mount() {
+       document.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => { location.hash = b.dataset.go; });
+-- 
+2.43.0
+
+
+From ef457b4d03e4c2b2521e8b745c0640432f8bbac3 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sat, 25 Jul 2026 00:53:34 +0000
+Subject: [PATCH 7/8] Fix Wrong PIN on clock: match demo PINs by name
+
+Private starter packs use different staff ids (e.g. Sarah Mitchell
+(sample)), so 1234 never matched. Restore demo PINs by name, normalize
+digits, show the PIN in the modal, and seed starter-pack clockPins.
+---
+ index.html             |  8 ++---
+ js/store.js            | 69 ++++++++++++++++++++++++++++++++++++------
+ js/views.js            | 37 ++++++++++++++--------
+ server/server.js       |  2 +-
+ server/starter-pack.js |  3 ++
+ 5 files changed, 91 insertions(+), 28 deletions(-)
+
+diff --git a/index.html b/index.html
+index 564cda5..bd58727 100644
+--- a/index.html
++++ b/index.html
+@@ -48,7 +48,7 @@
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+-  <link rel="stylesheet" href="/css/styles.css?v=19" />
++  <link rel="stylesheet" href="/css/styles.css?v=32" />
+ </head>
+ <body class="bg-ink-100 text-ink-900 font-sans antialiased">
+   <noscript>
+@@ -123,7 +123,7 @@
+   <script src="/js/i18n.js?v=12"></script>
+   <script src="/js/api.js?v=19"></script>
+   <script src="/js/recipe-seeds.js?v=4"></script>
+-  <script src="/js/store.js?v=19"></script>
++  <script src="/js/store.js?v=32"></script>
+   <script src="/js/ui.js?v=14"></script>
+   <script src="/js/security.js?v=1"></script>
+   <script src="/js/compliance.js?v=4"></script>
+@@ -131,9 +131,9 @@
+   <script src="/js/recipe-media.js?v=1"></script>
+   <script src="/js/recipe-ai.js?v=2"></script>
+   <script src="/js/register-form.js?v=6"></script>
+-  <script src="/js/views.js?v=31"></script>
++  <script src="/js/views.js?v=32"></script>
+   <script src="/js/compliance-views.js?v=4"></script>
+-  <script src="/js/app.js?v=32"></script>
++  <script src="/js/app.js?v=33"></script>
+   <script>
+     if ('serviceWorker' in navigator) {
+       window.addEventListener('load', () => {
+diff --git a/js/store.js b/js/store.js
+index eaa48b6..1ab9689 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -990,10 +990,22 @@
+     return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+   }
+ 
++  function normalizeClockPin(pin) {
++    return String(pin == null ? '' : pin).replace(/\D/g, '').slice(0, 4);
++  }
++
++  function memberClockPin(member) {
++    if (!member) return '';
++    const primary = normalizeClockPin(member.clockPin);
++    if (primary.length === 4) return primary;
++    const fallback = normalizeClockPin(member.pin);
++    return fallback.length === 4 ? fallback : '';
++  }
++
+   function rotaVerifyPin(member, pin) {
+-    const expected = member.clockPin || member.pin;
++    const expected = memberClockPin(member);
+     if (!expected) return true;
+-    return String(expected) === String(pin || '').trim();
++    return expected === normalizeClockPin(pin);
+   }
+ 
+   function rotaSeedForSite(db, siteId) {
+@@ -1017,7 +1029,7 @@
+         const p = patterns[(idx + di) % patterns.length];
+         rotaSetShift(db, siteId, m.id, date, { status: 'scheduled', startTime: p.start, endTime: p.end }, 'system');
+       });
+-      if (!m.clockPin && !m.pin) m.clockPin = String(1000 + ((idx + 1) * 111) % 9000).padStart(4, '0').slice(0, 4);
++      if (!memberClockPin(m)) m.clockPin = String(1000 + ((idx + 1) * 111) % 9000).padStart(4, '0').slice(0, 4);
+     });
+   }
+ 
+@@ -1029,16 +1041,53 @@
+     u_gov_mgr: '5555', u_gov_chef: '6666', u_gov_prep: '7777', u_gov_kp: '8888',
+   };
+ 
++  // Private starter packs use different ids ("Sarah Mitchell (sample)") — match by name too
++  const DEMO_CLOCK_PINS_BY_NAME = {
++    'sarah mitchell': '1234',
++    'james okafor': '2345',
++    'lena park': '3456',
++    'marco rossi': '4567',
++    'amy chen': '5678',
++    'david okonkwo': '6789',
++    'fiona walsh': '7890',
++    'tom hughes': '8901',
++    'priya sharma': '9012',
++    'ewan fraser': '1122',
++    'nina kostova': '2233',
++    'raj patel': '3344',
++    'shyam prasad': '1001',
++    'priya mehta': '1111',
++    'anita sharma': '5555',
++    'ravi patel': '6666',
++  };
++
++  function demoPinForMember(m) {
++    if (!m) return '';
++    if (DEMO_CLOCK_PINS[m.id]) return DEMO_CLOCK_PINS[m.id];
++    const name = String(m.name || '')
++      .toLowerCase()
++      .replace(/\s*\(sample\)\s*/g, ' ')
++      .replace(/\s+/g, ' ')
++      .trim();
++    return DEMO_CLOCK_PINS_BY_NAME[name] || '';
++  }
++
+   function rotaEnsureDemo(db) {
+     const site = db.currentSite || 'site_grove';
+     if (!(db.rotaShifts || []).some(s => s.site === site)) rotaSeedForSite(db, site);
+     ['site_vedanta', 'site_govindas', 'site_grove', 'site_dock', 'site_quay'].forEach((sid) => {
+       if (!(db.rotaShifts || []).some(s => s.site === sid)) rotaSeedForSite(db, sid);
+     });
+-    // Every staff member needs a clock PIN — restore known demo PINs so the kiosk always works
++    // Every staff member needs a clock PIN — restore known demo PINs (by id or name)
+     (db.team || []).forEach((m, idx) => {
+-      if (DEMO_CLOCK_PINS[m.id]) m.clockPin = DEMO_CLOCK_PINS[m.id];
+-      else if (!m.clockPin && !m.pin) m.clockPin = String(1000 + ((idx + 1) * 111) % 9000).padStart(4, '0').slice(0, 4);
++      const demo = demoPinForMember(m);
++      if (demo) {
++        m.clockPin = demo;
++        return;
++      }
++      const cur = memberClockPin(m);
++      if (cur) m.clockPin = cur;
++      else m.clockPin = String(1000 + ((idx + 1) * 111) % 9000).padStart(4, '0').slice(0, 4);
+     });
+     if (!Array.isArray(db.clockSessions)) db.clockSessions = [];
+     if (!Array.isArray(db.attendanceLog)) db.attendanceLog = [];
+@@ -1046,12 +1095,12 @@
+   }
+ 
+   function rotaFindByPin(db, site, pin) {
+-    const code = String(pin || '').trim();
+-    if (!/^\d{4}$/.test(code)) return null;
++    const code = normalizeClockPin(pin);
++    if (code.length !== 4) return null;
+     // Prefer current kitchen, then fall back to any site (multi-kitchen orgs)
+-    const local = rotaTeamForSite(db, site).find((m) => String(m.clockPin || m.pin || '') === code);
++    const local = rotaTeamForSite(db, site).find((m) => memberClockPin(m) === code);
+     if (local) return local;
+-    return (db.team || []).find((m) => String(m.clockPin || m.pin || '') === code) || null;
++    return (db.team || []).find((m) => memberClockPin(m) === code) || null;
+   }
+ 
+   function rotaToggleByPin(db, site, pin, byUserId) {
+diff --git a/js/views.js b/js/views.js
+index e7d6bd2..928b4b3 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -4145,14 +4145,19 @@
+   }
+ 
+   function clockPinModal(member, onOk) {
+-    const on = window.Rota && window.Rota.isClockedIn(S.db, S.db.currentSite, member.id);
++    const R = window.Rota;
++    if (R) R.ensureDemo(S.db);
++    const fresh = (S.db.team || []).find((x) => x.id === member.id) || member;
++    const expected = String(fresh.clockPin || fresh.pin || '').replace(/\D/g, '').slice(0, 4);
++    const on = R && R.isClockedIn(S.db, fresh.siteId || S.db.currentSite, fresh.id);
+     let pin = '';
+     modal('PIN required', `<div class="clock-shell">
+       <div class="clock-kiosk card-pad" style="border-radius:1rem;margin:-0.25rem">
+         <div class="text-center mb-2">
+           <div class="clock-kiosk__eyebrow"><span class="pulse-dot"></span> ${on ? 'Clock out' : 'Clock in'}</div>
+-          <div class="text-lg font-extrabold text-white">${escapeHtml(member.name)}</div>
+-          <div class="text-xs text-brand-200 mt-1">${escapeHtml(member.role || 'Staff')} · enter 4-digit PIN</div>
++          <div class="text-lg font-extrabold text-white">${escapeHtml(fresh.name)}</div>
++          <div class="text-xs text-brand-200 mt-1">${escapeHtml(fresh.role || 'Staff')} · enter 4-digit PIN</div>
++          ${expected ? `<div class="clock-staff-pin mt-2" style="justify-content:center">This person’s PIN is <b>${escapeHtml(expected)}</b></div>` : ''}
+         </div>
+         <div class="clock-pin-slots" id="modalPinSlots">${[0,1,2,3].map((i)=>`<div class="clock-pin-slot" data-modal-pin="${i}"><span class="clock-pin-slot__dot"></span></div>`).join('')}</div>
+         <div class="clock-pad" id="modalPinPad">
+@@ -4171,13 +4176,16 @@
+     };
+     const submit = () => {
+       if (pin.length !== 4) return toast('Enter your 4-digit PIN', 'warn');
+-      if (!window.Rota.verifyPin(member, pin)) {
++      if (R) R.ensureDemo(S.db);
++      const live = (S.db.team || []).find((x) => x.id === fresh.id) || fresh;
++      if (!R.verifyPin(live, pin)) {
+         pin = '';
+         paint();
+-        return toast('Wrong PIN — try again', 'warn');
++        const want = String(live.clockPin || live.pin || expected || '').replace(/\D/g, '').slice(0, 4);
++        return toast(want ? `Wrong PIN — use ${want} for ${live.name.split(' ')[0]}` : 'Wrong PIN — try again', 'warn');
+       }
+       closeModal();
+-      onOk();
++      onOk(live);
+     };
+     document.querySelectorAll('[data-modal-pad]').forEach((b) => {
+       b.onclick = () => {
+@@ -4197,22 +4205,25 @@
+     const R = window.Rota;
+     const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
+     return (memberOrId) => {
++      if (R) R.ensureDemo(S.db);
+       const member = typeof memberOrId === 'string'
+         ? S.db.team.find((x) => x.id === memberOrId)
+-        : memberOrId;
++        : ((S.db.team || []).find((x) => x.id === memberOrId.id) || memberOrId);
+       if (!member) return;
+       // Always require PIN for kitchen accountability
+-      if (!member.clockPin && !member.pin) {
++      if (!String(member.clockPin || member.pin || '').replace(/\D/g, '')) {
+         member.clockPin = '0000';
+         S.persist();
+       }
+-      const doToggle = () => {
+-        const on = R.isClockedIn(S.db, site, member.id);
+-        const res = on ? R.clockOut(S.db, site, member.id, me && me.email) : R.clockIn(S.db, site, member.id, me && me.email);
++      const doToggle = (liveMember) => {
++        const m = liveMember || member;
++        const clockSite = m.siteId || site;
++        const on = R.isClockedIn(S.db, clockSite, m.id);
++        const res = on ? R.clockOut(S.db, clockSite, m.id, me && me.email) : R.clockIn(S.db, clockSite, m.id, me && me.email);
+         if (!res.ok) return toast(res.reason, 'warn');
+         S.persist();
+-        if (S.logActivity) S.logActivity(member.id, on ? 'Clocked out' : 'Clocked in');
+-        toast(member.name + (on ? ' clocked out' : ' clocked in'));
++        if (S.logActivity) S.logActivity(m.id, on ? 'Clocked out' : 'Clocked in');
++        toast(m.name + (on ? ' clocked out' : ' clocked in'));
+         window.App.render();
+       };
+       clockPinModal(member, doToggle);
+diff --git a/server/server.js b/server/server.js
+index 5c5248e..96f5ba5 100644
+--- a/server/server.js
++++ b/server/server.js
+@@ -28,7 +28,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
+   || (!isProd && process.env.DEMO_MODE !== 'false');
+ // Early access: registration open unless explicitly disabled.
+ const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
+-const APP_BUILD = '2026-07-02-pilot-sites';
++const APP_BUILD = '2026-07-25-clock-pin-fix';
+ const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
+ const notify = require('./notify');
+ const vedantaReports = require('./vedanta-reports');
+diff --git a/server/starter-pack.js b/server/starter-pack.js
+index ee666d2..39a8f83 100644
+--- a/server/starter-pack.js
++++ b/server/starter-pack.js
+@@ -185,6 +185,7 @@ function buildStarterPack(user, email, profile) {
+       access: 'Admin',
+       siteId,
+       initials: (initials.toUpperCase() || 'OW').slice(0, 2),
++      clockPin: '1001',
+     },
+     {
+       id: managerId,
+@@ -195,6 +196,7 @@ function buildStarterPack(user, email, profile) {
+       siteId,
+       initials: 'SM',
+       access: 'Admin',
++      clockPin: '1234',
+       _sample: true,
+     },
+     {
+@@ -205,6 +207,7 @@ function buildStarterPack(user, email, profile) {
+       siteId,
+       initials: 'JO',
+       access: 'Staff',
++      clockPin: '2345',
+       _sample: true,
+     },
+   ];
+-- 
+2.43.0
+
+
+From 7725833fe92dd842e08388b1b766fa1ad602d77c Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sat, 25 Jul 2026 01:01:46 +0000
+Subject: [PATCH 8/8] Admin clock: one-tap Clock me in, no PIN on staff cards
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-in Admin/Manager can clock staff without the PIN pad.
+Show the signed-in user’s clock PIN (vs login password) and a
+Clock me in/out button. Match demo PINs by email too.
+---
+ css/styles.css   | 25 ++++++++++++++++
+ index.html       |  8 ++---
+ js/store.js      | 13 ++++++++
+ js/views.js      | 78 ++++++++++++++++++++++++++++++++++++++++++++----
+ server/server.js |  2 +-
+ 5 files changed, 115 insertions(+), 11 deletions(-)
+
+diff --git a/css/styles.css b/css/styles.css
+index 2e7da55..b88b6fa 100644
+--- a/css/styles.css
++++ b/css/styles.css
+@@ -71,6 +71,31 @@ html, body { height: 100%; }
+ .clock-page-hero__sub {
+   margin: .35rem 0 0; font-size: .9rem; font-weight: 500; color: #0f766e;
+ }
++.clock-me-banner {
++  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .85rem;
++  padding: 1rem 1.15rem;
++  border-radius: 1.1rem;
++  border: 1px solid #99f6e4;
++  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 55%, #fff 100%);
++  box-shadow: 0 12px 28px -22px rgba(15,118,110,.55);
++}
++.clock-me-banner__eyebrow {
++  font-size: .65rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #0f766e;
++}
++.clock-me-banner__name {
++  font-size: 1.15rem; font-weight: 800; color: #042f2e; letter-spacing: -0.02em; line-height: 1.2;
++}
++.clock-me-banner__pin {
++  margin-top: .2rem; font-size: .85rem; font-weight: 600; color: #115e59;
++}
++.clock-me-banner__pin b {
++  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
++  font-size: 1.05rem; letter-spacing: .12em; color: #042f2e;
++}
++.clock-pin-chip--me {
++  outline: 2px solid rgba(45,212,191,.85);
++  box-shadow: 0 0 0 3px rgba(13,148,136,.2);
++}
+ .clock-kiosk {
+   position: relative;
+   overflow: hidden;
+diff --git a/index.html b/index.html
+index bd58727..402799d 100644
+--- a/index.html
++++ b/index.html
+@@ -48,7 +48,7 @@
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+-  <link rel="stylesheet" href="/css/styles.css?v=32" />
++  <link rel="stylesheet" href="/css/styles.css?v=33" />
+ </head>
+ <body class="bg-ink-100 text-ink-900 font-sans antialiased">
+   <noscript>
+@@ -123,7 +123,7 @@
+   <script src="/js/i18n.js?v=12"></script>
+   <script src="/js/api.js?v=19"></script>
+   <script src="/js/recipe-seeds.js?v=4"></script>
+-  <script src="/js/store.js?v=32"></script>
++  <script src="/js/store.js?v=33"></script>
+   <script src="/js/ui.js?v=14"></script>
+   <script src="/js/security.js?v=1"></script>
+   <script src="/js/compliance.js?v=4"></script>
+@@ -131,9 +131,9 @@
+   <script src="/js/recipe-media.js?v=1"></script>
+   <script src="/js/recipe-ai.js?v=2"></script>
+   <script src="/js/register-form.js?v=6"></script>
+-  <script src="/js/views.js?v=32"></script>
++  <script src="/js/views.js?v=33"></script>
+   <script src="/js/compliance-views.js?v=4"></script>
+-  <script src="/js/app.js?v=33"></script>
++  <script src="/js/app.js?v=34"></script>
+   <script>
+     if ('serviceWorker' in navigator) {
+       window.addEventListener('load', () => {
+diff --git a/js/store.js b/js/store.js
+index 1ab9689..f1b16aa 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -1061,9 +1061,22 @@
+     'ravi patel': '6666',
+   };
+ 
++  const DEMO_CLOCK_PINS_BY_EMAIL = {
++    'sarah@kiteline.uk': '1234',
++    'james@kiteline.uk': '2345',
++    'lena@kiteline.uk': '3456',
++    'marco@kiteline.uk': '4567',
++    'amy@kiteline.uk': '5678',
++    'shyam_1@hotmail.co.uk': '1001',
++    'sample.manager@kiteline.uk': '1234',
++    'sample.staff@kiteline.uk': '2345',
++  };
++
+   function demoPinForMember(m) {
+     if (!m) return '';
+     if (DEMO_CLOCK_PINS[m.id]) return DEMO_CLOCK_PINS[m.id];
++    const email = String(m.email || '').toLowerCase().trim();
++    if (email && DEMO_CLOCK_PINS_BY_EMAIL[email]) return DEMO_CLOCK_PINS_BY_EMAIL[email];
+     const name = String(m.name || '')
+       .toLowerCase()
+       .replace(/\s*\(sample\)\s*/g, ' ')
+diff --git a/js/views.js b/js/views.js
+index 928b4b3..7d1668d 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -4201,6 +4201,13 @@
+     paint();
+   }
+ 
++  function clockSignedInMember() {
++    const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
++    if (!me || !me.email) return null;
++    if (window.Rota) window.Rota.ensureDemo(S.db);
++    return (S.db.team || []).find((t) => (t.email || '').toLowerCase() === me.email.toLowerCase()) || null;
++  }
++
+   function bindClockToggle(site) {
+     const R = window.Rota;
+     const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
+@@ -4226,6 +4233,13 @@
+         toast(m.name + (on ? ' clocked out' : ' clocked in'));
+         window.App.render();
+       };
++      // Admin / Manager signed in on a device: clock staff without fighting the PIN pad
++      // (shared kitchen kiosk still uses PIN). Action is logged under the signed-in email.
++      const isManagerPlus = me && ((me.rank || 0) >= 2 || me.role === 'Admin' || me.role === 'Manager');
++      if (isManagerPlus) {
++        doToggle(member);
++        return;
++      }
+       clockPinModal(member, doToggle);
+     };
+   }
+@@ -4234,7 +4248,11 @@
+     opts = opts || {};
+     const R = window.Rota;
+     R.ensureDemo(S.db);
+-    const team = R.teamForSite(S.db, site);
++    const meUser = window.App && window.App.currentUser ? window.App.currentUser() : null;
++    const meMember = clockSignedInMember();
++    let team = R.teamForSite(S.db, site).slice();
++    // Keep the signed-in Admin/Owner on the clock even if their home kitchen differs
++    if (meMember && !team.some((m) => m.id === meMember.id)) team = [meMember].concat(team);
+     const siteName = (S.site(site) || {}).name || 'Kitchen';
+     const today = R.dateKey();
+     const clocked = R.clockedInStaff(S.db, site);
+@@ -4242,6 +4260,18 @@
+     const log = (R.todayLog ? R.todayLog(S.db, site, today) : []).slice(0, opts.logLimit || 12);
+     const compact = !!opts.compact;
+     const dateLabel = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
++    const meOn = meMember ? R.isClockedIn(S.db, meMember.siteId || site, meMember.id) : false;
++    const mePin = meMember ? String(meMember.clockPin || meMember.pin || '').replace(/\D/g, '').slice(0, 4) : '';
++    const meBanner = (!compact && meMember) ? `<div class="clock-me-banner mb-4">
++      <div class="min-w-0">
++        <div class="clock-me-banner__eyebrow">Signed in · ${escapeHtml(meUser && meUser.role ? meUser.role : 'Admin')}</div>
++        <div class="clock-me-banner__name">${escapeHtml(meMember.name)}</div>
++        <div class="clock-me-banner__pin">Your clock PIN is <b>${escapeHtml(mePin || '————')}</b> <span class="text-ink-400 font-normal">(not your login password)</span></div>
++      </div>
++      <button type="button" class="btn btn-primary" id="clockMeBtn" data-clock-me="${escapeHtml(meMember.id)}">
++        ${icon('clock','w-4 h-4')} ${meOn ? 'Clock me out' : 'Clock me in'}
++      </button>
++    </div>` : '';
+ 
+     const cards = team.map((m) => {
+       const on = R.isClockedIn(S.db, site, m.id);
+@@ -4263,7 +4293,11 @@
+           <span class="badge ${on ? 'badge-green' : 'badge-gray'}">${on ? 'On shift' : 'Out'}</span>
+         </div>
+         <div class="clock-staff-pin">PIN <b>${escapeHtml(String(pinCode))}</b></div>
+-        <button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'} btn-sm clock-toggle-btn">${on ? 'Clock out · PIN' : 'Clock in · PIN'}</button>
++        <button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'} btn-sm clock-toggle-btn">${
++          (meUser && (meUser.rank || 0) >= 2)
++            ? (on ? 'Clock out' : 'Clock in')
++            : (on ? 'Clock out · PIN' : 'Clock in · PIN')
++        }</button>
+       </div>`;
+     }).join('');
+ 
+@@ -4305,11 +4339,11 @@
+         <button type="button" class="clock-cta" id="clockPinSubmit">${icon('clock', 'w-5 h-5')} Enter PIN to clock</button>
+         <p class="clock-pin-error hidden" id="clockPinError" role="alert"></p>
+         <div class="clock-pin-cheatsheet">
+-          <div class="clock-pin-cheatsheet__title">Demo PINs — tap chip or type on pad</div>
++          <div class="clock-pin-cheatsheet__title">4-digit clock PINs — tap chip (login password won’t work here)</div>
+           <div class="clock-pin-cheatsheet__rows">
+             ${team.slice(0, compact ? 2 : 6).map((m) =>
+-              `<button type="button" class="clock-pin-chip" data-fill-pin="${escapeHtml(String(m.clockPin || m.pin || ''))}" title="Use this PIN">
+-                <span>${escapeHtml(m.name.split(' ')[0])}</span>
++              `<button type="button" class="clock-pin-chip ${meMember && m.id === meMember.id ? 'clock-pin-chip--me' : ''}" data-fill-pin="${escapeHtml(String(m.clockPin || m.pin || ''))}" title="Use this PIN">
++                <span>${meMember && m.id === meMember.id ? 'You' : escapeHtml(m.name.split(' ')[0])}</span>
+                 <b>${escapeHtml(String(m.clockPin || m.pin || '————'))}</b>
+               </button>`
+             ).join('')}
+@@ -4331,6 +4365,7 @@
+     }
+ 
+     const body = `
++      ${meBanner}
+       <div class="grid lg:grid-cols-5 gap-5 mb-6">
+         <div class="lg:col-span-2">${kiosk}</div>
+         <div class="lg:col-span-3 space-y-4">
+@@ -4348,7 +4383,7 @@
+           </div>
+         </div>
+       </div>
+-      <h3 class="clock-section-title">Staff roster — tap to clock</h3>
++      <h3 class="clock-section-title">Staff roster — tap to clock${meUser && (meUser.rank || 0) >= 2 ? ' (Admin / Manager: no PIN needed)' : ''}</h3>
+       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${cards || '<p class="text-ink-400">No team at this site.</p>'}</div>`;
+ 
+     // When nested inside clock() page shell, don't wrap another .clock-shell
+@@ -4473,8 +4508,39 @@
+       const staff = e.target.closest('[data-clock-staff]');
+       if (staff && clickRoot.contains(staff) && !e.target.closest('.clock-kiosk')) {
+         bindClockToggle(S.db.currentSite || site)(staff.getAttribute('data-clock-staff'));
++        return;
++      }
++      const meBtn = e.target.closest('#clockMeBtn, [data-clock-me]');
++      if (meBtn && clickRoot.contains(meBtn)) {
++        e.preventDefault();
++        const id = meBtn.getAttribute('data-clock-me') || (clockSignedInMember() || {}).id;
++        if (id) bindClockToggle(S.db.currentSite || site)(id);
++      }
++    };
++
++    // Physical keyboard → PIN pad (Admin tablets / desktop)
++    if (window._clockKeyHandler) window.removeEventListener('keydown', window._clockKeyHandler);
++    window._clockKeyHandler = (ev) => {
++      if (!document.getElementById('clockShell')) return;
++      if (ev.target && /input|textarea|select/i.test(ev.target.tagName)) return;
++      if (document.getElementById('modal-layer') && !document.getElementById('modal-layer').classList.contains('hidden')) return;
++      if (ev.key >= '0' && ev.key <= '9') {
++        if (state.pin.length < 4) state.pin += ev.key;
++        paint();
++        setErr('');
++        if (state.pin.length === 4) submitPin();
++      } else if (ev.key === 'Backspace') {
++        state.pin = state.pin.slice(0, -1);
++        paint();
++      } else if (ev.key === 'Escape') {
++        state.pin = '';
++        paint();
++        setErr('');
++      } else if (ev.key === 'Enter') {
++        submitPin();
+       }
+     };
++    window.addEventListener('keydown', window._clockKeyHandler);
+   }
+ 
+   function clock() {
+diff --git a/server/server.js b/server/server.js
+index 96f5ba5..84f01b8 100644
+--- a/server/server.js
++++ b/server/server.js
+@@ -28,7 +28,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
+   || (!isProd && process.env.DEMO_MODE !== 'false');
+ // Early access: registration open unless explicitly disabled.
+ const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
+-const APP_BUILD = '2026-07-25-clock-pin-fix';
++const APP_BUILD = '2026-07-25-admin-clock';
+ const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
+ const notify = require('./notify');
+ const vedantaReports = require('./vedanta-reports');
+-- 
+2.43.0
+
