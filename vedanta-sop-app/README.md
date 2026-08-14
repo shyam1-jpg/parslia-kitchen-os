@@ -9,7 +9,7 @@ After this branch is on GitHub, use one of these:
 
 ### Live preview (branch)
 
-https://raw.githack.com/shyam1-jpg/parslia-kitchen-os/cursor/vedanta-vegetarian-sops-8cdc/vedanta-sop-app/index.html
+https://htmlpreview.github.io/?https://raw.githubusercontent.com/shyam1-jpg/parslia-kitchen-os/cursor/vedanta-vegetarian-sops-8cdc/vedanta-sop-app/standalone.html
 
 ### Repo folder
 

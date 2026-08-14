@@ -37,7 +37,7 @@ Use **hing (asafoetida)** where recipes call for onion/garlic aroma. Prefer fres
 Installable mobile app (PWA) with the same SOPs for kitchen pockets:
 
 - App folder: [`vedanta-sop-app/`](../../../vedanta-sop-app/)
-- Live preview: [Open pocket app](https://raw.githack.com/shyam1-jpg/parslia-kitchen-os/cursor/vedanta-vegetarian-sops-8cdc/vedanta-sop-app/index.html)
+- Live preview: [Open pocket app](https://htmlpreview.github.io/?https://raw.githubusercontent.com/shyam1-jpg/parslia-kitchen-os/cursor/vedanta-vegetarian-sops-8cdc/vedanta-sop-app/standalone.html)
 
 Add to Home Screen from Chrome (Android) or Safari (iPhone). Works offline after first open.
 
