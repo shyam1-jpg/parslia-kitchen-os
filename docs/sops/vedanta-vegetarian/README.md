@@ -32,6 +32,15 @@ Professional standard operating procedures for **how to work**, **how to lift**,
 
 Use **hing (asafoetida)** where recipes call for onion/garlic aroma. Prefer fresh ginger, green chilli, cumin, mustard seed, curry leaf, tomato, and spice pastes that are verified allium-free.
 
+## Pocket app (Android + iPhone)
+
+Installable mobile app (PWA) with the same SOPs for kitchen pockets:
+
+- App folder: [`vedanta-sop-app/`](../../../vedanta-sop-app/)
+- Live preview: [Open pocket app](https://raw.githack.com/shyam1-jpg/parslia-kitchen-os/cursor/vedanta-vegetarian-sops-8cdc/vedanta-sop-app/index.html)
+
+Add to Home Screen from Chrome (Android) or Safari (iPhone). Works offline after first open.
+
 ## How to use
 
 - Issue each SOP to kitchen leads and keep controlled copies in the kitchen office.
