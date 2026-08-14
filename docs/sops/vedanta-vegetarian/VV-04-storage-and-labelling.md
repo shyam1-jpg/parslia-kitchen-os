@@ -4,12 +4,13 @@
 |-------|--------|
 | SOP ID | VV-04 |
 | Title | Storage & labelling |
-| Standard | Vedanta vegetarian commercial |
+| Company | Vedanta Limited |
+| Standard | Vedanta Limited vegetarian commercial |
 | Related | VV-00, VV-03, VV-08 |
 
 ## 1. Purpose
 
-Keep Vedanta vegetarian ingredients pure, traceable, and at safe temperatures.
+Keep Vedanta Limited vegetarian ingredients pure, traceable, and at safe temperatures.
 
 ## 2. Storage zones
 
@@ -20,26 +21,26 @@ Keep Vedanta vegetarian ingredients pure, traceable, and at safe temperatures.
 | Freeze | Approved frozen veg, paneer if used frozen, ice |
 | Quarantine shelf | Suspect or rejected goods — never cook from here |
 
-If the building also runs a non-Vedanta kitchen, use **separate** shelves, colour-coded boxes, and labelled hing-only spice kits (see VV-08).
+If the building also runs a non–Vedanta Limited vegetarian kitchen, use **separate** shelves, colour-coded boxes, and labelled hing-only spice kits (see VV-08).
 
 ## 3. Labelling standard
 
 Every opened or prepared item must show:
 
 1. Product name  
-2. Diet tag: `Vedanta veg · No onion · No garlic`  
+2. Diet tag: `Vedanta Limited veg · No onion · No garlic`  
 3. Prep date / time  
 4. Use-by / day dots per site policy  
 5. Allergens (e.g. milk, nuts, gluten, mustard, sesame)  
 6. Initials of person who labelled  
 
-Use Parslia Labels module where available.
+Use the site label printer / kitchen label system where available.
 
 ## 4. FIFO & hing control
 
 - First in, first out on all dry and chill stock.
 - Keep hing in an airtight tin, labelled, away from steam.
-- Never store garlic braids, onion nets, or allium powders in the Vedanta dry store — even “for another kitchen.”
+- Never store garlic braids, onion nets, or allium powders in the Vedanta Limited vegetarian dry store — even “for another kitchen.”
 
 ## 5. Temperature
 

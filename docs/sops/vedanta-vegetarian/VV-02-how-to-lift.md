@@ -4,12 +4,13 @@
 |-------|--------|
 | SOP ID | VV-02 |
 | Title | How to lift |
+| Company | Vedanta Limited |
 | Standard | Commercial kitchen manual handling |
 | Related | VV-01, VV-03, VV-04 |
 
 ## 1. Purpose
 
-Prevent back, shoulder, and hand injuries when moving stock, pots, gas cylinders, rice sacks, dairy crates, and waste in a Vedanta vegetarian kitchen.
+Prevent back, shoulder, and hand injuries when moving stock, pots, gas cylinders, rice sacks, dairy crates, and waste in a Vedanta Limited vegetarian kitchen.
 
 ## 2. Scope
 
@@ -73,7 +74,7 @@ If any answer is unsafe — **do not lift alone**. Get help or use equipment.
 
 1. Stop work if injured.
 2. First aid / manager notify.
-3. Log in accident book and Parslia incident notes.
+3. Log in the accident book and site incident record.
 4. Do not continue heavy lifts until cleared.
 
 ## 10. Training

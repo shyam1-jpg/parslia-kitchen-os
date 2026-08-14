@@ -1,10 +1,11 @@
-# Training Sign-Off — Vedanta Vegetarian SOP Pack
+# Training Sign-Off — Vedanta Limited Vegetarian SOP Pack
 
+**Company:** Vedanta Limited  
 **Site / kitchen:** ________________________________  
 **Trainer:** ________________________________  
 **Date:** ________________________________  
 
-I confirm I have read and understood the Parslia Vedanta Vegetarian commercial SOPs, including:
+I confirm I have read and understood the Vedanta Limited Vegetarian commercial SOPs, including:
 
 - [ ] VV-00 Master diet & kitchen rules (no onion, no garlic, no alliums)
 - [ ] VV-01 How to work
@@ -16,7 +17,7 @@ I confirm I have read and understood the Parslia Vedanta Vegetarian commercial S
 - [ ] VV-07 Cleaning & closing
 - [ ] VV-08 Cross-contamination control
 
-I understand that **chai / tea SOPs are not part of this pack**, and that I must not add onion or garlic to any Vedanta vegetarian dish.
+I understand that **chai / tea SOPs are not part of this pack**, and that I must not add onion or garlic to any Vedanta Limited vegetarian dish.
 
 | Print name | Role | Signature | Date |
 |------------|------|-----------|------|
@@ -27,4 +28,4 @@ I understand that **chai / tea SOPs are not part of this pack**, and that I must
 | | | | |
 | | | | |
 
-Keep this sheet with kitchen training records or upload a scan to Parslia Logs.
+Keep this sheet with kitchen training records.

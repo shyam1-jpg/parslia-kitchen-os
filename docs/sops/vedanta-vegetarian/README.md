@@ -1,14 +1,14 @@
-# Parslia — Vedanta Vegetarian Commercial SOP Pack
+# Vedanta Limited — Vegetarian Commercial SOP Pack
 
-**Product:** Parslia Kitchen OS  
-**Diet standard:** Vedanta vegetarian (sattvic / allium-free)  
-**Version:** 1.0  
+**Company:** Vedanta Limited  
+**Diet standard:** Vedanta vegetarian (no onion, no garlic, no alliums)  
+**Version:** 1.1  
 **Effective date:** 14 August 2026  
-**Audience:** Commercial kitchens, retreat centres, ashrams, temples, vegetarian restaurants, catering and hospitality teams
+**Audience:** Commercial kitchens, catering, hospitality, and food production teams operating under Vedanta Limited vegetarian standards
 
 ## What this pack covers
 
-Professional standard operating procedures for **how to work**, **how to lift**, and the full kitchen cycle under a **Vedanta vegetarian** diet rule.
+Professional standard operating procedures for **how to work**, **how to lift**, and the full kitchen cycle under **Vedanta Limited** vegetarian rules.
 
 | SOP ID | Title | Use |
 |--------|--------|-----|
@@ -32,11 +32,12 @@ Professional standard operating procedures for **how to work**, **how to lift**,
 
 Use **hing (asafoetida)** where recipes call for onion/garlic aroma. Prefer fresh ginger, green chilli, cumin, mustard seed, curry leaf, tomato, and spice pastes that are verified allium-free.
 
-## How to use with Parslia
+## How to use
 
-- Load each SOP into Parslia **Logs & Checks** or staff training notes.
-- Tag recipes with diet labels: `Vedanta vegetarian`, `No onion`, `No garlic`, `Hing`.
+- Issue each SOP to kitchen leads and keep controlled copies in the kitchen office.
+- Tag recipes and menu cards: `Vedanta Limited vegetarian`, `No onion`, `No garlic`, `Hing`.
 - Run allergen and diet checks before service; reject any dish listing onion or garlic.
+- Record training on the sign-off sheet in this folder.
 
 ## Training sign-off
 
@@ -46,6 +47,6 @@ Print `VV-00` and `VV-02`. Every kitchen worker signs after induction. Keep reco
 
 | Field | Value |
 |-------|--------|
-| Owner | Kitchen Manager / Head Chef |
+| Owner | Kitchen Manager / Head Chef (Vedanta Limited) |
 | Review cycle | Every 12 months, or after any diet-policy change |
-| Related product | Parslia Kitchen OS — [parslia.app](https://parslia.app) |
+| Company | Vedanta Limited |

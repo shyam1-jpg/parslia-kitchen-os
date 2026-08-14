@@ -4,13 +4,14 @@
 |-------|--------|
 | SOP ID | VV-05 |
 | Title | Prep & cooking |
-| Standard | Vedanta vegetarian — no onion, no garlic |
+| Company | Vedanta Limited |
+| Standard | Vedanta Limited vegetarian — no onion, no garlic |
 | Related | VV-00, VV-01, VV-08 |
 | Out of scope | Chai / tea brewing |
 
 ## 1. Purpose
 
-Cook flavoursome Vedanta vegetarian food using hing and approved aromatics instead of onion and garlic.
+Cook flavoursome Vedanta Limited vegetarian food using hing and approved aromatics instead of onion and garlic.
 
 ## 2. Prep rules
 
@@ -35,7 +36,7 @@ Cook flavoursome Vedanta vegetarian food using hing and approved aromatics inste
 
 ## 4. Cooking sequence (typical hot line)
 
-1. Confirm recipe in Parslia is tagged Vedanta / allium-free.
+1. Confirm the recipe card is tagged Vedanta Limited vegetarian / allium-free.
 2. Heat fat; add whole spices; add hing correctly (do not burn — bitter).
 3. Add vegetables / pulses / liquids per method.
 4. Season; simmer to correct texture.
@@ -66,6 +67,6 @@ Stop cooking and call the lead if:
 
 - A jar or paste lists onion or garlic mid-service.
 - A garnish of fried onion arrives from pastry or another station.
-- A guest allergy conflicts with a dish — do not guess; check Parslia allergen data.
+- A guest allergy conflicts with a dish — do not guess; check the allergen sheet.
 
 **End of VV-05**

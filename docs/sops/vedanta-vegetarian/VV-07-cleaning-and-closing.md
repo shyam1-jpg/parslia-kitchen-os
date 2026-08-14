@@ -4,7 +4,8 @@
 |-------|--------|
 | SOP ID | VV-07 |
 | Title | Cleaning & closing |
-| Standard | Vedanta vegetarian commercial |
+| Company | Vedanta Limited |
+| Standard | Vedanta Limited vegetarian commercial |
 | Related | VV-01, VV-02, VV-08 |
 
 ## 1. Purpose
@@ -27,8 +28,8 @@ Leave the kitchen food-safe, allium-secure, and ready for the next shift.
 5. Empty and clean waste bins; lift bags using VV-02 technique.  
 6. Sweep then mop; dry wet patches before leaving.  
 7. Check fridges closed; record final temperatures.  
-8. Confirm no onion/garlic products left in Vedanta zones.  
-9. Complete Parslia closing checklist.  
+8. Confirm no onion/garlic products left in Vedanta Limited vegetarian zones.  
+9. Complete the site closing checklist.  
 10. Lock stores / set alarm per site.  
 
 ## 4. Deep clean (scheduled)

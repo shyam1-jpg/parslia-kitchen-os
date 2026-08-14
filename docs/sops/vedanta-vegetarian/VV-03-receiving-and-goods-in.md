@@ -4,12 +4,13 @@
 |-------|--------|
 | SOP ID | VV-03 |
 | Title | Receiving & goods-in |
-| Standard | Vedanta vegetarian commercial |
+| Company | Vedanta Limited |
+| Standard | Vedanta Limited vegetarian commercial |
 | Related | VV-00, VV-02, VV-04 |
 
 ## 1. Purpose
 
-Accept only ingredients that meet the Vedanta vegetarian standard and food safety temperature rules.
+Accept only ingredients that meet Vedanta Limited vegetarian standard and food safety temperature rules.
 
 ## 2. Delivery bay procedure
 
@@ -18,7 +19,7 @@ Accept only ingredients that meet the Vedanta vegetarian standard and food safet
 3. Check delivery note against purchase order.
 4. Inspect packaging: sealed, clean, no pest damage, within date.
 5. **Diet scan:** read ingredient lists for onion, garlic, shallot, leek, chives, spring onion, egg, meat, fish, gelatin.
-6. Reject any product with forbidden ingredients — tag, photograph if required, return to supplier, log in Parslia.
+6. Reject any product with forbidden ingredients — tag, photograph if required, return to supplier, log in the goods-in / rejection record.
 7. Check chilled goods ≤ 5 °C (or site legal limit); frozen hard-frozen with no thaw drip.
 8. Move accepted goods to correct store within 15 minutes of acceptance.
 9. Wash hands after handling outer packaging before touching prep surfaces.
@@ -35,7 +36,7 @@ Accept only ingredients that meet the Vedanta vegetarian standard and food safet
 
 ## 4. Rejection script (professional)
 
-“Thank you — we operate a Vedanta vegetarian kitchen with no onion and no garlic. This item lists [ingredient]. We cannot accept it. Please take it back and note our rejection.”
+“Thank you — we operate under Vedanta Limited vegetarian rules with no onion and no garlic. This item lists [ingredient]. We cannot accept it. Please take it back and note our rejection.”
 
 ## 5. Records
 
