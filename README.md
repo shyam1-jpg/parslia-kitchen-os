@@ -7,11 +7,16 @@
 
 | File | Purpose |
 |------|---------|
-| `index.html` | Full landing page |
+| `index.html` | Full landing page (**Parslia only** — do not link other brands here) |
 | `styles.css` | Styling |
 | `script.js` | Menu + early access form |
+| `menu-creator/` | **Separate product** — printable Menu Creator (not part of Parslia UI) |
+| `patches/README-MENU-TEXT-ALIGN.md` | How to apply the same fix in Kiteline / menu-creator repos |
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
 | `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
+
+**ALWAYS keep products separate.** See `PRODUCTS.md` + `AGENTS.md`.  
+Menu Creator, Pure Prasad Kitchen, Parslia, Kiteline, and Libraix must never share nav, logos, or marketing copy.
 
 ## Preview locally (Windows)
 
