@@ -1,0 +1,1400 @@
+From 61d6938f39b1a9f9ecb0d1489bcd24f18af35c2a Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Thu, 30 Jul 2026 22:49:24 +0000
+Subject: [PATCH 1/2] Add how-to guides, richer HACCP prints, and clock PIN
+ kiosk fix
+
+Restore demo kitchen PINs (login password is not the clock PIN), add
+Clock/Rota to nav with pad + chips, searchable User Manual guides, and
+detailed printable cleaning/HACCP/compliance records for EHO folders.
+---
+ css/styles.css                     |  78 +++++++
+ index.html                         |  15 +-
+ js/app.js                          |   2 +
+ js/compliance-views.js             | 109 ++++++++--
+ js/help-guides.js                  | 164 +++++++++++++++
+ js/store.js                        |  74 +++++--
+ js/views.js                        | 316 +++++++++++++++++++++++++----
+ scripts/test-guides-clock-print.js |  98 +++++++++
+ 8 files changed, 786 insertions(+), 70 deletions(-)
+ create mode 100644 js/help-guides.js
+ create mode 100644 scripts/test-guides-clock-print.js
+
+diff --git a/css/styles.css b/css/styles.css
+index 32adcc7..237ddbd 100644
+--- a/css/styles.css
++++ b/css/styles.css
+@@ -595,3 +595,81 @@ html, body { height: 100%; }
+   #view button { display:none !important; }
+   #view a.btn { display:none !important; }
+ }
++
++/* ---------- Clock In/Out kiosk ---------- */
++.clock-live-time {
++  font-size: 2.75rem; font-weight: 800; letter-spacing: -0.03em;
++  color: #0f766e; font-variant-numeric: tabular-nums; line-height: 1;
++}
++.clock-pin-slots {
++  display: flex; gap: .55rem; justify-content: center; margin: .85rem 0 1rem;
++}
++.clock-pin-slot {
++  width: 2.6rem; height: 3rem; border-radius: .75rem;
++  border: 2px solid #99f6e4; background: #f0fdfa;
++  display: flex; align-items: center; justify-content: center;
++  transition: border-color .12s, background .12s, box-shadow .12s;
++}
++.clock-pin-slot.is-filled {
++  border-color: #0d9488; background: #ccfbf1;
++  box-shadow: 0 0 0 3px rgba(13,148,136,.15);
++}
++.clock-pin-slot.is-filled::after {
++  content: ''; width: .7rem; height: .7rem; border-radius: 999px; background: #0f766e;
++}
++.clock-pad {
++  display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem;
++  max-width: 16rem; margin: 0 auto;
++}
++.clock-pad-key {
++  height: 3rem; border-radius: .85rem; border: 1px solid #e2e8f0;
++  background: #fff; font-size: 1.15rem; font-weight: 700; color: #0f172a;
++  cursor: pointer; font-family: inherit;
++  transition: background .12s, transform .08s;
++}
++.clock-pad-key:hover { background: #f8fafc; }
++.clock-pad-key:active { transform: scale(.97); background: #ecfdf5; }
++.clock-pad-key--muted { color: #64748b; font-size: .85rem; letter-spacing: .04em; }
++.clock-staff-card {
++  border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem;
++  background: #fff; transition: border-color .15s, box-shadow .15s;
++}
++.clock-staff-card:hover { border-color: #99f6e4; box-shadow: 0 8px 20px -14px rgba(15,118,110,.45); }
++.clock-staff-card--in { border-color: #6ee7b7; background: #f0fdf4; }
++.clock-staff-pin {
++  margin-top: .7rem; padding: .4rem .55rem; border-radius: .65rem;
++  background: #f0fdfa; border: 1px dashed #99f6e4;
++  font-size: .72rem; font-weight: 600; color: #0f766e; text-align: center;
++}
++.clock-staff-pin b {
++  font-variant-numeric: tabular-nums; letter-spacing: .14em; color: #115e59; margin-left: .25rem;
++}
++.clock-pin-cheatsheet {
++  margin-top: 1rem; padding-top: .9rem; border-top: 1px solid #e2e8f0;
++}
++.clock-pin-cheatsheet__title {
++  text-align: center; font-size: .65rem; font-weight: 700;
++  letter-spacing: .12em; text-transform: uppercase; color: #64748b;
++  margin-bottom: .55rem;
++}
++.clock-pin-cheatsheet__rows {
++  display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center;
++}
++.clock-pin-chip {
++  display: inline-flex; align-items: center; gap: .4rem;
++  padding: .4rem .65rem; border-radius: 999px; cursor: pointer;
++  border: 1px solid #99f6e4; background: #f0fdfa; color: #134e4a;
++  font-size: .72rem; font-weight: 600; font-family: inherit;
++  transition: background .12s, border-color .12s, transform .1s;
++}
++.clock-pin-chip b {
++  font-variant-numeric: tabular-nums; letter-spacing: .12em;
++  color: #0f766e; font-weight: 800;
++}
++.clock-pin-chip:hover {
++  background: #ccfbf1; border-color: #5eead4; transform: translateY(-1px);
++}
++.clock-pin-chip--me { border-color: #0d9488; background: #ccfbf1; }
++.clock-kiosk { background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 55%); }
++.howto-panel summary { list-style: none; }
++.howto-panel summary::-webkit-details-marker { display: none; }
+diff --git a/index.html b/index.html
+index a0f33a1..07b89dd 100644
+--- a/index.html
++++ b/index.html
+@@ -47,7 +47,7 @@
+ 
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+-  <link rel="stylesheet" href="/css/styles.css?v=42" />
++  <link rel="stylesheet" href="/css/styles.css?v=43" />
+ </head>
+ <body class="bg-ink-100 text-ink-900 font-sans antialiased">
+   <noscript>
+@@ -101,7 +101,7 @@
+   <!-- Bust stale service-worker / app shell when build changes -->
+   <script>
+   (function () {
+-    var build = '2026-07-30-session-cookies';
++    var build = '2026-07-30-guides-print-clock';
+     try {
+       if (localStorage.getItem('kiteline.build') !== build) {
+         localStorage.setItem('kiteline.build', build);
+@@ -122,7 +122,7 @@
+   <script src="/js/i18n.js?v=12"></script>
+   <script src="/js/api.js?v=41"></script>
+   <script src="/js/recipe-seeds.js?v=4"></script>
+-  <script src="/js/store.js?v=42"></script>
++  <script src="/js/store.js?v=43"></script>
+   <script src="/js/ui.js?v=14"></script>
+   <script src="/js/security.js?v=1"></script>
+   <script src="/js/compliance.js?v=4"></script>
+@@ -130,13 +130,14 @@
+   <script src="/js/recipe-media.js?v=1"></script>
+   <script src="/js/recipe-ai.js?v=2"></script>
+   <script src="/js/register-form.js?v=6"></script>
+-  <script src="/js/views.js?v=42"></script>
+-  <script src="/js/compliance-views.js?v=4"></script>
+-  <script src="/js/app.js?v=42"></script>
++  <script src="/js/help-guides.js?v=1"></script>
++  <script src="/js/views.js?v=43"></script>
++  <script src="/js/compliance-views.js?v=5"></script>
++  <script src="/js/app.js?v=43"></script>
+   <script>
+     if ('serviceWorker' in navigator) {
+       window.addEventListener('load', () => {
+-        navigator.serviceWorker.register('/sw.js?v=42').catch(() => {});
++        navigator.serviceWorker.register('/sw.js?v=43').catch(() => {});
+         navigator.serviceWorker.getRegistrations().then((regs) => {
+           regs.forEach((r) => {
+             if (r.active && !String(r.active.scriptURL || '').includes('v=42')) r.unregister();
+diff --git a/js/app.js b/js/app.js
+index 64e90c2..acf742e 100644
+--- a/js/app.js
++++ b/js/app.js
+@@ -22,6 +22,8 @@
+     { id:'dashboard', label:'Dashboard', icon:'dashboard' },
+     { id:'taskoverview', label:'Task Overview', icon:'check' },
+     { id:'temps', label:'Fridge & Freezer Temps', icon:'temp' },
++    { id:'clock', label:'Clock In/Out', icon:'clock' },
++    { id:'rota', label:'Rota & Shifts', icon:'team' },
+     { id:'alerts', label:'Alerts & SMS', icon:'alert' },
+     { id:'haccp', label:'HACCP & Checklists', icon:'check' },
+     { sep:'Kitchen Compliance', sepKey:'complianceSec' },
+diff --git a/js/compliance-views.js b/js/compliance-views.js
+index 5115898..1360f5d 100644
+--- a/js/compliance-views.js
++++ b/js/compliance-views.js
+@@ -148,13 +148,68 @@
+       '.compliance-print-brand{display:flex;align-items:center;gap:8px;margin-bottom:12px;color:#0f766e;font-weight:800;font-size:18px}';
+   }
+ 
+-  function printComplianceHtml(title, innerHtml) {
++  const FIELD_LABELS = {
++    ref: 'Reference', code: 'Code', at: 'Logged at', by: 'Logged by', date: 'Date',
++    status: 'Status', type: 'Type', areas: 'Areas checked', findings: 'Findings',
++    action: 'Corrective action', area: 'Area / process', hazards: 'Hazards',
++    likelihood: 'Likelihood', severity: 'Severity', risk: 'Risk rating',
++    residual: 'Residual risk', reviewDate: 'Review date', product: 'Product',
++    hazard: 'Hazard', storage: 'Storage', ppe: 'PPE', sdsDate: 'SDS date',
++    injured: 'Injured person', location: 'Location', description: 'Description',
++    firstAid: 'First aid given', riddor: 'RIDDOR', witness: 'Witness',
++    staff: 'Staff member', topics: 'Topics covered', trainer: 'Trainer',
++    signed: 'Signed', task: 'Task', load: 'Load weight', method: 'Safe method',
++    teamLift: 'Team lift', lastReview: 'Last review', checkType: 'Check type',
++    items: 'Items checked', result: 'Result', customer: 'Customer',
++    issue: 'Issue', illness: 'Illness reported', probe: 'Probe ID',
++    iceReading: 'Ice reading (°C)', boilReading: 'Boiling reading (°C)',
++    adjustment: 'Adjustment', nextDue: 'Next due', event: 'Event',
++    caterer: 'Caterer / third party', menuApproved: 'Menu approved',
++    allergenBrief: 'Allergen brief', signedOff: 'Signed off', title: 'Title',
++    version: 'Version', scope: 'Scope', section: 'FSMS section',
++    equipment: 'Equipment', due: 'Due date', completed: 'Completed',
++    provider: 'Service provider',
++  };
++
++  const RECORD_FIELD_ORDER = {
++    hsChecks: ['ref', 'code', 'type', 'areas', 'findings', 'action', 'status', 'at', 'by'],
++    riskAssessments: ['ref', 'code', 'area', 'hazards', 'likelihood', 'severity', 'risk', 'residual', 'reviewDate', 'status'],
++    coshh: ['ref', 'code', 'product', 'hazard', 'storage', 'ppe', 'sdsDate', 'reviewDate'],
++    accidents: ['ref', 'code', 'injured', 'date', 'location', 'type', 'description', 'firstAid', 'riddor', 'status'],
++    inductions: ['ref', 'code', 'staff', 'topics', 'trainer', 'signed', 'at', 'reviewDate'],
++    manualHandling: ['ref', 'code', 'task', 'load', 'method', 'teamLift', 'lastReview'],
++    safetyChecks: ['ref', 'code', 'checkType', 'items', 'result', 'action', 'at'],
++    foodComplaints: ['ref', 'code', 'type', 'customer', 'date', 'product', 'issue', 'illness', 'status'],
++    probeCalibration: ['ref', 'code', 'probe', 'method', 'iceReading', 'boilReading', 'adjustment', 'nextDue', 'at', 'by'],
++    thirdPartyEvents: ['ref', 'code', 'event', 'caterer', 'date', 'menuApproved', 'allergenBrief', 'signedOff'],
++    haccpPlans: ['ref', 'code', 'title', 'version', 'scope', 'reviewDate', 'status'],
++    fsmsDocuments: ['ref', 'code', 'title', 'section', 'version', 'status', 'reviewDate'],
++    equipmentMaintenance: ['ref', 'code', 'equipment', 'type', 'due', 'completed', 'provider', 'result', 'nextDue', 'at', 'by'],
++  };
++
++  function fieldLabel(key) {
++    if (FIELD_LABELS[key]) return FIELD_LABELS[key];
++    return String(key).replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase());
++  }
++
++  function sitePrintMeta() {
++    const site = S.site(S.db.currentSite) || {};
++    const bits = [site.name || 'Kitchen'];
++    if (site.address) bits.push(site.address);
++    if (site.postcode) bits.push(site.postcode);
++    if (site.city) bits.push(site.city);
++    if (site.manager) bits.push('Manager: ' + site.manager);
++    return bits.join(' · ');
++  }
++
++  function printComplianceHtml(title, innerHtml, extraMeta) {
+     const body = '<div class="compliance-print-doc">' +
+       '<div class="compliance-print-brand"><img src="' + location.origin + '/kiteline-logo.png?v=mark3" alt="" width="32" height="32"> Kiteline</div>' +
+       '<h1>' + escapeHtml(title) + '</h1>' +
+-      '<p class="meta">' + escapeHtml(siteName(S.db.currentSite)) + ' · ' + fmt.date(S.now()) + '</p>' +
++      '<p class="meta">' + escapeHtml(sitePrintMeta()) + '<br>Printed ' + escapeHtml(fmt.date(S.now())) +
++      (extraMeta ? '<br>' + escapeHtml(extraMeta) : '') + '</p>' +
+       innerHtml +
+-      '<p class="meta" style="margin-top:20px">Kiteline Kitchen Compliance</p></div>';
++      '<p class="meta" style="margin-top:20px">Kiteline Kitchen Compliance · Keep in site food safety folder · Sign: ______________ Date: ________</p></div>';
+     const opened = openPrintDocument(title, body, { extraStyle: compliancePrintExtraCss() });
+     if (!opened) toast('Allow pop-ups to print', 'warn');
+   }
+@@ -163,25 +218,41 @@
+     const view = document.getElementById('view');
+     if (!view) return toast('Nothing to print', 'warn');
+     const clone = view.cloneNode(true);
+-    clone.querySelectorAll('button, [data-add], [data-view-record], [data-close-acc], [data-view-haccp], [data-seed-fsms], [data-export-zip], [data-export-json], [data-print-audit], [data-csv-mod], #compliancePrintPage').forEach(el => el.remove());
++    clone.querySelectorAll('button, [data-add], [data-view-record], [data-close-acc], [data-view-haccp], [data-seed-fsms], [data-export-zip], [data-export-json], [data-print-audit], [data-csv-mod], #compliancePrintPage, .howto-panel, a.btn').forEach(el => el.remove());
+     clone.querySelectorAll('.flex.flex-wrap.gap-1.mb-5').forEach(el => el.remove());
+     const tab = activeTab();
+     const mod = C.MODULES.find(m => m.id === tab);
+     const title = 'Kitchen Compliance — ' + (mod ? mod.label : 'Overview');
+-    printComplianceHtml(title, clone.innerHTML);
++    const guide = MODULE_TEMPLATES[tab] || '';
++    printComplianceHtml(title, clone.innerHTML, guide);
+   }
+ 
+-  function showRecordModal(key, rec) {
++  function recordTableHtml(key, rec) {
+     const skip = { id: 1, site: 1, steps: 1 };
+-    const rows = Object.keys(rec).filter(k => !skip[k] && typeof rec[k] !== 'object').map(k =>
+-      `<tr><td class="text-xs font-semibold text-ink-500 pr-4 py-1">${escapeHtml(k)}</td><td class="text-sm py-1">${escapeHtml(String(rec[k]))}</td></tr>`
++    const preferred = RECORD_FIELD_ORDER[key] || null;
++    const keys = preferred
++      ? preferred.filter((k) => rec[k] != null && rec[k] !== '')
++      : Object.keys(rec).filter((k) => !skip[k] && typeof rec[k] !== 'object');
++    const extra = Object.keys(rec).filter((k) => !skip[k] && typeof rec[k] !== 'object' && !keys.includes(k));
++    const all = keys.concat(extra);
++    const rows = all.map((k) =>
++      `<tr><th style="width:32%">${escapeHtml(fieldLabel(k))}</th><td>${escapeHtml(String(rec[k]))}</td></tr>`
+     ).join('');
++    const mod = C.MODULES.find((m) => m.id === key);
++    return `<p class="meta"><b>Module:</b> ${escapeHtml(mod ? mod.label : key)}
++      ${rec.code ? ' · <b>Code:</b> ' + escapeHtml(rec.code) : ''}
++      ${rec.ref ? ' · <b>Ref:</b> ' + escapeHtml(rec.ref) : ''}</p>
++      <table class="w-full text-left">${rows}</table>` +
++      (rec.steps ? `<p class="text-xs text-ink-400 mt-3">${rec.steps.length} HACCP step(s) — use Full plan to view table.</p>` : '') +
++      `<p class="meta mt-3">Completed by: ______________ Checked by: ______________</p>`;
++  }
++
++  function showRecordModal(key, rec) {
+     const title = (rec.ref || 'Record') + (rec.code ? ' · ' + rec.code : '');
+-    const tableHtml = `<table class="w-full text-left">${rows}</table>` +
+-      (rec.steps ? `<p class="text-xs text-ink-400 mt-3">${rec.steps.length} HACCP step(s) — use Full plan to view table.</p>` : '');
+-    modal(title, tableHtml + `<button type="button" class="btn btn-ghost btn-sm w-full mt-3" id="printComplianceRecord">${icon('print', 'ico')} Print record</button>`, { wide: true });
++    const tableHtml = recordTableHtml(key, rec);
++    modal(title, tableHtml + `<button type="button" class="btn btn-primary btn-sm w-full mt-3" id="printComplianceRecord">${icon('print', 'ico')} Print detailed record</button>`, { wide: true });
+     const printBtn = document.getElementById('printComplianceRecord');
+-    if (printBtn) printBtn.onclick = () => printComplianceHtml(title, tableHtml);
++    if (printBtn) printBtn.onclick = () => printComplianceHtml(title, tableHtml, MODULE_TEMPLATES[key] || '');
+   }
+ 
+   function listCard(key, r, bodyHtml, actions) {
+@@ -202,7 +273,11 @@
+   function renderOverview(site) {
+     const counts = C.counts(site);
+     const modules = C.MODULES.filter(m => m.id !== 'overview' && m.id !== 'auditExport');
++    const howto = (window.HelpGuides && window.HelpGuides.howToPanelHtml)
++      ? window.HelpGuides.howToPanelHtml(['haccp-print', 'equipment-maintenance', 'probe-calibration'])
++      : '';
+     return `
++      ${howto}
+       ${linkedOpsStrip(site)}
+       <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+         <div class="kpi fade-in"><div class="text-ink-500 text-xs font-semibold uppercase">Records</div><div class="v">${counts.total}</div><div class="text-ink-400 text-xs mt-1">This site</div></div>
+@@ -324,7 +399,10 @@
+     const list = C.siteRecords('probeCalibration', site);
+     const cards = list.map(r => listCard('probeCalibration', r,
+       `<div class="text-sm"><b>${escapeHtml(r.probe)}</b><br>Ice ${r.iceReading}°C · Boil ${r.boilReading}°C · ${escapeHtml(r.adjustment)}</div>`)).join('');
+-    return templateBanner('probeCalibration') + `
++    const howto = (window.HelpGuides && window.HelpGuides.howToPanelHtml)
++      ? window.HelpGuides.howToPanelHtml(['probe-calibration'], { openFirst: true })
++      : '';
++    return howto + templateBanner('probeCalibration') + `
+       <div class="flex flex-wrap justify-end gap-2 mb-3">
+         <a href="#temps" class="btn btn-ghost btn-sm">${icon('temp', 'ico')} Live fridge sensors</a>
+         <button type="button" class="btn btn-primary btn-sm" data-add="probe">${icon('plus', 'ico')} Log calibration</button>
+@@ -371,7 +449,10 @@
+     const list = C.siteRecords('equipmentMaintenance', site);
+     const cards = list.map(r => listCard('equipmentMaintenance', r,
+       `<div class="text-sm"><b>${escapeHtml(r.equipment)}</b> — ${escapeHtml(r.type)}<br>Due ${escapeHtml(r.due)} · ${escapeHtml(r.result)}</div>`)).join('');
+-    return templateBanner('equipmentMaintenance') + `
++    const howto = (window.HelpGuides && window.HelpGuides.howToPanelHtml)
++      ? window.HelpGuides.howToPanelHtml(['equipment-maintenance'], { openFirst: true })
++      : '';
++    return howto + templateBanner('equipmentMaintenance') + `
+       <p class="text-xs text-ink-400 mb-3">Scheduled PPM — repair tickets stay in <a href="#maintenance" class="text-brand-600 font-semibold">Maintenance</a>.</p>
+       <div class="flex justify-end mb-3"><button type="button" class="btn btn-primary btn-sm" data-add="em">${icon('plus', 'ico')} Log maintenance</button></div>
+       <div class="grid md:grid-cols-2 gap-4">${cards}</div>`;
+diff --git a/js/help-guides.js b/js/help-guides.js
+new file mode 100644
+index 0000000..dac79e5
+--- /dev/null
++++ b/js/help-guides.js
+@@ -0,0 +1,164 @@
++/* ============================================================
++   Kiteline — How-to guides (where to click, what to enter)
++   Used by User Manual and contextual help panels.
++   ============================================================ */
++(function () {
++  const GUIDES = [
++    {
++      id: 'clock-pin',
++      title: 'Employee clock in / out (kitchen PIN)',
++      icon: 'clock',
++      tags: ['clock', 'pin', 'staff', 'login'],
++      summary: 'Use a 4-digit clock PIN — not your website login password.',
++      route: 'clock',
++      steps: [
++        'Open the left menu → Clock In/Out (under Live Ops). If you do not see it, ask an Admin — your role may be Staff-only for other pages.',
++        'Find your name on the staff cards, or type the 4-digit PIN on the pad / chips (when shown).',
++        'Enter the 4-digit kitchen clock PIN shown on the staff card / demo chips — not your website login password.',
++        'Demo PINs (Grove): Sarah 1234, James 2345, Lena 3456, Marco 4567. Owner (Vedanta) 1001. Priya 1111, James (Vedanta) 2222, Marco (Vedanta) 3333.',
++        'Wrong PIN almost always means you typed the login password (e.g. demo1234). That password opens the website; the clock needs the 4-digit PIN only.',
++        'Admins can edit PINs on Team → PIN column. After changing a PIN, use the new code on Clock In/Out.',
++        'You should see “clocked in” or “clocked out” and the live time update.',
++      ],
++      tips: [
++        'Signed in as Admin/Manager? Use “Clock me in” at the top of Clock In/Out to skip typing a PIN for yourself.',
++        'Rota (menu → Rota & Shifts) shows who is scheduled; Clock In/Out is for attendance.',
++        'Switch the site at the top bar first — PINs and staff lists are per kitchen.',
++      ],
++    },
++    {
++      id: 'freezer-temps',
++      title: 'Fridge & freezer temperatures',
++      icon: 'temp',
++      tags: ['fridge', 'freezer', 'temperature', 'temps'],
++      summary: 'Where live probe readings appear and how alerts work.',
++      route: 'temps',
++      steps: [
++        'Open Fridge & Freezer Temps from the left menu (Live Ops / monitoring area).',
++        'Each card is a sensor (fridge, freezer, hot hold). Green = in range; red/amber = out of range.',
++        'Live temperatures update from probes (or demo simulation). Tap a sensor for history charts when available.',
++        'For SMS/email when a fridge goes out of range → open Alerts & SMS and check notification settings.',
++        'Manual cooking / cooling logs are under Records, Cooling, and Hot & Cold Hold — not the same as live fridge probes.',
++      ],
++      tips: [
++        'Site switcher (top) must match the kitchen you are checking — sensors are per site.',
++      ],
++    },
++    {
++      id: 'probe-calibration',
++      title: 'Probe calibration (ice / boiling check)',
++      icon: 'temp',
++      tags: ['probe', 'calibration', 'coloration', 'ice', 'boiling'],
++      summary: 'Record ice 0°C and boiling ~100°C checks for handheld probes.',
++      route: 'compliance-probeCalibration',
++      steps: [
++        'Open Kitchen Compliance from the left menu.',
++        'Choose the Probe Calibration tab (or go to #compliance-probeCalibration).',
++        'Open an existing sample record with View full record, or add a new calibration.',
++        'Enter ice reading (target 0°C), boiling reading (target 100°C), any adjustment, and next due date.',
++        'Print the record for your EHO folder using Print on the compliance header or on the record.',
++      ],
++      tips: [
++        '“Crop coloration” is not a menu name — if you meant probe calibration, use this guide. Colour / presentation checks can live in HACCP checklists.',
++      ],
++    },
++    {
++      id: 'equipment-maintenance',
++      title: 'Equipment maintenance records (PPM)',
++      icon: 'wrench',
++      tags: ['equipment', 'maintenance', 'ppm', 'service', 'khs'],
++      summary: 'Log planned servicing (separate from repair tickets).',
++      route: 'compliance-equipmentMaintenance',
++      steps: [
++        'Open Kitchen Compliance → Equipment Maintenance Records tab.',
++        'You will see sample PPM cards (equipment name, type, due date, result).',
++        'Tap Log maintenance to add: equipment, service type, due date, provider.',
++        'Tap View full record to see every field, then Print record for a paper copy.',
++        'Day-to-day breakdowns / engineer tickets stay under Maintenance (wrench) in the main menu — that is different from this PPM log.',
++        'Use Print at the top of Kitchen Compliance to print the whole tab for your folder.',
++      ],
++      tips: [
++        'Code KHS on badges = Kiteline H&S / equipment record reference for audits.',
++      ],
++    },
++    {
++      id: 'cleaning-status',
++      title: 'Cleaning status & printing a report',
++      icon: 'check',
++      tags: ['cleaning', 'hygiene', 'print', 'haccp'],
++      summary: 'See today’s cleaning tasks and print a detailed status sheet.',
++      route: 'wfclean',
++      steps: [
++        'Open Cleaning Status from Live Ops in the left menu.',
++        'The table lists deep cleans, daily logs and hygiene tasks with staff and status.',
++        'Use Print detailed report (on that page) for a full sheet: task, category, assignee, status, times — not just a percentage.',
++        'Daily cleaning checklists also appear under HACCP & Checklists and HACCP Status.',
++        'For a formal cleaning schedule document, open Kitchen Compliance → FSMS documents and look for Cleaning & Disinfection Schedule.',
++      ],
++      tips: [],
++    },
++    {
++      id: 'haccp-print',
++      title: 'Print HACCP / compliance samples for EHO',
++      icon: 'shield',
++      tags: ['haccp', 'print', 'eho', 'audit'],
++      summary: 'How to print richer compliance pages and audit packs.',
++      route: 'compliance',
++      steps: [
++        'Open Kitchen Compliance. Use the tabs for Risk, COSHH, Accidents, HACCP Plan, FSMS, Equipment, etc.',
++        'On any tab, click Print (top right) for a branded page with site name and date.',
++        'Open View full record on a card — then Print record for a field-by-field sheet (ref, dates, results, provider).',
++        'For a pack of counts + export: open Audit Export tab → Print / PDF, or ZIP audit pack / CSV per module.',
++        'Daily CCP ticks (not the full plan) are under HACCP & Checklists and HACCP Status.',
++      ],
++      tips: [
++        'If print looks empty, allow pop-ups for kiteline.uk once.',
++      ],
++    },
++  ];
++
++  function guideById(id) {
++    return GUIDES.find((g) => g.id === id) || null;
++  }
++
++  function guidesForRoute(route) {
++    const r = String(route || '').replace(/^#/, '');
++    return GUIDES.filter((g) => g.route === r || (g.route && r.startsWith(g.route)));
++  }
++
++  function searchGuides(q) {
++    const s = String(q || '').toLowerCase().trim();
++    if (!s) return GUIDES.slice();
++    return GUIDES.filter((g) =>
++      g.title.toLowerCase().includes(s)
++      || g.summary.toLowerCase().includes(s)
++      || (g.tags || []).some((t) => t.includes(s))
++      || g.steps.some((step) => step.toLowerCase().includes(s))
++    );
++  }
++
++  function howToPanelHtml(guideIds, opts) {
++    opts = opts || {};
++    const { escapeHtml, icon } = window.UI || {};
++    const esc = escapeHtml || ((x) => String(x));
++    const ico = icon || (() => '');
++    const list = (guideIds || []).map(guideById).filter(Boolean);
++    if (!list.length) return '';
++    return `<div class="card card-pad mb-4 border-brand-100 bg-brand-50/40 howto-panel">
++      <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
++        <h3 class="font-bold text-brand-900 flex items-center gap-2">${ico('help', 'w-5 h-5')} How to use this page</h3>
++        <a href="#manual" class="text-xs font-semibold text-brand-700">All guides →</a>
++      </div>
++      ${list.map((g) => `
++        <details class="mb-2 rounded-lg border border-brand-100 bg-white p-3" ${opts.openFirst && g.id === list[0].id ? 'open' : ''}>
++          <summary class="font-semibold cursor-pointer text-sm">${esc(g.title)}</summary>
++          <p class="text-xs text-ink-500 mt-2 mb-2">${esc(g.summary)}</p>
++          <ol class="list-decimal pl-5 text-sm text-ink-700 space-y-1.5">${g.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>
++          ${(g.tips || []).length ? `<ul class="mt-2 text-xs text-ink-500 list-disc pl-5">${g.tips.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
++          ${g.route ? `<a href="#${esc(g.route)}" class="btn btn-ghost btn-sm mt-3 inline-flex">${ico('chevron', 'ico')} Open ${esc(g.route)}</a>` : ''}
++        </details>`).join('')}
++    </div>`;
++  }
++
++  window.HelpGuides = { GUIDES, guideById, guidesForRoute, searchGuides, howToPanelHtml };
++})();
+diff --git a/js/store.js b/js/store.js
+index 0266c5d..2b03300 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -149,18 +149,18 @@
+       { id:'u_gov_chef', name:'Ravi Patel', role:'Head Chef', email:'ravi@govindas.demo', phone:'+44 7700 900202', siteId:'site_govindas', initials:'RP', access:'Manager', clockPin:'6666' },
+       { id:'u_gov_prep', name:'Lena Park', role:'Prep Lead', email:'prep@govindas.demo', phone:'+44 7700 900203', siteId:'site_govindas', initials:'LP', access:'Staff', clockPin:'7777' },
+       { id:'u_gov_kp', name:'Tom Hughes', role:'Kitchen Porter', email:'kp@govindas.demo', phone:'+44 7700 900204', siteId:'site_govindas', initials:'TH', access:'Staff', clockPin:'8888' },
+-      { id:'u_sarah', name:'Sarah Mitchell', role:'Head Chef', email:'sarah@kiteline.uk', siteId:'site_grove', initials:'SM', access:'Admin' },
+-      { id:'u_james', name:'James Okafor', role:'Sous Chef', email:'james@kiteline.uk', siteId:'site_grove', initials:'JO', access:'Staff' },
+-      { id:'u_lena', name:'Lena Park', role:'Kitchen Manager', email:'lena@kiteline.uk', siteId:'site_dock', initials:'LP', access:'Manager' },
+-      { id:'u_marco', name:'Marco Rossi', role:'Chef de Partie', email:'marco@kiteline.uk', siteId:'site_dock', initials:'MR', access:'Staff' },
+-      { id:'u_amy', name:'Amy Chen', role:'Compliance Lead', email:'amy@kiteline.uk', siteId:'site_quay', initials:'AC', access:'Manager' },
+-      { id:'u_david', name:'David Okonkwo', role:'Head Chef', email:'david@kiteline.uk', siteId:'site_apex', initials:'DO', access:'Manager' },
+-      { id:'u_fiona', name:'Fiona Walsh', role:'Pub Manager', email:'fiona@kiteline.uk', siteId:'site_crown', initials:'FW', access:'Manager' },
+-      { id:'u_tom', name:'Tom Hughes', role:'Head Barista', email:'tom@kiteline.uk', siteId:'site_river', initials:'TH', access:'Staff' },
+-      { id:'u_priya', name:'Priya Sharma', role:'Ops Lead', email:'priya@kiteline.uk', siteId:'site_studio', initials:'PS', access:'Manager' },
+-      { id:'u_ewan', name:'Ewan Fraser', role:'Training Chef', email:'ewan@kiteline.uk', siteId:'site_academy', initials:'EF', access:'Manager' },
+-      { id:'u_nina', name:'Nina Kostova', role:'Head Chef', email:'nina@kiteline.uk', siteId:'site_marina', initials:'NK', access:'Manager' },
+-      { id:'u_raj', name:'Raj Patel', role:'Food Court Manager', email:'raj@kiteline.uk', siteId:'site_heathrow', initials:'RP', access:'Manager' },
++      { id:'u_sarah', name:'Sarah Mitchell', role:'Head Chef', email:'sarah@kiteline.uk', siteId:'site_grove', initials:'SM', access:'Admin', clockPin:'1234' },
++      { id:'u_james', name:'James Okafor', role:'Sous Chef', email:'james@kiteline.uk', siteId:'site_grove', initials:'JO', access:'Staff', clockPin:'2345' },
++      { id:'u_lena', name:'Lena Park', role:'Kitchen Manager', email:'lena@kiteline.uk', siteId:'site_dock', initials:'LP', access:'Manager', clockPin:'3456' },
++      { id:'u_marco', name:'Marco Rossi', role:'Chef de Partie', email:'marco@kiteline.uk', siteId:'site_dock', initials:'MR', access:'Staff', clockPin:'4567' },
++      { id:'u_amy', name:'Amy Chen', role:'Compliance Lead', email:'amy@kiteline.uk', siteId:'site_quay', initials:'AC', access:'Manager', clockPin:'5678' },
++      { id:'u_david', name:'David Okonkwo', role:'Head Chef', email:'david@kiteline.uk', siteId:'site_apex', initials:'DO', access:'Manager', clockPin:'6789' },
++      { id:'u_fiona', name:'Fiona Walsh', role:'Pub Manager', email:'fiona@kiteline.uk', siteId:'site_crown', initials:'FW', access:'Manager', clockPin:'7890' },
++      { id:'u_tom', name:'Tom Hughes', role:'Head Barista', email:'tom@kiteline.uk', siteId:'site_river', initials:'TH', access:'Staff', clockPin:'8901' },
++      { id:'u_priya', name:'Priya Sharma', role:'Ops Lead', email:'priya@kiteline.uk', siteId:'site_studio', initials:'PS', access:'Manager', clockPin:'9012' },
++      { id:'u_ewan', name:'Ewan Fraser', role:'Training Chef', email:'ewan@kiteline.uk', siteId:'site_academy', initials:'EF', access:'Manager', clockPin:'1122' },
++      { id:'u_nina', name:'Nina Kostova', role:'Head Chef', email:'nina@kiteline.uk', siteId:'site_marina', initials:'NK', access:'Manager', clockPin:'2233' },
++      { id:'u_raj', name:'Raj Patel', role:'Food Court Manager', email:'raj@kiteline.uk', siteId:'site_heathrow', initials:'RP', access:'Manager', clockPin:'3344' },
+     ];
+ 
+     // LoRaWAN sensors — rich metadata for audit-grade monitoring
+@@ -939,6 +939,45 @@
+     return String(expected) === String(pin || '').trim();
+   }
+ 
++  const DEMO_CLOCK_PINS = {
++    u_sarah: '1234', u_james: '2345', u_lena: '3456', u_marco: '4567', u_amy: '5678',
++    u_david: '6789', u_fiona: '7890', u_tom: '8901', u_priya: '9012', u_ewan: '1122',
++    u_nina: '2233', u_raj: '3344',
++    u_shyam: '1001', u_ved_chef: '1111', u_ved_sous: '2222', u_ved_kp: '3333', u_ved_comp: '4444',
++    u_gov_mgr: '5555', u_gov_chef: '6666', u_gov_prep: '7777', u_gov_kp: '8888',
++  };
++
++  function rotaRestoreDemoPins(db) {
++    (db.team || []).forEach((m, idx) => {
++      if (DEMO_CLOCK_PINS[m.id]) m.clockPin = DEMO_CLOCK_PINS[m.id];
++      else if (!m.clockPin && !m.pin) {
++        m.clockPin = String(1000 + ((idx + 1) * 111) % 9000).padStart(4, '0').slice(0, 4);
++      }
++    });
++  }
++
++  function rotaFindByPin(db, site, pin) {
++    const code = String(pin || '').trim();
++    if (!/^\d{4}$/.test(code)) return null;
++    const local = rotaTeamForSite(db, site).find((m) => String(m.clockPin || m.pin || '') === code);
++    if (local) return local;
++    return (db.team || []).find((m) => String(m.clockPin || m.pin || '') === code) || null;
++  }
++
++  function rotaToggleByPin(db, site, pin, byUserId) {
++    const member = rotaFindByPin(db, site, pin);
++    if (!member) {
++      return {
++        ok: false,
++        reason: 'Wrong PIN — use the 4-digit kitchen PIN (not your login password). Demo: Sarah 1234, Owner 1001.',
++      };
++    }
++    const on = rotaIsClockedIn(db, site, member.id);
++    const res = on ? rotaClockOut(db, site, member.id, byUserId) : rotaClockIn(db, site, member.id, byUserId);
++    if (!res.ok) return res;
++    return { ok: true, member, action: on ? 'out' : 'in', doc: res.doc };
++  }
++
+   function rotaSeedForSite(db, siteId) {
+     const team = rotaTeamForSite(db, siteId);
+     const dates = rotaWeekDates();
+@@ -950,16 +989,20 @@
+         const p = patterns[(idx + di) % patterns.length];
+         rotaSetShift(db, siteId, m.id, date, { status: 'scheduled', startTime: p.start, endTime: p.end }, 'system');
+       });
+-      if (!m.clockPin && !m.pin) m.clockPin = String(1000 + (idx + 1) * 111).slice(0, 4);
++      if (DEMO_CLOCK_PINS[m.id]) m.clockPin = DEMO_CLOCK_PINS[m.id];
++      else if (!m.clockPin && !m.pin) m.clockPin = String(1000 + ((idx + 1) * 111) % 9000).padStart(4, '0').slice(0, 4);
+     });
+   }
+ 
+   function rotaEnsureDemo(db) {
+     const site = db.currentSite || 'site_grove';
+     if (!(db.rotaShifts || []).some(s => s.site === site)) rotaSeedForSite(db, site);
+-    ['site_vedanta', 'site_govindas'].forEach((sid) => {
++    ['site_vedanta', 'site_govindas', 'site_grove', 'site_dock', 'site_quay'].forEach((sid) => {
+       if (!(db.rotaShifts || []).some(s => s.site === sid)) rotaSeedForSite(db, sid);
+     });
++    rotaRestoreDemoPins(db);
++    if (!Array.isArray(db.clockSessions)) db.clockSessions = [];
++    if (!Array.isArray(db.attendanceLog)) db.attendanceLog = [];
+     return db;
+   }
+ 
+@@ -968,7 +1011,8 @@
+     getShift: rotaGetShift, getClock: rotaGetClock, isClockedIn: rotaIsClockedIn,
+     clockedInStaff: rotaClockedInStaff, clockIn: rotaClockIn, clockOut: rotaClockOut,
+     setShift: rotaSetShift, weekDates: rotaWeekDates, dayLabel: rotaDayLabel,
+-    verifyPin: rotaVerifyPin, seedRotaForSite: rotaSeedForSite, ensureDemo: rotaEnsureDemo,
++    verifyPin: rotaVerifyPin, findByPin: rotaFindByPin, toggleByPin: rotaToggleByPin,
++    seedRotaForSite: rotaSeedForSite, ensureDemo: rotaEnsureDemo, DEMO_CLOCK_PINS,
+     scheduledToday(db, site, date) {
+       const d = date || rotaDateKey();
+       return rotaTeamForSite(db, site).map(m => ({ member: m, shift: rotaGetShift(db, site, m.id, d) }))
+diff --git a/js/views.js b/js/views.js
+index be5f577..97733ed 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -383,10 +383,15 @@
+         <td class="text-xs text-ink-400">${fmt.ago(s.updated)}</td>
+       </tr>`;
+     }).join('');
++    const howto = (window.HelpGuides && window.HelpGuides.howToPanelHtml)
++      ? window.HelpGuides.howToPanelHtml(['freezer-temps', 'probe-calibration'])
++      : '';
+     const html = `
+-      ${sectionHeader('Temperature Monitoring','10 live LoRaWAN probes per site ? 24/7 auto-logging ? EC 852/2004 compliant audit trail', `
++      ${sectionHeader('Temperature Monitoring','10 live LoRaWAN probes per site · 24/7 auto-logging · EC 852/2004 compliant audit trail', `
++        <a href="#manual" class="btn btn-ghost btn-sm">${icon('help','ico')} How-to</a>
+         <button class="btn btn-ghost btn-sm" data-act="manual">${icon('plus','ico')} Manual reading</button>
+         <button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add sensor</button>`)}
++      ${howto}
+       <div class="grid sm:grid-cols-4 gap-4 mb-5">
+         <div class="kpi"><div class="text-xs text-ink-500">Sensors (this site)</div><div class="v">${sensors.length}</div></div>
+         <div class="kpi"><div class="text-xs text-ink-500">In range</div><div class="v text-brand-600">${counts.ok}</div></div>
+@@ -2226,15 +2231,70 @@
+       <td>${w.route ? `<a href="#${w.route}" class="text-brand-600 text-xs font-semibold">Open</a>` : '?'}</td>
+     </tr>`;
+   }
+-  function workflowListPage(routeId, title, subtitle, iconName, items, extraHtml) {
++  function printWorkflowStatusReport(title, items, extras) {
++    extras = extras || {};
++    const site = S.site(S.db.currentSite) || {};
++    const done = items.filter((w) => w.status === 'completed').length;
++    const overdue = items.filter((w) => w.status === 'overdue').length;
++    const live = items.filter((w) => w.status === 'in_progress').length;
++    const scheduled = items.filter((w) => w.status === 'scheduled').length;
++    const pct = Math.round(done / (items.length || 1) * 100);
++    const rows = items.map((w) => {
++      const who = S.member(w.assignee);
++      const meta = WF_META[w.status] || WF_META.scheduled;
++      return `<tr>
++        <td>${escapeHtml(w.label || '')}</td>
++        <td>${escapeHtml(w.category || '')}</td>
++        <td>${escapeHtml(who.name || '')}</td>
++        <td>${escapeHtml(meta.label || w.status)}</td>
++        <td>${escapeHtml(fmt.datetime ? fmt.datetime(w.updatedAt || w.completedAt || w.dueAt) : (w.updatedAt || w.completedAt || w.dueAt || ''))}</td>
++        <td>${escapeHtml(w.route || '')}</td>
++      </tr>`;
++    }).join('');
++    const body = `
++      <div class="compliance-print-doc">
++        <div class="compliance-print-brand"><img src="${location.origin}/kiteline-logo.png?v=mark3" alt="" width="32" height="32"> Kiteline</div>
++        <h1>${escapeHtml(title)}</h1>
++        <p class="meta"><b>${escapeHtml(site.name || 'Kitchen')}</b>
++          ${site.address ? ' · ' + escapeHtml(site.address) : ''}
++          ${site.postcode ? ', ' + escapeHtml(site.postcode) : ''}
++          ${site.city ? ' · ' + escapeHtml(site.city) : ''}<br>
++          Printed ${escapeHtml(fmt.date(S.now()))} · ${escapeHtml(extras.subtitle || 'Status report')}</p>
++        <table>
++          <tr><th>Total tasks</th><td>${items.length}</td><th>Complete</th><td>${done} (${pct}%)</td></tr>
++          <tr><th>In progress</th><td>${live}</td><th>Scheduled</th><td>${scheduled}</td></tr>
++          <tr><th>Overdue</th><td>${overdue}</td><th>Manager</th><td>${escapeHtml(site.manager || '—')}</td></tr>
++        </table>
++        ${(extras.notes || '').length ? `<p class="meta">${escapeHtml(extras.notes)}</p>` : ''}
++        <table>
++          <thead><tr><th>Activity</th><th>Category</th><th>Staff</th><th>Status</th><th>Updated / due</th><th>Module</th></tr></thead>
++          <tbody>${rows || '<tr><td colspan="6">No tasks for this site today.</td></tr>'}</tbody>
++        </table>
++        <p class="meta" style="margin-top:20px">Kiteline · HACCP / cleaning status for EHO folder · Sign: ______________ Date: ________</p>
++      </div>`;
++    const style = 'h1{font-size:22px;margin:0 0 8px;color:#0f766e;font-weight:800}.meta{color:#64748b;font-size:12px;margin-bottom:16px}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{border:1px solid #e2e8f0;padding:8px;text-align:left;font-size:12px}th{background:#ecfdf5;color:#0f766e;font-weight:700}.compliance-print-brand{display:flex;align-items:center;gap:8px;margin-bottom:12px;color:#0f766e;font-weight:800;font-size:18px}';
++    const opened = openPrintDocument(title, body, { extraStyle: style });
++    if (!opened) toast('Allow pop-ups to print', 'warn');
++  }
++
++  function workflowListPage(routeId, title, subtitle, iconName, items, extraHtml, opts) {
++    opts = opts || {};
+     const pag = wfPaginate(routeId, items);
++    const howtoIds = opts.howtoIds || [];
++    const howto = (howtoIds.length && window.HelpGuides && window.HelpGuides.howToPanelHtml)
++      ? window.HelpGuides.howToPanelHtml(howtoIds, { openFirst: !!opts.openHowto })
++      : '';
++    const printBtn = opts.detailedPrint
++      ? `<button type="button" class="btn btn-primary btn-sm" data-wf-print="${escapeHtml(routeId)}">${icon('print','ico')} Print detailed report</button>`
++      : '';
+     const html = `
+-      ${sectionHeader(title, subtitle + ` ? ${items.length} total ? 10 per page`, `<a href="#home" class="btn btn-ghost btn-sm">${icon('chevron','ico')} Back to Home</a>`)}
++      ${sectionHeader(title, subtitle + ` · ${items.length} total · 10 per page`, `${printBtn}<a href="#home" class="btn btn-ghost btn-sm">${icon('chevron','ico')} Back to Home</a>`)}
++      ${howto}
+       <div class="flex flex-wrap gap-2 mb-4 text-xs">
+-        <span class="badge badge-green">?? Completed</span>
+-        <span class="badge badge-amber">?? In Progress</span>
+-        <span class="badge badge-red">?? Overdue</span>
+-        <span class="badge badge-blue">?? Scheduled</span>
++        <span class="badge badge-green">Completed</span>
++        <span class="badge badge-amber">In Progress</span>
++        <span class="badge badge-red">Overdue</span>
++        <span class="badge badge-blue">Scheduled</span>
+       </div>
+       ${extraHtml || ''}
+       <div class="card overflow-hidden mb-4">
+@@ -2244,7 +2304,7 @@
+         </table>
+       </div>
+       <div class="flex flex-wrap items-center justify-between gap-3">
+-        <div class="text-sm text-ink-500">Showing ${items.length ? pag.start : 0}?${pag.end} of ${items.length} ? Page ${pag.pg + 1} of ${pag.total}</div>
++        <div class="text-sm text-ink-500">Showing ${items.length ? pag.start : 0}–${pag.end} of ${items.length} · Page ${pag.pg + 1} of ${pag.total}</div>
+         <div class="flex flex-wrap gap-1">${pag.pages}</div>
+       </div>`;
+     return { title, html, mount() {
+@@ -2257,6 +2317,13 @@
+         el.style.cursor = 'pointer';
+         el.onclick = () => { location.hash = el.dataset.go; };
+       });
++      const printEl = document.querySelector('[data-wf-print="' + routeId + '"]');
++      if (printEl) {
++        printEl.onclick = () => printWorkflowStatusReport(title, items, {
++          subtitle,
++          notes: opts.printNotes || '',
++        });
++      }
+     }};
+   }
+ 
+@@ -2354,7 +2421,12 @@
+   function wfclean() {
+     const { cleaningTasks, cleaningPct } = wfStats();
+     const extra = `<div class="kpi mb-4 max-w-xs"><div class="text-xs text-ink-500">Cleaning complete</div><div class="v text-brand-600">${cleaningPct}%</div></div>`;
+-    return workflowListPage('wfclean', 'Cleaning Status', 'Deep cleans, daily logs and hygiene tasks', 'check', cleaningTasks, extra);
++    return workflowListPage('wfclean', 'Cleaning Status', 'Deep cleans, daily logs and hygiene tasks', 'check', cleaningTasks, extra, {
++      detailedPrint: true,
++      howtoIds: ['cleaning-status'],
++      openHowto: true,
++      printNotes: 'Include this sheet in the hygiene folder. Mark overdue items and manager sign-off at the bottom.',
++    });
+   }
+   function wfhaccp() {
+     const { haccpTasks, haccpPct, tempCompliance } = wfStats();
+@@ -2362,7 +2434,12 @@
+       <div class="kpi"><div class="text-xs text-ink-500">HACCP checks done</div><div class="v text-brand-600">${haccpPct}%</div></div>
+       <div class="kpi"><div class="text-xs text-ink-500">Temperature compliance</div><div class="v">${tempCompliance}%</div></div>
+     </div>`;
+-    return workflowListPage('wfhaccp', 'HACCP Compliance Status', 'Temperature logs, CCP checks and audit trail', 'shield', haccpTasks, extra);
++    return workflowListPage('wfhaccp', 'HACCP Compliance Status', 'Temperature logs, CCP checks and audit trail', 'shield', haccpTasks, extra, {
++      detailedPrint: true,
++      howtoIds: ['haccp-print'],
++      openHowto: true,
++      printNotes: 'Daily CCP / temp compliance snapshot. For full HACCP plan samples open Kitchen Compliance → HACCP Plan.',
++    });
+   }
+   function wfperf() {
+     const st = wfStats();
+@@ -3263,12 +3340,32 @@
+   function manual() {
+     const I = window.I18n;
+     const m = I.manual();
++    const HG = window.HelpGuides;
+     const langBtns = I.langs.map(l=>`<button class="btn ${l===I.lang?'btn-primary':'btn-ghost'} btn-sm" data-lang="${l}">${I.langName(l)}</button>`).join('');
++    const guides = HG ? HG.GUIDES : [];
++    const guideCards = guides.map((g) => `
++      <div class="rounded-xl border border-brand-100 bg-brand-50/30 p-4 fade-in" id="guide-${escapeHtml(g.id)}">
++        <div class="flex items-start justify-between gap-2 mb-2">
++          <h3 class="font-bold flex items-center gap-2">${icon(g.icon || 'help', 'ico')} ${escapeHtml(g.title)}</h3>
++          ${g.route ? `<a href="#${escapeHtml(g.route)}" class="btn btn-ghost btn-sm">Open</a>` : ''}
++        </div>
++        <p class="text-sm text-ink-500 mb-3">${escapeHtml(g.summary)}</p>
++        <ol class="list-decimal pl-5 text-sm text-ink-700 space-y-1.5">${g.steps.map((s) => `<li>${escapeHtml(s)}</li>`).join('')}</ol>
++        ${(g.tips || []).length ? `<ul class="mt-3 text-xs text-ink-500 list-disc pl-5 space-y-1">${g.tips.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>` : ''}
++      </div>`).join('');
+     const html = `
+-      ${sectionHeader('User Manual', 'How to use every part of Kiteline ? available in multiple languages', `<button class="btn btn-ghost btn-sm" data-act="print">${icon('print','ico')} Print</button>`)}
++      ${sectionHeader('User Manual', 'Step-by-step: where to click, what to enter, how to print — plus multilingual overview', `<button class="btn btn-ghost btn-sm" data-act="print">${icon('print','ico')} Print</button>`)}
+       <div class="flex flex-wrap gap-2 mb-5">${langBtns}</div>
++      <div class="card card-pad mb-5 border-brand-100">
++        <label class="label" for="manualSearch">Find a task</label>
++        <input id="manualSearch" class="input" placeholder="e.g. clock PIN, freezer, probe, cleaning print, equipment">
++        <p class="text-xs text-ink-400 mt-2">Tip: login password opens the website; kitchen clock needs a separate 4-digit PIN.</p>
++      </div>
++      <h2 class="font-bold text-lg mb-3">How-to guides</h2>
++      <div class="grid lg:grid-cols-2 gap-4 mb-8" id="howtoGuides">${guideCards || '<p class="text-ink-400">Guides loading…</p>'}</div>
+       <div class="card card-pad fade-in" id="manualDoc">
+-        <p class="text-ink-600 mb-5 text-lg">${escapeHtml(m.intro)}</p>
++        <h2 class="font-bold text-lg mb-3">Overview (${escapeHtml(I.langName(I.lang))})</h2>
++        <p class="text-ink-600 mb-5">${escapeHtml(m.intro)}</p>
+         <div class="grid lg:grid-cols-2 gap-5">
+           ${m.sections.map((s,i)=>`<div class="rounded-xl border border-ink-100 p-4">
+             <h3 class="font-bold mb-2 flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 text-xs font-bold flex items-center justify-center flex-none">${i+1}</span>${escapeHtml(s.t)}</h3>
+@@ -3279,6 +3376,22 @@
+     return { title:'Manual', html, mount() {
+       document.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{ window.I18n.setLang(b.dataset.lang); toast('Language: '+window.I18n.langName(b.dataset.lang)); window.App.render(); });
+       const p=document.querySelector('[data-act="print"]'); if(p) p.onclick=()=>window.print();
++      const search = document.getElementById('manualSearch');
++      const box = document.getElementById('howtoGuides');
++      if (search && box && HG) {
++        const renderList = (list) => {
++          box.innerHTML = list.map((g) => `
++            <div class="rounded-xl border border-brand-100 bg-brand-50/30 p-4">
++              <div class="flex items-start justify-between gap-2 mb-2">
++                <h3 class="font-bold">${escapeHtml(g.title)}</h3>
++                ${g.route ? `<a href="#${escapeHtml(g.route)}" class="btn btn-ghost btn-sm">Open</a>` : ''}
++              </div>
++              <p class="text-sm text-ink-500 mb-3">${escapeHtml(g.summary)}</p>
++              <ol class="list-decimal pl-5 text-sm text-ink-700 space-y-1.5">${g.steps.map((s) => `<li>${escapeHtml(s)}</li>`).join('')}</ol>
++            </div>`).join('') || '<p class="text-ink-400">No guides match that search.</p>';
++        };
++        search.oninput = () => renderList(HG.searchGuides(search.value));
++      }
+     }};
+   }
+ 
+@@ -4065,18 +4178,46 @@
+   }
+ 
+   function clockPinModal(member, onOk) {
+-    modal('Enter PIN ? ' + escapeHtml(member.name), `<div class="space-y-3 text-center">
+-      <p class="text-sm text-ink-500">4-digit kitchen PIN</p>
+-      <input id="clockPinIn" class="input text-center text-2xl tracking-[0.4em]" maxlength="4" inputmode="numeric" autocomplete="off" placeholder="????">
+-      <button type="button" class="btn btn-primary w-full" id="clockPinOk">Confirm</button></div>`, { wide: false });
+-    const inp = document.getElementById('clockPinIn');
+-    if (inp) inp.focus();
+-    document.getElementById('clockPinOk').onclick = () => {
+-      const pin = (inp && inp.value) || '';
+-      if (!window.Rota.verifyPin(member, pin)) return toast('Wrong PIN', 'warn');
++    const on = window.Rota && window.Rota.isClockedIn(S.db, S.db.currentSite, member.id);
++    let pin = '';
++    modal((on ? 'Clock out' : 'Clock in') + ' — ' + escapeHtml(member.name), `<div class="space-y-3 text-center">
++      <p class="text-sm text-ink-500">Enter the 4-digit kitchen PIN — not your website login password.</p>
++      <div class="clock-pin-slots" id="modalPinSlots">${[0,1,2,3].map((i)=>`<div class="clock-pin-slot" data-modal-pin="${i}"></div>`).join('')}</div>
++      <div class="clock-pad" id="modalPinPad">
++        ${[['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6'],['7','7'],['8','8'],['9','9'],['clear','CLR'],['0','0'],['back','⌫']].map(([v,l])=>
++          `<button type="button" class="clock-pad-key ${v==='clear'||v==='back'?'clock-pad-key--muted':''}" data-modal-pad="${v}">${l}</button>`
++        ).join('')}
++      </div>
++      <p class="text-xs text-ink-400">Demo tip: Sarah <b>1234</b> · Owner <b>1001</b>. Login password (e.g. demo1234) will fail here.</p>
++      <button type="button" class="btn btn-primary w-full" id="clockPinOk">Confirm ${on ? 'clock out' : 'clock in'}</button>
++    </div>`, { wide: false });
++    const paint = () => {
++      document.querySelectorAll('[data-modal-pin]').forEach((slot) => {
++        slot.classList.toggle('is-filled', parseInt(slot.dataset.modalPin, 10) < pin.length);
++      });
++    };
++    const submit = () => {
++      if (pin.length !== 4) return toast('Enter your 4-digit PIN', 'warn');
++      if (!window.Rota.verifyPin(member, pin)) {
++        pin = '';
++        paint();
++        return toast('Wrong PIN — use the 4-digit kitchen PIN, not your login password', 'warn');
++      }
+       closeModal();
+       onOk();
+     };
++    document.querySelectorAll('[data-modal-pad]').forEach((b) => {
++      b.onclick = () => {
++        const k = b.dataset.modalPad;
++        if (k === 'clear') pin = '';
++        else if (k === 'back') pin = pin.slice(0, -1);
++        else if (pin.length < 4) pin += k;
++        paint();
++        if (pin.length === 4) submit();
++      };
++    });
++    document.getElementById('clockPinOk').onclick = submit;
++    paint();
+   }
+ 
+   function clock() {
+@@ -4088,47 +4229,153 @@
+     const today = R.dateKey();
+     const clocked = R.clockedInStaff(S.db, site);
+     const scheduled = R.scheduledToday(S.db, site);
++    const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
++    const meMember = me && me.email
++      ? (S.db.team || []).find((x) => (x.email || '').toLowerCase() === String(me.email).toLowerCase())
++      : null;
++    const canSkipPin = me && (me.rank >= 2);
++    const howto = (window.HelpGuides && window.HelpGuides.howToPanelHtml)
++      ? window.HelpGuides.howToPanelHtml(['clock-pin'], { openFirst: true })
++      : '';
++
++    const pinSlots = [0,1,2,3].map((i) => `<div class="clock-pin-slot" data-pin-slot="${i}"></div>`).join('');
++    const pad = [['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6'],['7','7'],['8','8'],['9','9'],['clear','CLR'],['0','0'],['back','⌫']]
++      .map(([v,l]) => `<button type="button" class="clock-pad-key ${v==='clear'||v==='back'?'clock-pad-key--muted':''}" data-pad="${v}">${l}</button>`)
++      .join('');
+ 
+     const cards = team.map(m => {
+       const on = R.isClockedIn(S.db, site, m.id);
+       const shift = R.getShift(S.db, site, m.id, today);
+       const sess = R.getClock(S.db, site, m.id, today);
+       const last = sess && sess.sessions && sess.sessions.length ? sess.sessions[sess.sessions.length - 1] : null;
+-      const shiftTxt = shift && shift.status === 'scheduled' ? shift.startTime + '?' + shift.endTime : (shift ? R.ROTA_STATUS[shift.status].label : 'No shift');
++      const shiftTxt = shift && shift.status === 'scheduled' ? shift.startTime + '–' + shift.endTime : (shift ? R.ROTA_STATUS[shift.status].label : 'No shift');
++      const pinCode = m.clockPin || m.pin || '————';
+       return `<div class="clock-staff-card ${on ? 'clock-staff-card--in' : ''}" data-clock-staff="${escapeHtml(m.id)}">
+         <div class="flex items-center gap-3">
+           <div class="w-12 h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold">${escapeHtml(m.initials)}</div>
+           <div class="flex-1 min-w-0">
+             <div class="font-bold">${escapeHtml(m.name)}</div>
+-            <div class="text-xs text-ink-400">${escapeHtml(m.role)} ? ${escapeHtml(shiftTxt)}</div>
+-            ${last ? `<div class="text-xs text-ink-500 mt-1">${on ? 'In since ' + escapeHtml(last.clockIn) : 'Last out ' + escapeHtml(last.clockOut || '?')}</div>` : ''}
++            <div class="text-xs text-ink-400">${escapeHtml(m.role)} · ${escapeHtml(shiftTxt)}</div>
++            ${last ? `<div class="text-xs text-ink-500 mt-1">${on ? 'In since ' + escapeHtml(last.clockIn) : 'Last out ' + escapeHtml(last.clockOut || '—')}</div>` : ''}
+           </div>
+           <span class="badge ${on ? 'badge-green' : 'badge-gray'}">${on ? 'Clocked in' : 'Out'}</span>
+         </div>
+-        <button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'} btn-sm w-full mt-3 clock-toggle-btn">${on ? 'Clock out' : 'Clock in'}</button>
++        <div class="clock-staff-pin">Kitchen PIN <b>${escapeHtml(String(pinCode))}</b></div>
++        <button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'} btn-sm w-full mt-2 clock-toggle-btn">${on ? 'Clock out · PIN' : 'Clock in · PIN'}</button>
+       </div>`;
+     }).join('');
+ 
+-    const html = `${sectionHeader('Clock In / Out', escapeHtml(siteName) + ' ? ' + today, `<a href="#rota" class="btn btn-ghost btn-sm">${icon('team', 'ico')} Rota</a><a href="#wfstaff" class="btn btn-ghost btn-sm">${icon('team', 'ico')} On shift</a>`)}
++    const html = `${sectionHeader('Clock In / Out', escapeHtml(siteName) + ' · ' + today, `<a href="#rota" class="btn btn-ghost btn-sm">${icon('team', 'ico')} Rota</a><a href="#manual" class="btn btn-ghost btn-sm">${icon('help', 'ico')} How-to</a><a href="#wfstaff" class="btn btn-ghost btn-sm">${icon('team', 'ico')} On shift</a>`)}
++      ${howto}
+       <div class="grid sm:grid-cols-3 gap-4 mb-5">
+         <div class="kpi"><div class="text-xs text-ink-500">Clocked in now</div><div class="v text-brand-600">${clocked.length}</div></div>
+         <div class="kpi"><div class="text-xs text-ink-500">Scheduled today</div><div class="v">${scheduled.length}</div></div>
+         <div class="kpi"><div class="text-xs text-ink-500">Team on site</div><div class="v">${team.length}</div></div>
+       </div>
+-      <div class="card card-pad mb-4 text-center">
+-        <div class="clock-live-time" id="clockLiveTime">--:--</div>
+-        <p class="text-sm text-ink-500 mt-1">Tap your name to clock in or out ? PIN required if set on Team</p>
++      ${canSkipPin && meMember ? `<div class="card card-pad mb-4 flex flex-wrap items-center justify-between gap-3">
++        <div><div class="font-bold">Signed in as ${escapeHtml(meMember.name)}</div>
++        <p class="text-xs text-ink-500">Admin/Manager can clock yourself without typing a PIN. Staff still use the pad below.</p></div>
++        <button type="button" class="btn btn-primary btn-sm" id="clockMeBtn">${icon('clock','ico')} ${R.isClockedIn(S.db, site, meMember.id) ? 'Clock me out' : 'Clock me in'}</button>
++      </div>` : ''}
++      <div class="grid lg:grid-cols-2 gap-4 mb-5">
++        <div class="clock-kiosk card card-pad text-center relative">
++          <div class="text-xs font-bold uppercase tracking-wider text-brand-700 mb-2">Shared kitchen pad</div>
++          <div class="clock-live-time" id="clockLiveTime">--:--</div>
++          <p class="text-sm text-ink-500 mt-1 mb-3">Type your 4-digit PIN — not the website password</p>
++          <div class="clock-pin-slots" id="clockPinDisplay" aria-label="PIN entry">${pinSlots}</div>
++          <div class="clock-pad">${pad}</div>
++          <button type="button" class="btn btn-primary w-full mt-3" id="clockPinSubmit">${icon('clock', 'ico')} Enter PIN to clock</button>
++          <p class="clock-pin-error hidden mt-2 text-sm text-red-600 font-semibold" id="clockPinError" role="alert"></p>
++          <div class="clock-pin-cheatsheet">
++            <div class="clock-pin-cheatsheet__title">Demo PINs — tap a chip or type on the pad</div>
++            <div class="clock-pin-cheatsheet__rows">
++              ${team.slice(0, 8).map((m) =>
++                `<button type="button" class="clock-pin-chip ${meMember && m.id === meMember.id ? 'clock-pin-chip--me' : ''}" data-fill-pin="${escapeHtml(String(m.clockPin || m.pin || ''))}">
++                  <span>${escapeHtml(m.name.split(' ')[0])}</span>
++                  <b>${escapeHtml(String(m.clockPin || m.pin || '————'))}</b>
++                </button>`
++              ).join('')}
++            </div>
++          </div>
++        </div>
++        <div class="card card-pad">
++          <h3 class="font-bold mb-2">Why “Wrong PIN” happens</h3>
++          <ul class="text-sm text-ink-600 space-y-2 list-disc pl-5">
++            <li>Website login password (e.g. <b>demo1234</b>) is <b>not</b> a clock PIN.</li>
++            <li>Clock PINs are exactly 4 digits, set on Team or shown on the cards.</li>
++            <li>Wrong site selected at the top — switch to the kitchen you work in.</li>
++            <li>Full walkthrough: <a href="#manual" class="text-brand-700 font-semibold">User Manual → Clock PIN</a>.</li>
++          </ul>
++        </div>
+       </div>
++      <h3 class="font-bold mb-3">Staff cards</h3>
+       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${cards || '<p class="text-ink-400">No team at this site.</p>'}</div>`;
+ 
+     return { title: 'Clock In / Out', html, mount() {
++      if (window._clockIv) clearInterval(window._clockIv);
+       const tick = () => {
+         const el = document.getElementById('clockLiveTime');
+         if (el) el.textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+       };
+       tick();
+-      const iv = setInterval(tick, 1000);
+-      const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
++      window._clockIv = setInterval(tick, 1000);
++      let pin = '';
++      const errEl = document.getElementById('clockPinError');
++      const paint = () => {
++        document.querySelectorAll('[data-pin-slot]').forEach((slot) => {
++          slot.classList.toggle('is-filled', parseInt(slot.dataset.pinSlot, 10) < pin.length);
++        });
++        if (errEl) { errEl.classList.add('hidden'); errEl.textContent = ''; }
++      };
++      const submitPin = () => {
++        if (pin.length !== 4) {
++          if (errEl) { errEl.textContent = 'Enter your 4-digit kitchen PIN'; errEl.classList.remove('hidden'); }
++          return toast('Enter your 4-digit PIN', 'warn');
++        }
++        const res = R.toggleByPin(S.db, site, pin, me && me.email);
++        if (!res.ok) {
++          pin = '';
++          paint();
++          if (errEl) { errEl.textContent = res.reason || 'Wrong PIN'; errEl.classList.remove('hidden'); }
++          return toast(res.reason || 'Wrong PIN', 'warn');
++        }
++        pin = '';
++        paint();
++        S.persist();
++        if (S.logActivity) S.logActivity(res.member.id, res.action === 'in' ? 'Clocked in' : 'Clocked out');
++        toast(res.member.name + (res.action === 'in' ? ' clocked in' : ' clocked out'));
++        window.App.render();
++      };
++      document.querySelectorAll('[data-pad]').forEach((b) => {
++        b.onclick = () => {
++          const k = b.dataset.pad;
++          if (k === 'clear') pin = '';
++          else if (k === 'back') pin = pin.slice(0, -1);
++          else if (pin.length < 4) pin += k;
++          paint();
++          if (pin.length === 4) submitPin();
++        };
++      });
++      const submitBtn = document.getElementById('clockPinSubmit');
++      if (submitBtn) submitBtn.onclick = submitPin;
++      document.querySelectorAll('[data-fill-pin]').forEach((chip) => {
++        chip.onclick = () => {
++          pin = String(chip.dataset.fillPin || '').slice(0, 4);
++          paint();
++          if (pin.length === 4) submitPin();
++        };
++      });
++      const meBtn = document.getElementById('clockMeBtn');
++      if (meBtn && meMember) {
++        meBtn.onclick = () => {
++          const on = R.isClockedIn(S.db, site, meMember.id);
++          const res = on ? R.clockOut(S.db, site, meMember.id, me && me.email) : R.clockIn(S.db, site, meMember.id, me && me.email);
++          if (!res.ok) return toast(res.reason, 'warn');
++          S.persist();
++          toast(meMember.name + (on ? ' clocked out' : ' clocked in'));
++          window.App.render();
++        };
++      }
+       document.querySelectorAll('[data-clock-staff]').forEach(card => {
+         const btn = card.querySelector('.clock-toggle-btn');
+         if (!btn) return;
+@@ -4146,11 +4393,12 @@
+             toast(member.name + (on ? ' clocked out' : ' clocked in'));
+             window.App.render();
+           };
+-          if (member.clockPin || member.pin) clockPinModal(member, doToggle);
+-          else doToggle();
++          if (canSkipPin) return doToggle();
++          if (!member.clockPin && !member.pin) { member.clockPin = '0000'; S.persist(); }
++          clockPinModal(member, doToggle);
+         };
+       });
+-      window._clockIv = iv;
++      paint();
+     }};
+   }
+ 
+diff --git a/scripts/test-guides-clock-print.js b/scripts/test-guides-clock-print.js
+new file mode 100644
+index 0000000..6f468fe
+--- /dev/null
++++ b/scripts/test-guides-clock-print.js
+@@ -0,0 +1,98 @@
++#!/usr/bin/env node
++/* Lightweight checks for clock PIN restore + help guides + print helpers. */
++const fs = require('fs');
++const path = require('path');
++const assert = require('assert');
++const root = path.join(__dirname, '..');
++
++function loadBrowserish(rel) {
++  const src = fs.readFileSync(path.join(root, rel), 'utf8');
++  const sandbox = {
++    window: {},
++    console,
++    location: { origin: 'http://localhost', hash: '#clock' },
++  };
++  sandbox.window = sandbox;
++  // eslint-disable-next-line no-new-func
++  const fn = new Function('window', 'console', 'location', src + '\n;return window;');
++  return fn(sandbox, console, sandbox.location);
++}
++
++// help-guides is an IIFE attaching to window.HelpGuides
++const hgWin = { UI: { escapeHtml: (x) => String(x), icon: () => '' } };
++{
++  const src = fs.readFileSync(path.join(root, 'js/help-guides.js'), 'utf8');
++  // eslint-disable-next-line no-new-func
++  new Function('window', src)(hgWin);
++}
++assert.ok(hgWin.HelpGuides, 'HelpGuides loaded');
++assert.ok(hgWin.HelpGuides.guideById('clock-pin'));
++assert.ok(hgWin.HelpGuides.guideById('equipment-maintenance'));
++assert.ok(hgWin.HelpGuides.howToPanelHtml(['clock-pin']).includes('How to use this page'));
++assert.ok(hgWin.HelpGuides.searchGuides('freezer').length >= 1);
++assert.ok(hgWin.HelpGuides.searchGuides('coloration').length >= 1);
++
++// Store / Rota — extract and eval Rota helpers by running store with stubs
++const storeSrc = fs.readFileSync(path.join(root, 'js/store.js'), 'utf8');
++const storeWin = {
++  localStorage: { getItem() { return null; }, setItem() {}, removeItem() {} },
++  Api: null,
++};
++// Minimal: only evaluate the Rota section by constructing db and calling exported API after load
++// store.js expects window and may call seed — wrap carefully
++global.window = storeWin;
++global.document = undefined;
++try {
++  // eslint-disable-next-line no-eval
++  eval(storeSrc);
++} catch (e) {
++  // store may reference document during seed; continue if Rota attached
++}
++assert.ok(storeWin.Rota, 'Rota attached');
++const db = {
++  currentSite: 'site_grove',
++  team: [
++    { id: 'u_sarah', name: 'Sarah Mitchell', siteId: 'site_grove', access: 'Admin' },
++    { id: 'u_james', name: 'James Okafor', siteId: 'site_grove', access: 'Staff' },
++    { id: 'u_shyam', name: 'Shyam', siteId: 'site_vedanta', access: 'Admin', clockPin: '9999' },
++  ],
++  rotaShifts: [{ site: 'site_grove', staffId: 'u_sarah', date: '2099-01-01', status: 'scheduled' }],
++  clockSessions: [],
++  attendanceLog: [],
++};
++storeWin.Rota.ensureDemo(db);
++assert.strictEqual(db.team[0].clockPin, '1234', 'Sarah demo PIN restored');
++assert.strictEqual(db.team[1].clockPin, '2345', 'James demo PIN restored');
++assert.strictEqual(db.team[2].clockPin, '1001', 'Owner PIN restored even if stale');
++
++const bad = storeWin.Rota.toggleByPin(db, 'site_grove', 'demo1234', 'test');
++assert.strictEqual(bad.ok, false, 'login password must fail');
++assert.ok(/Wrong PIN|kitchen PIN/i.test(bad.reason), 'clear wrong-PIN message');
++
++const ok = storeWin.Rota.toggleByPin(db, 'site_grove', '1234', 'test');
++assert.strictEqual(ok.ok, true, 'Sarah 1234 clocks in');
++assert.strictEqual(ok.action, 'in');
++assert.ok(storeWin.Rota.isClockedIn(db, 'site_grove', 'u_sarah'));
++
++const out = storeWin.Rota.toggleByPin(db, 'site_grove', '1234', 'test');
++assert.strictEqual(out.ok, true);
++assert.strictEqual(out.action, 'out');
++
++// NAV includes clock/rota
++const appSrc = fs.readFileSync(path.join(root, 'js/app.js'), 'utf8');
++assert.ok(appSrc.includes("id:'clock'"), 'NAV has clock');
++assert.ok(appSrc.includes("id:'rota'"), 'NAV has rota');
++
++// index wires help-guides
++const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
++assert.ok(index.includes('help-guides.js'), 'index loads help-guides');
++
++// print helpers present
++const views = fs.readFileSync(path.join(root, 'js/views.js'), 'utf8');
++assert.ok(views.includes('printWorkflowStatusReport'), 'detailed workflow print');
++assert.ok(views.includes('Print detailed report'), 'cleaning/haccp print button');
++const cv = fs.readFileSync(path.join(root, 'js/compliance-views.js'), 'utf8');
++assert.ok(cv.includes('FIELD_LABELS'), 'human field labels');
++assert.ok(cv.includes('Print detailed record'), 'detailed record print');
++
++console.log('test-guides-clock-print: OK');
+-- 
+2.43.0
+
+
+From 1a27271f244cda7e934ff2bc7878af745a745e8a Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Fri, 31 Jul 2026 00:08:35 +0000
+Subject: [PATCH 2/2] Improve Clock/Rota nav placement and print CTAs
+
+Move Clock In/Out and Rota higher under Live Ops, and surface Print
+detailed report buttons on Cleaning and HACCP status pages.
+---
+ js/app.js         |   4 +-
+ js/views.js       |  16 ++++--
+ package-lock.json | 129 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 143 insertions(+), 6 deletions(-)
+
+diff --git a/js/app.js b/js/app.js
+index acf742e..dcdf2f0 100644
+--- a/js/app.js
++++ b/js/app.js
+@@ -14,6 +14,8 @@
+     { id:'wfout', label:'Outstanding', icon:'layers' },
+     { id:'wfod', label:'Overdue', icon:'alert' },
+     { id:'wfstaff', label:'Staff Working', icon:'team' },
++    { id:'clock', label:'Clock In/Out', icon:'clock' },
++    { id:'rota', label:'Rota & Shifts', icon:'team' },
+     { id:'wfdel', label:'Deliveries Today', icon:'truck' },
+     { id:'wfprod', label:'Food Production', icon:'recipe' },
+     { id:'wfclean', label:'Cleaning Status', icon:'check' },
+@@ -22,8 +24,6 @@
+     { id:'dashboard', label:'Dashboard', icon:'dashboard' },
+     { id:'taskoverview', label:'Task Overview', icon:'check' },
+     { id:'temps', label:'Fridge & Freezer Temps', icon:'temp' },
+-    { id:'clock', label:'Clock In/Out', icon:'clock' },
+-    { id:'rota', label:'Rota & Shifts', icon:'team' },
+     { id:'alerts', label:'Alerts & SMS', icon:'alert' },
+     { id:'haccp', label:'HACCP & Checklists', icon:'check' },
+     { sep:'Kitchen Compliance', sepKey:'complianceSec' },
+diff --git a/js/views.js b/js/views.js
+index 97733ed..701fe20 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -2421,23 +2421,31 @@
+   function wfclean() {
+     const { cleaningTasks, cleaningPct } = wfStats();
+     const extra = `<div class="kpi mb-4 max-w-xs"><div class="text-xs text-ink-500">Cleaning complete</div><div class="v text-brand-600">${cleaningPct}%</div></div>`;
+-    return workflowListPage('wfclean', 'Cleaning Status', 'Deep cleans, daily logs and hygiene tasks', 'check', cleaningTasks, extra, {
++    const printBar = `<div class="flex flex-wrap gap-2 mb-4">
++      <button type="button" class="btn btn-primary btn-sm" data-wf-print="wfclean">${icon('print','ico')} Print detailed report</button>
++      <a href="#manual" class="btn btn-ghost btn-sm">${icon('help','ico')} How-to guide</a>
++    </div>`;
++    return workflowListPage('wfclean', 'Cleaning Status', 'Deep cleans, daily logs and hygiene tasks', 'check', cleaningTasks, printBar + extra, {
+       detailedPrint: true,
+       howtoIds: ['cleaning-status'],
+-      openHowto: true,
++      openHowto: false,
+       printNotes: 'Include this sheet in the hygiene folder. Mark overdue items and manager sign-off at the bottom.',
+     });
+   }
+   function wfhaccp() {
+     const { haccpTasks, haccpPct, tempCompliance } = wfStats();
++    const printBar = `<div class="flex flex-wrap gap-2 mb-4">
++      <button type="button" class="btn btn-primary btn-sm" data-wf-print="wfhaccp">${icon('print','ico')} Print detailed report</button>
++      <a href="#compliance" class="btn btn-ghost btn-sm">${icon('shield','ico')} Full compliance pack</a>
++    </div>`;
+     const extra = `<div class="grid sm:grid-cols-2 gap-4 mb-4">
+       <div class="kpi"><div class="text-xs text-ink-500">HACCP checks done</div><div class="v text-brand-600">${haccpPct}%</div></div>
+       <div class="kpi"><div class="text-xs text-ink-500">Temperature compliance</div><div class="v">${tempCompliance}%</div></div>
+     </div>`;
+-    return workflowListPage('wfhaccp', 'HACCP Compliance Status', 'Temperature logs, CCP checks and audit trail', 'shield', haccpTasks, extra, {
++    return workflowListPage('wfhaccp', 'HACCP Compliance Status', 'Temperature logs, CCP checks and audit trail', 'shield', haccpTasks, printBar + extra, {
+       detailedPrint: true,
+       howtoIds: ['haccp-print'],
+-      openHowto: true,
++      openHowto: false,
+       printNotes: 'Daily CCP / temp compliance snapshot. For full HACCP plan samples open Kitchen Compliance → HACCP Plan.',
+     });
+   }
+diff --git a/package-lock.json b/package-lock.json
+index 5b65941..9511dc1 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -9,12 +9,42 @@
+       "version": "1.0.0",
+       "license": "UNLICENSED",
+       "dependencies": {
++        "@neondatabase/serverless": "^0.10.4",
+         "nodemailer": "^6.9.16"
+       },
+       "engines": {
+         "node": ">=16"
+       }
+     },
++    "node_modules/@neondatabase/serverless": {
++      "version": "0.10.4",
++      "resolved": "https://registry.npmjs.org/@neondatabase/serverless/-/serverless-0.10.4.tgz",
++      "integrity": "sha512-2nZuh3VUO9voBauuh+IGYRhGU/MskWHt1IuZvHcJw6GLjDgtqj/KViKo7SIrLdGLdot7vFbiRRw+BgEy3wT9HA==",
++      "license": "MIT",
++      "dependencies": {
++        "@types/pg": "8.11.6"
++      }
++    },
++    "node_modules/@types/node": {
++      "version": "26.1.2",
++      "resolved": "https://registry.npmjs.org/@types/node/-/node-26.1.2.tgz",
++      "integrity": "sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==",
++      "license": "MIT",
++      "dependencies": {
++        "undici-types": "~8.3.0"
++      }
++    },
++    "node_modules/@types/pg": {
++      "version": "8.11.6",
++      "resolved": "https://registry.npmjs.org/@types/pg/-/pg-8.11.6.tgz",
++      "integrity": "sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==",
++      "license": "MIT",
++      "dependencies": {
++        "@types/node": "*",
++        "pg-protocol": "*",
++        "pg-types": "^4.0.1"
++      }
++    },
+     "node_modules/nodemailer": {
+       "version": "6.10.1",
+       "resolved": "https://registry.npmjs.org/nodemailer/-/nodemailer-6.10.1.tgz",
+@@ -23,6 +53,105 @@
+       "engines": {
+         "node": ">=6.0.0"
+       }
++    },
++    "node_modules/obuf": {
++      "version": "1.1.2",
++      "resolved": "https://registry.npmjs.org/obuf/-/obuf-1.1.2.tgz",
++      "integrity": "sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==",
++      "license": "MIT"
++    },
++    "node_modules/pg-int8": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/pg-int8/-/pg-int8-1.0.1.tgz",
++      "integrity": "sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==",
++      "license": "ISC",
++      "engines": {
++        "node": ">=4.0.0"
++      }
++    },
++    "node_modules/pg-numeric": {
++      "version": "1.0.2",
++      "resolved": "https://registry.npmjs.org/pg-numeric/-/pg-numeric-1.0.2.tgz",
++      "integrity": "sha512-BM/Thnrw5jm2kKLE5uJkXqqExRUY/toLHda65XgFTBTFYZyopbKjBe29Ii3RbkvlsMoFwD+tHeGaCjjv0gHlyw==",
++      "license": "ISC",
++      "engines": {
++        "node": ">=4"
++      }
++    },
++    "node_modules/pg-protocol": {
++      "version": "1.15.0",
++      "resolved": "https://registry.npmjs.org/pg-protocol/-/pg-protocol-1.15.0.tgz",
++      "integrity": "sha512-cq9sECI5s0+uPUXjbz8ioyPJni6RzsRib0US67i5IoTZKw8fNeYlVE7u8F4dG7vEJJtc5wdD1K189lCCUwqWTQ==",
++      "license": "MIT"
++    },
++    "node_modules/pg-types": {
++      "version": "4.1.0",
++      "resolved": "https://registry.npmjs.org/pg-types/-/pg-types-4.1.0.tgz",
++      "integrity": "sha512-o2XFanIMy/3+mThw69O8d4n1E5zsLhdO+OPqswezu7Z5ekP4hYDqlDjlmOpYMbzY2Br0ufCwJLdDIXeNVwcWFg==",
++      "license": "MIT",
++      "dependencies": {
++        "pg-int8": "1.0.1",
++        "pg-numeric": "1.0.2",
++        "postgres-array": "~3.0.1",
++        "postgres-bytea": "~3.0.0",
++        "postgres-date": "~2.1.0",
++        "postgres-interval": "^3.0.0",
++        "postgres-range": "^1.1.1"
++      },
++      "engines": {
++        "node": ">=10"
++      }
++    },
++    "node_modules/postgres-array": {
++      "version": "3.0.4",
++      "resolved": "https://registry.npmjs.org/postgres-array/-/postgres-array-3.0.4.tgz",
++      "integrity": "sha512-nAUSGfSDGOaOAEGwqsRY27GPOea7CNipJPOA7lPbdEpx5Kg3qzdP0AaWC5MlhTWV9s4hFX39nomVZ+C4tnGOJQ==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/postgres-bytea": {
++      "version": "3.0.0",
++      "resolved": "https://registry.npmjs.org/postgres-bytea/-/postgres-bytea-3.0.0.tgz",
++      "integrity": "sha512-CNd4jim9RFPkObHSjVHlVrxoVQXz7quwNFpz7RY1okNNme49+sVyiTvTRobiLV548Hx/hb1BG+iE7h9493WzFw==",
++      "license": "MIT",
++      "dependencies": {
++        "obuf": "~1.1.2"
++      },
++      "engines": {
++        "node": ">= 6"
++      }
++    },
++    "node_modules/postgres-date": {
++      "version": "2.1.0",
++      "resolved": "https://registry.npmjs.org/postgres-date/-/postgres-date-2.1.0.tgz",
++      "integrity": "sha512-K7Juri8gtgXVcDfZttFKVmhglp7epKb1K4pgrkLxehjqkrgPhfG6OO8LHLkfaqkbpjNRnra018XwAr1yQFWGcA==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/postgres-interval": {
++      "version": "3.0.0",
++      "resolved": "https://registry.npmjs.org/postgres-interval/-/postgres-interval-3.0.0.tgz",
++      "integrity": "sha512-BSNDnbyZCXSxgA+1f5UU2GmwhoI0aU5yMxRGO8CdFEcY2BQF9xm/7MqKnYoM1nJDk8nONNWDk9WeSmePFhQdlw==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/postgres-range": {
++      "version": "1.1.4",
++      "resolved": "https://registry.npmjs.org/postgres-range/-/postgres-range-1.1.4.tgz",
++      "integrity": "sha512-i/hbxIE9803Alj/6ytL7UHQxRvZkI9O4Sy+J3HGc4F4oo/2eQAjTSNJ0bfxyse3bH0nuVesCk+3IRLaMtG3H6w==",
++      "license": "MIT"
++    },
++    "node_modules/undici-types": {
++      "version": "8.3.0",
++      "resolved": "https://registry.npmjs.org/undici-types/-/undici-types-8.3.0.tgz",
++      "integrity": "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==",
++      "license": "MIT"
+     }
+   }
+ }
+-- 
+2.43.0
+
