@@ -133,8 +133,26 @@ def main() -> None:
         fail(f"expected {EXPECTED_MD} markdown files, got {md_count}")
     if xlsx_count != EXPECTED_XLSX:
         fail(f"expected {EXPECTED_XLSX} Excel workbooks, got {xlsx_count}")
-    if html_count != EXPECTED_RECIPES + KITCHEN_COUNT + 1:
-        fail(f"expected {EXPECTED_RECIPES + KITCHEN_COUNT + 1} HTML cards+indexes, got {html_count}")
+    if html_count != EXPECTED_RECIPES + KITCHEN_COUNT + 2:
+        fail(f"expected {EXPECTED_RECIPES + KITCHEN_COUNT + 2} HTML files, got {html_count}")
+    if not (OUT / "DOWNLOAD.html").is_file():
+        fail("missing DOWNLOAD.html")
+    zips = list((OUT / "download").glob("*.zip"))
+    if len(zips) != KITCHEN_COUNT + 1:
+        fail(f"expected {KITCHEN_COUNT + 1} zip packs, got {zips}")
+    if not (OUT / "download" / "07-manipur.zip").is_file():
+        fail("missing Manipur ZIP pack")
+    if not (OUT / "download" / "ALL-FOCUS-KITCHEN-RECIPES.zip").is_file():
+        fail("missing all-kitchens ZIP")
+    manipur_pdfs = list((OUT / "07-manipur").rglob("*.pdf"))
+    if len(manipur_pdfs) != RECIPES_EACH:
+        fail(f"Manipur PDF cards: {len(manipur_pdfs)}")
+    chamthong = OUT / "07-manipur" / "02-mains" / "chamthong-stew.pdf"
+    if not chamthong.is_file() or chamthong.stat().st_size < 1000:
+        fail(f"missing downloadable Chamthong PDF: {chamthong}")
+    booklet = OUT / "download" / "07-manipur-recipes.pdf"
+    if not booklet.is_file() or booklet.stat().st_size < 5000:
+        fail("missing Manipur 21-card PDF booklet")
 
     # Professional card: Manipur workbook has Qty/Unit/Ingredient and measured lines.
     manipur_xlsx = OUT / "07-manipur" / "excel" / "manipur-recipes.xlsx"

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -22,11 +23,11 @@ Each dish is **no onion, no garlic**, cooked in **steel, iron, clay or glass —
 
 Open first:
 
-- [`index.html`](index.html) in each kitchen folder — **one recipe card per dish**, with Qty / Unit / Ingredient
-- [`excel/FOCUS-STATES.xlsx`](excel/FOCUS-STATES.xlsx) — index of all kitchens (not the cooking cards)
-- Each kitchen workbook: `14-rajasthan/excel/rajasthan-recipes.xlsx` — **Menu sheet + one sheet per recipe card**
+- [`DOWNLOAD.html`](DOWNLOAD.html) — **click to download** ZIP packs and PDFs
+- [`index.html`](index.html) in each kitchen folder — one recipe card per dish
+- Each kitchen workbook: `07-manipur/excel/manipur-recipes.xlsx`
 
-Example: Manipur is folder `07-manipur/`. Open `07-manipur/index.html` or `07-manipur/excel/manipur-recipes.xlsx`. Chamthong is its own card, not mixed with other dishes.
+Example: Manipur ZIP is [`download/07-manipur.zip`](download/07-manipur.zip). Chamthong PDF is [`07-manipur/02-mains/chamthong-stew.pdf`](07-manipur/02-mains/chamthong-stew.pdf).
 
 Diet rules: [../COOKWARE-AND-DIET-RULES.md](../COOKWARE-AND-DIET-RULES.md)
 
@@ -175,7 +176,9 @@ def write_tree(recipes: list[dict]) -> None:
         recs = [x for x in recipes if x["continent_id"] == st["id"]]
         kitchen_links.append(
             f"<li><a href='{st['folder']}/index.html'><strong>{st['name']}</strong></a> "
-            f"— {len(recs)} recipe cards · <a href='{st['folder']}/excel/{st['id']}-recipes.xlsx'>Excel workbook</a></li>"
+            f"— {len(recs)} cards · "
+            f"<a href='download/{st['folder']}.zip'>Download ZIP</a> · "
+            f"<a href='download/{st['folder']}-recipes.pdf'>Download PDF</a></li>"
         )
     (OUT / "index.html").write_text(
         """<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -183,9 +186,11 @@ def write_tree(recipes: list[dict]) -> None:
 <style>body{font-family:Calibri,Arial,sans-serif;max-width:800px;margin:32px auto;background:#fff7ed;color:#1c1917}
 .warn{background:#7f1d1d;color:#fff;padding:10px 14px;font-weight:700} a{color:#9a3412;font-weight:700} li{margin:8px 0}</style>
 </head><body>
-<h1>One kitchen = one folder = one workbook</h1>
-<p>Each dish is its own professional recipe card with Qty, Unit and Ingredient. Example: open Manipur, then Chamthong Stew only.</p>
+<h1>Downloadable vegetarian recipe cards</h1>
+<p>Each kitchen is a ZIP. Each dish is a PDF. Example: Manipur Chamthong is one file.</p>
 <p class="warn">VEGETARIAN · NO ONION · NO GARLIC · NO ALUMINIUM</p>
+<p><a href="DOWNLOAD.html"><strong>Open the download page</strong></a>
+ · <a href="download/ALL-FOCUS-KITCHEN-RECIPES.zip">Download all kitchens (ZIP)</a></p>
 <ul>
 """
         + "\n".join(kitchen_links)
@@ -213,6 +218,86 @@ def write_tree(recipes: list[dict]) -> None:
             (cat_dir / f"{stem}.html").write_text(
                 core.recipe_cards.html_card(rec, st), encoding="utf-8"
             )
+
+
+def zip_dir(folder: Path, zip_path: Path, arc_prefix: str | None = None) -> None:
+    zip_path.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for path in sorted(folder.rglob("*")):
+            if not path.is_file():
+                continue
+            if path.suffix == ".zip":
+                continue
+            rel = path.relative_to(folder if arc_prefix is None else folder)
+            arc = f"{arc_prefix}/{rel}" if arc_prefix else str(rel)
+            zf.write(path, arcname=arc)
+
+
+def write_downloads(recipes: list[dict]) -> None:
+    import recipe_pdf
+
+    down = OUT / "download"
+    down.mkdir(parents=True, exist_ok=True)
+    for st in FOCUS_STATES:
+        recs = [x for x in recipes if x["continent_id"] == st["id"]]
+        base = OUT / st["folder"]
+        for rec in recs:
+            stem = core.slug(rec["name"])
+            pdf_path = base / core.CAT_FOLDERS[rec["category"]] / f"{stem}.pdf"
+            recipe_pdf.write_recipe_pdf(pdf_path, rec, st)
+        booklet = down / f"{st['folder']}-recipes.pdf"
+        recipe_pdf.write_kitchen_pdf(booklet, st, recs)
+        zip_dir(base, down / f"{st['folder']}.zip", arc_prefix=st["folder"])
+
+    all_zip = down / "ALL-FOCUS-KITCHEN-RECIPES.zip"
+    with zipfile.ZipFile(all_zip, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for path in sorted(OUT.rglob("*")):
+            if not path.is_file():
+                continue
+            if path.suffix == ".zip":
+                continue
+            if "download" in path.parts and path.suffix == ".pdf":
+                zf.write(path, arcname=str(path.relative_to(OUT)))
+                continue
+            if "download" in path.parts:
+                continue
+            zf.write(path, arcname=str(path.relative_to(OUT)))
+
+    rows = []
+    for st in FOCUS_STATES:
+        rows.append(
+            f"<tr><td>{st['name']}</td>"
+            f"<td><a href='download/{st['folder']}.zip'>Download ZIP</a></td>"
+            f"<td><a href='download/{st['folder']}-recipes.pdf'>Download PDF (21 cards)</a></td>"
+            f"<td><a href='{st['folder']}/excel/{st['id']}-recipes.xlsx'>Excel</a></td></tr>"
+        )
+    (OUT / "DOWNLOAD.html").write_text(
+        """<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>Download recipes</title>
+<style>
+body{font-family:Calibri,Arial,sans-serif;max-width:900px;margin:28px auto;background:#fff7ed;color:#1c1917}
+h1{color:#9a3412} a{color:#fff;background:#9a3412;padding:8px 12px;text-decoration:none;display:inline-block;margin:2px 0}
+.warn{background:#7f1d1d;color:#fff;padding:10px 14px;font-weight:700}
+table{width:100%;border-collapse:collapse;background:#fff;margin-top:16px}
+td,th{border-bottom:1px solid #e7d5c4;padding:10px;text-align:left}
+th{background:#9a3412;color:#fff}
+.big{font-size:18px;padding:14px 18px;margin:12px 0}
+</style></head><body>
+<h1>Downloadable recipe cards</h1>
+<p class="warn">VEGETARIAN · NO ONION · NO GARLIC · NO ALUMINIUM COOKWARE</p>
+<p>Each ZIP is one kitchen: Excel workbook + 21 PDF recipe cards + HTML cards. Each PDF is one dish with Qty, Unit and Ingredient.</p>
+<p><a class="big" href="download/ALL-FOCUS-KITCHEN-RECIPES.zip">Download ALL kitchens (ZIP)</a></p>
+<p>Example: Manipur Chamthong PDF is inside the Manipur ZIP, and also at
+<code>07-manipur/02-mains/chamthong-stew.pdf</code>.</p>
+<table><thead><tr><th>Kitchen</th><th>ZIP pack</th><th>All cards PDF</th><th>Excel</th></tr></thead><tbody>
+"""
+        + "\n".join(rows)
+        + """
+</tbody></table>
+</body></html>
+""",
+        encoding="utf-8",
+    )
 
 
 def main() -> None:
@@ -251,9 +336,12 @@ def main() -> None:
         core.build_continent_workbook(
             st, recs, OUT / st["folder"] / "excel" / f"{st['id']}-recipes.xlsx"
         )
+    write_downloads(recipes)
     print(f"Wrote {len(recipes)} recipes for {len(FOCUS_STATES)} kitchens")
     print(f"Markdown: {len(list(OUT.rglob('*.md')))}")
     print(f"Excel: {len(list(OUT.rglob('*.xlsx')))}")
+    print(f"PDF cards: {len(list(OUT.rglob('*.pdf')))}")
+    print(f"ZIP packs: {len(list((OUT / 'download').glob('*.zip')))}")
 
 
 if __name__ == "__main__":

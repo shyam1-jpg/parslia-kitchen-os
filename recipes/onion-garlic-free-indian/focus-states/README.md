@@ -6,11 +6,11 @@ Each dish is **no onion, no garlic**, cooked in **steel, iron, clay or glass —
 
 Open first:
 
-- [`index.html`](index.html) in each kitchen folder — **one recipe card per dish**, with Qty / Unit / Ingredient
-- [`excel/FOCUS-STATES.xlsx`](excel/FOCUS-STATES.xlsx) — index of all kitchens (not the cooking cards)
-- Each kitchen workbook: `14-rajasthan/excel/rajasthan-recipes.xlsx` — **Menu sheet + one sheet per recipe card**
+- [`DOWNLOAD.html`](DOWNLOAD.html) — **click to download** ZIP packs and PDFs
+- [`index.html`](index.html) in each kitchen folder — one recipe card per dish
+- Each kitchen workbook: `07-manipur/excel/manipur-recipes.xlsx`
 
-Example: Manipur is folder `07-manipur/`. Open `07-manipur/index.html` or `07-manipur/excel/manipur-recipes.xlsx`. Chamthong is its own card, not mixed with other dishes.
+Example: Manipur ZIP is [`download/07-manipur.zip`](download/07-manipur.zip). Chamthong PDF is [`07-manipur/02-mains/chamthong-stew.pdf`](07-manipur/02-mains/chamthong-stew.pdf).
 
 Diet rules: [../COOKWARE-AND-DIET-RULES.md](../COOKWARE-AND-DIET-RULES.md)
 

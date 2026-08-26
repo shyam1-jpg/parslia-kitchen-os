@@ -165,6 +165,7 @@ def md_card(recipe: dict, kitchen: dict) -> str:
 def html_card(recipe: dict, kitchen: dict) -> str:
     rows = measured(recipe)
     total = int(recipe["prep_min"]) + int(recipe["cook_min"])
+    slug = re.sub(r"[^a-z0-9]+", "-", recipe["name"].lower()).strip("-")
     trs = []
     for row in rows:
         trs.append(
@@ -213,9 +214,11 @@ def html_card(recipe: dict, kitchen: dict) -> str:
   li {{ margin: 0 0 10px; line-height:1.45; }}
   .notes {{ background:#fee2e2; }}
   footer {{ padding:12px 28px 18px; font-family: Calibri, Arial, sans-serif; font-size:12px; color:#57534e; }}
+  .dl a {{ display:inline-block; margin:8px 8px 0 0; padding:8px 12px; background:#9a3412; color:#fff !important; text-decoration:none; font-family: Calibri, Arial, sans-serif; font-size:13px; }}
   @media print {{
     body {{ background:#fff; }}
     .card {{ margin:0; box-shadow:none; border-width:4px; }}
+    .dl {{ display:none; }}
   }}
   @media (max-width: 700px) {{
     .meta, .grid {{ grid-template-columns: 1fr 1fr; }}
@@ -228,6 +231,10 @@ def html_card(recipe: dict, kitchen: dict) -> str:
     <p class="eyebrow">{html.escape(kitchen['name'].upper())} · {html.escape(str(recipe['category']).upper())} · RECIPE CARD</p>
     <h1>{html.escape(recipe['name'])}</h1>
     <p class="badges">{html.escape(recipe['diet']).upper()}</p>
+    <p class="dl">
+      <a href="{html.escape(slug)}.pdf" download>Download this recipe (PDF)</a>
+      <a href="../../download/{html.escape(kitchen['folder'])}.zip" download>Download {html.escape(kitchen['name'])} kitchen ZIP</a>
+    </p>
   </header>
   <dl class="meta">
     <div><dt>Serves</dt><dd>{html.escape(str(recipe['servings']))}</dd></div>
@@ -280,9 +287,11 @@ def html_kitchen_index(kitchen: dict, recipes: list[dict], xlsx_name: str) -> st
         for rec in recs:
             slug = re.sub(r"[^a-z0-9]+", "-", rec["name"].lower()).strip("-")
             href = f"{folders[cat]}/{slug}.html"
+            pdf = f"{folders[cat]}/{slug}.pdf"
             items.append(
                 f"<li><a href='{html.escape(href)}'>{html.escape(rec['name'])}</a>"
-                f" <span>{rec['prep_min']+rec['cook_min']} min · serves {rec['servings']}</span></li>"
+                f" <span>{rec['prep_min']+rec['cook_min']} min · serves {rec['servings']}</span>"
+                f" · <a href='{html.escape(pdf)}' download>PDF</a></li>"
             )
         blocks.append(f"<h2>{html.escape(cat)}</h2><ul>{''.join(items)}</ul>")
     return f"""<!doctype html>
@@ -309,8 +318,11 @@ def html_kitchen_index(kitchen: dict, recipes: list[dict], xlsx_name: str) -> st
   <p class="lead">{html.escape(kitchen['community'])}. {len(recipes)} dishes. Each dish is its own card with measurements.</p>
   <p class="warn">VEGETARIAN · NO ONION · NO GARLIC · NO ALUMINIUM COOKWARE</p>
   <div class="box">
-    <p>Kitchen workbook (one sheet = one recipe card): <a href="excel/{html.escape(xlsx_name)}">{html.escape(xlsx_name)}</a></p>
-    <p>Open a card below. Print from the browser for a kitchen copy.</p>
+    <p><strong>Download this kitchen</strong></p>
+    <p><a href="../download/{html.escape(kitchen['folder'])}.zip" download>ZIP pack</a>
+       (Excel + 21 PDF cards + HTML)</p>
+    <p><a href="../download/{html.escape(kitchen['folder'])}-recipes.pdf" download>All 21 cards in one PDF</a></p>
+    <p>Kitchen workbook: <a href="excel/{html.escape(xlsx_name)}" download>{html.escape(xlsx_name)}</a></p>
   </div>
   {''.join(blocks)}
 </main>
