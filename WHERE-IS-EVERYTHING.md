@@ -52,6 +52,7 @@ GitHub Pages is set to `parslia.app`, but **GoDaddy DNS still points to GoDaddy*
 | `Desktop\parslia-site\` | Cursor copy (simpler) — **use GitHub repo instead** |
 | `Desktop\parslia-brand\` | Logo SVGs only |
 | `kitchen-os\` | **Kiteline** — separate product, not Parslia |
+| `recipes/onion-garlic-free-indian/` | Vegetarian Indian recipes by continent (no onion/garlic, no aluminium). Excel in `excel/ALL-CONTINENTS.xlsx` |
 
 ---
 
