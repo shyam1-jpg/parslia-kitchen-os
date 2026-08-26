@@ -202,15 +202,28 @@ Starter · Main · Side · Bread · Sweet · Dessert · Salad
 
 Serves 4 unless a recipe says otherwise.
 
-## Indian states
+## Indian states (28 + 8 union territories)
 
-Recipes for **every Indian state and union territory** live in [`india-states/`](india-states/README.md) with `india-states/excel/ALL-STATES.xlsx`.
+A full seven-course vegetarian menu for **every Indian state and UT** is in [`india-states/`](india-states/README.md).
+
+- [`india-states/excel/ALL-STATES.xlsx`](india-states/excel/ALL-STATES.xlsx) — 252 recipes
+- [`india-states/excel/SHOPPING-LIST.xlsx`](india-states/excel/SHOPPING-LIST.xlsx)
+
+## Focus kitchens (Rajasthan, Gujarat, Punjab, pan-India, and more)
+
+A **21-recipe** vegetarian library for each requested kitchen is in [`focus-states/`](focus-states/README.md).
+
+- [`focus-states/excel/FOCUS-STATES.xlsx`](focus-states/excel/FOCUS-STATES.xlsx) — 357 recipes
+- [`focus-states/excel/SHOPPING-LIST.xlsx`](focus-states/excel/SHOPPING-LIST.xlsx)
+
+Includes **Rajasthan**, **Gujarat**, **Punjab**, and **pan-India** dishes eaten all over the country, plus Goa, Maharashtra, Odisha, Bengal, Andhra, Kerala, Manipur, Meghalaya, Uttarakhand, UP, Bihar, Mithila, and Karnataka.
 
 ## Rebuild
 
 ```bash
 python3 scripts/build_continent_recipes.py
 python3 scripts/build_india_state_recipes.py
+python3 scripts/build_focus_state_recipes.py
 ```
 """
 
@@ -1283,7 +1296,7 @@ def continent_readme(continent: dict, recipes: list[dict]) -> str:
 def write_markdown_tree(recipes: list[dict]):
     OUT.mkdir(parents=True, exist_ok=True)
     # Only rebuild continent folders. Never delete india-states/ or other collections.
-    keep_roots = {"india-states", "excel"}
+    keep_roots = {"india-states", "focus-states", "excel"}
     for child in list(OUT.iterdir()):
         if child.name in keep_roots:
             continue

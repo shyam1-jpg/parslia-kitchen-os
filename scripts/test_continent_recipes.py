@@ -123,7 +123,7 @@ def main() -> None:
         fail(f"shopping list too short: {shop_rows}")
 
     def continent_only(paths):
-        return [p for p in paths if "india-states" not in p.parts]
+        return [p for p in paths if "india-states" not in p.parts and "focus-states" not in p.parts]
 
     md_count = len(continent_only(OUT.rglob("*.md")))
     xlsx_count = len(continent_only(OUT.rglob("*.xlsx")))

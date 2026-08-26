@@ -54,6 +54,7 @@ GitHub Pages is set to `parslia.app`, but **GoDaddy DNS still points to GoDaddy*
 | `kitchen-os\` | **Kiteline** — separate product, not Parslia |
 | `recipes/onion-garlic-free-indian/` | Vegetarian Indian recipes by continent (no onion/garlic, no aluminium). Excel in `excel/ALL-CONTINENTS.xlsx` |
 | `recipes/onion-garlic-free-indian/india-states/` | All 28 Indian states + 8 UTs, 252 recipes. Excel in `india-states/excel/ALL-STATES.xlsx` |
+| `recipes/onion-garlic-free-indian/focus-states/` | Deep kitchens: Rajasthan, Gujarat, Punjab, pan-India, Goa, Maharashtra, and more (21 dishes each). Excel in `focus-states/excel/FOCUS-STATES.xlsx` |
 
 ---
 
