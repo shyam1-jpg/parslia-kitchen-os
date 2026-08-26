@@ -1,27 +1,32 @@
 # Gongura Pappu
 
-**Continent:** Andhra Pradesh — Andhra vegetarian / temple pappu  
-**Category:** Main  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 30 min  
-**Cookware:** Stainless steel or clay pot — never aluminium
+**Recipe card** · Andhra Pradesh kitchen · Main
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Andhra Pradesh — Andhra vegetarian / temple pappu |
+| **Course** | Main |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 30 min |
+| **Total** | 40 min |
+| **Cookware** | Stainless steel or clay pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Sorrel dal — Andhra’s sour signature.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Toor dal
-- Gongura leaves
-- Mustard
-- Cumin
-- Hing
-- Dry chilli
-- Curry leaves
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 150 | g | toor dal, rinsed |
+| 150 | g | gongura leaves |
+| 1 | tsp | mustard seeds |
+| 1 | tsp | cumin seeds |
+| ½ | tsp | hing (asafoetida) |
+| 2 | pieces | dry red chillies |
+| 10 | leaves | fresh curry leaves |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

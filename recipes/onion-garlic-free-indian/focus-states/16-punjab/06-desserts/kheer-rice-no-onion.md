@@ -1,21 +1,26 @@
 # Kheer (rice, no onion)
 
-**Continent:** Punjab — Punjabi langar and home vegetarian  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 45 min  
-**Cookware:** Heavy stainless steel milk pot — never aluminium
+**Recipe card** · Punjab kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Punjab — Punjabi langar and home vegetarian |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 45 min |
+| **Total** | 55 min |
+| **Cookware** | Heavy stainless steel milk pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Punjab, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- ½ cup basmati, 1.5 L milk, sugar, cardamom, raisins, almonds
-- Kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| ½ | cup | basmati |
+| 1.5 | L | milk, sugar, cardamom, raisins, almonds |
 
 ## Method
 

@@ -1,21 +1,26 @@
 # Shrikhand (hung yogurt saffron)
 
-**Continent:** Gujarat — Gujarati and Kathiawadi, including Jain-style  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 0 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Gujarat kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Gujarat — Gujarati and Kathiawadi, including Jain-style |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 0 min |
+| **Total** | 20 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Gujarat, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 1 kg hung yogurt
-- ¾ cup powdered sugar, saffron, cardamom, pistachio
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 1 | kg | hung yogurt |
+| ¾ | cup | powdered sugar, saffron, cardamom, pistachio |
 
 ## Method
 

@@ -1,23 +1,28 @@
 # Boiled Veg with Sesame
 
-**Continent:** Meghalaya — Khasi and Garo vegetarian home food  
-**Category:** Side  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 15 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Meghalaya kitchen · Side
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Meghalaya — Khasi and Garo vegetarian home food |
+| **Course** | Side |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 15 min |
+| **Total** | 25 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature side from Meghalaya, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Mixed veg
-- Roasted sesame
-- Chilli
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 400 | g | mixed seasonal vegetables, cut |
+| 3 | tbsp | roasted sesame seeds |
+| 2 | pieces | green or dry red chillies |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

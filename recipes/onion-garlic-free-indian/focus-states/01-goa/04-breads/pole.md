@@ -1,22 +1,27 @@
 # Pole
 
-**Continent:** Goa — Goan Hindu vegetarian / sattvic  
-**Category:** Bread  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 15 min  
-**Cookware:** Cast-iron tawa (not aluminium)
+**Recipe card** · Goa kitchen · Bread
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Goa — Goan Hindu vegetarian / sattvic |
+| **Course** | Bread |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 15 min |
+| **Total** | 35 min |
+| **Cookware** | Cast-iron tawa (not aluminium) |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Goan rice crepe, cousin of neer dosa.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 1 cup rice, soaked
-- 2 tbsp coconut
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 1 | cup | rice, soaked |
+| 2 | tbsp | coconut |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

@@ -1,24 +1,29 @@
 # Jhangora Tikki
 
-**Continent:** Uttarakhand — Kumaoni and Garhwali vegetarian  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 15 min  
-**Cookware:** Cast-iron tawa (not aluminium)
+**Recipe card** · Uttarakhand kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Uttarakhand — Kumaoni and Garhwali vegetarian |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 15 min |
+| **Total** | 30 min |
+| **Cookware** | Cast-iron tawa (not aluminium) |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Barnyard-millet tikkis of hill fasts.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Cooked jhangora
-- Potato
-- Ginger-chilli
-- Salt
-- Oil
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 300 | g | cooked jhangora (barnyard millet) |
+| 300 | g | potatoes |
+| 1 | tbsp | ginger-green chilli paste (no garlic) |
+| 1 | tsp | salt, or to taste |
+| 2 | tbsp | oil |
 
 ## Method
 

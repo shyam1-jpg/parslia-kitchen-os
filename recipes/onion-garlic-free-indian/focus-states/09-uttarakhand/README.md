@@ -5,28 +5,30 @@
 
 Kafuli, phaanu, chainsoo, mandua roti, bal mithai. Jakhiya and mustard oil.
 
-Excel: [`excel/uttarakhand-recipes.xlsx`](excel/uttarakhand-recipes.xlsx)
+Open first: [`index.html`](index.html) (recipe cards) or [`excel/uttarakhand-recipes.xlsx`](excel/uttarakhand-recipes.xlsx) (one sheet = one card).
 
-| Course | Recipe | File |
-|--------|--------|------|
-| Starter | Aloo ke Gutke | [01-starters/aloo-ke-gutke.md](01-starters/aloo-ke-gutke.md) |
-| Starter | Jhangora Tikki | [01-starters/jhangora-tikki.md](01-starters/jhangora-tikki.md) |
-| Starter | Garhwali Kapa Bites | [01-starters/garhwali-kapa-bites.md](01-starters/garhwali-kapa-bites.md) |
-| Main | Kafuli | [02-mains/kafuli.md](02-mains/kafuli.md) |
-| Main | Phaanu | [02-mains/phaanu.md](02-mains/phaanu.md) |
-| Main | Chainsoo | [02-mains/chainsoo.md](02-mains/chainsoo.md) |
-| Side | Bhatt ki Churkani | [03-sides/bhatt-ki-churkani.md](03-sides/bhatt-ki-churkani.md) |
-| Side | Palak ka Saag | [03-sides/palak-ka-saag.md](03-sides/palak-ka-saag.md) |
-| Side | Pahadi Jeera Aloo | [03-sides/pahadi-jeera-aloo.md](03-sides/pahadi-jeera-aloo.md) |
-| Bread | Mandua Roti | [04-breads/mandua-roti.md](04-breads/mandua-roti.md) |
-| Bread | Wheat Roti | [04-breads/wheat-roti.md](04-breads/wheat-roti.md) |
-| Bread | Bari Roti | [04-breads/bari-roti.md](04-breads/bari-roti.md) |
-| Sweet | Bal Mithai | [05-sweets/bal-mithai.md](05-sweets/bal-mithai.md) |
-| Sweet | Arsa | [05-sweets/arsa.md](05-sweets/arsa.md) |
-| Sweet | Singodi | [05-sweets/singodi.md](05-sweets/singodi.md) |
-| Dessert | Jhangora Kheer | [06-desserts/jhangora-kheer.md](06-desserts/jhangora-kheer.md) |
-| Dessert | Rice Kheer | [06-desserts/rice-kheer.md](06-desserts/rice-kheer.md) |
-| Dessert | Fruit Raita Sweet | [06-desserts/fruit-raita-sweet.md](06-desserts/fruit-raita-sweet.md) |
-| Salad | Cucumber Lemon Salad | [07-salads/cucumber-lemon-salad.md](07-salads/cucumber-lemon-salad.md) |
-| Salad | Mooli Salad | [07-salads/mooli-salad.md](07-salads/mooli-salad.md) |
-| Salad | Tomato Ginger Salad | [07-salads/tomato-ginger-salad.md](07-salads/tomato-ginger-salad.md) |
+Each dish is its own card with Qty / Unit / Ingredient. Do not use the master table as a recipe — open the kitchen workbook or the HTML card.
+
+| Course | Recipe | Card | Excel sheet |
+|--------|--------|------|-------------|
+| Starter | Aloo ke Gutke | [aloo-ke-gutke.html](01-starters/aloo-ke-gutke.html) | `01 Aloo ke Gutke` |
+| Starter | Jhangora Tikki | [jhangora-tikki.html](01-starters/jhangora-tikki.html) | `02 Jhangora Tikki` |
+| Starter | Garhwali Kapa Bites | [garhwali-kapa-bites.html](01-starters/garhwali-kapa-bites.html) | `03 Garhwali Kapa Bites` |
+| Main | Kafuli | [kafuli.html](02-mains/kafuli.html) | `04 Kafuli` |
+| Main | Phaanu | [phaanu.html](02-mains/phaanu.html) | `05 Phaanu` |
+| Main | Chainsoo | [chainsoo.html](02-mains/chainsoo.html) | `06 Chainsoo` |
+| Side | Bhatt ki Churkani | [bhatt-ki-churkani.html](03-sides/bhatt-ki-churkani.html) | `07 Bhatt ki Churkani` |
+| Side | Palak ka Saag | [palak-ka-saag.html](03-sides/palak-ka-saag.html) | `08 Palak ka Saag` |
+| Side | Pahadi Jeera Aloo | [pahadi-jeera-aloo.html](03-sides/pahadi-jeera-aloo.html) | `09 Pahadi Jeera Aloo` |
+| Bread | Mandua Roti | [mandua-roti.html](04-breads/mandua-roti.html) | `10 Mandua Roti` |
+| Bread | Wheat Roti | [wheat-roti.html](04-breads/wheat-roti.html) | `11 Wheat Roti` |
+| Bread | Bari Roti | [bari-roti.html](04-breads/bari-roti.html) | `12 Bari Roti` |
+| Sweet | Bal Mithai | [bal-mithai.html](05-sweets/bal-mithai.html) | `13 Bal Mithai` |
+| Sweet | Arsa | [arsa.html](05-sweets/arsa.html) | `14 Arsa` |
+| Sweet | Singodi | [singodi.html](05-sweets/singodi.html) | `15 Singodi` |
+| Dessert | Jhangora Kheer | [jhangora-kheer.html](06-desserts/jhangora-kheer.html) | `16 Jhangora Kheer` |
+| Dessert | Rice Kheer | [rice-kheer.html](06-desserts/rice-kheer.html) | `17 Rice Kheer` |
+| Dessert | Fruit Raita Sweet | [fruit-raita-sweet.html](06-desserts/fruit-raita-sweet.html) | `18 Fruit Raita Sweet` |
+| Salad | Cucumber Lemon Salad | [cucumber-lemon-salad.html](07-salads/cucumber-lemon-salad.html) | `19 Cucumber Lemon Salad` |
+| Salad | Mooli Salad | [mooli-salad.html](07-salads/mooli-salad.html) | `20 Mooli Salad` |
+| Salad | Tomato Ginger Salad | [tomato-ginger-salad.html](07-salads/tomato-ginger-salad.html) | `21 Tomato Ginger Salad` |

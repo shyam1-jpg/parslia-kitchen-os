@@ -1,25 +1,30 @@
 # Dal with Local Greens
 
-**Continent:** Meghalaya — Khasi and Garo vegetarian home food  
-**Category:** Main  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 30 min  
-**Cookware:** Stainless steel or clay pot — never aluminium
+**Recipe card** · Meghalaya kitchen · Main
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Meghalaya — Khasi and Garo vegetarian home food |
+| **Course** | Main |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 30 min |
+| **Total** | 40 min |
+| **Cookware** | Stainless steel or clay pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature main from Meghalaya, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Moong or masoor
-- Greens
-- Ginger
-- Chilli
-- Turmeric
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 150 | g | moong or masoor dal |
+| 300 | g | seasonal greens, washed |
+| 20 | g | fresh ginger, crushed |
+| 2 | pieces | green or dry red chillies |
+| ½ | tsp | turmeric powder |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

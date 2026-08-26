@@ -1,22 +1,27 @@
 # Minil Sesame Cake
 
-**Continent:** Meghalaya — Khasi and Garo vegetarian home food  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel steamer and steel thali — never aluminium
+**Recipe card** · Meghalaya kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Meghalaya — Khasi and Garo vegetarian home food |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 20 min |
+| **Total** | 40 min |
+| **Cookware** | Stainless steel steamer and steel thali — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature sweet from Meghalaya, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice flour
-- Sesame
-- Jaggery
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 150 | g | rice flour |
+| 3 | tbsp | white sesame seeds |
+| 100 | g | jaggery, grated |
 
 ## Method
 

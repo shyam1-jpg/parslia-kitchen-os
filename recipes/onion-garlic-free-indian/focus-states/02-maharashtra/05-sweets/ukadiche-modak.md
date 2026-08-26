@@ -1,21 +1,26 @@
 # Ukadiche Modak
 
-**Continent:** Maharashtra — Maharashtrian vegetarian and vrat cooking  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 30 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel steamer and steel thali — never aluminium
+**Recipe card** · Maharashtra kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Maharashtra — Maharashtrian vegetarian and vrat cooking |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 30 min |
+| **Cook** | 20 min |
+| **Total** | 50 min |
+| **Cookware** | Stainless steel steamer and steel thali — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Ganesh steamed modak — coconut-jaggery, no allium.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice-flour dough
-- Coconut-jaggery-cardamom filling
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 300 | g | rice-flour dough |
+| 200 | g | coconut-jaggery-cardamom filling |
 
 ## Method
 

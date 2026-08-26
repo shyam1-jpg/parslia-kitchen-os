@@ -1,21 +1,26 @@
 # Puran Poli
 
-**Continent:** Maharashtra — Maharashtrian vegetarian and vrat cooking  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 40 min  
-**Cook:** 25 min  
-**Cookware:** Cast-iron tawa (not aluminium)
+**Recipe card** · Maharashtra kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Maharashtra — Maharashtrian vegetarian and vrat cooking |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 40 min |
+| **Cook** | 25 min |
+| **Total** | 65 min |
+| **Cookware** | Cast-iron tawa (not aluminium) |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Chana-dal jaggery stuffed flatbread.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Atta dough
-- Chana dal + jaggery + cardamom + nutmeg puran
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 300 | g | whole-wheat atta |
+| 100 | g | chana dal, soaked |
 
 ## Method
 

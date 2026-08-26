@@ -1,24 +1,29 @@
 # Palada Payasam
 
-**Continent:** Kerala — Kerala sadya kitchen  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 40 min  
-**Cookware:** Heavy stainless steel milk pot — never aluminium
+**Recipe card** · Kerala kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Kerala — Kerala sadya kitchen |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 40 min |
+| **Total** | 55 min |
+| **Cookware** | Heavy stainless steel milk pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Kerala, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice ada
-- Milk
-- Sugar
-- Ghee
-- Cardamom
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | raw rice |
+| 1 | L | full-fat milk |
+| 100 | g | sugar |
+| 2 | tbsp | ghee |
+| 4 | pods | green cardamom, crushed |
 
 ## Method
 

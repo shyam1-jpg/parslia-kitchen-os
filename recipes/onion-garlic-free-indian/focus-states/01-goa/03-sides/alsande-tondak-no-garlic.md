@@ -1,26 +1,31 @@
 # Alsande Tondak (no garlic)
 
-**Continent:** Goa — Goan Hindu vegetarian / sattvic  
-**Category:** Side  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 25 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Goa kitchen · Side
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Goa — Goan Hindu vegetarian / sattvic |
+| **Course** | Side |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 25 min |
+| **Total** | 35 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Yard beans in coconut. Hing and kokum instead of garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 3 cups alsande or French beans
-- Coconut paste
-- Kokum
-- Coriander powder
-- Chilli
-- Hing
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 3 | cups | alsande or French beans |
+| 80 | g | fresh coconut paste |
+| 6 | pieces | kokum petals |
+| 1 | tsp | coriander powder |
+| 2 | pieces | green or dry red chillies |
+| ½ | tsp | hing (asafoetida) |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

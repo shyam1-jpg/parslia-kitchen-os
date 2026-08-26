@@ -22,8 +22,11 @@ Each dish is **no onion, no garlic**, cooked in **steel, iron, clay or glass —
 
 Open first:
 
-- [`excel/FOCUS-STATES.xlsx`](excel/FOCUS-STATES.xlsx) — all recipes, filter by kitchen or course
-- [`excel/SHOPPING-LIST.xlsx`](excel/SHOPPING-LIST.xlsx)
+- [`index.html`](index.html) in each kitchen folder — **one recipe card per dish**, with Qty / Unit / Ingredient
+- [`excel/FOCUS-STATES.xlsx`](excel/FOCUS-STATES.xlsx) — index of all kitchens (not the cooking cards)
+- Each kitchen workbook: `14-rajasthan/excel/rajasthan-recipes.xlsx` — **Menu sheet + one sheet per recipe card**
+
+Example: Manipur is folder `07-manipur/`. Open `07-manipur/index.html` or `07-manipur/excel/manipur-recipes.xlsx`. Chamthong is its own card, not mixed with other dishes.
 
 Diet rules: [../COOKWARE-AND-DIET-RULES.md](../COOKWARE-AND-DIET-RULES.md)
 
@@ -167,16 +170,48 @@ def write_tree(recipes: list[dict]) -> None:
                 path.rmdir()
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "README.md").write_text(README, encoding="utf-8")
+    kitchen_links = []
+    for st in FOCUS_STATES:
+        recs = [x for x in recipes if x["continent_id"] == st["id"]]
+        kitchen_links.append(
+            f"<li><a href='{st['folder']}/index.html'><strong>{st['name']}</strong></a> "
+            f"— {len(recs)} recipe cards · <a href='{st['folder']}/excel/{st['id']}-recipes.xlsx'>Excel workbook</a></li>"
+        )
+    (OUT / "index.html").write_text(
+        """<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>Focus kitchen recipe cards</title>
+<style>body{font-family:Calibri,Arial,sans-serif;max-width:800px;margin:32px auto;background:#fff7ed;color:#1c1917}
+.warn{background:#7f1d1d;color:#fff;padding:10px 14px;font-weight:700} a{color:#9a3412;font-weight:700} li{margin:8px 0}</style>
+</head><body>
+<h1>One kitchen = one folder = one workbook</h1>
+<p>Each dish is its own professional recipe card with Qty, Unit and Ingredient. Example: open Manipur, then Chamthong Stew only.</p>
+<p class="warn">VEGETARIAN · NO ONION · NO GARLIC · NO ALUMINIUM</p>
+<ul>
+"""
+        + "\n".join(kitchen_links)
+        + """
+</ul>
+<p>Master index Excel: <a href="excel/FOCUS-STATES.xlsx">FOCUS-STATES.xlsx</a> (list of kitchens — cook from the kitchen workbook cards).</p>
+</body></html>
+""",
+        encoding="utf-8",
+    )
     for st in FOCUS_STATES:
         recs = [x for x in recipes if x["continent_id"] == st["id"]]
         base = OUT / st["folder"]
         (base / "excel").mkdir(parents=True, exist_ok=True)
         (base / "README.md").write_text(core.continent_readme(st, recs), encoding="utf-8")
+        (base / "index.html").write_text(
+            core.recipe_cards.html_kitchen_index(st, recs, f"{st['id']}-recipes.xlsx"),
+            encoding="utf-8",
+        )
         for rec in recs:
             cat_dir = base / core.CAT_FOLDERS[rec["category"]]
             cat_dir.mkdir(parents=True, exist_ok=True)
-            (cat_dir / f"{core.slug(rec['name'])}.md").write_text(
-                core.md_for(rec, st), encoding="utf-8"
+            stem = core.slug(rec["name"])
+            (cat_dir / f"{stem}.md").write_text(core.md_for(rec, st), encoding="utf-8")
+            (cat_dir / f"{stem}.html").write_text(
+                core.recipe_cards.html_card(rec, st), encoding="utf-8"
             )
 
 

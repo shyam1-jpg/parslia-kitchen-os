@@ -1,25 +1,30 @@
 # Nenua Sabzi
 
-**Continent:** Bihar — Magadh vegetarian  
-**Category:** Side  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 15 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Bihar kitchen · Side
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Bihar — Magadh vegetarian |
+| **Course** | Side |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 15 min |
+| **Total** | 25 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Sponge gourd.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Nenua / turai
-- Cumin
-- Hing
-- Turmeric
-- Tomato
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 400 | g | nenua / turai, cubed |
+| 1 | tsp | cumin seeds |
+| ½ | tsp | hing (asafoetida) |
+| ½ | tsp | turmeric powder |
+| 2 | pieces | ripe tomatoes, chopped |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

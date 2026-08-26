@@ -23,6 +23,8 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
 import re
 
+import recipe_cards
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "recipes" / "onion-garlic-free-indian"
 
@@ -251,7 +253,7 @@ def r(continent_id, category, name, community, prep, cook, cookware, why, ingred
         "cook_min": cook,
         "cookware": cookware,
         "why": why,
-        "ingredients": ingredients,
+        "ingredients": recipe_cards.normalize_ingredients(ingredients),
         "method": method,
         "notes": notes,
         "diet": "Vegetarian · no onion · no garlic · no allium · no aluminium",
@@ -687,31 +689,7 @@ def continent_by_id(cid: str) -> dict:
 
 
 def md_for(recipe: dict, continent: dict) -> str:
-    ing = "\n".join(f"- {i}" for i in recipe["ingredients"])
-    steps = "\n".join(f"{n}. {s}" for n, s in enumerate(recipe["method"], 1))
-    notes = f"\n## Notes\n\n{recipe['notes']}\n" if recipe["notes"] else ""
-    return f"""# {recipe['name']}
-
-**Continent:** {continent['name']} — {recipe['community']}  
-**Category:** {recipe['category']}  
-**Diet:** {recipe['diet']}  
-**Servings:** {recipe['servings']}  
-**Prep:** {recipe['prep_min']} min  
-**Cook:** {recipe['cook_min']} min  
-**Cookware:** {recipe['cookware']}
-
-## Why this dish
-
-{recipe['why']}
-
-## Ingredients
-
-{ing}
-
-## Method
-
-{steps}
-{notes}"""
+    return recipe_cards.md_card(recipe, continent)
 
 
 def style_header_row(ws, row, cols, fill=SAFFRON):
@@ -758,71 +736,79 @@ def set_widths(ws, widths: dict[int, int]):
 
 
 def write_recipe_sheet(ws, recipe: dict, continent: dict):
+    total = int(recipe["prep_min"]) + int(recipe["cook_min"])
     banner(
         ws,
-        recipe["name"],
-        f"{continent['name']}  ·  {recipe['category']}  ·  {recipe['community']}",
+        f"RECIPE CARD  ·  {recipe['name']}",
+        f"{continent['name']} kitchen  ·  {recipe['category']}  ·  {recipe['community']}",
         cols=4,
     )
-    meta = [
-        ("Servings", recipe["servings"]),
-        ("Prep (min)", recipe["prep_min"]),
-        ("Cook (min)", recipe["cook_min"]),
-        ("Cookware", recipe["cookware"]),
-        ("Diet", recipe["diet"]),
-        ("Why this dish", recipe["why"]),
+    stats = [
+        ("Serves", str(recipe["servings"])),
+        ("Prep", f"{recipe['prep_min']} min"),
+        ("Cook", f"{recipe['cook_min']} min"),
+        ("Total", f"{total} min"),
     ]
     row = 5
-    ws.cell(row, 1, "Field").font = HEADER_FONT
-    ws.cell(row, 1).fill = SLATE
-    ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=4)
-    ws.cell(row, 2, "Detail").font = HEADER_FONT
-    ws.cell(row, 2).fill = SLATE
-    for col in range(1, 5):
-        ws.cell(row, col).fill = SLATE
-        ws.cell(row, col).font = HEADER_FONT
-        ws.cell(row, col).border = THIN
-    row = 6
-    for label, value in meta:
-        ws.cell(row, 1, label).font = BOLD
-        ws.cell(row, 1).fill = SAND
-        ws.cell(row, 1).border = THIN
-        ws.cell(row, 1).alignment = WRAP
-        ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=4)
-        cell = ws.cell(row, 2, value)
-        cell.alignment = WRAP
-        cell.font = BODY_FONT
-        cell.border = THIN
-        for col in range(2, 5):
-            ws.cell(row, col).border = THIN
-            ws.cell(row, col).fill = CREAM
-        ws.row_dimensions[row].height = 36 if label in ("Cookware", "Why this dish", "Diet") else 22
-        row += 1
+    for i, (label, value) in enumerate(stats, 1):
+        lab = ws.cell(row, i, label)
+        lab.fill = SAND
+        lab.font = BOLD
+        lab.alignment = CENTER
+        lab.border = THIN
+        val = ws.cell(row + 1, i, value)
+        val.fill = CREAM
+        val.font = TITLE_FONT
+        val.font = Font(name="Calibri", bold=True, size=16, color="9A3412")
+        val.alignment = CENTER
+        val.border = THIN
+    ws.row_dimensions[5].height = 18
+    ws.row_dimensions[6].height = 28
 
-    row += 1
+    row = 8
     ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
-    h = ws.cell(row, 1, "Ingredients")
+    cook = ws.cell(row, 1, f"Cookware: {recipe['cookware']}")
+    cook.fill = GREEN_SOFT
+    cook.font = BOLD
+    cook.alignment = WRAP
+    for col in range(1, 5):
+        ws.cell(row, col).fill = GREEN_SOFT
+        ws.cell(row, col).border = THIN
+    ws.row_dimensions[row].height = 32
+
+    row = 9
+    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+    why = ws.cell(row, 1, recipe["why"])
+    why.alignment = WRAP
+    why.font = BODY_FONT
+    for col in range(1, 5):
+        ws.cell(row, col).border = THIN
+        ws.cell(row, col).fill = WHITE
+    ws.row_dimensions[row].height = 36
+
+    row = 11
+    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+    h = ws.cell(row, 1, f"Ingredients  ·  {recipe['servings']} servings")
     h.fill = GOLD
     h.font = HEADER_FONT
     for col in range(1, 5):
         ws.cell(row, col).fill = GOLD
-    row += 1
-    ws.cell(row, 1, "#").fill = SLATE
-    ws.cell(row, 1).font = HEADER_FONT
-    ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=4)
-    ws.cell(row, 2, "Item").font = HEADER_FONT
-    ws.cell(row, 2).fill = SLATE
-    for col in range(1, 5):
-        ws.cell(row, col).fill = SLATE
-        ws.cell(row, col).font = HEADER_FONT
-        ws.cell(row, col).border = THIN
-    row += 1
-    for i, item in enumerate(recipe["ingredients"], 1):
-        ws.cell(row, 1, i).alignment = CENTER
-        ws.cell(row, 1).border = THIN
-        ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=4)
-        ws.cell(row, 2, item).alignment = WRAP
-        ws.cell(row, 2).border = THIN
+    row = 12
+    for col, title in enumerate(("Qty", "Unit", "Ingredient"), 1):
+        cell = ws.cell(row, col, title)
+        cell.fill = SLATE
+        cell.font = HEADER_FONT
+        cell.alignment = CENTER
+        cell.border = THIN
+    ws.merge_cells(start_row=row, start_column=3, end_row=row, end_column=4)
+    ws.cell(row, 4).fill = SLATE
+    ws.cell(row, 4).border = THIN
+    row = 13
+    for i, item in enumerate(recipe_cards.measured(recipe), 1):
+        ws.cell(row, 1, item["qty"] or "—").alignment = CENTER
+        ws.cell(row, 2, item["unit"] or "—").alignment = CENTER
+        ws.merge_cells(start_row=row, start_column=3, end_row=row, end_column=4)
+        ws.cell(row, 3, item["item"]).alignment = WRAP
         fill = CREAM if i % 2 else WHITE
         for col in range(1, 5):
             ws.cell(row, col).fill = fill
@@ -841,6 +827,7 @@ def write_recipe_sheet(ws, recipe: dict, continent: dict):
     row += 1
     ws.cell(row, 1, "Step").fill = SLATE
     ws.cell(row, 1).font = HEADER_FONT
+    ws.cell(row, 1).alignment = CENTER
     ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=4)
     ws.cell(row, 2, "What to do").font = HEADER_FONT
     ws.cell(row, 2).fill = SLATE
@@ -858,13 +845,13 @@ def write_recipe_sheet(ws, recipe: dict, continent: dict):
             ws.cell(row, col).fill = fill
             ws.cell(row, col).border = THIN
             ws.cell(row, col).font = BODY_FONT
-        ws.row_dimensions[row].height = 48
+        ws.row_dimensions[row].height = max(36, 18 + 12 * (1 + len(step) // 70))
         row += 1
 
     if recipe["notes"]:
         row += 1
         ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
-        n = ws.cell(row, 1, "Notes")
+        n = ws.cell(row, 1, "Chef notes")
         n.fill = RED
         n.font = HEADER_FONT
         for col in range(1, 5):
@@ -880,15 +867,16 @@ def write_recipe_sheet(ws, recipe: dict, continent: dict):
             ws.cell(row, col).border = THIN
         ws.row_dimensions[row].height = 48
 
-    set_widths(ws, {1: 22, 2: 36, 3: 22, 4: 36})
+    set_widths(ws, {1: 14, 2: 14, 3: 36, 4: 36})
     ws.freeze_panes = "A5"
     ws.page_setup.orientation = "portrait"
     ws.page_setup.fitToPage = True
     ws.page_setup.fitToWidth = 1
-    ws.page_setup.fitToHeight = 0
+    ws.page_setup.fitToHeight = 1
     ws.page_setup.paperSize = ws.PAPERSIZE_A4
     ws.print_title_rows = "1:3"
     ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.sheet_properties.tabColor = "9A3412"
 
 
 HEADERS = [
@@ -923,7 +911,7 @@ def recipe_row(recipe: dict, continent: dict) -> list:
         recipe["prep_min"],
         recipe["cook_min"],
         recipe["cookware"],
-        "\n".join(f"• {i}" for i in recipe["ingredients"]),
+        "\n".join(f"• {recipe_cards.ingredient_line(i)}" for i in recipe["ingredients"]),
         "\n".join(f"{n}. {s}" for n, s in enumerate(recipe["method"], 1)),
         recipe["notes"],
         recipe["diet"],
@@ -1003,7 +991,7 @@ def write_menu_sheet(ws, continent: dict, recipes: list[dict]):
         ws.cell(5, col).border = THIN
     ws.row_dimensions[5].height = 40
 
-    headers = ["Course", "Recipe", "Prep min", "Cook min", "Servings", "Cookware", "Markdown file"]
+    headers = ["Course", "Recipe", "Prep min", "Cook min", "Serves", "Total min", "Recipe card sheet"]
     for i, h in enumerate(headers, 1):
         cell = ws.cell(7, i, h)
         cell.fill = SLATE
@@ -1017,8 +1005,15 @@ def write_menu_sheet(ws, continent: dict, recipes: list[dict]):
     row = 8
     for cat in order:
         for rec in by_cat[cat]:
-            path = f"{CAT_FOLDERS[cat]}/{slug(rec['name'])}.md"
-            values = [cat, rec["name"], rec["prep_min"], rec["cook_min"], rec["servings"], rec["cookware"], path]
+            values = [
+                cat,
+                rec["name"],
+                rec["prep_min"],
+                rec["cook_min"],
+                rec["servings"],
+                int(rec["prep_min"]) + int(rec["cook_min"]),
+                rec.get("_card_sheet") or f"{CAT_FOLDERS[cat]}/{slug(rec['name'])}.html",
+            ]
             for i, v in enumerate(values, 1):
                 cell = ws.cell(row, i, v)
                 cell.font = BODY_FONT
@@ -1036,7 +1031,7 @@ def write_menu_sheet(ws, continent: dict, recipes: list[dict]):
     foot = ws.cell(
         row + 1,
         1,
-        "Cook in stainless steel, cast iron, clay, enamel or glass. Never aluminium. No onion, garlic, shallot, leek or chive.",
+        "Each dish is one recipe card (one Excel sheet). Open the sheet named in the last column. Cook in steel, iron, clay or glass — never aluminium. No onion or garlic.",
     )
     foot.fill = RED_SOFT
     foot.font = BOLD
@@ -1044,7 +1039,7 @@ def write_menu_sheet(ws, continent: dict, recipes: list[dict]):
     for col in range(1, 8):
         ws.cell(row + 1, col).fill = RED_SOFT
     ws.row_dimensions[row + 1].height = 28
-    set_widths(ws, {1: 14, 2: 36, 3: 12, 4: 12, 5: 12, 6: 42, 7: 40})
+    set_widths(ws, {1: 14, 2: 36, 3: 12, 4: 12, 5: 12, 6: 12, 7: 28})
     ws.freeze_panes = "A8"
 
 
@@ -1061,7 +1056,7 @@ def write_shopping_sheet(ws, recipes: list[dict], title: str):
     for rec in recipes:
         continent = continent_by_id(rec["continent_id"])
         for item in rec["ingredients"]:
-            ws.cell(row, 1, item).alignment = WRAP
+            ws.cell(row, 1, recipe_cards.ingredient_line(item)).alignment = WRAP
             ws.cell(row, 2, rec["name"])
             ws.cell(row, 3, continent["name"])
             ws.cell(row, 4, rec["category"])
@@ -1197,7 +1192,17 @@ def write_cover_sheet(ws, recipes: list[dict]):
     ws.freeze_panes = "A8"
 
 
+def attach_card_sheets(recipes: list[dict]) -> list[dict]:
+    out = []
+    for i, rec in enumerate(recipes, 1):
+        item = dict(rec)
+        item["_card_sheet"] = sheet_title(f"{i:02d} {rec['name']}")
+        out.append(item)
+    return out
+
+
 def build_continent_workbook(continent: dict, recipes: list[dict], path: Path):
+    recipes = attach_card_sheets(recipes)
     wb = Workbook()
     menu = wb.active
     menu.title = "Menu"
@@ -1206,17 +1211,8 @@ def build_continent_workbook(continent: dict, recipes: list[dict], path: Path):
     write_rules_sheet(rules)
     shop = wb.create_sheet("Shopping list")
     write_shopping_sheet(shop, recipes, f"{continent['name']} shopping list")
-    table = wb.create_sheet("All dishes")
-    rows = [recipe_row(rec, continent) for rec in recipes]
-    write_table_sheet(
-        table,
-        f"{continent['name']} — all dishes",
-        continent["community"],
-        rows,
-    )
     for rec in recipes:
-        title = sheet_title(f"{rec['category'][:3]} {rec['name']}")
-        ws = wb.create_sheet(title)
+        ws = wb.create_sheet(rec["_card_sheet"])
         write_recipe_sheet(ws, rec, continent)
     path.parent.mkdir(parents=True, exist_ok=True)
     wb.save(path)
@@ -1278,17 +1274,22 @@ def continent_readme(continent: dict, recipes: list[dict]) -> str:
         "",
         continent["note"],
         "",
-        f"Excel: [`excel/{continent['id']}-recipes.xlsx`](excel/{continent['id']}-recipes.xlsx)",
+        f"Open first: [`index.html`](index.html) (recipe cards) or [`excel/{continent['id']}-recipes.xlsx`](excel/{continent['id']}-recipes.xlsx) (one sheet = one card).",
         "",
-        "| Course | Recipe | File |",
-        "|--------|--------|------|",
+        "Each dish is its own card with Qty / Unit / Ingredient. Do not use the master table as a recipe — open the kitchen workbook or the HTML card.",
+        "",
+        "| Course | Recipe | Card | Excel sheet |",
+        "|--------|--------|------|-------------|",
     ]
     order = ["Starter", "Main", "Side", "Bread", "Sweet", "Dessert", "Salad"]
+    numbered = attach_card_sheets(recipes)
     for cat in order:
-        for rec in recipes:
+        for rec in numbered:
             if rec["category"] == cat:
-                rel = f"{CAT_FOLDERS[cat]}/{slug(rec['name'])}.md"
-                lines.append(f"| {cat} | {rec['name']} | [{rel}]({rel}) |")
+                rel = f"{CAT_FOLDERS[cat]}/{slug(rec['name'])}.html"
+                lines.append(
+                    f"| {cat} | {rec['name']} | [{slug(rec['name'])}.html]({rel}) | `{rec['_card_sheet']}` |"
+                )
     lines.append("")
     return "\n".join(lines)
 
@@ -1316,10 +1317,18 @@ def write_markdown_tree(recipes: list[dict]):
         base = OUT / c["folder"]
         (base / "excel").mkdir(parents=True, exist_ok=True)
         (base / "README.md").write_text(continent_readme(c, recs), encoding="utf-8")
+        (base / "index.html").write_text(
+            recipe_cards.html_kitchen_index(c, recs, f"{c['id']}-recipes.xlsx"),
+            encoding="utf-8",
+        )
         for rec in recs:
             cat_dir = base / CAT_FOLDERS[rec["category"]]
             cat_dir.mkdir(parents=True, exist_ok=True)
-            (cat_dir / f"{slug(rec['name'])}.md").write_text(md_for(rec, c), encoding="utf-8")
+            stem = slug(rec["name"])
+            (cat_dir / f"{stem}.md").write_text(md_for(rec, c), encoding="utf-8")
+            (cat_dir / f"{stem}.html").write_text(
+                recipe_cards.html_card(rec, c), encoding="utf-8"
+            )
 
 
 def main():
@@ -1335,7 +1344,13 @@ def main():
             raise SystemExit(f"Bad continent: {rec}")
         for word in ("onion", "garlic", "shallot", "leek", "chive"):
             blob = " ".join(
-                [rec["name"], rec["why"], rec["notes"], *rec["ingredients"], *rec["method"]]
+                [
+                    rec["name"],
+                    rec["why"],
+                    rec["notes"],
+                    recipe_cards.ingredient_blob(rec),
+                    *rec["method"],
+                ]
             ).lower()
             # allow the words only as "no onion" / "without garlic" prohibitions
             if re.search(rf"\b{word}s?\b", blob):

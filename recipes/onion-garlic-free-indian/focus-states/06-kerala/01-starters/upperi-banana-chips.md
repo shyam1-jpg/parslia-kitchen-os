@@ -1,23 +1,28 @@
 # Upperi Banana Chips
 
-**Continent:** Kerala — Kerala sadya kitchen  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 15 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Kerala kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Kerala — Kerala sadya kitchen |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 15 min |
+| **Total** | 25 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Salted raw-banana chips of Kerala.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Raw banana, sliced
-- Coconut oil
-- Salt
-- Turmeric water
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 400 | g | raw banana, sliced |
+| 2 | tbsp | coconut oil |
+| 1 | tsp | salt, or to taste |
+| ½ | tsp | turmeric powder |
 
 ## Method
 

@@ -1,28 +1,33 @@
 # Saaru Anna
 
-**Continent:** Karnataka — Udupi, Mysuru and North Karnataka vegetarian  
-**Category:** Main  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 30 min  
-**Cookware:** Stainless steel or clay pot — never aluminium
+**Recipe card** · Karnataka kitchen · Main
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Karnataka — Udupi, Mysuru and North Karnataka vegetarian |
+| **Course** | Main |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 30 min |
+| **Total** | 45 min |
+| **Cookware** | Stainless steel or clay pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Rasam-rice: toor rasam with pepper-cumin, poured over rice.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Toor dal water
-- Tomato
-- Tamarind
-- Rasam powder garlic-free
-- Mustard
-- Hing
-- Curry leaves
-- Ghee
-- Rice
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 150 | g | toor dal, rinsed |
+| 2 | pieces | ripe tomatoes, chopped |
+| 20 | g | seedless tamarind |
+| 2 | tsp | rasam powder (no onion-garlic) |
+| 1 | tsp | mustard seeds |
+| ½ | tsp | hing (asafoetida) |
+| 10 | leaves | fresh curry leaves |
+| 2 | tbsp | ghee |
+| 200 | g | raw rice |
 
 ## Method
 

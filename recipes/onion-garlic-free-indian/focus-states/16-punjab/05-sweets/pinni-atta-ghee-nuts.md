@@ -1,21 +1,27 @@
 # Pinni (atta-ghee-nuts)
 
-**Continent:** Punjab — Punjabi langar and home vegetarian  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 30 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Punjab kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Punjab — Punjabi langar and home vegetarian |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 30 min |
+| **Total** | 50 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature sweet from Punjab, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 2 cups atta, 1 cup ghee, 1 cup powdered sugar or jaggery, almonds, gond optional, cardamom
-- Kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | cups | atta |
+| 1 | cup | ghee |
+| 1 | cup | powdered sugar or jaggery, almonds, gond optional, cardamom |
 
 ## Method
 

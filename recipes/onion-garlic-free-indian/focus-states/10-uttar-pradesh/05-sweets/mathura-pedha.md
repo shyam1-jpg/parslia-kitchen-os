@@ -1,22 +1,27 @@
 # Mathura Pedha
 
-**Continent:** Uttar Pradesh — Awadhi, Braj and Purvanchal sattvic  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Uttar Pradesh kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Uttar Pradesh — Awadhi, Braj and Purvanchal sattvic |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 20 min |
+| **Total** | 35 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature sweet from Uttar Pradesh, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Khoya
-- Sugar
-- Cardamom
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | khoya / mawa |
+| 100 | g | sugar |
+| 4 | pods | green cardamom, crushed |
 
 ## Method
 

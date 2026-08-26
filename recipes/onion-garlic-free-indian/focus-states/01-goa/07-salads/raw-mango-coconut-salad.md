@@ -1,24 +1,29 @@
 # Raw Mango Coconut Salad
 
-**Continent:** Goa — Goan Hindu vegetarian / sattvic  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 0 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Goa kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Goa — Goan Hindu vegetarian / sattvic |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 0 min |
+| **Total** | 10 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature salad from Goa, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Raw mango, julienned
-- Coconut
-- Green chilli
-- Salt
-- Jaggery pinch
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 1 | pieces | raw mango, julienned |
+| 100 | g | fresh grated coconut |
+| 2 | pieces | green chillies, slit |
+| 1 | tsp | salt, or to taste |
+| 1 | pinch | jaggery |
 
 ## Method
 

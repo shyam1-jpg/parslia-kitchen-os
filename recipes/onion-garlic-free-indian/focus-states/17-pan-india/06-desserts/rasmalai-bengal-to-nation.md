@@ -1,21 +1,25 @@
 # Rasmalai (Bengal-to-nation)
 
-**Continent:** Pan-India — Dishes cooked in homes all over India  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 30 min  
-**Cook:** 40 min  
-**Cookware:** Heavy stainless steel milk pot — never aluminium
+**Recipe card** · Pan-India kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Pan-India — Dishes cooked in homes all over India |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 30 min |
+| **Cook** | 40 min |
+| **Total** | 70 min |
+| **Cookware** | Heavy stainless steel milk pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Pan India, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Chhena discs, reduced milk, saffron, pistachio
-- Kadai + bowl
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | chhena discs, plus reduced milk, saffron, pistachio |
 
 ## Method
 

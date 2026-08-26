@@ -1,22 +1,27 @@
 # Bal Mithai
 
-**Continent:** Uttarakhand — Kumaoni and Garhwali vegetarian  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 25 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Uttarakhand kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Uttarakhand — Kumaoni and Garhwali vegetarian |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 25 min |
+| **Total** | 45 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Almora roasted-khoya coated in sugar balls.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Khoya, roasted dark
-- Sugar
-- Sugar balls
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | khoya / mawa |
+| 100 | g | sugar |
+| 100 | g | sugar |
 
 ## Method
 

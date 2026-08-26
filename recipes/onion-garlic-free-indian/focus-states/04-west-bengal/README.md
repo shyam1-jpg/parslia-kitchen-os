@@ -5,28 +5,30 @@
 
 Shukto, aloo posto, dhokar dalna, sandesh, payesh — the niramish table.
 
-Excel: [`excel/west-bengal-recipes.xlsx`](excel/west-bengal-recipes.xlsx)
+Open first: [`index.html`](index.html) (recipe cards) or [`excel/west-bengal-recipes.xlsx`](excel/west-bengal-recipes.xlsx) (one sheet = one card).
 
-| Course | Recipe | File |
-|--------|--------|------|
-| Starter | Beguni | [01-starters/beguni.md](01-starters/beguni.md) |
-| Starter | Mochar Chop (niramish) | [01-starters/mochar-chop-niramish.md](01-starters/mochar-chop-niramish.md) |
-| Starter | Vegetable Chop | [01-starters/vegetable-chop.md](01-starters/vegetable-chop.md) |
-| Main | Cholar Dal | [02-mains/cholar-dal.md](02-mains/cholar-dal.md) |
-| Main | Shukto | [02-mains/shukto.md](02-mains/shukto.md) |
-| Main | Dhokar Dalna | [02-mains/dhokar-dalna.md](02-mains/dhokar-dalna.md) |
-| Side | Aloo Posto | [03-sides/aloo-posto.md](03-sides/aloo-posto.md) |
-| Side | Labra | [03-sides/labra.md](03-sides/labra.md) |
-| Side | Lau Ghonto | [03-sides/lau-ghonto.md](03-sides/lau-ghonto.md) |
-| Bread | Luchi | [04-breads/luchi.md](04-breads/luchi.md) |
-| Bread | Radhaballavi | [04-breads/radhaballavi.md](04-breads/radhaballavi.md) |
-| Bread | Niramish Paratha | [04-breads/niramish-paratha.md](04-breads/niramish-paratha.md) |
-| Sweet | Sandesh | [05-sweets/sandesh.md](05-sweets/sandesh.md) |
-| Sweet | Rasgulla | [05-sweets/rasgulla.md](05-sweets/rasgulla.md) |
-| Sweet | Chomchom | [05-sweets/chomchom.md](05-sweets/chomchom.md) |
-| Dessert | Payesh | [06-desserts/payesh.md](06-desserts/payesh.md) |
-| Dessert | Mishti Doi | [06-desserts/mishti-doi.md](06-desserts/mishti-doi.md) |
-| Dessert | Chhanar Payesh | [06-desserts/chhanar-payesh.md](06-desserts/chhanar-payesh.md) |
-| Salad | Kasundi Cucumber Salad | [07-salads/kasundi-cucumber-salad.md](07-salads/kasundi-cucumber-salad.md) |
-| Salad | Tomato Khejur Relish | [07-salads/tomato-khejur-relish.md](07-salads/tomato-khejur-relish.md) |
-| Salad | Cucumber Lemon Salad | [07-salads/cucumber-lemon-salad.md](07-salads/cucumber-lemon-salad.md) |
+Each dish is its own card with Qty / Unit / Ingredient. Do not use the master table as a recipe — open the kitchen workbook or the HTML card.
+
+| Course | Recipe | Card | Excel sheet |
+|--------|--------|------|-------------|
+| Starter | Beguni | [beguni.html](01-starters/beguni.html) | `01 Beguni` |
+| Starter | Mochar Chop (niramish) | [mochar-chop-niramish.html](01-starters/mochar-chop-niramish.html) | `02 Mochar Chop (niramish)` |
+| Starter | Vegetable Chop | [vegetable-chop.html](01-starters/vegetable-chop.html) | `03 Vegetable Chop` |
+| Main | Cholar Dal | [cholar-dal.html](02-mains/cholar-dal.html) | `04 Cholar Dal` |
+| Main | Shukto | [shukto.html](02-mains/shukto.html) | `05 Shukto` |
+| Main | Dhokar Dalna | [dhokar-dalna.html](02-mains/dhokar-dalna.html) | `06 Dhokar Dalna` |
+| Side | Aloo Posto | [aloo-posto.html](03-sides/aloo-posto.html) | `07 Aloo Posto` |
+| Side | Labra | [labra.html](03-sides/labra.html) | `08 Labra` |
+| Side | Lau Ghonto | [lau-ghonto.html](03-sides/lau-ghonto.html) | `09 Lau Ghonto` |
+| Bread | Luchi | [luchi.html](04-breads/luchi.html) | `10 Luchi` |
+| Bread | Radhaballavi | [radhaballavi.html](04-breads/radhaballavi.html) | `11 Radhaballavi` |
+| Bread | Niramish Paratha | [niramish-paratha.html](04-breads/niramish-paratha.html) | `12 Niramish Paratha` |
+| Sweet | Sandesh | [sandesh.html](05-sweets/sandesh.html) | `13 Sandesh` |
+| Sweet | Rasgulla | [rasgulla.html](05-sweets/rasgulla.html) | `14 Rasgulla` |
+| Sweet | Chomchom | [chomchom.html](05-sweets/chomchom.html) | `15 Chomchom` |
+| Dessert | Payesh | [payesh.html](06-desserts/payesh.html) | `16 Payesh` |
+| Dessert | Mishti Doi | [mishti-doi.html](06-desserts/mishti-doi.html) | `17 Mishti Doi` |
+| Dessert | Chhanar Payesh | [chhanar-payesh.html](06-desserts/chhanar-payesh.html) | `18 Chhanar Payesh` |
+| Salad | Kasundi Cucumber Salad | [kasundi-cucumber-salad.html](07-salads/kasundi-cucumber-salad.html) | `19 Kasundi Cucumber Salad` |
+| Salad | Tomato Khejur Relish | [tomato-khejur-relish.html](07-salads/tomato-khejur-relish.html) | `20 Tomato Khejur Relish` |
+| Salad | Cucumber Lemon Salad | [cucumber-lemon-salad.html](07-salads/cucumber-lemon-salad.html) | `21 Cucumber Lemon Salad` |

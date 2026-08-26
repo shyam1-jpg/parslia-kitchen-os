@@ -1,21 +1,26 @@
 # Obbattu / Holige
 
-**Continent:** Karnataka — Udupi, Mysuru and North Karnataka vegetarian  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 40 min  
-**Cook:** 25 min  
-**Cookware:** Cast-iron tawa (not aluminium)
+**Recipe card** · Karnataka kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Karnataka — Udupi, Mysuru and North Karnataka vegetarian |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 40 min |
+| **Cook** | 25 min |
+| **Total** | 65 min |
+| **Cookware** | Cast-iron tawa (not aluminium) |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Lentil-jaggery flatbread of Karnataka.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Maida dough
-- Chana or toor dal + jaggery + cardamom
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 250 | g | maida (refined flour) |
+| 250 | g | cooked chana or toor dal with jaggery and cardamom |
 
 ## Method
 

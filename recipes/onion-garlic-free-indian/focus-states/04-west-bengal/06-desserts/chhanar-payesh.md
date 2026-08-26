@@ -1,23 +1,28 @@
 # Chhanar Payesh
 
-**Continent:** West Bengal — Bengali niramish (vegetarian, no onion garlic)  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 25 min  
-**Cookware:** Heavy stainless steel milk pot — never aluminium
+**Recipe card** · West Bengal kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | West Bengal — Bengali niramish (vegetarian, no onion garlic) |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 25 min |
+| **Total** | 40 min |
+| **Cookware** | Heavy stainless steel milk pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from West Bengal, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Chenna crumbs
-- Milk
-- Sugar
-- Cardamom
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | fresh chhena |
+| 1 | L | full-fat milk |
+| 100 | g | sugar |
+| 4 | pods | green cardamom, crushed |
 
 ## Method
 

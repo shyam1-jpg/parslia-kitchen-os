@@ -1,21 +1,28 @@
 # Khaman dhokla (steamed, no onion)
 
-**Continent:** Gujarat — Gujarati and Kathiawadi, including Jain-style  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel steamer and steel thali — never aluminium
+**Recipe card** · Gujarat kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Gujarat — Gujarati and Kathiawadi, including Jain-style |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 20 min |
+| **Total** | 40 min |
+| **Cookware** | Stainless steel steamer and steel thali — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature starter from Gujarat, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 2 cups besan, 1 cup sour yogurt or lemon + water, 1 tsp Eno, turmeric, salt, ginger-chilli paste (no garlic)
-- Temper: mustard, sesame, curry leaves, green chilli, hing in ghee
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | cups | besan |
+| 1 | cup | sour yogurt or lemon + water |
+| 1 | tsp | Eno, turmeric, salt, ginger-chilli paste (no garlic) |
+| 1 | tbsp | ghee, plus mustard, sesame, curry leaves, green chilli, pinch hing |
 
 ## Method
 

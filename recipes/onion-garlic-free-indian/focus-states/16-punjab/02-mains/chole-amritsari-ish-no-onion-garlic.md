@@ -1,22 +1,29 @@
 # Chole (Amritsari-ish, no onion garlic)
 
-**Continent:** Punjab — Punjabi langar and home vegetarian  
-**Category:** Main  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 50 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Punjab kitchen · Main
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Punjab — Punjabi langar and home vegetarian |
+| **Course** | Main |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 50 min |
+| **Total** | 70 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature main from Punjab, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 2 cups chickpeas soaked overnight, 1 teabag or amla for colour
-- 2 tomatoes, 1 tsp cumin, ½ tsp hing, 2 tsp chole masala (check no onion garlic powder), amchur, salt
-- Ghee in kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | cups | chickpeas soaked overnight, 1 teabag or amla for colour |
+| 2 | — | tomatoes |
+| 1 | tsp | cumin |
+| ½ | tsp | hing |
+| 2 | tsp | chole masala (check no onion garlic powder), amchur, salt |
 
 ## Method
 

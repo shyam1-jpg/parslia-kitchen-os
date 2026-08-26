@@ -1,25 +1,30 @@
 # Tomato Pachadi
 
-**Continent:** Andhra Pradesh — Andhra vegetarian / temple pappu  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 5 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Andhra Pradesh kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Andhra Pradesh — Andhra vegetarian / temple pappu |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 5 min |
+| **Total** | 15 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature salad from Andhra Pradesh, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Tomato
-- Green chilli
-- Mustard temper
-- Hing
-- Curry leaves
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | pieces | ripe tomatoes, chopped |
+| 2 | pieces | green chillies, slit |
+| 1 | tsp | mustard seeds |
+| ½ | tsp | hing (asafoetida) |
+| 10 | leaves | fresh curry leaves |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

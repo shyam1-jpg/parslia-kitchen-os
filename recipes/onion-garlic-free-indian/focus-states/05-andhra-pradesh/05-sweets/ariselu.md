@@ -1,23 +1,28 @@
 # Ariselu
 
-**Continent:** Andhra Pradesh — Andhra vegetarian / temple pappu  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 40 min  
-**Cook:** 25 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Andhra Pradesh kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Andhra Pradesh — Andhra vegetarian / temple pappu |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 40 min |
+| **Cook** | 25 min |
+| **Total** | 65 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature sweet from Andhra Pradesh, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice flour
-- Jaggery syrup
-- Sesame
-- Ghee
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 150 | g | rice flour |
+| 200 | ml | jaggery syrup |
+| 3 | tbsp | white sesame seeds |
+| 2 | tbsp | ghee |
 
 ## Method
 

@@ -1,21 +1,26 @@
 # Manda Pitha
 
-**Continent:** Odisha — Odia temple and home kitchen  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 30 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel steamer and steel thali — never aluminium
+**Recipe card** · Odisha kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Odisha — Odia temple and home kitchen |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 30 min |
+| **Cook** | 20 min |
+| **Total** | 50 min |
+| **Cookware** | Stainless steel steamer and steel thali — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Steamed rice dumplings with coconut-jaggery.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice dough
-- Coconut-jaggery filling
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | raw rice |
+| 200 | g | coconut-jaggery filling |
 
 ## Method
 

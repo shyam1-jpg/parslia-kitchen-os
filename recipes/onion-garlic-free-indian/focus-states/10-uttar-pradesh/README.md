@@ -5,28 +5,30 @@
 
 Mathura-Vrindavan temple food: kachori, aloo tamatar, petha, rabri.
 
-Excel: [`excel/uttar-pradesh-recipes.xlsx`](excel/uttar-pradesh-recipes.xlsx)
+Open first: [`index.html`](index.html) (recipe cards) or [`excel/uttar-pradesh-recipes.xlsx`](excel/uttar-pradesh-recipes.xlsx) (one sheet = one card).
 
-| Course | Recipe | File |
-|--------|--------|------|
-| Starter | Matar Kachori | [01-starters/matar-kachori.md](01-starters/matar-kachori.md) |
-| Starter | Palak Pakora | [01-starters/palak-pakora.md](01-starters/palak-pakora.md) |
-| Starter | Aloo Tikki (no onion) | [01-starters/aloo-tikki-no-onion.md](01-starters/aloo-tikki-no-onion.md) |
-| Main | Aloo Tamatar | [02-mains/aloo-tamatar.md](02-mains/aloo-tamatar.md) |
-| Main | UP Kadhi | [02-mains/up-kadhi.md](02-mains/up-kadhi.md) |
-| Main | Moong Dal Tadka | [02-mains/moong-dal-tadka.md](02-mains/moong-dal-tadka.md) |
-| Side | Bhindi ki Sabzi | [03-sides/bhindi-ki-sabzi.md](03-sides/bhindi-ki-sabzi.md) |
-| Side | Lauki Sabzi | [03-sides/lauki-sabzi.md](03-sides/lauki-sabzi.md) |
-| Side | Jeera Aloo | [03-sides/jeera-aloo.md](03-sides/jeera-aloo.md) |
-| Bread | Bedmi Puri | [04-breads/bedmi-puri.md](04-breads/bedmi-puri.md) |
-| Bread | Phulka | [04-breads/phulka.md](04-breads/phulka.md) |
-| Bread | Poori | [04-breads/poori.md](04-breads/poori.md) |
-| Sweet | Agra Petha | [05-sweets/agra-petha.md](05-sweets/agra-petha.md) |
-| Sweet | Mathura Pedha | [05-sweets/mathura-pedha.md](05-sweets/mathura-pedha.md) |
-| Sweet | Balushahi | [05-sweets/balushahi.md](05-sweets/balushahi.md) |
-| Dessert | Rabri | [06-desserts/rabri.md](06-desserts/rabri.md) |
-| Dessert | Rice Kheer | [06-desserts/rice-kheer.md](06-desserts/rice-kheer.md) |
-| Dessert | Thandai Cooler | [06-desserts/thandai-cooler.md](06-desserts/thandai-cooler.md) |
-| Salad | Kachumber without Onion | [07-salads/kachumber-without-onion.md](07-salads/kachumber-without-onion.md) |
-| Salad | Boondi Raita | [07-salads/boondi-raita.md](07-salads/boondi-raita.md) |
-| Salad | Sprouted Moong Salad | [07-salads/sprouted-moong-salad.md](07-salads/sprouted-moong-salad.md) |
+Each dish is its own card with Qty / Unit / Ingredient. Do not use the master table as a recipe — open the kitchen workbook or the HTML card.
+
+| Course | Recipe | Card | Excel sheet |
+|--------|--------|------|-------------|
+| Starter | Matar Kachori | [matar-kachori.html](01-starters/matar-kachori.html) | `01 Matar Kachori` |
+| Starter | Palak Pakora | [palak-pakora.html](01-starters/palak-pakora.html) | `02 Palak Pakora` |
+| Starter | Aloo Tikki (no onion) | [aloo-tikki-no-onion.html](01-starters/aloo-tikki-no-onion.html) | `03 Aloo Tikki (no onion)` |
+| Main | Aloo Tamatar | [aloo-tamatar.html](02-mains/aloo-tamatar.html) | `04 Aloo Tamatar` |
+| Main | UP Kadhi | [up-kadhi.html](02-mains/up-kadhi.html) | `05 UP Kadhi` |
+| Main | Moong Dal Tadka | [moong-dal-tadka.html](02-mains/moong-dal-tadka.html) | `06 Moong Dal Tadka` |
+| Side | Bhindi ki Sabzi | [bhindi-ki-sabzi.html](03-sides/bhindi-ki-sabzi.html) | `07 Bhindi ki Sabzi` |
+| Side | Lauki Sabzi | [lauki-sabzi.html](03-sides/lauki-sabzi.html) | `08 Lauki Sabzi` |
+| Side | Jeera Aloo | [jeera-aloo.html](03-sides/jeera-aloo.html) | `09 Jeera Aloo` |
+| Bread | Bedmi Puri | [bedmi-puri.html](04-breads/bedmi-puri.html) | `10 Bedmi Puri` |
+| Bread | Phulka | [phulka.html](04-breads/phulka.html) | `11 Phulka` |
+| Bread | Poori | [poori.html](04-breads/poori.html) | `12 Poori` |
+| Sweet | Agra Petha | [agra-petha.html](05-sweets/agra-petha.html) | `13 Agra Petha` |
+| Sweet | Mathura Pedha | [mathura-pedha.html](05-sweets/mathura-pedha.html) | `14 Mathura Pedha` |
+| Sweet | Balushahi | [balushahi.html](05-sweets/balushahi.html) | `15 Balushahi` |
+| Dessert | Rabri | [rabri.html](06-desserts/rabri.html) | `16 Rabri` |
+| Dessert | Rice Kheer | [rice-kheer.html](06-desserts/rice-kheer.html) | `17 Rice Kheer` |
+| Dessert | Thandai Cooler | [thandai-cooler.html](06-desserts/thandai-cooler.html) | `18 Thandai Cooler` |
+| Salad | Kachumber without Onion | [kachumber-without-onion.html](07-salads/kachumber-without-onion.html) | `19 Kachumber without Onion` |
+| Salad | Boondi Raita | [boondi-raita.html](07-salads/boondi-raita.html) | `20 Boondi Raita` |
+| Salad | Sprouted Moong Salad | [sprouted-moong-salad.html](07-salads/sprouted-moong-salad.html) | `21 Sprouted Moong Salad` |

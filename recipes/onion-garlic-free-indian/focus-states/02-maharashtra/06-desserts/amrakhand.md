@@ -1,23 +1,28 @@
 # Amrakhand
 
-**Continent:** Maharashtra — Maharashtrian vegetarian and vrat cooking  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 0 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Maharashtra kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Maharashtra — Maharashtrian vegetarian and vrat cooking |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 0 min |
+| **Total** | 10 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Maharashtra, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Hung yogurt
-- Mango puree
-- Sugar
-- Cardamom
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 250 | g | hung yogurt |
+| 400 | g | mango puree |
+| 100 | g | sugar |
+| 4 | pods | green cardamom, crushed |
 
 ## Method
 

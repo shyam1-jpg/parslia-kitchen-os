@@ -1,22 +1,27 @@
 # Khaja
 
-**Continent:** Bihar — Magadh vegetarian  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 25 min  
-**Cook:** 20 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Bihar kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Bihar — Magadh vegetarian |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 25 min |
+| **Cook** | 20 min |
+| **Total** | 45 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Flaky layered fried sweet.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Maida
-- Ghee
-- Sugar syrup
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 250 | g | maida (refined flour) |
+| 2 | tbsp | ghee |
+| 250 | ml | sugar syrup (1-string) |
 
 ## Method
 

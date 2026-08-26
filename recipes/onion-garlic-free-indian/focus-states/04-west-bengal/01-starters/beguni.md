@@ -1,26 +1,31 @@
 # Beguni
 
-**Continent:** West Bengal — Bengali niramish (vegetarian, no onion garlic)  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 15 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · West Bengal kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | West Bengal — Bengali niramish (vegetarian, no onion garlic) |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 15 min |
+| **Total** | 25 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Niramish brinjal fritters.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Brinjal slices
-- Besan
-- Rice flour
-- Kalonji
-- Turmeric
-- Salt
-- Oil
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 400 | g | brinjal, sliced |
+| 150 | g | besan (gram flour) |
+| 150 | g | rice flour |
+| ½ | tsp | kalonji (nigella) |
+| ½ | tsp | turmeric powder |
+| 1 | tsp | salt, or to taste |
+| 2 | tbsp | oil |
 
 ## Method
 

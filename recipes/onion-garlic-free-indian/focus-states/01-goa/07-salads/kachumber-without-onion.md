@@ -1,24 +1,29 @@
 # Kachumber without Onion
 
-**Continent:** Goa — Goan Hindu vegetarian / sattvic  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 8 min  
-**Cook:** 0 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Goa kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Goa — Goan Hindu vegetarian / sattvic |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 8 min |
+| **Cook** | 0 min |
+| **Total** | 8 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature salad from Goa, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Cucumber
-- Tomato
-- Lemon
-- Cumin
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | pieces | cucumbers |
+| 2 | pieces | ripe tomatoes, chopped |
+| 1 | tbsp | lemon juice |
+| 1 | tsp | cumin seeds |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

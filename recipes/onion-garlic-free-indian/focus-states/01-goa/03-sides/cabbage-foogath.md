@@ -1,26 +1,31 @@
 # Cabbage Foogath
 
-**Continent:** Goa — Goan Hindu vegetarian / sattvic  
-**Category:** Side  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 12 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Goa kitchen · Side
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Goa — Goan Hindu vegetarian / sattvic |
+| **Course** | Side |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 12 min |
+| **Total** | 22 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Goan cabbage with coconut and mustard.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 4 cups cabbage
-- Coconut
-- Mustard
-- Curry leaves
-- Hing
-- Green chilli
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 4 | cups | cabbage |
+| 100 | g | fresh grated coconut |
+| 1 | tsp | mustard seeds |
+| 10 | leaves | fresh curry leaves |
+| ½ | tsp | hing (asafoetida) |
+| 2 | pieces | green chillies, slit |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

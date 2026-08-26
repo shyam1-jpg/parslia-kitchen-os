@@ -1,25 +1,30 @@
 # Parwal Sabzi
 
-**Continent:** Mithila — Maithil vegetarian (Bihar–Nepal border culture)  
-**Category:** Side  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 15 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Mithila kitchen · Side
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Mithila — Maithil vegetarian (Bihar–Nepal border culture) |
+| **Course** | Side |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 15 min |
+| **Total** | 25 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature side from Mithila, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Pointed gourd
-- Cumin
-- Hing
-- Turmeric
-- Amchur
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 400 | g | pointed gourd (parwal) |
+| 1 | tsp | cumin seeds |
+| ½ | tsp | hing (asafoetida) |
+| ½ | tsp | turmeric powder |
+| 1 | tsp | amchur (dry mango powder) |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

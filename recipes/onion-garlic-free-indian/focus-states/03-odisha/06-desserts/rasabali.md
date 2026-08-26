@@ -1,23 +1,28 @@
 # Rasabali
 
-**Continent:** Odisha — Odia temple and home kitchen  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 25 min  
-**Cookware:** Heavy stainless steel milk pot — never aluminium
+**Recipe card** · Odisha kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Odisha — Odia temple and home kitchen |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 25 min |
+| **Total** | 45 min |
+| **Cookware** | Heavy stainless steel milk pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Odisha, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Chenna patties
-- Reduced milk
-- Sugar
-- Cardamom
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | fresh chhena |
+| 500 | ml | reduced full-fat milk |
+| 100 | g | sugar |
+| 4 | pods | green cardamom, crushed |
 
 ## Method
 

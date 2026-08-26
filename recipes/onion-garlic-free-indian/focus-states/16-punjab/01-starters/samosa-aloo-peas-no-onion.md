@@ -1,22 +1,27 @@
 # Samosa (aloo-peas, no onion)
 
-**Continent:** Punjab — Punjabi langar and home vegetarian  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 40 min  
-**Cook:** 25 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Punjab kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Punjab — Punjabi langar and home vegetarian |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 40 min |
+| **Cook** | 25 min |
+| **Total** | 65 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature starter from Punjab, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 3 cups maida, ghee, ajwain, water
-- 4 potatoes, 1 cup peas, cumin, hing, amchur, chilli, coriander, salt
-- Oil in kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 3 | cups | maida, ghee, ajwain, water |
+| 4 | — | potatoes |
+| 1 | cup | peas, cumin, hing, amchur, chilli, coriander, salt |
 
 ## Method
 

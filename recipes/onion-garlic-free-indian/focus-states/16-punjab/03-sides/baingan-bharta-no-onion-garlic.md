@@ -1,21 +1,25 @@
 # Baingan bharta (no onion garlic)
 
-**Continent:** Punjab — Punjabi langar and home vegetarian  
-**Category:** Side  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 30 min  
-**Cookware:** Cast-iron grill or steel oven tray — never aluminium foil
+**Recipe card** · Punjab kitchen · Side
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Punjab — Punjabi langar and home vegetarian |
+| **Course** | Side |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 30 min |
+| **Total** | 40 min |
+| **Cookware** | Cast-iron grill or steel oven tray — never aluminium foil |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature side from Punjab, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 3 brinjals roasted
-- Tomato, ginger, green chilli, cumin, hing, coriander, salt, ghee in kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 3 | — | brinjals roasted |
 
 ## Method
 

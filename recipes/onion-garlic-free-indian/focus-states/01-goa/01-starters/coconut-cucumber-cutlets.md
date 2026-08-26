@@ -1,26 +1,31 @@
 # Coconut Cucumber Cutlets
 
-**Continent:** Goa — Goan Hindu vegetarian / sattvic  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 15 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Goa kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Goa — Goan Hindu vegetarian / sattvic |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 15 min |
+| **Total** | 30 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Goan vegetarian starter. Coconut and chilli, no allium.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 1 cup coconut
-- 1 cucumber, squeezed
-- 2 tbsp besan
-- Ginger-chilli
-- Hing
-- Salt
-- Oil
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 1 | cup | coconut |
+| 1 | — | cucumber, squeezed |
+| 2 | tbsp | besan |
+| 1 | tbsp | ginger-green chilli paste (no garlic) |
+| ½ | tsp | hing (asafoetida) |
+| 1 | tsp | salt, or to taste |
+| 2 | tbsp | oil |
 
 ## Method
 

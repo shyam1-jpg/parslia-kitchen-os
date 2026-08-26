@@ -1,22 +1,30 @@
 # Gatte ki sabzi (no onion garlic)
 
-**Continent:** Rajasthan — Marwari, Mewari and Jain vegetarian  
-**Category:** Main  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 25 min  
-**Cook:** 30 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Rajasthan kitchen · Main
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Rajasthan — Marwari, Mewari and Jain vegetarian |
+| **Course** | Main |
+| **Serves** | 4 |
+| **Prep** | 25 min |
+| **Cook** | 30 min |
+| **Total** | 55 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature main from Rajasthan, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 2 cups besan, yogurt, ajwain, hing — for gatte
-- 1 cup yogurt gravy, 1 tsp cumin, ½ tsp hing, 1 tsp red chilli, 1 tsp coriander, turmeric, salt
-- Ghee in kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | cups | besan, yogurt, ajwain, hing — for gatte |
+| 1 | cup | yogurt gravy |
+| 1 | tsp | cumin |
+| ½ | tsp | hing |
+| 1 | tsp | red chilli |
+| 1 | tsp | coriander, turmeric, salt |
 
 ## Method
 

@@ -1,25 +1,30 @@
 # Pazham Pori
 
-**Continent:** Kerala — Kerala sadya kitchen  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 15 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Kerala kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Kerala — Kerala sadya kitchen |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 15 min |
+| **Total** | 25 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Ripe plantain fritters.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Nendran banana
-- Maida
-- Rice flour
-- Sugar
-- Turmeric pinch
-- Oil
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | pieces | nendran bananas |
+| 250 | g | maida (refined flour) |
+| 150 | g | rice flour |
+| 100 | g | sugar |
+| ½ | tsp | turmeric powder |
+| 2 | tbsp | oil |
 
 ## Method
 

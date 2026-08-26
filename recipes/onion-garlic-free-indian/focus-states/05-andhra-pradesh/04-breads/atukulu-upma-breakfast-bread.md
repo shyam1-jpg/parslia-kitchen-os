@@ -1,28 +1,33 @@
 # Atukulu Upma (breakfast bread)
 
-**Continent:** Andhra Pradesh — Andhra vegetarian / temple pappu  
-**Category:** Bread  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 12 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Andhra Pradesh kitchen · Bread
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Andhra Pradesh — Andhra vegetarian / temple pappu |
+| **Course** | Bread |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 12 min |
+| **Total** | 22 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Poha tempered Andhra-style, eaten like a breakfast staple.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Thick poha
-- Mustard
-- Hing
-- Green chilli
-- Peanuts
-- Curry leaves
-- Turmeric
-- Lemon
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | thick poha, rinsed |
+| 1 | tsp | mustard seeds |
+| ½ | tsp | hing (asafoetida) |
+| 2 | pieces | green chillies, slit |
+| 30 | g | roasted peanuts |
+| 10 | leaves | fresh curry leaves |
+| ½ | tsp | turmeric powder |
+| 1 | tbsp | lemon juice |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

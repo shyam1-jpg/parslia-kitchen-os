@@ -1,25 +1,30 @@
 # Besara Mixed Veg
 
-**Continent:** Odisha — Odia temple and home kitchen  
-**Category:** Side  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Odisha kitchen · Side
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Odisha — Odia temple and home kitchen |
+| **Course** | Side |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 20 min |
+| **Total** | 35 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Mustard-paste vegetable of Odisha.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Mixed veg
-- Mustard seeds ground with chilli
-- Panch phoron
-- Turmeric
-- Salt
-- Mustard oil
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 400 | g | mixed seasonal vegetables, cut |
+| 1 | tsp | mustard seeds |
+| 1 | tsp | panch phoron |
+| ½ | tsp | turmeric powder |
+| 1 | tsp | salt, or to taste |
+| 2 | tbsp | mustard oil |
 
 ## Method
 

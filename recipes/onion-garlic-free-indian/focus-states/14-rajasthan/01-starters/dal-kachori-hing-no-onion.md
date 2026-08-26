@@ -1,24 +1,32 @@
 # Dal kachori (hing, no onion)
 
-**Continent:** Rajasthan — Marwari, Mewari and Jain vegetarian  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 40 min  
-**Cook:** 25 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Rajasthan kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Rajasthan — Marwari, Mewari and Jain vegetarian |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 40 min |
+| **Cook** | 25 min |
+| **Total** | 65 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature starter from Rajasthan, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 2 cups yellow moong dal soaked 4h and drained
-- 3 cups atta
-- 2 tsp cumin, 1 tsp fennel, 1 tsp coriander powder
-- ½ tsp hing, 1 tsp red chilli, 1 tsp amchur, salt
-- Ghee for dough + frying in kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | cups | yellow moong dal soaked 4h and drained |
+| 3 | cups | atta |
+| 2 | tsp | cumin |
+| 1 | tsp | fennel |
+| 1 | tsp | coriander powder |
+| ½ | tsp | hing |
+| 1 | tsp | red chilli |
+| 1 | tsp | amchur, salt |
 
 ## Method
 

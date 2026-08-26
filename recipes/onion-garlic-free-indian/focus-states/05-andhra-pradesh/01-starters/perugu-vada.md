@@ -1,25 +1,30 @@
 # Perugu Vada
 
-**Continent:** Andhra Pradesh — Andhra vegetarian / temple pappu  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 10 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Andhra Pradesh kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Andhra Pradesh — Andhra vegetarian / temple pappu |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 10 min |
+| **Total** | 30 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Dahi vada — soaked garelu in tempered yogurt.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Fried garelu
-- Yogurt
-- Mustard
-- Hing
-- Curry leaves
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 8 | pieces | fried garelu |
+| 200 | g | plain yogurt |
+| 1 | tsp | mustard seeds |
+| ½ | tsp | hing (asafoetida) |
+| 10 | leaves | fresh curry leaves |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

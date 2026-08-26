@@ -1,24 +1,29 @@
 # Moong Mangane
 
-**Continent:** Goa — Goan Hindu vegetarian / sattvic  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 25 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Goa kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Goa — Goan Hindu vegetarian / sattvic |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 25 min |
+| **Total** | 35 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Sweet moong and coconut-milk pudding of Goan Hindu homes.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- ½ cup moong, roasted
-- Coconut milk
-- Jaggery
-- Cardamom
-- Cashews in ghee
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| ½ | cup | moong, roasted |
+| 400 | ml | thick coconut milk |
+| 100 | g | jaggery, grated |
+| 4 | pods | green cardamom, crushed |
+| 20 | g | cashews |
 
 ## Method
 

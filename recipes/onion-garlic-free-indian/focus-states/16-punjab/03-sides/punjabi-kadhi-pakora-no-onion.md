@@ -1,22 +1,29 @@
 # Punjabi kadhi pakora (no onion)
 
-**Continent:** Punjab — Punjabi langar and home vegetarian  
-**Category:** Side  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 25 min  
-**Cook:** 35 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Punjab kitchen · Side
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Punjab — Punjabi langar and home vegetarian |
+| **Course** | Side |
+| **Serves** | 4 |
+| **Prep** | 25 min |
+| **Cook** | 35 min |
+| **Total** | 60 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature side from Punjab, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Yogurt, besan, turmeric, salt — kadhi
-- Pakora: besan, ajwain, chilli, spinach optional — fry in kadai
-- Temper cumin, methi, dry chilli, hing
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | plain yogurt |
+| 150 | g | besan (gram flour) |
+| ½ | tsp | turmeric powder |
+| 1 | tsp | salt, or to taste |
+| 1 | tbsp | ghee, plus cumin, methi, dry chilli, pinch hing |
 
 ## Method
 

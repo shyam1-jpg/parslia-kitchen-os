@@ -1,24 +1,29 @@
 # Balushahi
 
-**Continent:** Uttar Pradesh — Awadhi, Braj and Purvanchal sattvic  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 25 min  
-**Cook:** 25 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Uttar Pradesh kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Uttar Pradesh — Awadhi, Braj and Purvanchal sattvic |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 25 min |
+| **Cook** | 25 min |
+| **Total** | 50 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature sweet from Uttar Pradesh, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Maida
-- Ghee
-- Yogurt
-- Baking soda pinch
-- Sugar syrup
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 250 | g | maida (refined flour) |
+| 2 | tbsp | ghee |
+| 200 | g | plain yogurt |
+| ¼ | tsp | baking soda |
+| 250 | ml | sugar syrup (1-string) |
 
 ## Method
 

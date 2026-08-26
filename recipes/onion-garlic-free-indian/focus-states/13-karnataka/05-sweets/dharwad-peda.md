@@ -1,22 +1,27 @@
 # Dharwad Peda
 
-**Continent:** Karnataka — Udupi, Mysuru and North Karnataka vegetarian  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 25 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Karnataka kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Karnataka — Udupi, Mysuru and North Karnataka vegetarian |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 25 min |
+| **Total** | 40 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature sweet from Karnataka, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Khoya
-- Sugar
-- Cardamom
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | khoya / mawa |
+| 100 | g | sugar |
+| 4 | pods | green cardamom, crushed |
 
 ## Method
 

@@ -1,22 +1,27 @@
 # Mawa kachori (sweet stuffed, no onion)
 
-**Continent:** Rajasthan — Marwari, Mewari and Jain vegetarian  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 40 min  
-**Cook:** 25 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Rajasthan kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Rajasthan — Marwari, Mewari and Jain vegetarian |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 40 min |
+| **Cook** | 25 min |
+| **Total** | 65 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Rajasthan, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 3 cups maida, ghee
-- 300 g khoya, sugar, nuts, cardamom
-- Sugar syrup
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 3 | cups | maida, ghee |
+| 300 | g | khoya, sugar, nuts, cardamom |
+| 250 | ml | sugar syrup (1-string) |
 
 ## Method
 

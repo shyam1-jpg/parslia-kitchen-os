@@ -1,20 +1,25 @@
 # Bajri no rotlo (pearl millet)
 
-**Continent:** Gujarat — Gujarati and Kathiawadi, including Jain-style  
-**Category:** Bread  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 20 min  
-**Cookware:** Cast-iron tawa (not aluminium)
+**Recipe card** · Gujarat kitchen · Bread
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Gujarat — Gujarati and Kathiawadi, including Jain-style |
+| **Course** | Bread |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 20 min |
+| **Total** | 35 min |
+| **Cookware** | Cast-iron tawa (not aluminium) |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature bread from Gujarat, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 3 cups bajra flour, salt, hot water, ghee
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 3 | cups | bajra flour, salt, hot water, ghee |
 
 ## Method
 

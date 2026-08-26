@@ -1,26 +1,31 @@
 # Vegetable Chop
 
-**Continent:** West Bengal — Bengali niramish (vegetarian, no onion garlic)  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 25 min  
-**Cook:** 20 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · West Bengal kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | West Bengal — Bengali niramish (vegetarian, no onion garlic) |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 25 min |
+| **Cook** | 20 min |
+| **Total** | 45 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Beet-carrot-potato chop without onion.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Beet
-- Carrot
-- Potato
-- Ginger
-- Bhaja moshla
-- Besan
-- Oil
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 250 | g | beetroot, cubed |
+| 150 | g | carrot, cut |
+| 300 | g | potatoes |
+| 20 | g | fresh ginger, crushed |
+| 1 | tsp | bhaja moshla |
+| 150 | g | besan (gram flour) |
+| 2 | tbsp | oil |
 
 ## Method
 

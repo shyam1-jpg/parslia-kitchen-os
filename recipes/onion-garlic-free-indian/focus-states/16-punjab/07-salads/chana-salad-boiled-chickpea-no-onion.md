@@ -1,20 +1,25 @@
 # Chana salad (boiled chickpea, no onion)
 
-**Continent:** Punjab — Punjabi langar and home vegetarian  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 0 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Punjab kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Punjab — Punjabi langar and home vegetarian |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 0 min |
+| **Total** | 15 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature salad from Punjab, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 2 cups boiled chickpeas, tomato, cucumber, lemon, chilli, cumin, salt, coriander
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | cups | boiled chickpeas, tomato, cucumber, lemon, chilli, cumin, salt, coriander |
 
 ## Method
 

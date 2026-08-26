@@ -1,26 +1,31 @@
 # Baked Sattu Litti
 
-**Continent:** Bihar — Magadh vegetarian  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 25 min  
-**Cook:** 30 min  
-**Cookware:** Cast-iron grill or steel oven tray — never aluminium foil
+**Recipe card** · Bihar kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Bihar — Magadh vegetarian |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 25 min |
+| **Cook** | 30 min |
+| **Total** | 55 min |
+| **Cookware** | Cast-iron grill or steel oven tray — never aluminium foil |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Sattu-stuffed balls, no onion in the filling.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Atta
-- Sattu
-- Ginger-chilli
-- Ajwain
-- Mustard oil
-- Amchur
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 300 | g | whole-wheat atta |
+| 150 | g | sattu (roasted gram flour) |
+| 1 | tbsp | ginger-green chilli paste (no garlic) |
+| ½ | tsp | ajwain (carom seeds) |
+| 2 | tbsp | mustard oil |
+| 1 | tsp | amchur (dry mango powder) |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

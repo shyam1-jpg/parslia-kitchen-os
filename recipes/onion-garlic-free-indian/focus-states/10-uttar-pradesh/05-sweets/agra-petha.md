@@ -1,23 +1,28 @@
 # Agra Petha
 
-**Continent:** Uttar Pradesh — Awadhi, Braj and Purvanchal sattvic  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 40 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Uttar Pradesh kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Uttar Pradesh — Awadhi, Braj and Purvanchal sattvic |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 40 min |
+| **Total** | 60 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature sweet from Uttar Pradesh, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Ash gourd
-- Lime water
-- Sugar syrup
-- Cardamom
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 300 | g | ash gourd, cubed |
+| 500 | ml | lime water |
+| 250 | ml | sugar syrup (1-string) |
+| 4 | pods | green cardamom, crushed |
 
 ## Method
 

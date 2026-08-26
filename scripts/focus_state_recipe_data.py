@@ -78,6 +78,9 @@ def make_add(r, states, bucket):
             steps = [steps]
         if steps is None:
             steps = ["Prepare as written, without onion or garlic, in steel or iron."]
+        from measure_lines import expand_ingredients
+
+        ings = expand_ingredients(ings)
         st = next(s for s in states if s["id"] == sid)
         bucket.append(r(sid, cat, name, st["community"], prep, cook, pan, why, ings, steps, notes or ""))
     return add

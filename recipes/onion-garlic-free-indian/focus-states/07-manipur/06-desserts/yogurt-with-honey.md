@@ -1,23 +1,29 @@
 # Yogurt with Honey
 
-**Continent:** Manipur — Meitei vegetarian table  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 5 min  
-**Cook:** 0 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Manipur kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Manipur — Meitei vegetarian table |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 5 min |
+| **Cook** | 0 min |
+| **Total** | 5 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
-Signature dessert from Manipur, cooked without onion or garlic.
+Set yogurt with honey and sesame — no cooking pan.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Yogurt
-- Honey
-- Sesame
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 400 | g | plain yogurt, chilled |
+| 3 | tbsp | honey |
+| 2 | tbsp | white sesame seeds, toasted |
 
 ## Method
 
-1. Spoon together. No cooking pan.
+1. Spoon yogurt into 4 steel or glass bowls.
+2. Drizzle honey. Scatter sesame. Serve at once.

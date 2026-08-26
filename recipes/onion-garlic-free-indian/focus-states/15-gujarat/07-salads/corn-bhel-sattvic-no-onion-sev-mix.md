@@ -1,21 +1,26 @@
 # Corn bhel sattvic (no onion sev mix)
 
-**Continent:** Gujarat — Gujarati and Kathiawadi, including Jain-style  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 10 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Gujarat kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Gujarat — Gujarati and Kathiawadi, including Jain-style |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 10 min |
+| **Total** | 25 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature salad from Gujarat, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 2 cups boiled sweet corn
-- Pomegranate, tomato, coriander, lemon, roasted cumin, nylon sev, salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | cups | boiled sweet corn |
+| 80 | g | pomegranate arils |
 
 ## Method
 

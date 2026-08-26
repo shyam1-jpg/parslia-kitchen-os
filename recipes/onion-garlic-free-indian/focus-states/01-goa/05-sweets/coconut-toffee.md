@@ -1,23 +1,28 @@
 # Coconut Toffee
 
-**Continent:** Goa — Goan Hindu vegetarian / sattvic  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Goa kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Goa — Goan Hindu vegetarian / sattvic |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 20 min |
+| **Total** | 30 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature sweet from Goa, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 2 cups coconut
-- 1 cup sugar
-- Cardamom
-- Ghee
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | cups | coconut |
+| 1 | cup | sugar |
+| 4 | pods | green cardamom, crushed |
+| 2 | tbsp | ghee |
 
 ## Method
 

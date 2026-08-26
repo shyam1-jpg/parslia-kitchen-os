@@ -1,20 +1,24 @@
 # Kheer (rice milk, national)
 
-**Continent:** Pan-India — Dishes cooked in homes all over India  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 45 min  
-**Cookware:** Heavy stainless steel milk pot — never aluminium
+**Recipe card** · Pan-India kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Pan-India — Dishes cooked in homes all over India |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 45 min |
+| **Total** | 55 min |
+| **Cookware** | Heavy stainless steel milk pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Pan India, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice, milk, sugar, cardamom, nuts, kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
 
 ## Method
 

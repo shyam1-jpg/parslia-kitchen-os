@@ -1,22 +1,27 @@
 # Steamed Rice Cakes
 
-**Continent:** Meghalaya — Khasi and Garo vegetarian home food  
-**Category:** Bread  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel steamer and steel thali — never aluminium
+**Recipe card** · Meghalaya kitchen · Bread
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Meghalaya — Khasi and Garo vegetarian home food |
+| **Course** | Bread |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 20 min |
+| **Total** | 40 min |
+| **Cookware** | Stainless steel steamer and steel thali — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature bread from Meghalaya, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice flour
-- Hot water
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 150 | g | rice flour |
+| 250 | ml | hot water |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

@@ -1,25 +1,30 @@
 # Moong Kosambari
 
-**Continent:** Karnataka — Udupi, Mysuru and North Karnataka vegetarian  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 30 min  
-**Cook:** 2 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Karnataka kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Karnataka — Udupi, Mysuru and North Karnataka vegetarian |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 30 min |
+| **Cook** | 2 min |
+| **Total** | 32 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature salad from Karnataka, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Split moong, soaked
-- Cucumber
-- Coconut
-- Lemon
-- Mustard tadka
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 150 | g | split moong, soaked |
+| 2 | pieces | cucumbers |
+| 100 | g | fresh grated coconut |
+| 1 | tbsp | lemon juice |
+| 1 | tsp | mustard seeds, for tempering |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

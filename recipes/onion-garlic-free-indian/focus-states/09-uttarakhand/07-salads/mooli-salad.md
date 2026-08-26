@@ -1,24 +1,29 @@
 # Mooli Salad
 
-**Continent:** Uttarakhand — Kumaoni and Garhwali vegetarian  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 8 min  
-**Cook:** 0 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Uttarakhand kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Uttarakhand — Kumaoni and Garhwali vegetarian |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 8 min |
+| **Cook** | 0 min |
+| **Total** | 8 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature salad from Uttarakhand, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Radish
-- Lemon
-- Green chilli
-- Salt
-- Coriander
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | white radish, grated |
+| 1 | tbsp | lemon juice |
+| 2 | pieces | green chillies, slit |
+| 1 | tsp | salt, or to taste |
+| 15 | g | fresh coriander leaves |
 
 ## Method
 

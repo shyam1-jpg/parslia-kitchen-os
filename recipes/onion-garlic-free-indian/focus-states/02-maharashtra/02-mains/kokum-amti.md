@@ -1,27 +1,32 @@
 # Kokum Amti
 
-**Continent:** Maharashtra — Maharashtrian vegetarian and vrat cooking  
-**Category:** Main  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Maharashtra kitchen · Main
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Maharashtra — Maharashtrian vegetarian and vrat cooking |
+| **Course** | Main |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 20 min |
+| **Total** | 30 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Sour-sweet toor dal with kokum. Temple-style, no onion garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- ¾ cup toor dal
-- 4 kokum petals
-- Jaggery
-- God masala garlic-free or coriander-cumin
-- Mustard
-- Hing
-- Curry leaves
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| ¾ | cup | toor dal |
+| 4 | — | kokum petals |
+| 100 | g | jaggery, grated |
+| 2 | tsp | god masala (no onion-garlic) |
+| 1 | tsp | mustard seeds |
+| ½ | tsp | hing (asafoetida) |
+| 10 | leaves | fresh curry leaves |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

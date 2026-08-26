@@ -1,20 +1,25 @@
 # Sprouts chaat (no onion)
 
-**Continent:** Pan-India — Dishes cooked in homes all over India  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 0 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Pan-India kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Pan-India — Dishes cooked in homes all over India |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 0 min |
+| **Total** | 15 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature salad from Pan India, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Moong sprouts, tomato, lemon, chilli, cumin, sev, coriander, salt, pomegranate
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | moong sprouts |
 
 ## Method
 

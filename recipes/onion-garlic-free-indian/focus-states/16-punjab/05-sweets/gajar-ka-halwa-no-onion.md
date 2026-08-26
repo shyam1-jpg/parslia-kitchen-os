@@ -1,22 +1,28 @@
 # Gajar ka halwa (no onion)
 
-**Continent:** Punjab — Punjabi langar and home vegetarian  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 50 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Punjab kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Punjab — Punjabi langar and home vegetarian |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 50 min |
+| **Total** | 70 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature sweet from Punjab, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 1 kg red carrots grated
-- 1 L milk, ¾ cup sugar, ½ cup ghee, cardamom, nuts
-- Heavy kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 1 | kg | red carrots grated |
+| 1 | L | milk |
+| ¾ | cup | sugar |
+| ½ | cup | ghee, cardamom, nuts |
 
 ## Method
 

@@ -1,21 +1,28 @@
 # Khandvi (rolled gram, no onion)
 
-**Continent:** Gujarat — Gujarati and Kathiawadi, including Jain-style  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 25 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Gujarat kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Gujarat — Gujarati and Kathiawadi, including Jain-style |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 25 min |
+| **Total** | 45 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature starter from Gujarat, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 1 cup besan, 1 cup yogurt, 2 cups water, turmeric, salt, ginger-chilli
-- Temper mustard, sesame, curry leaf, hing, coconut
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 1 | cup | besan |
+| 1 | cup | yogurt |
+| 2 | cups | water, turmeric, salt, ginger-chilli |
+| 1 | tbsp | oil, plus mustard, sesame, curry leaf, hing, 2 tbsp coconut |
 
 ## Method
 

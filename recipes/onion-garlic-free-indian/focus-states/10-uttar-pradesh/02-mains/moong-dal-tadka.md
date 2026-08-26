@@ -1,27 +1,32 @@
 # Moong Dal Tadka
 
-**Continent:** Uttar Pradesh — Awadhi, Braj and Purvanchal sattvic  
-**Category:** Main  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 25 min  
-**Cookware:** Stainless steel or clay pot — never aluminium
+**Recipe card** · Uttar Pradesh kitchen · Main
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Uttar Pradesh — Awadhi, Braj and Purvanchal sattvic |
+| **Course** | Main |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 25 min |
+| **Total** | 35 min |
+| **Cookware** | Stainless steel or clay pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature main from Uttar Pradesh, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Moong dal
-- Tomato
-- Cumin
-- Hing
-- Ginger
-- Ghee
-- Turmeric
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 150 | g | moong dal |
+| 2 | pieces | ripe tomatoes, chopped |
+| 1 | tsp | cumin seeds |
+| ½ | tsp | hing (asafoetida) |
+| 20 | g | fresh ginger, crushed |
+| 2 | tbsp | ghee |
+| ½ | tsp | turmeric powder |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

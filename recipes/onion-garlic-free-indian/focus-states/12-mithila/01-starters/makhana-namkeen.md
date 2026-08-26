@@ -1,25 +1,30 @@
 # Makhana Namkeen
 
-**Continent:** Mithila — Maithil vegetarian (Bihar–Nepal border culture)  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 5 min  
-**Cook:** 10 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Mithila kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Mithila — Maithil vegetarian (Bihar–Nepal border culture) |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 5 min |
+| **Cook** | 10 min |
+| **Total** | 15 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Roasted fox nuts — Mithila’s signature snack.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 4 cups makhana
-- Ghee
-- Hing
-- Turmeric
-- Chilli
-- Black salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 4 | cups | makhana |
+| 2 | tbsp | ghee |
+| ½ | tsp | hing (asafoetida) |
+| ½ | tsp | turmeric powder |
+| 2 | pieces | green or dry red chillies |
+| ½ | tsp | black salt |
 
 ## Method
 

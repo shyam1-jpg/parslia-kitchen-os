@@ -1,26 +1,31 @@
 # Olan
 
-**Continent:** Kerala — Kerala sadya kitchen  
-**Category:** Main  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Kerala kitchen · Main
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Kerala — Kerala sadya kitchen |
+| **Course** | Main |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 20 min |
+| **Total** | 35 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Ash gourd and cowpeas in thin coconut milk — sadya main.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Ash gourd
-- Red cowpeas, cooked
-- Thin + thick coconut milk
-- Green chilli
-- Curry leaves
-- Coconut oil
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 300 | g | ash gourd, cubed |
+| 300 | g | cooked red cowpeas |
+| 400 | ml | thin coconut milk plus 200 ml thick |
+| 2 | pieces | green chillies, slit |
+| 10 | leaves | fresh curry leaves |
+| 2 | tbsp | coconut oil |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

@@ -1,21 +1,25 @@
 # Tandoori roti (atta, no garlic butter)
 
-**Continent:** Punjab — Punjabi langar and home vegetarian  
-**Category:** Bread  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 15 min  
-**Cookware:** Stainless steel or clay pot — never aluminium
+**Recipe card** · Punjab kitchen · Bread
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Punjab — Punjabi langar and home vegetarian |
+| **Course** | Bread |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 15 min |
+| **Total** | 35 min |
+| **Cookware** | Stainless steel or clay pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature bread from Punjab, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 3 cups atta, water, salt, ghee
-- Clay tandoor or tawa-puff
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 3 | cups | atta, water, salt, ghee |
 
 ## Method
 

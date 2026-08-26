@@ -1,24 +1,29 @@
 # Doce de Grao
 
-**Continent:** Goa — Goan Hindu vegetarian / sattvic  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 25 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Goa kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Goa — Goan Hindu vegetarian / sattvic |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 25 min |
+| **Total** | 40 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Chana-dal coconut fudge of Goan feasts.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 1 cup chana dal, cooked mashed
-- 1 cup coconut
-- ¾ cup sugar
-- Cardamom
-- Ghee
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 1 | cup | chana dal, cooked mashed |
+| 1 | cup | coconut |
+| ¾ | cup | sugar |
+| 4 | pods | green cardamom, crushed |
+| 2 | tbsp | ghee |
 
 ## Method
 

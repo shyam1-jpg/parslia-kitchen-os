@@ -83,81 +83,304 @@ def extend_rest(add, S, STEAM, TAWA, FRY, MILK, BOWL, CLAY, GRILL):
         ["Beetroot", "Coconut paste", "Yogurt", "Mustard tadka", "Salt"],
         ["Cook beet, fold coconut-yogurt, temper."], "")
 
-    # ===== MANIPUR (21) =====
+    # ===== MANIPUR (21) — each dish is a measured recipe card =====
     add("manipur", "Starter", "Paknam Slices", 20, 25, STEAM,
-        "Steamed gram-herb cake.",
-        ["Besan", "Coriander and herbs (no spring onion)", "Ginger", "Salt", "Banana leaf"],
-        ["Steam 20 minutes in steel, slice."])
+        "Steamed gram-and-herb cake, sliced like a savoury terrine. No fermented fish, no onion, no garlic.",
+        [
+            "150 g besan (gram flour)",
+            "120 ml water",
+            "20 g fresh ginger, grated",
+            "2 pieces green chilli, finely chopped",
+            "30 g fresh coriander leaves, chopped",
+            "1 tsp salt",
+            "½ tsp hing (asafoetida)",
+            "1 tbsp mustard oil",
+            "1 piece banana leaf, to line the steamer",
+        ],
+        [
+            "Mix besan, water, ginger, chilli, coriander, salt, hing and mustard oil to a thick cake batter.",
+            "Line a steel steamer thali with the banana leaf. Pour in the batter 2 cm thick.",
+            "Steam 20 minutes. Cool 5 minutes, turn out and slice into 8 fingers. Serve warm.",
+        ])
     add("manipur", "Starter", "Kanghou Mixed Veg", 10, 12, S,
-        "Quick dry-fried seasonal vegetables with chilli.",
-        ["Cabbage, beans, carrot", "Green chilli", "Ginger", "Salt", "Oil"],
-        ["High-heat stir in steel. No onion."])
+        "High-heat dry-fried seasonal vegetables. Ginger and chilli stand in for alliums.",
+        [
+            "150 g cabbage, shredded",
+            "100 g french beans, cut 3 cm",
+            "100 g carrot, batons",
+            "20 g fresh ginger, julienne",
+            "2 pieces green chilli, slit",
+            "2 tbsp mustard oil",
+            "1 tsp salt",
+        ],
+        [
+            "Heat mustard oil in a steel kadhai until it just smokes, then lower the flame.",
+            "Add ginger and chilli, then cabbage, beans and carrot. Stir-fry 8–10 minutes.",
+            "Season with salt. Vegetables should stay bright, not soggy. Serve at once.",
+        ])
     add("manipur", "Starter", "Kangsoi Cup", 10, 15, S,
-        "Small bowl of vegetable soup as a starter.",
-        ["Cabbage", "Potato", "Beans", "Ginger", "Chilli", "Salt"],
-        ["Simmer a clear soup. Serve in steel cups."])
+        "A small bowl of clear vegetable soup to open the meal.",
+        [
+            "100 g cabbage, cubed",
+            "100 g potato, cubed",
+            "80 g french beans, cut",
+            "20 g fresh ginger, crushed",
+            "2 pieces green chilli, slit",
+            "700 ml water",
+            "1 tsp salt",
+        ],
+        [
+            "Bring water, ginger and chilli to a boil in a stainless steel pot.",
+            "Add cabbage, potato, beans and salt. Simmer 12 minutes until just tender.",
+            "Ladle into steel cups. Broth should be light and peppery, never cloudy from stock cubes.",
+        ])
     add("manipur", "Main", "Chamthong Stew", 15, 25, S,
-        "Clear Manipuri vegetable stew.",
-        ["Mixed veg", "Ginger", "Green chilli", "Salt", "Local herb or coriander"],
-        ["Simmer until tender. Light, clean broth."])
+        "Clear Manipuri vegetable stew — the home pot. No nga-ri, no onion, no garlic.",
+        [
+            "150 g cabbage, large cubes",
+            "150 g potato, large cubes",
+            "100 g carrot, chunks",
+            "100 g french beans, cut 4 cm",
+            "80 g pumpkin, cubes",
+            "25 g fresh ginger, crushed",
+            "2 pieces green chilli, slit",
+            "15 g fresh coriander leaves",
+            "1 tsp salt",
+            "1 L water",
+        ],
+        [
+            "Put water, ginger and chilli in a stainless steel pot and bring to a rolling boil.",
+            "Add potato and pumpkin first; cook 8 minutes. Add cabbage, carrot and beans.",
+            "Season with salt. Simmer until all vegetables are tender but hold their shape, about 12 minutes more.",
+            "Finish with coriander. Serve in steel bowls with sticky rice. Never aluminium.",
+        ])
     add("manipur", "Main", "Ooti", 15, 35, CLAY,
-        "Yellow pea stew of Manipur. Ginger and baking soda pinch, no allium.",
-        ["1 cup yellow peas, soaked", "Ginger", "Green chilli", "Salt", "Optional rice to thicken"],
-        ["Cook peas very soft. Ginger, chilli, salt. Should be creamy."])
+        "Creamy yellow-pea stew of Manipur. A pinch of soda is traditional; skip onion and garlic.",
+        [
+            "200 g yellow peas (vatana), soaked 6 hours",
+            "800 ml water",
+            "25 g fresh ginger, crushed",
+            "2 pieces green chilli, slit",
+            "¼ tsp baking soda",
+            "1 tsp salt",
+            "2 tbsp cooked rice, to thicken (optional)",
+            "1 tbsp mustard oil",
+        ],
+        [
+            "Drain the peas. Cook with water, ginger, chilli and soda in a clay or steel pot until very soft, 30 minutes.",
+            "Mash a ladle of peas against the pot. Stir in optional rice. Season with salt.",
+            "Finish with mustard oil. The stew should be creamy, not watery. Serve with sticky rice.",
+        ])
     add("manipur", "Main", "Veg Kangsoi", 15, 25, S,
-        "Vegetable kangsoi without fermented fish.",
-        ["Mixed veg and greens", "Ginger", "Chilli", "Salt", "A squeeze of lemon"],
-        ["Boil-simmer until the veg is soft and the broth is peppery."])
+        "Vegetable kangsoi without fermented fish. Lemon and chilli give the snap.",
+        [
+            "250 g mixed seasonal vegetables, cut",
+            "100 g seasonal greens, chopped",
+            "25 g fresh ginger, crushed",
+            "3 pieces green chilli, slit",
+            "800 ml water",
+            "1 tsp salt",
+            "1 tbsp lemon juice",
+        ],
+        [
+            "Boil water with ginger and chilli. Add mixed vegetables and salt; simmer 15 minutes.",
+            "Stir in greens for the last 4 minutes.",
+            "Off the heat, add lemon juice. Serve as a soupy main with rice.",
+        ])
     add("manipur", "Side", "Sesame Eromba", 15, 20, BOWL,
-        "Boiled veg mashed with roasted sesame and chilli.",
-        ["Potato", "Beans", "Roasted sesame", "Dry chilli", "Salt"],
-        ["Pound sesame-chilli. Mash with boiled veg."])
+        "Boiled vegetables pounded with roasted sesame and chilli — Manipur's mash, without fish paste.",
+        [
+            "300 g potatoes, boiled and peeled",
+            "150 g french beans, boiled",
+            "40 g white sesame seeds, roasted",
+            "3 pieces dry red chilli, toasted",
+            "1 tsp salt",
+            "1 tbsp mustard oil",
+        ],
+        [
+            "Pound roasted sesame and chilli to a coarse paste in a stone mortar or crush in a steel bowl.",
+            "Mash potatoes and beans with the paste, salt and mustard oil. Keep some texture.",
+            "Serve at room temperature as a side to rice and stew.",
+        ])
     add("manipur", "Side", "Yongchak Veg (parkia)", 10, 15, S,
-        "Stink beans with chilli — skip if unavailable; use french beans.",
-        ["Yongchak or french beans", "Chilli", "Ginger", "Salt"],
-        ["Stir-fry until tender."])
+        "Stink beans with chilli. If yongchak is unavailable, use french beans.",
+        [
+            "250 g yongchak (parkia) or french beans, sliced",
+            "20 g fresh ginger, julienne",
+            "3 pieces green chilli, slit",
+            "2 tbsp mustard oil",
+            "1 tsp salt",
+        ],
+        [
+            "Heat mustard oil in a steel kadhai. Add ginger and chilli.",
+            "Add beans and salt. Stir-fry 10–12 minutes until tender with a little bite.",
+        ])
     add("manipur", "Side", "Boiled Seasonal Beans", 10, 12, S,
-        ["Beans", "Salt", "Ginger", "Chilli"],
-        ["Boil, toss."], "")
+        "Plain boiled beans finished with ginger and chilli — a clean Manipuri side.",
+        [
+            "300 g seasonal beans, trimmed",
+            "15 g fresh ginger, crushed",
+            "2 pieces green chilli, slit",
+            "1 tsp salt",
+            "600 ml water",
+        ],
+        [
+            "Boil beans in salted water with ginger and chilli for 8–10 minutes.",
+            "Drain. Toss with a spoon of the cooking liquor. Serve hot.",
+        ])
     add("manipur", "Bread", "Steamed Sticky Rice", 5, 25, STEAM,
-        ["Sticky rice, soaked"],
-        ["Steam 20–25 minutes in steel."], "")
+        "The grain of the Manipuri table. Steel steamer only.",
+        [
+            "400 g sticky rice (glutinous rice)",
+            "800 ml water, for soaking",
+            "½ tsp salt",
+        ],
+        [
+            "Rinse rice. Soak in water 4 hours or overnight. Drain.",
+            "Steam in a stainless steel steamer 20–25 minutes until translucent and sticky.",
+            "Fluff with a fork. Serve with chamthong or ooti. Never aluminium.",
+        ])
     add("manipur", "Bread", "Chak-Hao Rice", 5, 30, STEAM,
-        "Black rice as the grain of the meal.",
-        ["Chak-hao, soaked"],
-        ["Steam or cook in steel until tender."])
+        "Manipur black rice as the grain of the meal.",
+        [
+            "300 g chak-hao (Manipur black rice)",
+            "700 ml water",
+            "½ tsp salt",
+        ],
+        [
+            "Rinse until the water runs less purple. Soak 2 hours. Drain.",
+            "Steam or simmer in steel with salt until grains are tender, 25–30 minutes.",
+            "Rest 5 minutes. The rice should be nutty and slightly chewy.",
+        ])
     add("manipur", "Bread", "Soft Roti", 15, 15, TAWA,
-        ["Atta", "Water", "Salt"],
-        ["Cook on iron tawa."], "")
+        "Plain wheat roti for guests who want a North-Indian bread with the stew.",
+        [
+            "300 g whole-wheat atta",
+            "180 ml water, or as needed",
+            "½ tsp salt",
+            "1 tsp ghee, for finishing",
+        ],
+        [
+            "Knead atta, salt and water 5 minutes. Rest 10 minutes.",
+            "Divide into 8 balls. Roll 15 cm discs. Cook on a cast-iron tawa until they puff.",
+            "Brush with ghee. Keep wrapped in a cloth.",
+        ])
     add("manipur", "Sweet", "Til-Gud Ladoo", 10, 15, S,
-        ["Sesame", "Jaggery", "Ghee"],
-        ["Melt jaggery, add sesame, shape."], "")
+        "Sesame and jaggery balls — festival sweet.",
+        [
+            "150 g white sesame seeds, roasted",
+            "120 g jaggery, grated",
+            "1 tbsp ghee",
+            "4 pods green cardamom, powdered",
+        ],
+        [
+            "Melt jaggery with ghee in a steel kadhai until it forms a soft ball in cold water.",
+            "Stir in sesame and cardamom. Off the heat, shape 12 ladoos while warm.",
+            "Cool on a steel plate. Store in an airtight tin.",
+        ])
     add("manipur", "Sweet", "Steamed Rice Cake", 20, 15, STEAM,
-        ["Rice flour", "Jaggery", "Coconut"],
-        ["Mix, steam in steel."], "")
+        "Soft rice-flour cakes with jaggery and coconut.",
+        [
+            "200 g rice flour",
+            "100 g jaggery, grated",
+            "80 g fresh grated coconut",
+            "150 ml warm water",
+            "¼ tsp salt",
+            "4 pods green cardamom, powdered",
+        ],
+        [
+            "Mix rice flour, jaggery, coconut, salt, cardamom and water to a thick batter.",
+            "Spoon into a steel idli mould or thali. Steam 12–15 minutes.",
+            "Unmould. Serve warm.",
+        ])
     add("manipur", "Sweet", "Coconut Ladoo", 5, 10, S,
-        ["Coconut", "Jaggery or condensed milk", "Cardamom"],
-        ["Cook, shape."], "")
+        "Quick coconut balls with jaggery.",
+        [
+            "200 g fresh grated coconut",
+            "120 g jaggery, grated",
+            "4 pods green cardamom, powdered",
+            "1 tsp ghee, for the pan",
+        ],
+        [
+            "Cook coconut and jaggery in a steel pan 6–8 minutes until the mix holds together.",
+            "Add cardamom. Shape 12 ladoos. Cool.",
+        ])
     add("manipur", "Dessert", "Chak-Hao Kheer", 10, 45, MILK,
-        "Black-rice kheer.",
-        ["Chak-hao", "Milk", "Sugar", "Cardamom"],
-        ["Simmer in steel until lilac-grey and thick."])
+        "Black-rice pudding — the colour turns lilac-grey. Slow milk, steel pot only.",
+        [
+            "80 g chak-hao (Manipur black rice), soaked 2 hours",
+            "1 L full-fat milk",
+            "80 g sugar",
+            "4 pods green cardamom, crushed",
+            "10 g pistachios, slivered",
+        ],
+        [
+            "Drain rice. Simmer in milk in a heavy steel pot, stirring often, 35–40 minutes until thick.",
+            "Add sugar and cardamom. Cook 5 minutes more.",
+            "Serve warm or chilled, topped with pistachio. Never aluminium — milk reacts.",
+        ])
     add("manipur", "Dessert", "White Rice Kheer", 10, 35, MILK,
-        ["Rice", "Milk", "Sugar", "Cardamom"],
-        ["Simmer in steel."], "")
+        "Everyday rice kheer for the Manipuri vegetarian table.",
+        [
+            "80 g raw rice, rinsed",
+            "1 L full-fat milk",
+            "80 g sugar",
+            "4 pods green cardamom, crushed",
+            "15 g raisins",
+        ],
+        [
+            "Simmer rice in milk in a steel pot until the grains burst and the milk is creamy, 30 minutes.",
+            "Add sugar, cardamom and raisins. Cook 5 minutes. Serve warm.",
+        ])
     add("manipur", "Dessert", "Yogurt with Honey", 5, 0, BOWL,
-        ["Yogurt", "Honey", "Sesame"],
-        ["Spoon together. No cooking pan."], "")
+        "Set yogurt with honey and sesame — no cooking pan.",
+        [
+            "400 g plain yogurt, chilled",
+            "3 tbsp honey",
+            "2 tbsp white sesame seeds, toasted",
+        ],
+        [
+            "Spoon yogurt into 4 steel or glass bowls.",
+            "Drizzle honey. Scatter sesame. Serve at once.",
+        ])
     add("manipur", "Salad", "Veg Singju", 15, 0, BOWL,
-        "Manipuri salad with roasted sesame and besan, no nga-ri.",
-        ["Cabbage", "Beans or banana flower", "Roasted sesame", "Roasted besan", "Chilli", "Lemon", "Salt"],
-        ["Toss, rest 5 minutes."])
+        "Manipuri salad with roasted sesame and besan. No nga-ri, no onion.",
+        [
+            "200 g cabbage, finely shredded",
+            "100 g french beans or banana flower, thinly sliced",
+            "3 tbsp white sesame seeds, roasted and crushed",
+            "2 tbsp besan (gram flour), dry-roasted",
+            "2 pieces green chilli, minced",
+            "1 tbsp lemon juice",
+            "1 tsp salt",
+        ],
+        [
+            "Toss cabbage and beans with sesame, roasted besan, chilli, lemon and salt.",
+            "Rest 5 minutes so the besan clings. Serve the same hour — it weeps if it sits.",
+        ])
     add("manipur", "Salad", "Cucumber Chilli Salad", 6, 0, BOWL,
-        ["Cucumber", "Green chilli", "Lemon", "Salt"],
-        ["Toss. Go easy on king chilli."], "")
+        "Cool cucumber with chilli and lemon. Go easy if using king chilli.",
+        [
+            "2 pieces cucumbers, sliced thin",
+            "1 piece green chilli, minced",
+            "1 tbsp lemon juice",
+            "½ tsp salt",
+        ],
+        [
+            "Toss cucumber, chilli, lemon and salt. Serve immediately.",
+        ])
     add("manipur", "Salad", "Cabbage Lemon Salad", 8, 0, BOWL,
-        ["Cabbage", "Lemon", "Salt", "Sesame"],
-        ["Toss."], "")
+        "Shredded cabbage with lemon and sesame.",
+        [
+            "300 g cabbage, shredded",
+            "1 tbsp lemon juice",
+            "2 tbsp white sesame seeds, toasted",
+            "¾ tsp salt",
+        ],
+        [
+            "Toss cabbage with lemon, sesame and salt. Serve crisp and cold.",
+        ])
+
 
     # ===== MEGHALAYA (21) =====
     add("meghalaya", "Starter", "Pukhlein", 15, 15, FRY,

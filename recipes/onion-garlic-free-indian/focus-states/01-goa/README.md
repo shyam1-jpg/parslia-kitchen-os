@@ -5,28 +5,30 @@
 
 Coconut, kokum, curry leaves. Khatkhate, caldin and sannas without onion or garlic.
 
-Excel: [`excel/goa-recipes.xlsx`](excel/goa-recipes.xlsx)
+Open first: [`index.html`](index.html) (recipe cards) or [`excel/goa-recipes.xlsx`](excel/goa-recipes.xlsx) (one sheet = one card).
 
-| Course | Recipe | File |
-|--------|--------|------|
-| Starter | Coconut Cucumber Cutlets | [01-starters/coconut-cucumber-cutlets.md](01-starters/coconut-cucumber-cutlets.md) |
-| Starter | Moong Ghavan | [01-starters/moong-ghavan.md](01-starters/moong-ghavan.md) |
-| Starter | Jeev Kadgi Fritters | [01-starters/jeev-kadgi-fritters.md](01-starters/jeev-kadgi-fritters.md) |
-| Main | Khatkhate | [02-mains/khatkhate.md](02-mains/khatkhate.md) |
-| Main | Vegetable Caldin | [02-mains/vegetable-caldin.md](02-mains/vegetable-caldin.md) |
-| Main | Moong Coconut Usal | [02-mains/moong-coconut-usal.md](02-mains/moong-coconut-usal.md) |
-| Side | Alsande Tondak (no garlic) | [03-sides/alsande-tondak-no-garlic.md](03-sides/alsande-tondak-no-garlic.md) |
-| Side | Cabbage Foogath | [03-sides/cabbage-foogath.md](03-sides/cabbage-foogath.md) |
-| Side | Pumpkin Bhaji | [03-sides/pumpkin-bhaji.md](03-sides/pumpkin-bhaji.md) |
-| Bread | Sannas | [04-breads/sannas.md](04-breads/sannas.md) |
-| Bread | Pole | [04-breads/pole.md](04-breads/pole.md) |
-| Bread | Soft Wheat Roti | [04-breads/soft-wheat-roti.md](04-breads/soft-wheat-roti.md) |
-| Sweet | Bebinca Slab | [05-sweets/bebinca-slab.md](05-sweets/bebinca-slab.md) |
-| Sweet | Doce de Grao | [05-sweets/doce-de-grao.md](05-sweets/doce-de-grao.md) |
-| Sweet | Coconut Toffee | [05-sweets/coconut-toffee.md](05-sweets/coconut-toffee.md) |
-| Dessert | Coconut Payasam | [06-desserts/coconut-payasam.md](06-desserts/coconut-payasam.md) |
-| Dessert | Moong Mangane | [06-desserts/moong-mangane.md](06-desserts/moong-mangane.md) |
-| Dessert | Rice Kheer | [06-desserts/rice-kheer.md](06-desserts/rice-kheer.md) |
-| Salad | Kokum Cucumber Salad | [07-salads/kokum-cucumber-salad.md](07-salads/kokum-cucumber-salad.md) |
-| Salad | Kachumber without Onion | [07-salads/kachumber-without-onion.md](07-salads/kachumber-without-onion.md) |
-| Salad | Raw Mango Coconut Salad | [07-salads/raw-mango-coconut-salad.md](07-salads/raw-mango-coconut-salad.md) |
+Each dish is its own card with Qty / Unit / Ingredient. Do not use the master table as a recipe — open the kitchen workbook or the HTML card.
+
+| Course | Recipe | Card | Excel sheet |
+|--------|--------|------|-------------|
+| Starter | Coconut Cucumber Cutlets | [coconut-cucumber-cutlets.html](01-starters/coconut-cucumber-cutlets.html) | `01 Coconut Cucumber Cutlets` |
+| Starter | Moong Ghavan | [moong-ghavan.html](01-starters/moong-ghavan.html) | `02 Moong Ghavan` |
+| Starter | Jeev Kadgi Fritters | [jeev-kadgi-fritters.html](01-starters/jeev-kadgi-fritters.html) | `03 Jeev Kadgi Fritters` |
+| Main | Khatkhate | [khatkhate.html](02-mains/khatkhate.html) | `04 Khatkhate` |
+| Main | Vegetable Caldin | [vegetable-caldin.html](02-mains/vegetable-caldin.html) | `05 Vegetable Caldin` |
+| Main | Moong Coconut Usal | [moong-coconut-usal.html](02-mains/moong-coconut-usal.html) | `06 Moong Coconut Usal` |
+| Side | Alsande Tondak (no garlic) | [alsande-tondak-no-garlic.html](03-sides/alsande-tondak-no-garlic.html) | `07 Alsande Tondak (no garlic)` |
+| Side | Cabbage Foogath | [cabbage-foogath.html](03-sides/cabbage-foogath.html) | `08 Cabbage Foogath` |
+| Side | Pumpkin Bhaji | [pumpkin-bhaji.html](03-sides/pumpkin-bhaji.html) | `09 Pumpkin Bhaji` |
+| Bread | Sannas | [sannas.html](04-breads/sannas.html) | `10 Sannas` |
+| Bread | Pole | [pole.html](04-breads/pole.html) | `11 Pole` |
+| Bread | Soft Wheat Roti | [soft-wheat-roti.html](04-breads/soft-wheat-roti.html) | `12 Soft Wheat Roti` |
+| Sweet | Bebinca Slab | [bebinca-slab.html](05-sweets/bebinca-slab.html) | `13 Bebinca Slab` |
+| Sweet | Doce de Grao | [doce-de-grao.html](05-sweets/doce-de-grao.html) | `14 Doce de Grao` |
+| Sweet | Coconut Toffee | [coconut-toffee.html](05-sweets/coconut-toffee.html) | `15 Coconut Toffee` |
+| Dessert | Coconut Payasam | [coconut-payasam.html](06-desserts/coconut-payasam.html) | `16 Coconut Payasam` |
+| Dessert | Moong Mangane | [moong-mangane.html](06-desserts/moong-mangane.html) | `17 Moong Mangane` |
+| Dessert | Rice Kheer | [rice-kheer.html](06-desserts/rice-kheer.html) | `18 Rice Kheer` |
+| Salad | Kokum Cucumber Salad | [kokum-cucumber-salad.html](07-salads/kokum-cucumber-salad.html) | `19 Kokum Cucumber Salad` |
+| Salad | Kachumber without Onion | [kachumber-without-onion.html](07-salads/kachumber-without-onion.html) | `20 Kachumber without Onion` |
+| Salad | Raw Mango Coconut Salad | [raw-mango-coconut-salad.html](07-salads/raw-mango-coconut-salad.html) | `21 Raw Mango Coconut Salad` |

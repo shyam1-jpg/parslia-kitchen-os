@@ -1,25 +1,30 @@
 # Aloo Bhujiya
 
-**Continent:** Bihar — Magadh vegetarian  
-**Category:** Side  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 15 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Bihar kitchen · Side
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Bihar — Magadh vegetarian |
+| **Course** | Side |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 15 min |
+| **Total** | 25 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Thin potato fry with panch phoron.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Potatoes, thinly sliced
-- Panch phoron
-- Turmeric
-- Chilli
-- Mustard oil
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 400 | g | potatoes |
+| 1 | tsp | panch phoron |
+| ½ | tsp | turmeric powder |
+| 2 | pieces | green or dry red chillies |
+| 2 | tbsp | mustard oil |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

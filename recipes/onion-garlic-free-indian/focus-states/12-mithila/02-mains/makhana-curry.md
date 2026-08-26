@@ -1,28 +1,33 @@
 # Makhana Curry
 
-**Continent:** Mithila — Maithil vegetarian (Bihar–Nepal border culture)  
-**Category:** Main  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 25 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Mithila kitchen · Main
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Mithila — Maithil vegetarian (Bihar–Nepal border culture) |
+| **Course** | Main |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 25 min |
+| **Total** | 40 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Fox-nut curry in tomato-yogurt. Maithil vegetarian royal dish.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Makhana, lightly fried
-- Tomato
-- Yogurt
-- Ginger
-- Cumin
-- Hing
-- Garam masala
-- Ghee
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 80 | g | makhana, lightly fried |
+| 2 | pieces | ripe tomatoes, chopped |
+| 200 | g | plain yogurt |
+| 20 | g | fresh ginger, crushed |
+| 1 | tsp | cumin seeds |
+| ½ | tsp | hing (asafoetida) |
+| ½ | tsp | garam masala (no onion-garlic powder) |
+| 2 | tbsp | ghee |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

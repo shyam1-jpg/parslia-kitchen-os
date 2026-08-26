@@ -1,26 +1,31 @@
 # Vegetable Huli
 
-**Continent:** Karnataka — Udupi, Mysuru and North Karnataka vegetarian  
-**Category:** Main  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 30 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Karnataka kitchen · Main
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Karnataka — Udupi, Mysuru and North Karnataka vegetarian |
+| **Course** | Main |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 30 min |
+| **Total** | 45 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Coconut-dal vegetable curry of Old Mysore.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Mixed veg
-- Toor dal
-- Coconut-chilli-coriander paste
-- Tamarind
-- Mustard
-- Hing
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 400 | g | mixed seasonal vegetables, cut |
+| 150 | g | toor dal, rinsed |
+| 80 | g | coconut-chilli-coriander paste |
+| 20 | g | seedless tamarind |
+| 1 | tsp | mustard seeds |
+| ½ | tsp | hing (asafoetida) |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

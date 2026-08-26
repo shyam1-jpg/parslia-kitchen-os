@@ -1,26 +1,31 @@
 # Erissery
 
-**Continent:** Kerala — Kerala sadya kitchen  
-**Category:** Side  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 25 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Kerala kitchen · Side
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Kerala — Kerala sadya kitchen |
+| **Course** | Side |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 25 min |
+| **Total** | 40 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Pumpkin and cowpeas with ground coconut.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Pumpkin
-- Cowpeas
-- Coconut-cumin-chilli paste
-- Mustard
-- Curry leaves
-- Coconut oil
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 300 | g | pumpkin, cubed |
+| 200 | g | cowpeas, soaked |
+| 80 | g | coconut-cumin-chilli paste (no garlic) |
+| 1 | tsp | mustard seeds |
+| 10 | leaves | fresh curry leaves |
+| 2 | tbsp | coconut oil |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

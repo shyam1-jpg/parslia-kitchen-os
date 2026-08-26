@@ -1,25 +1,30 @@
 # Cabbage Pachadi
 
-**Continent:** Andhra Pradesh — Andhra vegetarian / temple pappu  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 8 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Andhra Pradesh kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Andhra Pradesh — Andhra vegetarian / temple pappu |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 8 min |
+| **Total** | 18 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature salad from Andhra Pradesh, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Cabbage
-- Green chilli
-- Mustard
-- Hing
-- Curd optional
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 300 | g | cabbage, shredded |
+| 2 | pieces | green chillies, slit |
+| 1 | tsp | mustard seeds |
+| ½ | tsp | hing (asafoetida) |
+| 100 | g | plain yogurt, optional |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

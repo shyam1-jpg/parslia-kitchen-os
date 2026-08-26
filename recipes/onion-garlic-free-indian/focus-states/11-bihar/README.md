@@ -5,28 +5,30 @@
 
 Litti-chokha, sattu, thekua, ghugni. Mustard oil and chilli instead of onion.
 
-Excel: [`excel/bihar-recipes.xlsx`](excel/bihar-recipes.xlsx)
+Open first: [`index.html`](index.html) (recipe cards) or [`excel/bihar-recipes.xlsx`](excel/bihar-recipes.xlsx) (one sheet = one card).
 
-| Course | Recipe | File |
-|--------|--------|------|
-| Starter | Baked Sattu Litti | [01-starters/baked-sattu-litti.md](01-starters/baked-sattu-litti.md) |
-| Starter | Sattu Cooler Chaat | [01-starters/sattu-cooler-chaat.md](01-starters/sattu-cooler-chaat.md) |
-| Starter | Aloo Chop (no onion) | [01-starters/aloo-chop-no-onion.md](01-starters/aloo-chop-no-onion.md) |
-| Main | Litti with Tomato Baingan Chokha | [02-mains/litti-with-tomato-baingan-chokha.md](02-mains/litti-with-tomato-baingan-chokha.md) |
-| Main | Ghugni | [02-mains/ghugni.md](02-mains/ghugni.md) |
-| Main | Dal Pithaur | [02-mains/dal-pithaur.md](02-mains/dal-pithaur.md) |
-| Side | Kadhi Bari | [03-sides/kadhi-bari.md](03-sides/kadhi-bari.md) |
-| Side | Aloo Bhujiya | [03-sides/aloo-bhujiya.md](03-sides/aloo-bhujiya.md) |
-| Side | Nenua Sabzi | [03-sides/nenua-sabzi.md](03-sides/nenua-sabzi.md) |
-| Bread | Sattu Paratha | [04-breads/sattu-paratha.md](04-breads/sattu-paratha.md) |
-| Bread | Phulka | [04-breads/phulka.md](04-breads/phulka.md) |
-| Bread | Litti as Bread | [04-breads/litti-as-bread.md](04-breads/litti-as-bread.md) |
-| Sweet | Thekua | [05-sweets/thekua.md](05-sweets/thekua.md) |
-| Sweet | Khaja | [05-sweets/khaja.md](05-sweets/khaja.md) |
-| Sweet | Anarsa | [05-sweets/anarsa.md](05-sweets/anarsa.md) |
-| Dessert | Lai Kheer | [06-desserts/lai-kheer.md](06-desserts/lai-kheer.md) |
-| Dessert | Chura Dahi | [06-desserts/chura-dahi.md](06-desserts/chura-dahi.md) |
-| Dessert | Rasiyaw | [06-desserts/rasiyaw.md](06-desserts/rasiyaw.md) |
-| Salad | Tomato Cucumber Salad | [07-salads/tomato-cucumber-salad.md](07-salads/tomato-cucumber-salad.md) |
-| Salad | Kachumber without Onion | [07-salads/kachumber-without-onion.md](07-salads/kachumber-without-onion.md) |
-| Salad | Chana Salad | [07-salads/chana-salad.md](07-salads/chana-salad.md) |
+Each dish is its own card with Qty / Unit / Ingredient. Do not use the master table as a recipe — open the kitchen workbook or the HTML card.
+
+| Course | Recipe | Card | Excel sheet |
+|--------|--------|------|-------------|
+| Starter | Baked Sattu Litti | [baked-sattu-litti.html](01-starters/baked-sattu-litti.html) | `01 Baked Sattu Litti` |
+| Starter | Sattu Cooler Chaat | [sattu-cooler-chaat.html](01-starters/sattu-cooler-chaat.html) | `02 Sattu Cooler Chaat` |
+| Starter | Aloo Chop (no onion) | [aloo-chop-no-onion.html](01-starters/aloo-chop-no-onion.html) | `03 Aloo Chop (no onion)` |
+| Main | Litti with Tomato Baingan Chokha | [litti-with-tomato-baingan-chokha.html](02-mains/litti-with-tomato-baingan-chokha.html) | `04 Litti with Tomato Baingan Ch` |
+| Main | Ghugni | [ghugni.html](02-mains/ghugni.html) | `05 Ghugni` |
+| Main | Dal Pithaur | [dal-pithaur.html](02-mains/dal-pithaur.html) | `06 Dal Pithaur` |
+| Side | Kadhi Bari | [kadhi-bari.html](03-sides/kadhi-bari.html) | `07 Kadhi Bari` |
+| Side | Aloo Bhujiya | [aloo-bhujiya.html](03-sides/aloo-bhujiya.html) | `08 Aloo Bhujiya` |
+| Side | Nenua Sabzi | [nenua-sabzi.html](03-sides/nenua-sabzi.html) | `09 Nenua Sabzi` |
+| Bread | Sattu Paratha | [sattu-paratha.html](04-breads/sattu-paratha.html) | `10 Sattu Paratha` |
+| Bread | Phulka | [phulka.html](04-breads/phulka.html) | `11 Phulka` |
+| Bread | Litti as Bread | [litti-as-bread.html](04-breads/litti-as-bread.html) | `12 Litti as Bread` |
+| Sweet | Thekua | [thekua.html](05-sweets/thekua.html) | `13 Thekua` |
+| Sweet | Khaja | [khaja.html](05-sweets/khaja.html) | `14 Khaja` |
+| Sweet | Anarsa | [anarsa.html](05-sweets/anarsa.html) | `15 Anarsa` |
+| Dessert | Lai Kheer | [lai-kheer.html](06-desserts/lai-kheer.html) | `16 Lai Kheer` |
+| Dessert | Chura Dahi | [chura-dahi.html](06-desserts/chura-dahi.html) | `17 Chura Dahi` |
+| Dessert | Rasiyaw | [rasiyaw.html](06-desserts/rasiyaw.html) | `18 Rasiyaw` |
+| Salad | Tomato Cucumber Salad | [tomato-cucumber-salad.html](07-salads/tomato-cucumber-salad.html) | `19 Tomato Cucumber Salad` |
+| Salad | Kachumber without Onion | [kachumber-without-onion.html](07-salads/kachumber-without-onion.html) | `20 Kachumber without Onion` |
+| Salad | Chana Salad | [chana-salad.html](07-salads/chana-salad.html) | `21 Chana Salad` |

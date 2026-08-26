@@ -58,6 +58,11 @@ def main() -> None:
             md = list((folder / course).glob("*.md"))
             if len(md) != 3:
                 fail(f"{folder.name}/{course}: expected 3 recipes, got {md}")
+            html = list((folder / course).glob("*.html"))
+            if len(html) != 3:
+                fail(f"{folder.name}/{course}: expected 3 HTML cards, got {html}")
+        if not (folder / "index.html").is_file():
+            fail(f"missing recipe-card index {folder.name}/index.html")
 
     master = OUT / "excel" / "FOCUS-STATES.xlsx"
     shopping = OUT / "excel" / "SHOPPING-LIST.xlsx"
@@ -123,17 +128,54 @@ def main() -> None:
 
     md_count = len(list(OUT.rglob("*.md")))
     xlsx_count = len(list(OUT.rglob("*.xlsx")))
+    html_count = len(list(OUT.rglob("*.html")))
     if md_count != EXPECTED_MD:
         fail(f"expected {EXPECTED_MD} markdown files, got {md_count}")
     if xlsx_count != EXPECTED_XLSX:
         fail(f"expected {EXPECTED_XLSX} Excel workbooks, got {xlsx_count}")
+    if html_count != EXPECTED_RECIPES + KITCHEN_COUNT + 1:
+        fail(f"expected {EXPECTED_RECIPES + KITCHEN_COUNT + 1} HTML cards+indexes, got {html_count}")
+
+    # Professional card: Manipur workbook has Qty/Unit/Ingredient and measured lines.
+    manipur_xlsx = OUT / "07-manipur" / "excel" / "manipur-recipes.xlsx"
+    mwb = load_workbook(manipur_xlsx, read_only=True, data_only=True)
+    if "Menu" not in mwb.sheetnames:
+        fail("Manipur workbook missing Menu sheet")
+    card_sheets = [n for n in mwb.sheetnames if n not in {"Menu", "Rules", "Shopping list", "All dishes"}]
+    if len(card_sheets) != RECIPES_EACH:
+        fail(f"Manipur recipe cards: {len(card_sheets)} sheets, expected {RECIPES_EACH}")
+    sample = mwb[card_sheets[3]]  # a main, Chamthong is 4th recipe
+    header_vals = []
+    for row in sample.iter_rows(min_row=1, max_row=16, max_col=4, values_only=True):
+        header_vals.extend([str(v) for v in row if v])
+    blob = " ".join(header_vals).lower()
+    if "qty" not in blob or "unit" not in blob or "ingredient" not in blob:
+        fail(f"Manipur card missing Qty/Unit/Ingredient headers: {header_vals[:20]}")
+    if "recipe card" not in blob:
+        fail("Manipur sheet is not titled as a recipe card")
+    mwb.close()
+
+    from focus_state_recipe_data import FOCUS_STATES, build_recipes
+    import build_continent_recipes as core
+
+    recipes = build_recipes(core.r)
+    missing_qty = []
+    for rec in recipes:
+        for item in rec["ingredients"]:
+            parsed = item if isinstance(item, dict) else {"qty": ""}
+            if not str(parsed.get("qty") or "").strip():
+                missing_qty.append(f"{rec['continent_id']}/{rec['name']}: {parsed}")
+    if missing_qty:
+        fail(f"{len(missing_qty)} ingredients have no quantity, e.g. {missing_qty[:8]}")
 
     print("PASS")
     print(f"  recipes: {EXPECTED_RECIPES} ({KITCHEN_COUNT} kitchens x {RECIPES_EACH})")
     print(f"  markdown: {md_count}")
+    print(f"  html recipe cards: {html_count}")
     print(f"  excel workbooks: {xlsx_count}")
     print(f"  shopping-list rows: {shop_rows}")
     print("  includes: Rajasthan, Gujarat, Punjab, Pan-India")
+    print("  Manipur: folder + workbook + 21 measured recipe cards")
 
 
 if __name__ == "__main__":

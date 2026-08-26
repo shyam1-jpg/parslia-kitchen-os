@@ -1,24 +1,29 @@
 # Tomato Khatta
 
-**Continent:** Odisha — Odia temple and home kitchen  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 10 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Odisha kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Odisha — Odia temple and home kitchen |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 10 min |
+| **Total** | 20 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature salad from Odisha, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Tomato
-- Panch phoron
-- Jaggery
-- Chilli
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | pieces | ripe tomatoes, chopped |
+| 1 | tsp | panch phoron |
+| 100 | g | jaggery, grated |
+| 2 | pieces | green or dry red chillies |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

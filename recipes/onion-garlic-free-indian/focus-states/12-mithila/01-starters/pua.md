@@ -1,24 +1,29 @@
 # Pua
 
-**Continent:** Mithila — Maithil vegetarian (Bihar–Nepal border culture)  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 15 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Mithila kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Mithila — Maithil vegetarian (Bihar–Nepal border culture) |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 15 min |
+| **Total** | 30 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Maithil sweet-savoury banana-wheat fritters for festivals.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Atta
-- Banana or yogurt
-- Fennel
-- Sugar pinch
-- Ghee
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 300 | g | whole-wheat atta |
+| 2 | pieces | ripe bananas |
+| 1 | tsp | fennel seeds |
+| 1 | pinch | sugar |
+| 2 | tbsp | ghee |
 
 ## Method
 

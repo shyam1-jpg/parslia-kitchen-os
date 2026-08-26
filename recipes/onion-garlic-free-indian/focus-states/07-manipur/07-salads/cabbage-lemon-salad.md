@@ -1,24 +1,29 @@
 # Cabbage Lemon Salad
 
-**Continent:** Manipur — Meitei vegetarian table  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 8 min  
-**Cook:** 0 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Manipur kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Manipur — Meitei vegetarian table |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 8 min |
+| **Cook** | 0 min |
+| **Total** | 8 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
-Signature salad from Manipur, cooked without onion or garlic.
+Shredded cabbage with lemon and sesame.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Cabbage
-- Lemon
-- Salt
-- Sesame
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 300 | g | cabbage, shredded |
+| 1 | tbsp | lemon juice |
+| 2 | tbsp | white sesame seeds, toasted |
+| ¾ | tsp | salt |
 
 ## Method
 
-1. Toss.
+1. Toss cabbage with lemon, sesame and salt. Serve crisp and cold.

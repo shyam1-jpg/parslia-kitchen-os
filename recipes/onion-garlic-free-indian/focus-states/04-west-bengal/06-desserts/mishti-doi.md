@@ -1,22 +1,27 @@
 # Mishti Doi
 
-**Continent:** West Bengal — Bengali niramish (vegetarian, no onion garlic)  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 0 min  
-**Cookware:** Clay or glass bowl — never aluminium
+**Recipe card** · West Bengal kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | West Bengal — Bengali niramish (vegetarian, no onion garlic) |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 0 min |
+| **Total** | 15 min |
+| **Cookware** | Clay or glass bowl — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Caramel-yogurt set in clay.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Milk reduced
-- Jaggery or caramel sugar
-- Yogurt culture
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 1 | L | full-fat milk |
+| 100 | g | jaggery, grated |
+| 200 | g | plain yogurt |
 
 ## Method
 

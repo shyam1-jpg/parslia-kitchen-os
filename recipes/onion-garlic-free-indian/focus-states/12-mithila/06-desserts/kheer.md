@@ -1,24 +1,29 @@
 # Kheer
 
-**Continent:** Mithila — Maithil vegetarian (Bihar–Nepal border culture)  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 40 min  
-**Cookware:** Heavy stainless steel milk pot — never aluminium
+**Recipe card** · Mithila kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Mithila — Maithil vegetarian (Bihar–Nepal border culture) |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 40 min |
+| **Total** | 50 min |
+| **Cookware** | Heavy stainless steel milk pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Mithila, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice
-- Milk
-- Sugar
-- Bay
-- Cardamom
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | raw rice |
+| 1 | L | full-fat milk |
+| 100 | g | sugar |
+| 2 | leaves | bay leaves |
+| 4 | pods | green cardamom, crushed |
 
 ## Method
 

@@ -1,24 +1,29 @@
 # Bebinca Slab
 
-**Continent:** Goa — Goan Hindu vegetarian / sattvic  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 50 min  
-**Cookware:** Steel or enamel baking dish — never aluminium
+**Recipe card** · Goa kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Goa — Goan Hindu vegetarian / sattvic |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 50 min |
+| **Total** | 70 min |
+| **Cookware** | Steel or enamel baking dish — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Layered coconut-jaggery bake in a steel tin.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Coconut milk
-- Maida
-- Jaggery
-- Nutmeg
-- Ghee
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 400 | ml | thick coconut milk |
+| 250 | g | maida (refined flour) |
+| 100 | g | jaggery, grated |
+| 1 | pinch | freshly grated nutmeg |
+| 2 | tbsp | ghee |
 
 ## Method
 

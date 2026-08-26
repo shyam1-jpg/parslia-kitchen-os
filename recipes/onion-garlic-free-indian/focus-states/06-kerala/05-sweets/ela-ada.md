@@ -1,22 +1,27 @@
 # Ela Ada
 
-**Continent:** Kerala — Kerala sadya kitchen  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 25 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel steamer and steel thali — never aluminium
+**Recipe card** · Kerala kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Kerala — Kerala sadya kitchen |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 25 min |
+| **Cook** | 20 min |
+| **Total** | 45 min |
+| **Cookware** | Stainless steel steamer and steel thali — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Rice parcels with coconut-jaggery, steamed in banana leaf.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice paste
-- Coconut-jaggery filling
-- Banana leaf
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 100 | g | ground rice paste |
+| 200 | g | coconut-jaggery filling |
+| 2 | pieces | ripe bananas |
 
 ## Method
 

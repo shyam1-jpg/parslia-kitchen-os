@@ -1,23 +1,28 @@
 # Chhena Jhili
 
-**Continent:** Odisha — Odia temple and home kitchen  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 25 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Odisha kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Odisha — Odia temple and home kitchen |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 25 min |
+| **Total** | 45 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Chenna dumplings in syrup.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Chenna
-- Sooji
-- Sugar syrup
-- Cardamom
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | fresh chhena |
+| 150 | g | sooji (semolina) |
+| 250 | ml | sugar syrup (1-string) |
+| 4 | pods | green cardamom, crushed |
 
 ## Method
 

@@ -1,21 +1,30 @@
 # Steamed Sticky Rice
 
-**Continent:** Manipur — Meitei vegetarian table  
-**Category:** Bread  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 5 min  
-**Cook:** 25 min  
-**Cookware:** Stainless steel steamer and steel thali — never aluminium
+**Recipe card** · Manipur kitchen · Bread
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Manipur — Meitei vegetarian table |
+| **Course** | Bread |
+| **Serves** | 4 |
+| **Prep** | 5 min |
+| **Cook** | 25 min |
+| **Total** | 30 min |
+| **Cookware** | Stainless steel steamer and steel thali — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
-Signature bread from Manipur, cooked without onion or garlic.
+The grain of the Manipuri table. Steel steamer only.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Sticky rice, soaked
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 400 | g | sticky rice (glutinous rice) |
+| 800 | ml | water, for soaking |
+| ½ | tsp | salt |
 
 ## Method
 
-1. Steam 20–25 minutes in steel.
+1. Rinse rice. Soak in water 4 hours or overnight. Drain.
+2. Steam in a stainless steel steamer 20–25 minutes until translucent and sticky.
+3. Fluff with a fork. Serve with chamthong or ooti. Never aluminium.

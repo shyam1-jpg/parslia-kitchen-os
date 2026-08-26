@@ -1,20 +1,24 @@
 # Jeera aloo (no onion)
 
-**Continent:** Pan-India — Dishes cooked in homes all over India  
-**Category:** Side  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 15 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Pan-India kitchen · Side
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Pan-India — Dishes cooked in homes all over India |
+| **Course** | Side |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 15 min |
+| **Total** | 25 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature side from Pan India, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 4 potatoes boiled cubed, cumin, hing, chilli, amchur, coriander, salt, ghee in kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
 
 ## Method
 

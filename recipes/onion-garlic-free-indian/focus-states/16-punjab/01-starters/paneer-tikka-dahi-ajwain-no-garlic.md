@@ -1,22 +1,29 @@
 # Paneer tikka (dahi-ajwain, no garlic)
 
-**Continent:** Punjab — Punjabi langar and home vegetarian  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 25 min  
-**Cook:** 20 min  
-**Cookware:** Cast-iron grill or steel oven tray — never aluminium foil
+**Recipe card** · Punjab kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Punjab — Punjabi langar and home vegetarian |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 25 min |
+| **Cook** | 20 min |
+| **Total** | 45 min |
+| **Cookware** | Cast-iron grill or steel oven tray — never aluminium foil |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature starter from Punjab, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 400 g paneer cubes, 1 cup hung dahi, 1 tsp ajwain, 1 tsp Kashmiri chilli, turmeric, garam masala, salt, ginger
-- Capsicum, tomato
-- Cast-iron grill
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 400 | g | paneer cubes |
+| 1 | cup | hung dahi |
+| 1 | tsp | ajwain |
+| 1 | tsp | Kashmiri chilli, turmeric, garam masala, salt, ginger |
+| 1 | pieces | capsicum plus 1 tomato, cubed |
 
 ## Method
 

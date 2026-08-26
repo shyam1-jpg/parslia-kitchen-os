@@ -1,26 +1,31 @@
 # Cabbage Vepudu
 
-**Continent:** Andhra Pradesh — Andhra vegetarian / temple pappu  
-**Category:** Side  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 12 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Andhra Pradesh kitchen · Side
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Andhra Pradesh — Andhra vegetarian / temple pappu |
+| **Course** | Side |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 12 min |
+| **Total** | 22 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature side from Andhra Pradesh, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Cabbage
-- Chana dal
-- Mustard
-- Hing
-- Green chilli
-- Turmeric
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 300 | g | cabbage, shredded |
+| 100 | g | chana dal, soaked |
+| 1 | tsp | mustard seeds |
+| ½ | tsp | hing (asafoetida) |
+| 2 | pieces | green chillies, slit |
+| ½ | tsp | turmeric powder |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

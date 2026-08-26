@@ -1,20 +1,25 @@
 # Kachumber no onion (cucumber tomato)
 
-**Continent:** Rajasthan — Marwari, Mewari and Jain vegetarian  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 0 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Rajasthan kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Rajasthan — Marwari, Mewari and Jain vegetarian |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 0 min |
+| **Total** | 10 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature salad from Rajasthan, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 2 cucumbers, 2 tomatoes, 1 green chilli, lemon, cumin, salt, coriander
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | — | cucumbers, 2 tomatoes, 1 green chilli, lemon, cumin, salt, coriander |
 
 ## Method
 

@@ -1,21 +1,25 @@
 # Naan (tandoor, no garlic)
 
-**Continent:** Pan-India — Dishes cooked in homes all over India  
-**Category:** Bread  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 30 min  
-**Cook:** 15 min  
-**Cookware:** Stainless steel or clay pot — never aluminium
+**Recipe card** · Pan-India kitchen · Bread
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Pan-India — Dishes cooked in homes all over India |
+| **Course** | Bread |
+| **Serves** | 4 |
+| **Prep** | 30 min |
+| **Cook** | 15 min |
+| **Total** | 45 min |
+| **Cookware** | Stainless steel or clay pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature bread from Pan India, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Maida, yogurt, baking powder, salt, ghee — no garlic butter
-- Clay tandoor
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 250 | g | maida (refined flour) |
 
 ## Method
 

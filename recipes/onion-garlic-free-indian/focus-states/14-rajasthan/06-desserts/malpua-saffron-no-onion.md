@@ -1,21 +1,26 @@
 # Malpua (saffron, no onion)
 
-**Continent:** Rajasthan — Marwari, Mewari and Jain vegetarian  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 25 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Rajasthan kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Rajasthan — Marwari, Mewari and Jain vegetarian |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 25 min |
+| **Total** | 45 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Rajasthan, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 2 cups maida, ½ cup milk, pinch fennel, saffron
-- Sugar syrup, ghee in kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | cups | maida |
+| ½ | cup | milk, pinch fennel, saffron |
 
 ## Method
 

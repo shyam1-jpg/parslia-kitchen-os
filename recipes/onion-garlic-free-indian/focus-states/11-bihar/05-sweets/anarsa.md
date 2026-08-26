@@ -1,23 +1,28 @@
 # Anarsa
 
-**Continent:** Bihar — Magadh vegetarian  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 40 min  
-**Cook:** 20 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Bihar kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Bihar — Magadh vegetarian |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 40 min |
+| **Cook** | 20 min |
+| **Total** | 60 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Rice-jaggery sweet with poppy crust.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice paste, dried
-- Jaggery
-- Poppy seeds
-- Ghee
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 100 | g | ground rice paste |
+| 100 | g | jaggery, grated |
+| 2 | tbsp | white poppy seeds |
+| 2 | tbsp | ghee |
 
 ## Method
 

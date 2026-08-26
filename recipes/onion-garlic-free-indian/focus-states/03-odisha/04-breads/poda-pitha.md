@@ -1,25 +1,30 @@
 # Poda Pitha
 
-**Continent:** Odisha — Odia temple and home kitchen  
-**Category:** Bread  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 40 min  
-**Cookware:** Steel or earthen pot — never aluminium
+**Recipe card** · Odisha kitchen · Bread
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Odisha — Odia temple and home kitchen |
+| **Course** | Bread |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 40 min |
+| **Total** | 60 min |
+| **Cookware** | Steel or earthen pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Slow-baked rice-jaggery cake used as a dense bread-sweet.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice paste
-- Jaggery
-- Coconut
-- Ginger powder
-- Black pepper
-- Ghee
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 100 | g | ground rice paste |
+| 100 | g | jaggery, grated |
+| 100 | g | fresh grated coconut |
+| 20 | g | fresh ginger, crushed |
+| ½ | tsp | black pepper, crushed |
+| 2 | tbsp | ghee |
 
 ## Method
 

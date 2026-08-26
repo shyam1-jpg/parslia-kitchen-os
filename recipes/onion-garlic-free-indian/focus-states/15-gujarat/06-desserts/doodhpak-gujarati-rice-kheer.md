@@ -1,21 +1,26 @@
 # Doodhpak (Gujarati rice kheer)
 
-**Continent:** Gujarat — Gujarati and Kathiawadi, including Jain-style  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 40 min  
-**Cookware:** Heavy stainless steel milk pot — never aluminium
+**Recipe card** · Gujarat kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Gujarat — Gujarati and Kathiawadi, including Jain-style |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 40 min |
+| **Total** | 50 min |
+| **Cookware** | Heavy stainless steel milk pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Gujarat, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- ½ cup basmati, 1.5 L milk, sugar, saffron, charoli, raisins
-- Kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| ½ | cup | basmati |
+| 1.5 | L | milk, sugar, saffron, charoli, raisins |
 
 ## Method
 

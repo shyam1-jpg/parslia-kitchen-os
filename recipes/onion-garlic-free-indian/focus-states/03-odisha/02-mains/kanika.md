@@ -1,26 +1,31 @@
 # Kanika
 
-**Continent:** Odisha — Odia temple and home kitchen  
-**Category:** Main  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 30 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Odisha kitchen · Main
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Odisha — Odia temple and home kitchen |
+| **Course** | Main |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 30 min |
+| **Total** | 45 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Mildly sweet ghee rice of Odia feasts.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 1 cup basmati
-- Ghee
-- Bay, cardamom, cinnamon, clove
-- Raisins
-- Cashews
-- Sugar pinch
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 1 | cup | basmati |
+| 2 | tbsp | ghee |
+| 2 | leaves | bay leaves |
+| 20 | g | raisins |
+| 20 | g | cashews |
+| 1 | pinch | sugar |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

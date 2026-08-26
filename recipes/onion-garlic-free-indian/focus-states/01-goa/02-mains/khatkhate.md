@@ -1,27 +1,32 @@
 # Khatkhate
 
-**Continent:** Goa — Goan Hindu vegetarian / sattvic  
-**Category:** Main  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 30 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Goa kitchen · Main
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Goa — Goan Hindu vegetarian / sattvic |
+| **Course** | Main |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 30 min |
+| **Total** | 45 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Festival mixed-veg coconut stew. Traditionally no onion garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 4 cups mixed veg (pumpkin, beans, brinjal, raw banana)
-- 1 cup coconut ground with red chilli and turmeric
-- Tamarind
-- Mustard
-- Hing
-- Curry leaves
-- Coconut oil
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 4 | cups | mixed veg (pumpkin, beans, brinjal, raw banana) |
+| 1 | cup | coconut ground with red chilli and turmeric |
+| 20 | g | seedless tamarind |
+| 1 | tsp | mustard seeds |
+| ½ | tsp | hing (asafoetida) |
+| 10 | leaves | fresh curry leaves |
+| 2 | tbsp | coconut oil |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

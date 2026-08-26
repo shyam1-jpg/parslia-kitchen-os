@@ -1,23 +1,28 @@
 # Red Rice Kheer
 
-**Continent:** Meghalaya — Khasi and Garo vegetarian home food  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 40 min  
-**Cookware:** Heavy stainless steel milk pot — never aluminium
+**Recipe card** · Meghalaya kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Meghalaya — Khasi and Garo vegetarian home food |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 40 min |
+| **Total** | 50 min |
+| **Cookware** | Heavy stainless steel milk pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Meghalaya, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice
-- Milk
-- Jaggery
-- Cardamom
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | raw rice |
+| 1 | L | full-fat milk |
+| 100 | g | jaggery, grated |
+| 4 | pods | green cardamom, crushed |
 
 ## Method
 

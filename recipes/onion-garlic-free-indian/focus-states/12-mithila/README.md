@@ -5,28 +5,30 @@
 
 Makhana, sattu, pua, dahi-chura, Maithil kadhi. A distinct kitchen from Magadh Bihar.
 
-Excel: [`excel/mithila-recipes.xlsx`](excel/mithila-recipes.xlsx)
+Open first: [`index.html`](index.html) (recipe cards) or [`excel/mithila-recipes.xlsx`](excel/mithila-recipes.xlsx) (one sheet = one card).
 
-| Course | Recipe | File |
-|--------|--------|------|
-| Starter | Makhana Namkeen | [01-starters/makhana-namkeen.md](01-starters/makhana-namkeen.md) |
-| Starter | Sattu Puri Snack | [01-starters/sattu-puri-snack.md](01-starters/sattu-puri-snack.md) |
-| Starter | Pua | [01-starters/pua.md](01-starters/pua.md) |
-| Main | Makhana Curry | [02-mains/makhana-curry.md](02-mains/makhana-curry.md) |
-| Main | Maithil Kadhi | [02-mains/maithil-kadhi.md](02-mains/maithil-kadhi.md) |
-| Main | Maithil Ghugni | [02-mains/maithil-ghugni.md](02-mains/maithil-ghugni.md) |
-| Side | Dahi Baigan | [03-sides/dahi-baigan.md](03-sides/dahi-baigan.md) |
-| Side | Aloo Jeera Maithil | [03-sides/aloo-jeera-maithil.md](03-sides/aloo-jeera-maithil.md) |
-| Side | Parwal Sabzi | [03-sides/parwal-sabzi.md](03-sides/parwal-sabzi.md) |
-| Bread | Phulka | [04-breads/phulka.md](04-breads/phulka.md) |
-| Bread | Poori | [04-breads/poori.md](04-breads/poori.md) |
-| Bread | Soft Roti for Makhana | [04-breads/soft-roti-for-makhana.md](04-breads/soft-roti-for-makhana.md) |
-| Sweet | Laktho | [05-sweets/laktho.md](05-sweets/laktho.md) |
-| Sweet | Maithil Anarsa | [05-sweets/maithil-anarsa.md](05-sweets/maithil-anarsa.md) |
-| Sweet | Maithil Thekua | [05-sweets/maithil-thekua.md](05-sweets/maithil-thekua.md) |
-| Dessert | Makhana Kheer | [06-desserts/makhana-kheer.md](06-desserts/makhana-kheer.md) |
-| Dessert | Dahi Chura | [06-desserts/dahi-chura.md](06-desserts/dahi-chura.md) |
-| Dessert | Kheer | [06-desserts/kheer.md](06-desserts/kheer.md) |
-| Salad | Cucumber Dahi Salad | [07-salads/cucumber-dahi-salad.md](07-salads/cucumber-dahi-salad.md) |
-| Salad | Tomato Lemon Salad | [07-salads/tomato-lemon-salad.md](07-salads/tomato-lemon-salad.md) |
-| Salad | Makhana Chaat Salad | [07-salads/makhana-chaat-salad.md](07-salads/makhana-chaat-salad.md) |
+Each dish is its own card with Qty / Unit / Ingredient. Do not use the master table as a recipe — open the kitchen workbook or the HTML card.
+
+| Course | Recipe | Card | Excel sheet |
+|--------|--------|------|-------------|
+| Starter | Makhana Namkeen | [makhana-namkeen.html](01-starters/makhana-namkeen.html) | `01 Makhana Namkeen` |
+| Starter | Sattu Puri Snack | [sattu-puri-snack.html](01-starters/sattu-puri-snack.html) | `02 Sattu Puri Snack` |
+| Starter | Pua | [pua.html](01-starters/pua.html) | `03 Pua` |
+| Main | Makhana Curry | [makhana-curry.html](02-mains/makhana-curry.html) | `04 Makhana Curry` |
+| Main | Maithil Kadhi | [maithil-kadhi.html](02-mains/maithil-kadhi.html) | `05 Maithil Kadhi` |
+| Main | Maithil Ghugni | [maithil-ghugni.html](02-mains/maithil-ghugni.html) | `06 Maithil Ghugni` |
+| Side | Dahi Baigan | [dahi-baigan.html](03-sides/dahi-baigan.html) | `07 Dahi Baigan` |
+| Side | Aloo Jeera Maithil | [aloo-jeera-maithil.html](03-sides/aloo-jeera-maithil.html) | `08 Aloo Jeera Maithil` |
+| Side | Parwal Sabzi | [parwal-sabzi.html](03-sides/parwal-sabzi.html) | `09 Parwal Sabzi` |
+| Bread | Phulka | [phulka.html](04-breads/phulka.html) | `10 Phulka` |
+| Bread | Poori | [poori.html](04-breads/poori.html) | `11 Poori` |
+| Bread | Soft Roti for Makhana | [soft-roti-for-makhana.html](04-breads/soft-roti-for-makhana.html) | `12 Soft Roti for Makhana` |
+| Sweet | Laktho | [laktho.html](05-sweets/laktho.html) | `13 Laktho` |
+| Sweet | Maithil Anarsa | [maithil-anarsa.html](05-sweets/maithil-anarsa.html) | `14 Maithil Anarsa` |
+| Sweet | Maithil Thekua | [maithil-thekua.html](05-sweets/maithil-thekua.html) | `15 Maithil Thekua` |
+| Dessert | Makhana Kheer | [makhana-kheer.html](06-desserts/makhana-kheer.html) | `16 Makhana Kheer` |
+| Dessert | Dahi Chura | [dahi-chura.html](06-desserts/dahi-chura.html) | `17 Dahi Chura` |
+| Dessert | Kheer | [kheer.html](06-desserts/kheer.html) | `18 Kheer` |
+| Salad | Cucumber Dahi Salad | [cucumber-dahi-salad.html](07-salads/cucumber-dahi-salad.html) | `19 Cucumber Dahi Salad` |
+| Salad | Tomato Lemon Salad | [tomato-lemon-salad.html](07-salads/tomato-lemon-salad.html) | `20 Tomato Lemon Salad` |
+| Salad | Makhana Chaat Salad | [makhana-chaat-salad.html](07-salads/makhana-chaat-salad.html) | `21 Makhana Chaat Salad` |

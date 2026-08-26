@@ -1,23 +1,28 @@
 # Cucumber Chilli Salad
 
-**Continent:** Meghalaya — Khasi and Garo vegetarian home food  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 6 min  
-**Cook:** 0 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Meghalaya kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Meghalaya — Khasi and Garo vegetarian home food |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 6 min |
+| **Cook** | 0 min |
+| **Total** | 6 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature salad from Meghalaya, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Cucumber
-- Chilli
-- Lemon
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | pieces | cucumbers |
+| 2 | pieces | green or dry red chillies |
+| 1 | tbsp | lemon juice |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

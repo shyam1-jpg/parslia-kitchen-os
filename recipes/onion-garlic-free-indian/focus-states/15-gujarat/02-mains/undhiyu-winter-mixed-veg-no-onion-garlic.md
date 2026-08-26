@@ -1,22 +1,26 @@
 # Undhiyu (winter mixed veg, no onion garlic)
 
-**Continent:** Gujarat — Gujarati and Kathiawadi, including Jain-style  
-**Category:** Main  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 40 min  
-**Cook:** 50 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Gujarat kitchen · Main
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Gujarat — Gujarati and Kathiawadi, including Jain-style |
+| **Course** | Main |
+| **Serves** | 4 |
+| **Prep** | 40 min |
+| **Cook** | 50 min |
+| **Total** | 90 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature main from Gujarat, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Surti papdi, purple yam, potato, banana, brinjal, fresh tuvar
-- Muthiya: methi, atta, ajwain, chilli, salt
-- Coconut-coriander-ginger paste, green chilli, turmeric, hing, oil in kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 700 | g | surti papdi, purple yam, potato, banana, brinjal and fresh tuvar |
+| 12 | pieces | methi muthiya (atta, methi, ajwain, chilli, salt) |
 
 ## Method
 

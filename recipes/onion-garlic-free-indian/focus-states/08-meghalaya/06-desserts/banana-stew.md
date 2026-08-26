@@ -1,23 +1,28 @@
 # Banana Stew
 
-**Continent:** Meghalaya — Khasi and Garo vegetarian home food  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 5 min  
-**Cook:** 15 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Meghalaya kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Meghalaya — Khasi and Garo vegetarian home food |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 5 min |
+| **Cook** | 15 min |
+| **Total** | 20 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Meghalaya, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Ripe bananas
-- Jaggery
-- Cardamom
-- Coconut milk optional
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | pieces | ripe bananas |
+| 100 | g | jaggery, grated |
+| 4 | pods | green cardamom, crushed |
+| 400 | ml | thick coconut milk |
 
 ## Method
 

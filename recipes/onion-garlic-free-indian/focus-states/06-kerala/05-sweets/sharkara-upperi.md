@@ -1,23 +1,28 @@
 # Sharkara Upperi
 
-**Continent:** Kerala — Kerala sadya kitchen  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Kerala kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Kerala — Kerala sadya kitchen |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 20 min |
+| **Total** | 30 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Jaggery-coated banana chips.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Banana chips
-- Jaggery syrup
-- Dry ginger
-- Cardamom
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 2 | pieces | ripe bananas |
+| 200 | ml | jaggery syrup |
+| ½ | tsp | dry ginger powder |
+| 4 | pods | green cardamom, crushed |
 
 ## Method
 

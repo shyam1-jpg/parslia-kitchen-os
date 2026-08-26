@@ -1,24 +1,29 @@
 # Basundi
 
-**Continent:** Maharashtra — Maharashtrian vegetarian and vrat cooking  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 45 min  
-**Cookware:** Heavy stainless steel milk pot — never aluminium
+**Recipe card** · Maharashtra kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Maharashtra — Maharashtrian vegetarian and vrat cooking |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 45 min |
+| **Total** | 55 min |
+| **Cookware** | Heavy stainless steel milk pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Reduced sweet milk of Maharashtra.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 1 litre milk
-- Sugar
-- Cardamom
-- Saffron
-- Nuts
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 1 | — | litre milk |
+| 100 | g | sugar |
+| 4 | pods | green cardamom, crushed |
+| 1 | pinch | saffron strands |
+| 30 | g | mixed nuts, chopped |
 
 ## Method
 

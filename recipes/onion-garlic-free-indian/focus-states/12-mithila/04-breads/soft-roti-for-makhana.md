@@ -1,22 +1,27 @@
 # Soft Roti for Makhana
 
-**Continent:** Mithila — Maithil vegetarian (Bihar–Nepal border culture)  
-**Category:** Bread  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 15 min  
-**Cookware:** Cast-iron tawa (not aluminium)
+**Recipe card** · Mithila kitchen · Bread
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Mithila — Maithil vegetarian (Bihar–Nepal border culture) |
+| **Course** | Bread |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 15 min |
+| **Total** | 30 min |
+| **Cookware** | Cast-iron tawa (not aluminium) |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature bread from Mithila, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Atta
-- Water
-- Ghee
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 300 | g | whole-wheat atta |
+| 500 | ml | water |
+| 2 | tbsp | ghee |
 
 ## Method
 

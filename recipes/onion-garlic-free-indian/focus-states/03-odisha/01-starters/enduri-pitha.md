@@ -1,22 +1,27 @@
 # Enduri Pitha
 
-**Continent:** Odisha — Odia temple and home kitchen  
-**Category:** Starter  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 30 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel steamer and steel thali — never aluminium
+**Recipe card** · Odisha kitchen · Starter
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Odisha — Odia temple and home kitchen |
+| **Course** | Starter |
+| **Serves** | 4 |
+| **Prep** | 30 min |
+| **Cook** | 20 min |
+| **Total** | 50 min |
+| **Cookware** | Stainless steel steamer and steel thali — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Turmeric-leaf steamed rice cakes with coconut-jaggery filling.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice batter
-- Coconut-jaggery
-- Turmeric leaves or banana leaf
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | raw rice |
+| 150 | g | coconut-jaggery mix |
+| ½ | tsp | turmeric powder |
 
 ## Method
 

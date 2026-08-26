@@ -1,21 +1,26 @@
 # Neer Dosa
 
-**Continent:** Karnataka — Udupi, Mysuru and North Karnataka vegetarian  
-**Category:** Bread  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 15 min  
-**Cookware:** Cast-iron tawa (not aluminium)
+**Recipe card** · Karnataka kitchen · Bread
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Karnataka — Udupi, Mysuru and North Karnataka vegetarian |
+| **Course** | Bread |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 15 min |
+| **Total** | 35 min |
+| **Cookware** | Cast-iron tawa (not aluminium) |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Lacy water dosa of Tulunadu.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rice, soaked and ground very thin
-- Salt
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 200 | g | raw rice |
+| 1 | tsp | salt, or to taste |
 
 ## Method
 

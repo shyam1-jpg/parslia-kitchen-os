@@ -1,24 +1,29 @@
 # Chirote
 
-**Continent:** Maharashtra — Maharashtrian vegetarian and vrat cooking  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 25 min  
-**Cook:** 20 min  
-**Cookware:** Steel kadhai for frying — never aluminium
+**Recipe card** · Maharashtra kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Maharashtra — Maharashtrian vegetarian and vrat cooking |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 25 min |
+| **Cook** | 20 min |
+| **Total** | 45 min |
+| **Cookware** | Steel kadhai for frying — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Flaky fried pastry with sugar.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Maida
-- Ghee
-- Sugar
-- Cardamom
-- Oil
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 250 | g | maida (refined flour) |
+| 2 | tbsp | ghee |
+| 100 | g | sugar |
+| 4 | pods | green cardamom, crushed |
+| 2 | tbsp | oil |
 
 ## Method
 

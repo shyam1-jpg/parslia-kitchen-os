@@ -1,21 +1,25 @@
 # Fruit custard (party, veg cornstarch)
 
-**Continent:** Pan-India — Dishes cooked in homes all over India  
-**Category:** Dessert  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 20 min  
-**Cook:** 15 min  
-**Cookware:** Heavy stainless steel milk pot — never aluminium
+**Recipe card** · Pan-India kitchen · Dessert
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Pan-India — Dishes cooked in homes all over India |
+| **Course** | Dessert |
+| **Serves** | 4 |
+| **Prep** | 20 min |
+| **Cook** | 15 min |
+| **Total** | 35 min |
+| **Cookware** | Heavy stainless steel milk pot — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature dessert from Pan India, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Milk, sugar, cornstarch, mixed fruit, cardamom
-- Kadai then bowl chill
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 1 | L | full-fat milk |
 
 ## Method
 

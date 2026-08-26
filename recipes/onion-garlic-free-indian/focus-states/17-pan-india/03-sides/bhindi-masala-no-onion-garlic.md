@@ -1,20 +1,24 @@
 # Bhindi masala (no onion garlic)
 
-**Continent:** Pan-India — Dishes cooked in homes all over India  
-**Category:** Side  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 20 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Pan-India kitchen · Side
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Pan-India — Dishes cooked in homes all over India |
+| **Course** | Side |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 20 min |
+| **Total** | 35 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature side from Pan India, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- 500 g okra, tomato, cumin, hing, amchur, chilli, coriander, salt, oil in kadai
+| Qty | Unit | Ingredient |
+|-----|------|------------|
 
 ## Method
 

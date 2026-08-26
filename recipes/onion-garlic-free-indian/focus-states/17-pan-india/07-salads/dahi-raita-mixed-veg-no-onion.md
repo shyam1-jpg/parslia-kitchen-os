@@ -1,20 +1,25 @@
 # Dahi raita mixed veg (no onion)
 
-**Continent:** Pan-India — Dishes cooked in homes all over India  
-**Category:** Salad  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 10 min  
-**Cook:** 0 min  
-**Cookware:** Steel or glass bowl
+**Recipe card** · Pan-India kitchen · Salad
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Pan-India — Dishes cooked in homes all over India |
+| **Course** | Salad |
+| **Serves** | 4 |
+| **Prep** | 10 min |
+| **Cook** | 0 min |
+| **Total** | 10 min |
+| **Cookware** | Steel or glass bowl |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature salad from Pan India, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Dahi, cucumber, boiled potato, cumin, salt, chilli powder, coriander
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 400 | g | yogurt, plus cucumber, boiled potato, cumin, salt, chilli powder, coriander |
 
 ## Method
 

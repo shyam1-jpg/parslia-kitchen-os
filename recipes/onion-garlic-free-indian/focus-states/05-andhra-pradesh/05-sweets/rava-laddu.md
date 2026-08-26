@@ -1,24 +1,29 @@
 # Rava Laddu
 
-**Continent:** Andhra Pradesh — Andhra vegetarian / temple pappu  
-**Category:** Sweet  
-**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium  
-**Servings:** 4  
-**Prep:** 15 min  
-**Cook:** 15 min  
-**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+**Recipe card** · Andhra Pradesh kitchen · Sweet
 
-## Why this dish
+| | |
+|---|---|
+| **Kitchen** | Andhra Pradesh — Andhra vegetarian / temple pappu |
+| **Course** | Sweet |
+| **Serves** | 4 |
+| **Prep** | 15 min |
+| **Cook** | 15 min |
+| **Total** | 30 min |
+| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
+| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
 
 Signature sweet from Andhra Pradesh, cooked without onion or garlic.
 
-## Ingredients
+## Ingredients *(for 4 servings)*
 
-- Rava roasted in ghee
-- Sugar
-- Milk
-- Cardamom
-- Cashews
+| Qty | Unit | Ingredient |
+|-----|------|------------|
+| 150 | g | rava, roasted in ghee |
+| 100 | g | sugar |
+| 1 | L | full-fat milk |
+| 4 | pods | green cardamom, crushed |
+| 20 | g | cashews |
 
 ## Method
 
