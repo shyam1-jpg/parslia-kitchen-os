@@ -37,8 +37,16 @@ Starter · Main · Side · Bread · Sweet · Dessert · Salad
 
 Serves 4 unless a recipe says otherwise.
 
+## Indian states (28 + 8 union territories)
+
+A full seven-course vegetarian menu for **every Indian state and UT** is in [`india-states/`](india-states/README.md).
+
+- [`india-states/excel/ALL-STATES.xlsx`](india-states/excel/ALL-STATES.xlsx) — 252 recipes
+- [`india-states/excel/SHOPPING-LIST.xlsx`](india-states/excel/SHOPPING-LIST.xlsx)
+
 ## Rebuild
 
 ```bash
 python3 scripts/build_continent_recipes.py
+python3 scripts/build_india_state_recipes.py
 ```

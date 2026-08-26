@@ -202,10 +202,15 @@ Starter · Main · Side · Bread · Sweet · Dessert · Salad
 
 Serves 4 unless a recipe says otherwise.
 
+## Indian states
+
+Recipes for **every Indian state and union territory** live in [`india-states/`](india-states/README.md) with `india-states/excel/ALL-STATES.xlsx`.
+
 ## Rebuild
 
 ```bash
 python3 scripts/build_continent_recipes.py
+python3 scripts/build_india_state_recipes.py
 ```
 """
 
@@ -659,8 +664,13 @@ def all_recipes() -> list[dict]:
     ]
 
 
+# Override this list when generating another region set (e.g. Indian states).
+REGIONS: list[dict] | None = None
+
+
 def continent_by_id(cid: str) -> dict:
-    return next(c for c in CONTINENTS if c["id"] == cid)
+    pool = REGIONS if REGIONS is not None else CONTINENTS
+    return next(c for c in pool if c["id"] == cid)
 
 
 def md_for(recipe: dict, continent: dict) -> str:
@@ -886,10 +896,11 @@ HEADERS = [
 
 
 def recipe_row(recipe: dict, continent: dict) -> list:
-    folder = (
-        f"recipes/onion-garlic-free-indian/{continent['folder']}/"
-        f"{CAT_FOLDERS[recipe['category']]}/{slug(recipe['name'])}.md"
+    base = continent.get(
+        "path_prefix",
+        f"recipes/onion-garlic-free-indian/{continent['folder']}",
     )
+    folder = f"{base}/{CAT_FOLDERS[recipe['category']]}/{slug(recipe['name'])}.md"
     return [
         continent["name"],
         recipe["community"],
@@ -1270,14 +1281,21 @@ def continent_readme(continent: dict, recipes: list[dict]) -> str:
 
 
 def write_markdown_tree(recipes: list[dict]):
-    if OUT.exists():
-        # Remove previously generated files but keep the folder root
-        for path in sorted(OUT.rglob("*"), reverse=True):
-            if path.is_file():
-                path.unlink()
-            elif path.is_dir():
-                path.rmdir()
     OUT.mkdir(parents=True, exist_ok=True)
+    # Only rebuild continent folders. Never delete india-states/ or other collections.
+    keep_roots = {"india-states", "excel"}
+    for child in list(OUT.iterdir()):
+        if child.name in keep_roots:
+            continue
+        if child.name.endswith(".md"):
+            continue
+        if child.is_dir() and child.name[:2].isdigit():
+            for path in sorted(child.rglob("*"), reverse=True):
+                if path.is_file():
+                    path.unlink()
+                elif path.is_dir():
+                    path.rmdir()
+            child.rmdir()
     (OUT / "README.md").write_text(README_MD, encoding="utf-8")
     (OUT / "COOKWARE-AND-DIET-RULES.md").write_text(RULES_MD, encoding="utf-8")
     for c in CONTINENTS:

@@ -122,8 +122,11 @@ def main() -> None:
     if shop_rows < 200:
         fail(f"shopping list too short: {shop_rows}")
 
-    md_count = len(list(OUT.rglob("*.md")))
-    xlsx_count = len(list(OUT.rglob("*.xlsx")))
+    def continent_only(paths):
+        return [p for p in paths if "india-states" not in p.parts]
+
+    md_count = len(continent_only(OUT.rglob("*.md")))
+    xlsx_count = len(continent_only(OUT.rglob("*.xlsx")))
     if md_count != 58:
         fail(f"expected 58 markdown files, got {md_count}")
     if xlsx_count != 9:
