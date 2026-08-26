@@ -82,5 +82,8 @@ def make_add(r, states, bucket):
 
         ings = expand_ingredients(ings)
         st = next(s for s in states if s["id"] == sid)
-        bucket.append(r(sid, cat, name, st["community"], prep, cook, pan, why, ings, steps, notes or ""))
+        from parslia_spec import professionalize
+
+        rec = r(sid, cat, name, st["community"], prep, cook, pan, why, ings, steps, notes or "")
+        bucket.append(professionalize(rec))
     return add

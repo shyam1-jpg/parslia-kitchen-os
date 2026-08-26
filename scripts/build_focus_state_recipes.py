@@ -21,6 +21,8 @@ Deep onion-garlic-free vegetarian libraries for the states (and Mithila) you ask
 
 Each dish is **no onion, no garlic**, cooked in **steel, iron, clay or glass — never aluminium**.
 
+Cards are **Parslia Kitchen OS spec sheets**: yield, portion, service temperature, chef method, nutrition estimate, allergens, chef notes and service notes.
+
 Open first:
 
 - [`DOWNLOAD.html`](DOWNLOAD.html) — **click to download** ZIP packs and PDFs
@@ -58,6 +60,7 @@ Diet rules: [../COOKWARE-AND-DIET-RULES.md](../COOKWARE-AND-DIET-RULES.md)
 ## Rebuild
 
 ```bash
+pip install fpdf2 openpyxl
 python3 scripts/build_focus_state_recipes.py
 python3 scripts/test_focus_state_recipes.py
 ```

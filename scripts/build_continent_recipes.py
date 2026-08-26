@@ -736,18 +736,18 @@ def set_widths(ws, widths: dict[int, int]):
 
 
 def write_recipe_sheet(ws, recipe: dict, continent: dict):
-    total = int(recipe["prep_min"]) + int(recipe["cook_min"])
+    meta = recipe_cards.spec_meta(recipe, continent)
     banner(
         ws,
-        f"RECIPE CARD  ·  {recipe['name']}",
-        f"{continent['name']} kitchen  ·  {recipe['category']}  ·  {recipe['community']}",
+        f"Parslia Kitchen OS · RECIPE CARD · {recipe['name']}",
+        f"{meta['pure']}  ·  {continent['name']}  ·  {recipe['category']}",
         cols=4,
     )
     stats = [
-        ("Serves", str(recipe["servings"])),
-        ("Prep", f"{recipe['prep_min']} min"),
-        ("Cook", f"{recipe['cook_min']} min"),
-        ("Total", f"{total} min"),
+        ("YIELD", meta["yield_label"]),
+        ("PORTION", meta["portion_label"]),
+        ("SERVICE", str(meta["service"])),
+        ("TIME", meta["time_label"]),
     ]
     row = 5
     for i, (label, value) in enumerate(stats, 1):
@@ -758,8 +758,7 @@ def write_recipe_sheet(ws, recipe: dict, continent: dict):
         lab.border = THIN
         val = ws.cell(row + 1, i, value)
         val.fill = CREAM
-        val.font = TITLE_FONT
-        val.font = Font(name="Calibri", bold=True, size=16, color="9A3412")
+        val.font = Font(name="Calibri", bold=True, size=12, color="9A3412")
         val.alignment = CENTER
         val.border = THIN
     ws.row_dimensions[5].height = 18
@@ -848,7 +847,51 @@ def write_recipe_sheet(ws, recipe: dict, continent: dict):
         ws.row_dimensions[row].height = max(36, 18 + 12 * (1 + len(step) // 70))
         row += 1
 
-    if recipe["notes"]:
+    if recipe.get("nutrition"):
+        nut = recipe.get("nutrition") or {}
+        row += 1
+        ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+        n = ws.cell(row, 1, "Nutrition per portion")
+        n.fill = GOLD
+        n.font = HEADER_FONT
+        for col in range(1, 5):
+            ws.cell(row, col).fill = GOLD
+        row += 1
+        nut_line = (
+            f"kcal {nut.get('kcal', '—')}  ·  Protein {nut.get('protein_g', '—')} g  ·  "
+            f"Carbs {nut.get('carbs_g', '—')} g  ·  Fat {nut.get('fat_g', '—')} g  ·  "
+            f"Fibre {nut.get('fibre_g', '—')} g. "
+            f"{recipe.get('nutrition_disclaimer') or 'Kitchen estimate, not lab analysis.'}"
+        )
+        ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+        cell = ws.cell(row, 1, nut_line)
+        cell.alignment = WRAP
+        cell.font = BODY_FONT
+        for col in range(1, 5):
+            ws.cell(row, col).border = THIN
+        ws.row_dimensions[row].height = 36
+
+    if recipe.get("allergens"):
+        row += 1
+        ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+        a = ws.cell(row, 1, "Allergens")
+        a.fill = RED
+        a.font = HEADER_FONT
+        for col in range(1, 5):
+            ws.cell(row, col).fill = RED
+        row += 1
+        ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+        al = ws.cell(row, 1, " · ".join(recipe["allergens"]))
+        al.alignment = WRAP
+        al.fill = RED_SOFT
+        al.font = BODY_FONT
+        for col in range(1, 5):
+            ws.cell(row, col).fill = RED_SOFT
+            ws.cell(row, col).border = THIN
+        ws.row_dimensions[row].height = 48
+
+    chef = recipe.get("chef_notes") or recipe.get("notes") or ""
+    if chef:
         row += 1
         ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
         n = ws.cell(row, 1, "Chef notes")
@@ -858,14 +901,31 @@ def write_recipe_sheet(ws, recipe: dict, continent: dict):
             ws.cell(row, col).fill = RED
         row += 1
         ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
-        note = ws.cell(row, 1, recipe["notes"])
+        note = ws.cell(row, 1, chef)
         note.alignment = WRAP
         note.fill = RED_SOFT
         note.font = BODY_FONT
         for col in range(1, 5):
             ws.cell(row, col).fill = RED_SOFT
             ws.cell(row, col).border = THIN
-        ws.row_dimensions[row].height = 48
+        ws.row_dimensions[row].height = 72
+
+    if recipe.get("service_notes"):
+        row += 1
+        ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+        n = ws.cell(row, 1, "Service notes")
+        n.fill = SLATE
+        n.font = HEADER_FONT
+        for col in range(1, 5):
+            ws.cell(row, col).fill = SLATE
+        row += 1
+        ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+        note = ws.cell(row, 1, recipe["service_notes"])
+        note.alignment = WRAP
+        note.font = BODY_FONT
+        for col in range(1, 5):
+            ws.cell(row, col).border = THIN
+        ws.row_dimensions[row].height = 64
 
     set_widths(ws, {1: 14, 2: 14, 3: 36, 4: 36})
     ws.freeze_panes = "A5"

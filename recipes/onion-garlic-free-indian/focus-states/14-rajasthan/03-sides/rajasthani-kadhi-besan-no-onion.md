@@ -1,32 +1,69 @@
 # Rajasthani kadhi (besan, no onion)
 
-**Recipe card** · Rajasthan kitchen · Side
+**Parslia Kitchen OS** · RECIPE CARD
 
-| | |
-|---|---|
-| **Kitchen** | Rajasthan — Marwari, Mewari and Jain vegetarian |
-| **Course** | Side |
-| **Serves** | 4 |
-| **Prep** | 10 min |
-| **Cook** | 25 min |
-| **Total** | 35 min |
-| **Cookware** | Stainless steel kadhai or saucepan — never aluminium |
-| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
+Pure Prasad · No onion · No garlic · No eggs · No meat · No fish
+
+Printed: 26 August 2026
+
+**Side Rajasthan**
 
 Signature side from Rajasthan, cooked without onion or garlic.
 
-## Ingredients *(for 4 servings)*
+| YIELD | PORTION | SERVICE | TIME |
+|---|---|---|---|
+| 4 portions | 1 portion | Hot | Prep 10 min · Cook 25 min |
 
-| Qty | Unit | Ingredient |
-|-----|------|------------|
-| 1 | cup | yogurt |
-| 3 | tbsp | besan |
-| 3 | cups | water, turmeric, salt |
-| 1 | tsp | cumin |
-| ½ | tsp | methi, 4 curry leaves, 2 dry red chillies |
-| ½ | tsp | hing |
+**Tags:** Vegetarian, No onion, No garlic, No eggs, No meat, No fish, Contains gluten
+
+**Kitchen:** Rajasthan — Marwari, Mewari and Jain vegetarian
+
+**Cookware:** Stainless steel kadhai or saucepan — never aluminium
+
+**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium
+
+## Ingredients *(for 4 portions)*
+
+| Qty | Unit | Approx | Ingredient |
+|-----|------|--------|------------|
+| 1 | cup | ≈ 240 g | yogurt |
+| 3 | tbsp | ≈ 24 g | besan |
+| 3 | cups | ≈ 720 g | water, turmeric, salt |
+| 1 | tsp | ≈ 2.5 g | cumin |
+| ½ | tsp | ≈ 1.2 g | methi, 4 curry leaves, 2 dry red chillies |
+| ½ | tsp | ≈ 1.2 g | hing |
 
 ## Method
 
-1. Whisk yogurt-besan. Simmer till thick.
-2. Temper whole spices in ghee. Pour over kadhi.
+1. Mise en place. Weigh every ingredient on this card for 4 portions. Set Stainless steel kadhai or saucepan — never aluminium. Wash produce. Confirm spice blends have no onion or garlic powder. No onion, no garlic, no aluminium.
+2. Cut vegetables to even size so they cook together.
+3. Heat fat in Stainless steel kadhai or saucepan — never aluminium on medium. Bloom hing 20–30 seconds until fragrant — this is the onion-garlic stand-in. Do not burn it.
+4. Whisk yogurt-besan. Work in Stainless steel kadhai or saucepan — never aluminium. Cook to the doneness below, tasting salt at the end. Do not add onion, garlic or aluminium cookware.
+5. Simmer till thick. Work in Stainless steel kadhai or saucepan — never aluminium. Cook to the doneness below, tasting salt at the end. Do not add onion, garlic or aluminium cookware.
+6. Temper whole spices in ghee. Work in Stainless steel kadhai or saucepan — never aluminium. Cook to the doneness below, tasting salt at the end. Do not add onion, garlic or aluminium cookware.
+7. Pour over kadhi. Work in Stainless steel kadhai or saucepan — never aluminium. Cook to the doneness below, tasting salt at the end. Do not add onion, garlic or aluminium cookware.
+8. Doneness: vegetables yield to a knife, gravy coats a spoon, salt is balanced. Rest 2 minutes off the heat so seasoning settles.
+9. Taste and adjust salt, lemon or chilli only — do not add onion or garlic at the finish. Garnish as listed. Yield is 4 portions.
+10. Hold hot above 63 C if the pass is delayed, or cool quickly and reheat once only to piping hot. Do not hold in aluminium. Service: Hot.
+
+## Nutrition per portion
+
+| kcal | Protein | Carbs | Fat | Fibre |
+|---|---|---|---|---|
+| 62 | 3 g | 7 g | 2 g | 1 g |
+
+Nutrition is a kitchen estimate from typical produce values, not a laboratory analysis.
+
+## Allergens
+
+- Gluten (wheat)
+- Milk
+- Always verify labels; this card is a kitchen estimate, not a lab certificate.
+
+## Chef notes
+
+For Rajasthani kadhi (besan, no onion): keep the mix slightly drier than you think; wet mixes split or go greasy. Bloom hing in hot fat 20–30 seconds; raw hing tastes medicinal. Commercial hing is often cut with wheat flour — use a gluten-free hing if you must mark Gluten Free. Never cook tomato, tamarind, lemon, yogurt or milk in aluminium; use stainless steel, iron, clay or glass. Spice blends: read the packet. Many garam masalas hide onion or garlic powder. Bring yogurt to a simmer gently and stir; a rolling boil can split it. Cook or roast besan until the raw smell is gone.
+
+## Service notes
+
+Serve family-style in a steel bowl. Keep a lid on at the pass so it does not skin. Service temperature: Hot. Allergen label for this dish: Gluten (wheat); Milk; Always verify labels; this card is a kitchen estimate, not a lab certificate. State clearly: vegetarian, no onion, no garlic, no eggs, no meat, no fish. Nutrition on this card is an estimate for 1 portion of 4.

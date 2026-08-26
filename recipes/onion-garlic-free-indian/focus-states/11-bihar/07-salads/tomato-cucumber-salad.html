@@ -3,81 +3,117 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tomato Cucumber Salad · Bihar recipe card</title>
+<title>Tomato Cucumber Salad · Parslia Kitchen OS</title>
 <style>
-  :root { --ink:#1c1917; --saffron:#9a3412; --green:#14532d; --red:#7f1d1d; --cream:#fff7ed; --sand:#ffedd5; --line:#e7d5c4; }
   * { box-sizing: border-box; }
-  body { margin:0; background:#f4efe6; color:var(--ink); font-family: Georgia, "Times New Roman", serif; }
-  .card { max-width: 820px; margin: 24px auto; background:#fffaf3; border: 8px solid var(--saffron); box-shadow: 0 12px 40px rgba(0,0,0,.12); }
-  header { background: var(--saffron); color:#fff; padding: 22px 28px 18px; }
-  .eyebrow { margin:0 0 6px; letter-spacing:.18em; font-size: 11px; font-family: Calibri, Arial, sans-serif; font-weight:700; }
-  h1 { margin:0 0 10px; font-size: 34px; line-height:1.15; }
-  .badges { margin:0; font-family: Calibri, Arial, sans-serif; font-size: 12px; letter-spacing:.04em; background:var(--red); display:inline-block; padding:6px 10px; }
-  .meta { display:grid; grid-template-columns: repeat(4,1fr); gap:0; border-bottom:1px solid var(--line); font-family: Calibri, Arial, sans-serif; }
-  .meta div { padding:12px 16px; border-right:1px solid var(--line); background: var(--sand); }
+  body { margin:0; background:#f4f4f5; color:#111; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  .sheet { max-width: 880px; margin: 20px auto; background:#fff; padding: 28px 32px 40px; border: 1px solid #e5e5e5; }
+  .topline { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .brand { margin:0; letter-spacing:.18em; font-size:11px; font-weight:700; text-transform:uppercase; }
+  .pure { margin:4px 0 0; font-size:12px; color:#444; }
+  .printed { margin:0; font-size:11px; color:#666; white-space:nowrap; }
+  .course { margin:18px 0 0; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:#555; }
+  h1 { margin:4px 0 10px; font-size:32px; line-height:1.15; font-weight:700; }
+  .lead { margin:0 0 16px; font-size:15px; color:#333; line-height:1.45; }
+  .meta { display:grid; grid-template-columns: repeat(4,1fr); border:1px solid #ddd; margin: 0 0 12px; }
+  .meta div { padding:10px 12px; border-right:1px solid #ddd; }
   .meta div:last-child { border-right:0; }
-  .meta dt { font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#7c2d12; margin:0; }
-  .meta dd { margin:2px 0 0; font-size:20px; font-weight:700; }
-  .why, .cookware { padding: 14px 28px; font-size: 16px; }
-  .cookware { background:#dcfce7; color:var(--green); font-family: Calibri, Arial, sans-serif; font-weight:700; }
-  .grid { display:grid; grid-template-columns: 1.05fr 1fr; }
-  section { padding: 8px 28px 24px; }
-  h2 { font-family: Calibri, Arial, sans-serif; font-size: 13px; letter-spacing:.16em; text-transform:uppercase; color:var(--saffron); border-bottom:2px solid var(--saffron); padding-bottom:6px; }
-  table { width:100%; border-collapse: collapse; font-family: Calibri, Arial, sans-serif; }
-  th { text-align:left; font-size:11px; letter-spacing:.08em; text-transform:uppercase; border-bottom:1px solid var(--line); padding:6px 8px; }
-  td { padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
-  .qty, .unit { width:64px; font-variant-numeric: tabular-nums; font-weight:700; }
-  ol { margin:0; padding-left: 22px; }
-  li { margin: 0 0 10px; line-height:1.45; }
-  .notes { background:#fee2e2; }
-  footer { padding:12px 28px 18px; font-family: Calibri, Arial, sans-serif; font-size:12px; color:#57534e; }
-  .dl a { display:inline-block; margin:8px 8px 0 0; padding:8px 12px; background:#9a3412; color:#fff !important; text-decoration:none; font-family: Calibri, Arial, sans-serif; font-size:13px; }
+  .meta dt { font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#666; margin:0; }
+  .meta dd { margin:4px 0 0; font-size:15px; font-weight:700; }
+  .tags { margin: 0 0 14px; }
+  .tags span { display:inline-block; border:1px solid #ccc; padding:3px 8px; margin:0 6px 6px 0; font-size:11px; }
+  .cookware { margin:0 0 16px; font-size:13px; color:#14532d; font-weight:700; }
+  .grid { display:grid; grid-template-columns: 0.95fr 1.05fr; gap: 28px; }
+  h2 { font-size:12px; letter-spacing:.16em; text-transform:uppercase; border-bottom:1px solid #111; padding-bottom:6px; margin: 18px 0 10px; }
+  table { width:100%; border-collapse: collapse; font-size:13px; }
+  th { text-align:left; font-size:10px; letter-spacing:.08em; text-transform:uppercase; border-bottom:1px solid #ddd; padding:6px 6px; color:#555; }
+  td { padding:6px; border-bottom:1px solid #eee; vertical-align:top; }
+  .qty, .unit, .approx { width:58px; font-variant-numeric: tabular-nums; font-weight:700; }
+  ol { margin:0; padding-left: 20px; }
+  li { margin: 0 0 9px; line-height:1.45; font-size:14px; }
+  .nut { display:grid; grid-template-columns: repeat(5,1fr); border:1px solid #ddd; margin: 8px 0; }
+  .nut div { padding:10px 8px; text-align:center; border-right:1px solid #ddd; }
+  .nut div:last-child { border-right:0; }
+  .nut dt { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:#666; }
+  .nut dd { margin:3px 0 0; font-size:18px; font-weight:700; }
+  .disc { font-size:12px; color:#555; }
+  .notes p, .allergens li { font-size:14px; line-height:1.5; }
+  footer { margin-top:22px; padding-top:12px; border-top:1px solid #ddd; font-size:11px; color:#555; }
+  .dl a { display:inline-block; margin:10px 8px 0 0; padding:8px 12px; background:#111; color:#fff !important; text-decoration:none; font-size:13px; }
   @media print {
     body { background:#fff; }
-    .card { margin:0; box-shadow:none; border-width:4px; }
+    .sheet { margin:0; border:0; max-width:none; }
     .dl { display:none; }
   }
   @media (max-width: 700px) {
-    .meta, .grid { grid-template-columns: 1fr 1fr; }
+    .meta, .grid, .nut { grid-template-columns: 1fr 1fr; }
+    .sheet { padding: 18px; }
   }
 </style>
 </head>
 <body>
-<article class="card">
-  <header>
-    <p class="eyebrow">BIHAR · SALAD · RECIPE CARD</p>
-    <h1>Tomato Cucumber Salad</h1>
-    <p class="badges">VEGETARIAN · NO ONION · NO GARLIC · NO ALLIUM · NO ALUMINIUM</p>
-    <p class="dl">
-      <a href="tomato-cucumber-salad.pdf" download>Download this recipe (PDF)</a>
-      <a href="../../download/11-bihar.zip" download>Download Bihar kitchen ZIP</a>
-    </p>
-  </header>
+<article class="sheet">
+  <div class="topline">
+    <div>
+      <p class="brand">Parslia Kitchen OS</p>
+      <p class="pure">Pure Prasad · No onion · No garlic · No eggs · No meat · No fish</p>
+    </div>
+    <p class="printed">Printed 26 August 2026</p>
+  </div>
+  <p class="course">Salad Bihar</p>
+  <h1>Tomato Cucumber Salad</h1>
+  <p class="lead">Signature salad from Bihar, cooked without onion or garlic.</p>
+  <p class="dl">
+    <a href="tomato-cucumber-salad.pdf" download>Download this recipe (PDF)</a>
+    <a href="../../download/11-bihar.zip" download>Download Bihar kitchen ZIP</a>
+  </p>
   <dl class="meta">
-    <div><dt>Serves</dt><dd>4</dd></div>
-    <div><dt>Prep</dt><dd>8 min</dd></div>
-    <div><dt>Cook</dt><dd>0 min</dd></div>
-    <div><dt>Total</dt><dd>8 min</dd></div>
+    <div><dt>Yield</dt><dd>4 portions</dd></div>
+    <div><dt>Portion</dt><dd>1 portion</dd></div>
+    <div><dt>Service</dt><dd>Cold</dd></div>
+    <div><dt>Time</dt><dd>Prep 8 min · Cook 0 min</dd></div>
   </dl>
+  <div class="tags"><span>Vegetarian</span><span>No onion</span><span>No garlic</span><span>No eggs</span><span>No meat</span><span>No fish</span><span>Gluten Free*</span><span>Mustard</span></div>
   <p class="cookware">Cookware: Steel or glass bowl</p>
-  <p class="why">Signature salad from Bihar, cooked without onion or garlic.</p>
   <div class="grid">
     <section>
-      <h2>Ingredients · 4 servings</h2>
+      <h2>Ingredients · 4 portions</h2>
       <table>
-        <thead><tr><th>Qty</th><th>Unit</th><th>Ingredient</th></tr></thead>
+        <thead><tr><th>Qty</th><th>Unit</th><th>Approx</th><th>Ingredient</th></tr></thead>
         <tbody>
-          <tr><td class='qty'>2</td><td class='unit'>pieces</td><td>ripe tomatoes, chopped</td></tr><tr><td class='qty'>2</td><td class='unit'>pieces</td><td>cucumbers</td></tr><tr><td class='qty'>1</td><td class='unit'>tbsp</td><td>lemon juice</td></tr><tr><td class='qty'>2</td><td class='unit'>pieces</td><td>green chillies, slit</td></tr><tr><td class='qty'>2</td><td class='unit'>tbsp</td><td>mustard oil</td></tr><tr><td class='qty'>1</td><td class='unit'>tsp</td><td>salt, or to taste</td></tr>
+          <tr><td class='qty'>2</td><td class='unit'>pieces</td><td class='approx'>≈ 200 g</td><td>ripe tomatoes, chopped</td></tr><tr><td class='qty'>2</td><td class='unit'>pieces</td><td class='approx'>≈ 360 g</td><td>cucumbers</td></tr><tr><td class='qty'>1</td><td class='unit'>tbsp</td><td class='approx'>≈ 8 g</td><td>lemon juice</td></tr><tr><td class='qty'>2</td><td class='unit'>pieces</td><td class='approx'>≈ 16 g</td><td>green chillies, slit</td></tr><tr><td class='qty'>2</td><td class='unit'>tbsp</td><td class='approx'>≈ 28 g</td><td>mustard oil</td></tr><tr><td class='qty'>1</td><td class='unit'>tsp</td><td class='approx'>≈ 6 g</td><td>salt, or to taste</td></tr>
         </tbody>
       </table>
     </section>
     <section>
       <h2>Method</h2>
-      <ol><li>Toss. No onion.</li></ol>
+      <ol><li>Mise en place. Weigh every ingredient on this card for 4 portions. Set Steel or glass bowl. Wash produce. Confirm spice blends have no onion or garlic powder. No onion, no garlic, no aluminium.</li><li>Cut vegetables to even size so they cook together.</li><li>Toss. Work in Steel or glass bowl. Cook to the doneness below, tasting salt at the end. Do not add onion, garlic or aluminium cookware.</li><li>No onion. Work in Steel or glass bowl. Cook to the doneness below, tasting salt at the end. Do not add onion, garlic or aluminium cookware.</li><li>Doneness: vegetables stay crisp; dressing coats evenly; seasoning is bright, not flat.</li><li>Taste and adjust salt, lemon or chilli only — do not add onion or garlic at the finish. Garnish as listed. Yield is 4 portions.</li><li>Hold chilled, covered, up to 2 hours. Stir before service. Discard if it weeps heavily or smells sour beyond yogurt character. Service: Cold.</li></ol>
     </section>
   </div>
-  
-  <footer>One recipe card · Bihar kitchen folder · Never cook in aluminium · No onion or garlic</footer>
+  <section>
+    <h2>Nutrition per portion</h2>
+    <dl class="nut">
+      <div><dt>kcal</dt><dd>87</dd></div>
+      <div><dt>Protein</dt><dd>1 g</dd></div>
+      <div><dt>Carbs</dt><dd>6 g</dd></div>
+      <div><dt>Fat</dt><dd>7 g</dd></div>
+      <div><dt>Fibre</dt><dd>1 g</dd></div>
+    </dl>
+    <p class="disc">Nutrition is a kitchen estimate from typical produce values, not a laboratory analysis.</p>
+  </section>
+  <section class="allergens">
+    <h2>Allergens</h2>
+    <ul><li>Milk</li><li>Mustard</li><li>Always verify labels; this card is a kitchen estimate, not a lab certificate.</li></ul>
+  </section>
+  <section class="notes">
+    <h2>Chef notes</h2>
+    <p>For Tomato Cucumber Salad: squeeze wet vegetables dry or the bowl weeps on the pass. Season slightly higher than you think — cold dulls salt. No onion, no garlic, no allium garnish. Use steel or glass, never aluminium. Dress at the last minute. Verify dahi and spice labels.</p>
+  </section>
+  <section class="notes">
+    <h2>Service notes</h2>
+    <p>Dress at the last minute. Toss at the pass, do not send a wet bowl. Service temperature: Cold. Allergen label for this dish: Milk; Mustard; Always verify labels; this card is a kitchen estimate, not a lab certificate. State clearly: vegetarian, no onion, no garlic, no eggs, no meat, no fish. Nutrition on this card is an estimate for 1 portion of 4.</p>
+  </section>
+  <footer>Parslia Kitchen OS · Pure Prasad · Bihar kitchen · Never cook in aluminium</footer>
 </article>
 </body>
 </html>

@@ -186,6 +186,37 @@ def main() -> None:
     if missing_qty:
         fail(f"{len(missing_qty)} ingredients have no quantity, e.g. {missing_qty[:8]}")
 
+    short_methods = [f"{rec['continent_id']}/{rec['name']} ({len(rec['method'])} steps)" for rec in recipes if len(rec.get("method") or []) < 5]
+    if short_methods:
+        fail(f"{len(short_methods)} methods still too short, e.g. {short_methods[:8]}")
+
+    kebab = next(x for x in recipes if x["name"] == "Hara bhara kebab (no onion garlic)")
+    if len(kebab["method"]) < 8:
+        fail(f"Hara bhara kebab method too short: {len(kebab['method'])} steps")
+    method_blob = " ".join(kebab["method"]).lower()
+    if "blanch" not in method_blob or "chill" not in method_blob:
+        fail("Hara bhara kebab method missing blanch/chill chef steps")
+    if not kebab.get("nutrition") or "kcal" not in kebab["nutrition"]:
+        fail("Hara bhara kebab missing nutrition")
+    if not kebab.get("allergens") or not kebab.get("chef_notes") or not kebab.get("service_notes"):
+        fail("Hara bhara kebab missing allergens/chef/service notes")
+
+    kebab_md = (OUT / "16-punjab" / "01-starters" / "hara-bhara-kebab-no-onion-garlic.md").read_text(encoding="utf-8")
+    kebab_html = (OUT / "16-punjab" / "01-starters" / "hara-bhara-kebab-no-onion-garlic.html").read_text(encoding="utf-8")
+    for label, blob in (("md", kebab_md), ("html", kebab_html)):
+        for needle in ("Parslia Kitchen OS", "YIELD", "NUTRITION", "Allergen", "Chef notes", "Service notes"):
+            if needle.lower() not in blob.lower() and needle not in blob:
+                # Nutrition heading is "Nutrition per portion"
+                if needle == "NUTRITION" and "nutrition" in blob.lower():
+                    continue
+                if needle == "YIELD" and "Yield" in blob:
+                    continue
+                fail(f"Punjab hara bhara {label} missing {needle}")
+    if "Parslia Kitchen OS" not in kebab_html:
+        fail("HTML card is not branded as Parslia Kitchen OS")
+    if "Mash. Shape. Shallow-fry" in kebab_md:
+        fail("Hara bhara kebab still has the one-line method")
+
     print("PASS")
     print(f"  recipes: {EXPECTED_RECIPES} ({KITCHEN_COUNT} kitchens x {RECIPES_EACH})")
     print(f"  markdown: {md_count}")

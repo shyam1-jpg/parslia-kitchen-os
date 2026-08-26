@@ -119,52 +119,115 @@ def ingredient_blob(recipe: dict) -> str:
 
 
 def measured(recipe: dict) -> list[dict]:
-    return [parse_ingredient(i) for i in recipe.get("ingredients") or []]
+    out = []
+    for item in recipe.get("ingredients") or []:
+        row = parse_ingredient(item)
+        if isinstance(item, dict) and item.get("approx"):
+            row["approx"] = item["approx"]
+        out.append(row)
+    return out
+
+
+def spec_meta(recipe: dict, kitchen: dict) -> dict:
+    nut = recipe.get("nutrition") or {}
+    return {
+        "brand": recipe.get("brand") or "Parslia Kitchen OS",
+        "pure": recipe.get("pure") or "Pure Prasad · No onion · No garlic · No eggs · No meat · No fish",
+        "printed": recipe.get("printed") or "",
+        "yield_label": recipe.get("yield_label") or f"{recipe.get('servings', 4)} portions",
+        "portion_label": recipe.get("portion_label") or "1 portion",
+        "service": recipe.get("service") or "Hot",
+        "time_label": recipe.get("time_label")
+        or f"Prep {recipe.get('prep_min', 0)} min · Cook {recipe.get('cook_min', 0)} min",
+        "tags": recipe.get("tags") or ["Vegetarian", "No onion", "No garlic"],
+        "allergens": recipe.get("allergens") or [],
+        "chef_notes": recipe.get("chef_notes") or recipe.get("notes") or "",
+        "service_notes": recipe.get("service_notes") or "",
+        "disclaimer": recipe.get("nutrition_disclaimer")
+        or "Nutrition is a kitchen estimate from typical produce values, not a laboratory analysis.",
+        "kcal": nut.get("kcal", "—"),
+        "protein": nut.get("protein_g", "—"),
+        "carbs": nut.get("carbs_g", "—"),
+        "fat": nut.get("fat_g", "—"),
+        "fibre": nut.get("fibre_g", "—"),
+        "course_line": f"{recipe.get('category', '')} {kitchen.get('name', '')}".strip(),
+    }
 
 
 def md_card(recipe: dict, kitchen: dict) -> str:
+    meta = spec_meta(recipe, kitchen)
     rows = measured(recipe)
-    total = int(recipe["prep_min"]) + int(recipe["cook_min"])
     body = [
-        f"| Qty | Unit | Ingredient |",
-        f"|-----|------|------------|",
+        "| Qty | Unit | Approx | Ingredient |",
+        "|-----|------|--------|------------|",
     ]
     for row in rows:
         qty = row["qty"] or "—"
         unit = row["unit"] or "—"
-        body.append(f"| {qty} | {unit} | {row['item']} |")
+        approx = row.get("approx") or "—"
+        body.append(f"| {qty} | {unit} | {approx} | {row['item']} |")
     steps = "\n".join(f"{n}. {s}" for n, s in enumerate(recipe["method"], 1))
-    notes = f"\n## Chef notes\n\n{recipe['notes']}\n" if recipe.get("notes") else ""
+    tags = ", ".join(meta["tags"])
+    allergens = "\n".join(f"- {a}" for a in meta["allergens"]) or "- Verify labels before service"
+    chef = meta["chef_notes"]
+    service = meta["service_notes"]
     return f"""# {recipe['name']}
 
-**Recipe card** · {kitchen['name']} kitchen · {recipe['category']}
+**{meta['brand']}** · RECIPE CARD
 
-| | |
-|---|---|
-| **Kitchen** | {kitchen['name']} — {recipe['community']} |
-| **Course** | {recipe['category']} |
-| **Serves** | {recipe['servings']} |
-| **Prep** | {recipe['prep_min']} min |
-| **Cook** | {recipe['cook_min']} min |
-| **Total** | {total} min |
-| **Cookware** | {recipe['cookware']} |
-| **Diet** | {recipe['diet']} |
+{meta['pure']}
+
+Printed: {meta['printed']}
+
+**{meta['course_line']}**
 
 {recipe['why']}
 
-## Ingredients *(for {recipe['servings']} servings)*
+| YIELD | PORTION | SERVICE | TIME |
+|---|---|---|---|
+| {meta['yield_label']} | {meta['portion_label']} | {meta['service']} | {meta['time_label']} |
+
+**Tags:** {tags}
+
+**Kitchen:** {kitchen['name']} — {recipe['community']}
+
+**Cookware:** {recipe['cookware']}
+
+**Diet:** {recipe['diet']}
+
+## Ingredients *(for {meta['yield_label']})*
 
 {chr(10).join(body)}
 
 ## Method
 
 {steps}
-{notes}"""
+
+## Nutrition per portion
+
+| kcal | Protein | Carbs | Fat | Fibre |
+|---|---|---|---|---|
+| {meta['kcal']} | {meta['protein']} g | {meta['carbs']} g | {meta['fat']} g | {meta['fibre']} g |
+
+{meta['disclaimer']}
+
+## Allergens
+
+{allergens}
+
+## Chef notes
+
+{chef}
+
+## Service notes
+
+{service}
+"""
 
 
 def html_card(recipe: dict, kitchen: dict) -> str:
+    meta = spec_meta(recipe, kitchen)
     rows = measured(recipe)
-    total = int(recipe["prep_min"]) + int(recipe["cook_min"])
     slug = re.sub(r"[^a-z0-9]+", "-", recipe["name"].lower()).strip("-")
     trs = []
     for row in rows:
@@ -172,83 +235,97 @@ def html_card(recipe: dict, kitchen: dict) -> str:
             "<tr>"
             f"<td class='qty'>{html.escape(row['qty'] or '—')}</td>"
             f"<td class='unit'>{html.escape(row['unit'] or '—')}</td>"
+            f"<td class='approx'>{html.escape(row.get('approx') or '')}</td>"
             f"<td>{html.escape(row['item'])}</td>"
             "</tr>"
         )
     steps = "".join(f"<li>{html.escape(s)}</li>" for s in recipe["method"])
-    notes = (
-        f"<section class='notes'><h2>Chef notes</h2><p>{html.escape(recipe['notes'])}</p></section>"
-        if recipe.get("notes")
-        else ""
-    )
+    tags = "".join(f"<span>{html.escape(t)}</span>" for t in meta["tags"])
+    allergens = "".join(f"<li>{html.escape(a)}</li>" for a in meta["allergens"]) or "<li>Verify labels before service</li>"
+    chef = html.escape(meta["chef_notes"])
+    service = html.escape(meta["service_notes"])
     return f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html.escape(recipe['name'])} · {html.escape(kitchen['name'])} recipe card</title>
+<title>{html.escape(recipe['name'])} · {html.escape(meta['brand'])}</title>
 <style>
-  :root {{ --ink:#1c1917; --saffron:#9a3412; --green:#14532d; --red:#7f1d1d; --cream:#fff7ed; --sand:#ffedd5; --line:#e7d5c4; }}
   * {{ box-sizing: border-box; }}
-  body {{ margin:0; background:#f4efe6; color:var(--ink); font-family: Georgia, "Times New Roman", serif; }}
-  .card {{ max-width: 820px; margin: 24px auto; background:#fffaf3; border: 8px solid var(--saffron); box-shadow: 0 12px 40px rgba(0,0,0,.12); }}
-  header {{ background: var(--saffron); color:#fff; padding: 22px 28px 18px; }}
-  .eyebrow {{ margin:0 0 6px; letter-spacing:.18em; font-size: 11px; font-family: Calibri, Arial, sans-serif; font-weight:700; }}
-  h1 {{ margin:0 0 10px; font-size: 34px; line-height:1.15; }}
-  .badges {{ margin:0; font-family: Calibri, Arial, sans-serif; font-size: 12px; letter-spacing:.04em; background:var(--red); display:inline-block; padding:6px 10px; }}
-  .meta {{ display:grid; grid-template-columns: repeat(4,1fr); gap:0; border-bottom:1px solid var(--line); font-family: Calibri, Arial, sans-serif; }}
-  .meta div {{ padding:12px 16px; border-right:1px solid var(--line); background: var(--sand); }}
+  body {{ margin:0; background:#f4f4f5; color:#111; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }}
+  .sheet {{ max-width: 880px; margin: 20px auto; background:#fff; padding: 28px 32px 40px; border: 1px solid #e5e5e5; }}
+  .topline {{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }}
+  .brand {{ margin:0; letter-spacing:.18em; font-size:11px; font-weight:700; text-transform:uppercase; }}
+  .pure {{ margin:4px 0 0; font-size:12px; color:#444; }}
+  .printed {{ margin:0; font-size:11px; color:#666; white-space:nowrap; }}
+  .course {{ margin:18px 0 0; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:#555; }}
+  h1 {{ margin:4px 0 10px; font-size:32px; line-height:1.15; font-weight:700; }}
+  .lead {{ margin:0 0 16px; font-size:15px; color:#333; line-height:1.45; }}
+  .meta {{ display:grid; grid-template-columns: repeat(4,1fr); border:1px solid #ddd; margin: 0 0 12px; }}
+  .meta div {{ padding:10px 12px; border-right:1px solid #ddd; }}
   .meta div:last-child {{ border-right:0; }}
-  .meta dt {{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#7c2d12; margin:0; }}
-  .meta dd {{ margin:2px 0 0; font-size:20px; font-weight:700; }}
-  .why, .cookware {{ padding: 14px 28px; font-size: 16px; }}
-  .cookware {{ background:#dcfce7; color:var(--green); font-family: Calibri, Arial, sans-serif; font-weight:700; }}
-  .grid {{ display:grid; grid-template-columns: 1.05fr 1fr; }}
-  section {{ padding: 8px 28px 24px; }}
-  h2 {{ font-family: Calibri, Arial, sans-serif; font-size: 13px; letter-spacing:.16em; text-transform:uppercase; color:var(--saffron); border-bottom:2px solid var(--saffron); padding-bottom:6px; }}
-  table {{ width:100%; border-collapse: collapse; font-family: Calibri, Arial, sans-serif; }}
-  th {{ text-align:left; font-size:11px; letter-spacing:.08em; text-transform:uppercase; border-bottom:1px solid var(--line); padding:6px 8px; }}
-  td {{ padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }}
-  .qty, .unit {{ width:64px; font-variant-numeric: tabular-nums; font-weight:700; }}
-  ol {{ margin:0; padding-left: 22px; }}
-  li {{ margin: 0 0 10px; line-height:1.45; }}
-  .notes {{ background:#fee2e2; }}
-  footer {{ padding:12px 28px 18px; font-family: Calibri, Arial, sans-serif; font-size:12px; color:#57534e; }}
-  .dl a {{ display:inline-block; margin:8px 8px 0 0; padding:8px 12px; background:#9a3412; color:#fff !important; text-decoration:none; font-family: Calibri, Arial, sans-serif; font-size:13px; }}
+  .meta dt {{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#666; margin:0; }}
+  .meta dd {{ margin:4px 0 0; font-size:15px; font-weight:700; }}
+  .tags {{ margin: 0 0 14px; }}
+  .tags span {{ display:inline-block; border:1px solid #ccc; padding:3px 8px; margin:0 6px 6px 0; font-size:11px; }}
+  .cookware {{ margin:0 0 16px; font-size:13px; color:#14532d; font-weight:700; }}
+  .grid {{ display:grid; grid-template-columns: 0.95fr 1.05fr; gap: 28px; }}
+  h2 {{ font-size:12px; letter-spacing:.16em; text-transform:uppercase; border-bottom:1px solid #111; padding-bottom:6px; margin: 18px 0 10px; }}
+  table {{ width:100%; border-collapse: collapse; font-size:13px; }}
+  th {{ text-align:left; font-size:10px; letter-spacing:.08em; text-transform:uppercase; border-bottom:1px solid #ddd; padding:6px 6px; color:#555; }}
+  td {{ padding:6px; border-bottom:1px solid #eee; vertical-align:top; }}
+  .qty, .unit, .approx {{ width:58px; font-variant-numeric: tabular-nums; font-weight:700; }}
+  ol {{ margin:0; padding-left: 20px; }}
+  li {{ margin: 0 0 9px; line-height:1.45; font-size:14px; }}
+  .nut {{ display:grid; grid-template-columns: repeat(5,1fr); border:1px solid #ddd; margin: 8px 0; }}
+  .nut div {{ padding:10px 8px; text-align:center; border-right:1px solid #ddd; }}
+  .nut div:last-child {{ border-right:0; }}
+  .nut dt {{ font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:#666; }}
+  .nut dd {{ margin:3px 0 0; font-size:18px; font-weight:700; }}
+  .disc {{ font-size:12px; color:#555; }}
+  .notes p, .allergens li {{ font-size:14px; line-height:1.5; }}
+  footer {{ margin-top:22px; padding-top:12px; border-top:1px solid #ddd; font-size:11px; color:#555; }}
+  .dl a {{ display:inline-block; margin:10px 8px 0 0; padding:8px 12px; background:#111; color:#fff !important; text-decoration:none; font-size:13px; }}
   @media print {{
     body {{ background:#fff; }}
-    .card {{ margin:0; box-shadow:none; border-width:4px; }}
+    .sheet {{ margin:0; border:0; max-width:none; }}
     .dl {{ display:none; }}
   }}
   @media (max-width: 700px) {{
-    .meta, .grid {{ grid-template-columns: 1fr 1fr; }}
+    .meta, .grid, .nut {{ grid-template-columns: 1fr 1fr; }}
+    .sheet {{ padding: 18px; }}
   }}
 </style>
 </head>
 <body>
-<article class="card">
-  <header>
-    <p class="eyebrow">{html.escape(kitchen['name'].upper())} · {html.escape(str(recipe['category']).upper())} · RECIPE CARD</p>
-    <h1>{html.escape(recipe['name'])}</h1>
-    <p class="badges">{html.escape(recipe['diet']).upper()}</p>
-    <p class="dl">
-      <a href="{html.escape(slug)}.pdf" download>Download this recipe (PDF)</a>
-      <a href="../../download/{html.escape(kitchen['folder'])}.zip" download>Download {html.escape(kitchen['name'])} kitchen ZIP</a>
-    </p>
-  </header>
+<article class="sheet">
+  <div class="topline">
+    <div>
+      <p class="brand">{html.escape(meta['brand'])}</p>
+      <p class="pure">{html.escape(meta['pure'])}</p>
+    </div>
+    <p class="printed">Printed {html.escape(str(meta['printed']))}</p>
+  </div>
+  <p class="course">{html.escape(meta['course_line'])}</p>
+  <h1>{html.escape(recipe['name'])}</h1>
+  <p class="lead">{html.escape(recipe['why'])}</p>
+  <p class="dl">
+    <a href="{html.escape(slug)}.pdf" download>Download this recipe (PDF)</a>
+    <a href="../../download/{html.escape(kitchen['folder'])}.zip" download>Download {html.escape(kitchen['name'])} kitchen ZIP</a>
+  </p>
   <dl class="meta">
-    <div><dt>Serves</dt><dd>{html.escape(str(recipe['servings']))}</dd></div>
-    <div><dt>Prep</dt><dd>{html.escape(str(recipe['prep_min']))} min</dd></div>
-    <div><dt>Cook</dt><dd>{html.escape(str(recipe['cook_min']))} min</dd></div>
-    <div><dt>Total</dt><dd>{total} min</dd></div>
+    <div><dt>Yield</dt><dd>{html.escape(meta['yield_label'])}</dd></div>
+    <div><dt>Portion</dt><dd>{html.escape(meta['portion_label'])}</dd></div>
+    <div><dt>Service</dt><dd>{html.escape(str(meta['service']))}</dd></div>
+    <div><dt>Time</dt><dd>{html.escape(meta['time_label'])}</dd></div>
   </dl>
+  <div class="tags">{tags}</div>
   <p class="cookware">Cookware: {html.escape(recipe['cookware'])}</p>
-  <p class="why">{html.escape(recipe['why'])}</p>
   <div class="grid">
     <section>
-      <h2>Ingredients · {html.escape(str(recipe['servings']))} servings</h2>
+      <h2>Ingredients · {html.escape(meta['yield_label'])}</h2>
       <table>
-        <thead><tr><th>Qty</th><th>Unit</th><th>Ingredient</th></tr></thead>
+        <thead><tr><th>Qty</th><th>Unit</th><th>Approx</th><th>Ingredient</th></tr></thead>
         <tbody>
           {''.join(trs)}
         </tbody>
@@ -259,8 +336,30 @@ def html_card(recipe: dict, kitchen: dict) -> str:
       <ol>{steps}</ol>
     </section>
   </div>
-  {notes}
-  <footer>One recipe card · {html.escape(kitchen['name'])} kitchen folder · Never cook in aluminium · No onion or garlic</footer>
+  <section>
+    <h2>Nutrition per portion</h2>
+    <dl class="nut">
+      <div><dt>kcal</dt><dd>{html.escape(str(meta['kcal']))}</dd></div>
+      <div><dt>Protein</dt><dd>{html.escape(str(meta['protein']))} g</dd></div>
+      <div><dt>Carbs</dt><dd>{html.escape(str(meta['carbs']))} g</dd></div>
+      <div><dt>Fat</dt><dd>{html.escape(str(meta['fat']))} g</dd></div>
+      <div><dt>Fibre</dt><dd>{html.escape(str(meta['fibre']))} g</dd></div>
+    </dl>
+    <p class="disc">{html.escape(meta['disclaimer'])}</p>
+  </section>
+  <section class="allergens">
+    <h2>Allergens</h2>
+    <ul>{allergens}</ul>
+  </section>
+  <section class="notes">
+    <h2>Chef notes</h2>
+    <p>{chef}</p>
+  </section>
+  <section class="notes">
+    <h2>Service notes</h2>
+    <p>{service}</p>
+  </section>
+  <footer>{html.escape(meta['brand'])} · Pure Prasad · {html.escape(kitchen['name'])} kitchen · Never cook in aluminium</footer>
 </article>
 </body>
 </html>

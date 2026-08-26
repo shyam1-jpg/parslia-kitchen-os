@@ -1,29 +1,65 @@
 # Baati (baked wheat balls)
 
-**Recipe card** · Rajasthan kitchen · Bread
+**Parslia Kitchen OS** · RECIPE CARD
 
-| | |
-|---|---|
-| **Kitchen** | Rajasthan — Marwari, Mewari and Jain vegetarian |
-| **Course** | Bread |
-| **Serves** | 4 |
-| **Prep** | 20 min |
-| **Cook** | 40 min |
-| **Total** | 60 min |
-| **Cookware** | Stainless steel or clay pot — never aluminium |
-| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
+Pure Prasad · No onion · No garlic · No eggs · No meat · No fish
+
+Printed: 26 August 2026
+
+**Bread Rajasthan**
 
 Signature bread from Rajasthan, cooked without onion or garlic.
 
-## Ingredients *(for 4 servings)*
+| YIELD | PORTION | SERVICE | TIME |
+|---|---|---|---|
+| 4 portions | 1 portion | Hot | Prep 20 min · Cook 40 min |
 
-| Qty | Unit | Ingredient |
-|-----|------|------------|
-| 3 | cups | atta |
-| ½ | cup | ghee, salt, water |
-| 2 | tbsp | ghee |
+**Tags:** Vegetarian, No onion, No garlic, No eggs, No meat, No fish, Contains gluten
+
+**Kitchen:** Rajasthan — Marwari, Mewari and Jain vegetarian
+
+**Cookware:** Stainless steel or clay pot — never aluminium
+
+**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium
+
+## Ingredients *(for 4 portions)*
+
+| Qty | Unit | Approx | Ingredient |
+|-----|------|--------|------------|
+| 3 | cups | ≈ 360 g | atta |
+| ½ | cup | ≈ 120 g | ghee, salt, water |
+| 2 | tbsp | ≈ 28 g | ghee |
 
 ## Method
 
-1. Knead stiff. Shape. Bake in clay tandoor or roast in heavy kadai 35–40 min.
-2. Crack and soak in ghee.
+1. Mise en place. Weigh every ingredient on this card for 4 portions. Set Stainless steel or clay pot — never aluminium. Wash produce. Confirm spice blends have no onion or garlic powder. No onion, no garlic, no aluminium.
+2. Cut vegetables to even size so they cook together. For dough, add water gradually; rest covered 10–15 minutes before rolling.
+3. Knead stiff. Work in Stainless steel or clay pot — never aluminium. Cook to the doneness below, tasting salt at the end. Do not add onion, garlic or aluminium cookware.
+4. Shape. Work in Stainless steel or clay pot — never aluminium. Cook to the doneness below, tasting salt at the end. Do not add onion, garlic or aluminium cookware.
+5. Bake in clay tandoor or roast in heavy kadai 35–40 min. Work in Stainless steel or clay pot — never aluminium. Cook to the doneness below, tasting salt at the end. Do not add onion, garlic or aluminium cookware.
+6. Crack and soak in ghee. Work in Stainless steel or clay pot — never aluminium. Cook to the doneness below, tasting salt at the end. Do not add onion, garlic or aluminium cookware.
+7. Doneness: bread is cooked through, no wet dough in the centre, light brown spots on the face.
+8. Taste and adjust salt, lemon or chilli only — do not add onion or garlic at the finish. Garnish as listed. Yield is 4 portions.
+9. Hold wrapped in a clean cloth in a covered steel box up to 30 minutes. Refresh on a hot tawa 20 seconds if needed. Service: Hot.
+
+## Nutrition per portion
+
+| kcal | Protein | Carbs | Fat | Fibre |
+|---|---|---|---|---|
+| 639 | 11 g | 65 g | 38 g | 10 g |
+
+Nutrition is a kitchen estimate from typical produce values, not a laboratory analysis.
+
+## Allergens
+
+- Gluten (wheat)
+- Milk
+- Always verify labels; this card is a kitchen estimate, not a lab certificate.
+
+## Chef notes
+
+For Baati (baked wheat balls): keep the mix slightly drier than you think; wet mixes split or go greasy. Bloom hing in hot fat 20–30 seconds; raw hing tastes medicinal. Commercial hing is often cut with wheat flour — use a gluten-free hing if you must mark Gluten Free. Never cook tomato, tamarind, lemon, yogurt or milk in aluminium; use stainless steel, iron, clay or glass. Spice blends: read the packet. Many garam masalas hide onion or garlic powder.
+
+## Service notes
+
+Send to table wrapped. Do not stack in plastic or they sweat. Service temperature: Hot. Allergen label for this dish: Gluten (wheat); Milk; Always verify labels; this card is a kitchen estimate, not a lab certificate. State clearly: vegetarian, no onion, no garlic, no eggs, no meat, no fish. Nutrition on this card is an estimate for 1 portion of 4.

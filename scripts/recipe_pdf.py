@@ -1,4 +1,4 @@
-"""Printable A4 PDF recipe cards (downloadable)."""
+"""Printable A4 Parslia Kitchen OS recipe spec sheets."""
 
 from __future__ import annotations
 
@@ -8,12 +8,11 @@ from fpdf import FPDF
 
 import recipe_cards
 
-SAFFRON = (154, 52, 18)
-RED = (127, 29, 29)
+INK = (17, 17, 17)
+MUTED = (85, 85, 85)
+LINE = (221, 221, 221)
+FILL = (250, 250, 250)
 GREEN = (20, 83, 45)
-SAND = (255, 237, 213)
-CREAM = (255, 247, 237)
-INK = (28, 25, 23)
 
 
 def pdf_text(value) -> str:
@@ -34,6 +33,8 @@ def pdf_text(value) -> str:
         "“": '"',
         "”": '"',
         "°": " deg",
+        "≈": "~",
+        "·": "-",
     }
     for src, dst in repl.items():
         text = text.replace(src, dst)
@@ -47,137 +48,173 @@ class RecipePDF(FPDF):
     def footer(self):
         self.set_y(-12)
         self.set_font("Helvetica", "", 8)
-        self.set_text_color(87, 83, 78)
-        self.cell(0, 8, pdf_text("Downloadable recipe card  |  Vegetarian  |  No onion  |  No garlic  |  No aluminium"), align="C")
+        self.set_text_color(*MUTED)
+        self.cell(
+            0,
+            8,
+            pdf_text("Parslia Kitchen OS  |  Pure Prasad  |  No onion  |  No garlic  |  No eggs  |  No meat  |  No fish"),
+            align="C",
+        )
+
+
+def _heading(pdf: RecipePDF, title: str) -> None:
+    pdf.ln(2)
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.set_text_color(*INK)
+    pdf.cell(0, 7, pdf_text(title.upper()))
+    pdf.ln(7)
+    y = pdf.get_y()
+    pdf.set_draw_color(*INK)
+    pdf.line(12, y, 198, y)
+    pdf.ln(3)
 
 
 def add_recipe_page(pdf: RecipePDF, recipe: dict, kitchen: dict) -> None:
+    meta = recipe_cards.spec_meta(recipe, kitchen)
     pdf.add_page()
-    total = int(recipe["prep_min"]) + int(recipe["cook_min"])
-    pdf.set_fill_color(*SAFFRON)
-    pdf.set_text_color(255, 255, 255)
-    pdf.rect(0, 0, 210, 38, "F")
-    pdf.set_xy(12, 8)
-    pdf.set_font("Helvetica", "B", 9)
-    pdf.cell(0, 5, pdf_text(f"{kitchen['name'].upper()}  ·  {recipe['category'].upper()}  ·  RECIPE CARD"))
-    pdf.set_xy(12, 14)
-    pdf.set_font("Helvetica", "B", 20)
-    pdf.multi_cell(186, 8, pdf_text(recipe["name"]))
-    pdf.set_fill_color(*RED)
-    pdf.rect(12, 32, 186, 6, "F")
-    pdf.set_xy(12, 32)
-    pdf.set_font("Helvetica", "B", 8)
-    pdf.cell(186, 6, pdf_text("VEGETARIAN  ·  NO ONION  ·  NO GARLIC  ·  NO ALLIUM  ·  NO ALUMINIUM"), align="C")
+    pdf.set_auto_page_break(auto=True, margin=16)
 
-    y = 42
     pdf.set_text_color(*INK)
+    pdf.set_xy(12, 10)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.cell(120, 6, pdf_text(meta["brand"]))
+    pdf.set_font("Helvetica", "", 8)
+    pdf.set_text_color(*MUTED)
+    pdf.cell(66, 6, pdf_text(f"Printed {meta['printed']}"), align="R")
+    pdf.ln(6)
+    pdf.set_x(12)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.cell(0, 5, pdf_text(meta["pure"]))
+    pdf.ln(8)
+
+    pdf.set_x(12)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_text_color(*MUTED)
+    pdf.cell(0, 5, pdf_text(meta["course_line"].upper()))
+    pdf.ln(6)
+    pdf.set_x(12)
+    pdf.set_font("Helvetica", "B", 20)
+    pdf.set_text_color(*INK)
+    pdf.multi_cell(186, 8, pdf_text(recipe["name"]))
+    pdf.ln(1)
+    pdf.set_x(12)
+    pdf.set_font("Helvetica", "", 10)
+    pdf.multi_cell(186, 5, pdf_text(recipe.get("why") or ""))
+    pdf.ln(3)
+
     boxes = [
-        ("SERVES", str(recipe["servings"])),
-        ("PREP", f"{recipe['prep_min']} min"),
-        ("COOK", f"{recipe['cook_min']} min"),
-        ("TOTAL", f"{total} min"),
+        ("YIELD", meta["yield_label"]),
+        ("PORTION", meta["portion_label"]),
+        ("SERVICE", meta["service"]),
+        ("TIME", meta["time_label"]),
     ]
-    pdf.set_fill_color(*SAND)
+    y = pdf.get_y()
+    pdf.set_draw_color(*LINE)
+    pdf.set_fill_color(*FILL)
     for i, (label, value) in enumerate(boxes):
         x = 12 + i * 46.5
-        pdf.rect(x, y, 45, 16, "F")
-        pdf.set_xy(x, y + 1)
+        pdf.rect(x, y, 45.5, 16, "D")
+        pdf.set_xy(x + 1, y + 1)
         pdf.set_font("Helvetica", "B", 7)
-        pdf.set_text_color(124, 45, 18)
-        pdf.cell(45, 5, label, align="C")
-        pdf.set_xy(x, y + 6)
-        pdf.set_font("Helvetica", "B", 12)
+        pdf.set_text_color(*MUTED)
+        pdf.cell(43, 5, label)
+        pdf.set_xy(x + 1, y + 6)
+        pdf.set_font("Helvetica", "B", 9)
         pdf.set_text_color(*INK)
-        pdf.cell(45, 8, pdf_text(value), align="C")
+        pdf.multi_cell(43, 4, pdf_text(value))
+    pdf.set_y(y + 18)
 
-    y = 62
-    pdf.set_fill_color(220, 252, 231)
-    pdf.rect(12, y, 186, 10, "F")
-    pdf.set_xy(14, y + 2)
+    pdf.set_font("Helvetica", "", 8)
+    pdf.set_text_color(*INK)
+    pdf.set_x(12)
+    pdf.multi_cell(186, 4, pdf_text("  |  ".join(meta["tags"])))
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_text_color(*GREEN)
-    pdf.cell(182, 6, pdf_text(f"Cookware: {recipe['cookware']}"))
+    pdf.set_x(12)
+    pdf.multi_cell(186, 5, pdf_text(f"Cookware: {recipe['cookware']}"))
 
-    y = 74
-    pdf.set_text_color(*INK)
-    pdf.set_xy(12, y)
-    pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(186, 5, pdf_text(recipe["why"]))
-    y = pdf.get_y() + 3
-
-    pdf.set_font("Helvetica", "B", 11)
-    pdf.set_text_color(*SAFFRON)
-    pdf.set_xy(12, y)
-    pdf.cell(90, 7, pdf_text(f"INGREDIENTS  ·  {recipe['servings']} servings"))
-    pdf.set_xy(108, y)
-    pdf.cell(90, 7, "METHOD")
-    y += 8
-
-    # Ingredients table on the left
-    left_y = y
-    pdf.set_fill_color(*SAFFRON)
-    pdf.set_text_color(255, 255, 255)
+    _heading(pdf, f"Ingredients  ·  {meta['yield_label']}")
     pdf.set_font("Helvetica", "B", 8)
-    pdf.set_xy(12, left_y)
-    pdf.cell(16, 6, "QTY", border=0, fill=True)
-    pdf.cell(18, 6, "UNIT", border=0, fill=True)
-    pdf.cell(58, 6, "INGREDIENT", border=0, fill=True)
-    left_y += 6
+    pdf.set_text_color(*MUTED)
+    pdf.set_x(12)
+    pdf.cell(22, 5, "QTY")
+    pdf.cell(22, 5, "UNIT")
+    pdf.cell(28, 5, "APPROX")
+    pdf.cell(114, 5, "INGREDIENT")
+    pdf.ln(5)
     pdf.set_text_color(*INK)
-    pdf.set_font("Helvetica", "", 8)
-    for i, item in enumerate(recipe_cards.measured(recipe)):
-        fill = i % 2 == 0
-        pdf.set_fill_color(*(CREAM if fill else (255, 255, 255)))
-        pdf.set_xy(12, left_y)
-        pdf.cell(16, 6, pdf_text(item["qty"] or "-"), fill=True)
-        pdf.cell(18, 6, pdf_text(item["unit"] or "-"), fill=True)
-        # wrap long ingredient names
-        name = pdf_text(item["item"])
-        if pdf.get_string_width(name) > 56:
-            pdf.set_font("Helvetica", "", 7)
-        pdf.cell(58, 6, name[:54], fill=True)
-        pdf.set_font("Helvetica", "", 8)
-        left_y += 6
-        if left_y > 270:
-            break
+    pdf.set_font("Helvetica", "", 9)
+    for item in recipe_cards.measured(recipe):
+        pdf.set_x(12)
+        pdf.cell(22, 5, pdf_text(item.get("qty") or "-"))
+        pdf.cell(22, 5, pdf_text(item.get("unit") or "-"))
+        pdf.cell(28, 5, pdf_text(item.get("approx") or ""))
+        pdf.multi_cell(114, 5, pdf_text(item.get("item") or ""))
 
-    # Method on the right
-    right_y = y
+    _heading(pdf, "Method")
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(*INK)
-    for n, step in enumerate(recipe["method"], 1):
-        pdf.set_xy(108, right_y)
-        pdf.multi_cell(90, 5, pdf_text(f"{n}. {step}"))
-        right_y = pdf.get_y() + 2
-        if right_y > 270:
-            pdf.add_page()
-            right_y = 20
-            pdf.set_font("Helvetica", "B", 11)
-            pdf.set_text_color(*SAFFRON)
-            pdf.set_xy(12, 16)
-            pdf.cell(0, 7, pdf_text(f"{recipe['name']}  ·  method continued"))
-            pdf.set_font("Helvetica", "", 9)
-            pdf.set_text_color(*INK)
-            right_y = 26
+    for n, step in enumerate(recipe.get("method") or [], 1):
+        pdf.set_x(12)
+        pdf.multi_cell(186, 5, pdf_text(f"{n}. {step}"))
+        pdf.ln(1)
 
-    if recipe.get("notes"):
-        y = max(left_y, right_y) + 4
-        if y > 265:
-            pdf.add_page()
-            y = 20
-        pdf.set_xy(12, y)
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.set_text_color(*RED)
-        pdf.cell(0, 5, "CHEF NOTES")
-        pdf.set_xy(12, y + 5)
+    _heading(pdf, "Nutrition per portion")
+    nut_boxes = [
+        ("KCAL", str(meta["kcal"])),
+        ("PROTEIN", f"{meta['protein']} g"),
+        ("CARBS", f"{meta['carbs']} g"),
+        ("FAT", f"{meta['fat']} g"),
+        ("FIBRE", f"{meta['fibre']} g"),
+    ]
+    y = pdf.get_y()
+    if y > 250:
+        pdf.add_page()
+        y = 16
+    pdf.set_draw_color(*LINE)
+    pdf.set_fill_color(*FILL)
+    for i, (label, value) in enumerate(nut_boxes):
+        x = 12 + i * 37.2
+        pdf.rect(x, y, 36.2, 16, "DF")
+        pdf.set_xy(x, y + 1)
+        pdf.set_font("Helvetica", "B", 7)
+        pdf.set_text_color(*MUTED)
+        pdf.cell(36.2, 5, label, align="C")
+        pdf.set_xy(x, y + 7)
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.set_text_color(*INK)
+        pdf.cell(36.2, 7, pdf_text(value), align="C")
+    pdf.set_y(y + 18)
+    pdf.set_font("Helvetica", "I", 8)
+    pdf.set_text_color(*MUTED)
+    pdf.set_x(12)
+    pdf.multi_cell(186, 4, pdf_text(meta["disclaimer"]))
+
+    _heading(pdf, "Allergens")
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_text_color(*INK)
+    for item in meta["allergens"] or ["Verify labels before service"]:
+        pdf.set_x(12)
+        pdf.multi_cell(186, 5, pdf_text(f"- {item}"))
+
+    if meta["chef_notes"]:
+        _heading(pdf, "Chef notes")
         pdf.set_font("Helvetica", "", 9)
         pdf.set_text_color(*INK)
-        pdf.multi_cell(186, 5, pdf_text(recipe["notes"]))
+        pdf.set_x(12)
+        pdf.multi_cell(186, 5, pdf_text(meta["chef_notes"]))
+
+    if meta["service_notes"]:
+        _heading(pdf, "Service notes")
+        pdf.set_font("Helvetica", "", 9)
+        pdf.set_text_color(*INK)
+        pdf.set_x(12)
+        pdf.multi_cell(186, 5, pdf_text(meta["service_notes"]))
 
 
 def write_recipe_pdf(path: Path, recipe: dict, kitchen: dict) -> None:
     pdf = RecipePDF(format="A4", unit="mm")
-    pdf.set_auto_page_break(auto=True, margin=14)
+    pdf.set_auto_page_break(auto=True, margin=16)
     add_recipe_page(pdf, recipe, kitchen)
     path.parent.mkdir(parents=True, exist_ok=True)
     pdf.output(str(path))
@@ -185,7 +222,7 @@ def write_recipe_pdf(path: Path, recipe: dict, kitchen: dict) -> None:
 
 def write_kitchen_pdf(path: Path, kitchen: dict, recipes: list[dict]) -> None:
     pdf = RecipePDF(format="A4", unit="mm")
-    pdf.set_auto_page_break(auto=True, margin=14)
+    pdf.set_auto_page_break(auto=True, margin=16)
     for rec in recipes:
         add_recipe_page(pdf, rec, kitchen)
     path.parent.mkdir(parents=True, exist_ok=True)

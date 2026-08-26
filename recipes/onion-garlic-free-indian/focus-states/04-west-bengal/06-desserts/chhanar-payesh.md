@@ -1,29 +1,62 @@
 # Chhanar Payesh
 
-**Recipe card** · West Bengal kitchen · Dessert
+**Parslia Kitchen OS** · RECIPE CARD
 
-| | |
-|---|---|
-| **Kitchen** | West Bengal — Bengali niramish (vegetarian, no onion garlic) |
-| **Course** | Dessert |
-| **Serves** | 4 |
-| **Prep** | 15 min |
-| **Cook** | 25 min |
-| **Total** | 40 min |
-| **Cookware** | Heavy stainless steel milk pot — never aluminium |
-| **Diet** | Vegetarian · no onion · no garlic · no allium · no aluminium |
+Pure Prasad · No onion · No garlic · No eggs · No meat · No fish
+
+Printed: 26 August 2026
+
+**Dessert West Bengal**
 
 Signature dessert from West Bengal, cooked without onion or garlic.
 
-## Ingredients *(for 4 servings)*
+| YIELD | PORTION | SERVICE | TIME |
+|---|---|---|---|
+| 4 portions | 1 portion | Hot | Prep 15 min · Cook 25 min |
 
-| Qty | Unit | Ingredient |
-|-----|------|------------|
-| 200 | g | fresh chhena |
-| 1 | L | full-fat milk |
-| 100 | g | sugar |
-| 4 | pods | green cardamom, crushed |
+**Tags:** Vegetarian, No onion, No garlic, No eggs, No meat, No fish, Gluten Free*
+
+**Kitchen:** West Bengal — Bengali niramish (vegetarian, no onion garlic)
+
+**Cookware:** Heavy stainless steel milk pot — never aluminium
+
+**Diet:** Vegetarian · no onion · no garlic · no allium · no aluminium
+
+## Ingredients *(for 4 portions)*
+
+| Qty | Unit | Approx | Ingredient |
+|-----|------|--------|------------|
+| 200 | g | — | fresh chhena |
+| 1 | L | — | full-fat milk |
+| 100 | g | — | sugar |
+| 4 | pods | ≈ 2 g | green cardamom, crushed |
 
 ## Method
 
-1. Simmer chenna in sweet milk in steel.
+1. Mise en place. Weigh every ingredient on this card for 4 portions. Set Heavy stainless steel milk pot — never aluminium. Wash produce. Confirm spice blends have no onion or garlic powder. No onion, no garlic, no aluminium.
+2. Cut vegetables to even size so they cook together. Use a heavy stainless steel milk pot. Acidic or milk dishes must never touch aluminium.
+3. Simmer chenna in sweet milk in steel. Work in Heavy stainless steel milk pot — never aluminium. Cook to the doneness below, tasting salt at the end. Do not add onion, garlic or aluminium cookware.
+4. Doneness: mixture leaves the sides of the pan, or milk is thick enough to coat a spoon, or syrup has taken the stated string.
+5. Taste and adjust salt, lemon or chilli only — do not add onion or garlic at the finish. Garnish as listed. Yield is 4 portions.
+6. Hold as the dish is eaten — hot sweets in a bain of hot water, chilled sweets in the fridge. Label date and time. Service: Hot.
+
+## Nutrition per portion
+
+| kcal | Protein | Carbs | Fat | Fibre |
+|---|---|---|---|---|
+| 386 | 17 g | 40 g | 19 g | 0 g |
+
+Nutrition is a kitchen estimate from typical produce values, not a laboratory analysis.
+
+## Allergens
+
+- Milk
+- Always verify labels; this card is a kitchen estimate, not a lab certificate.
+
+## Chef notes
+
+For Chhanar Payesh: keep the mix slightly drier than you think; wet mixes split or go greasy. Bloom hing in hot fat 20–30 seconds; raw hing tastes medicinal. Commercial hing is often cut with wheat flour — use a gluten-free hing if you must mark Gluten Free. Never cook tomato, tamarind, lemon, yogurt or milk in aluminium; use stainless steel, iron, clay or glass. Spice blends: read the packet. Many garam masalas hide onion or garlic powder.
+
+## Service notes
+
+Serve in steel or glass bowls. If chilled, take out 5 minutes before the pass. Service temperature: Hot. Allergen label for this dish: Milk; Always verify labels; this card is a kitchen estimate, not a lab certificate. State clearly: vegetarian, no onion, no garlic, no eggs, no meat, no fish. Nutrition on this card is an estimate for 1 portion of 4.
