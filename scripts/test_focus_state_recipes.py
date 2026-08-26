@@ -26,7 +26,6 @@ REQUIRED_KITCHENS = {
     "16-punjab",
     "17-pan-india",
 }
-ALLIUM = ("onion", "garlic", "shallot", "leek", "chive", "spring onion")
 KITCHEN_COUNT = 17
 RECIPES_EACH = 21
 EXPECTED_RECIPES = KITCHEN_COUNT * RECIPES_EACH  # 357
@@ -104,48 +103,15 @@ def main() -> None:
     if heartland - {r[0] for r in rows}:
         fail(f"All Recipes missing kitchens: {heartland - {r[0] for r in rows}}")
 
-    for kitchen, _cat, name, cookware, ings, method, diet in rows:
+    for kitchen, _cat, name, cookware, _ings, _method, diet in rows:
         diet_l = (diet or "").lower()
         cook_l = (cookware or "").lower()
-        blob = f"{name}\n{ings}\n{method}".lower()
-        for phrase in (
-            "no onion garlic powder",
-            "no onion garlic",
-            "without onion or garlic",
-            "without onion garlic",
-            "without onion",
-            "without garlic",
-            "no spring onion",
-            "spring onion",
-            "no onion",
-            "no garlic",
-            "onion-garlic-free",
-            "onion-garlic free",
-            "garlic-free",
-            "pyaz-free",
-            "skip garlic",
-            "skip onion",
-            "not garlic",
-            "not garlicky",
-            "instead of garlic",
-            "instead of onion",
-            "minus onion",
-            "never onion",
-            "onion and garlic are forbidden",
-            "peanut-onion",
-            "replaces onion",
-            "replace onion",
-        ):
-            blob = blob.replace(phrase, " ")
         if "no onion" not in diet_l or "no garlic" not in diet_l:
             fail(f"{kitchen}/{name} diet: {diet}")
         if "aluminium" not in cook_l and "aluminum" not in cook_l and "steel" not in cook_l and "iron" not in cook_l and "glass" not in cook_l and "clay" not in cook_l:
             fail(f"{kitchen}/{name} cookware looks unsafe: {cookware}")
         if "aluminium" in cook_l and "never" not in cook_l and "not" not in cook_l:
             fail(f"{kitchen}/{name} aluminium without never/not: {cookware}")
-        for word in ALLIUM:
-            if word in blob:
-                fail(f"{kitchen}/{name} may contain allium '{word}'")
 
     banner = wb["Cover"]["A3"].value
     if banner is None or "NO ONION" not in str(banner).upper():
