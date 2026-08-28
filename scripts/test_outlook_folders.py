@@ -155,5 +155,16 @@ class ExportTests(unittest.TestCase):
             self.assertTrue(Path(tmp).exists())
 
 
+class OpenMeTests(unittest.TestCase):
+    def test_open_me_tells_user_where_to_look(self):
+        root = Path(__file__).resolve().parents[1]
+        html = (root / "OPEN-ME-OUTLOOK-FOLDERS.html").read_text(encoding="utf-8")
+        self.assertIn("Folder Pane", html)
+        self.assertIn("GitHub", html)
+        self.assertIn("Cursor", html)
+        self.assertIn("not</b> on the Windows desktop", html)
+        self.assertIn("SETUP-OUTLOOK-FOLDERS.bat", html)
+
+
 if __name__ == "__main__":
     unittest.main()

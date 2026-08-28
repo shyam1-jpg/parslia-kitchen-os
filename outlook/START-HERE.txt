@@ -1,73 +1,45 @@
-On your PC — Outlook company folders
-====================================
+If you cannot see the folders
+=============================
 
-You asked: each company should have its own email folder
-(GitHub, Cursor, Cloud, Apple, Google, …) so mail drops
-in neatly instead of filling one long Inbox.
+They are NOT on the Windows desktop.
+They are INSIDE Outlook, on the LEFT side.
 
-This does that in desktop Outlook.
+If one email fills the whole page:
+  Outlook → View → Folder Pane → Normal
 
+Then create one folder so you can see it:
+  Right-click Inbox → New Folder → type GitHub
 
-EASIEST (Windows PC, Outlook already installed)
------------------------------------------------
-1. Open Outlook (the desktop app).
-2. If you see a switch called "New Outlook", turn it OFF
-   (classic Outlook is required for the one-click setup).
-3. Copy this whole "outlook" folder onto the PC, or open
-   it from your GitHub repo.
-4. Double-click  SETUP-OUTLOOK-FOLDERS.bat
-5. Press Y when it asks.
+Full picture + clicks:  OPEN-ME-OUTLOOK-FOLDERS.html
+  (double-click that file — it is in the project root)
 
-It will:
-  • Create Inbox → Companies → GitHub, Cursor, Cloud,
-    Apple, Google, Microsoft, and the other mapped firms
-  • Move matching emails that are already in Inbox
-  • Add rules so NEW emails land in the same folders
-  • Leave friends/family (Gmail, Hotmail people) in Inbox
-
-If a new company sends you 2+ emails, it also creates a
-folder for that company automatically.
+To put the helper on your Desktop:
+  Double-click  PUT-OUTLOOK-SETUP-ON-DESKTOP.bat
 
 
-OUTLOOK ON THE WEB (hotmail / outlook.live.com)
------------------------------------------------
-Use this if the .bat cannot talk to Outlook.
+On your PC — auto-file company mail
+===================================
 
-1. Open https://outlook.live.com/mail/
-2. Sign in as shyam_1@hotmail.co.uk
-3. In the left folder list, right-click Inbox
-   → Create new folder → name it  Companies
-4. Right-click Companies → Create new subfolder
-   for each name in the list below
-5. Settings (gear) → Mail → Rules → Add new rule
-   Follow RULES-TO-ADD.txt  (one rule per company)
+1. Open Outlook (desktop). Turn OFF "New Outlook" if you see that switch.
+2. Double-click  SETUP-OUTLOOK-FOLDERS.bat
+3. Press Y
 
-Folders to create under Companies:
-  GitHub, Cursor, Cloud, Apple, Google, Microsoft,
-  OpenAI, Stripe, GoDaddy, Amazon, PayPal, LinkedIn,
-  Vedanta, Brakes, Cypad, Kiteline, Parslia, Libraix
-
-Rules sync to desktop Outlook on the same account.
+Creates Inbox → Companies → GitHub, Cursor, Cloud, Apple, Google, …
+Moves matching mail. Adds rules for new mail.
+Friends stay in Inbox.
 
 
-WHAT "CLOUD" MEANS
-------------------
-Cloud = hosting / cloud services: Render, Netlify, Vercel,
-Amazon AWS, Azure, Cloudflare, DigitalOcean.
-Cursor mail still goes to Cursor. GitHub stays GitHub.
+Outlook on the web
+==================
+
+https://outlook.live.com/mail/
+
+Right-click Inbox → Create new folder → GitHub
+Repeat: Cursor, Cloud, Apple, Google
+Settings → Mail → Rules → Add new rule
+(see outlook/RULES-TO-ADD.txt)
 
 
-ADD ANOTHER COMPANY LATER
--------------------------
-Edit companies.csv in this folder. One line:
-
-  Tesco,tesco.com;tesco.co.uk,Tesco
-
-Save, then run SETUP-OUTLOOK-FOLDERS.bat again.
-
-
-PREVIEW (no Outlook needed)
----------------------------
-Open preview.html in a browser to see how a sample
-mailbox is sorted. Friends stay in Inbox; companies
-drop into folders.
+Add another company later
+=========================
+Edit outlook/companies.csv  then run the .bat again.
