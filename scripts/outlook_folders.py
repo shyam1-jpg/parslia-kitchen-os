@@ -350,6 +350,7 @@ def render_preview_html(preview: Preview) -> str:
       --line: #d8e1ea;
     }}
     * {{ box-sizing: border-box; }}
+    html, body {{ height: 100%; }}
     body {{
       margin: 0;
       font-family: "Segoe UI", system-ui, sans-serif;
@@ -358,11 +359,12 @@ def render_preview_html(preview: Preview) -> str:
     }}
     .shell {{
       max-width: 1100px;
-      margin: 24px auto;
+      height: calc(100vh - 32px);
+      margin: 16px auto;
       background: var(--card);
-      min-height: 80vh;
       display: grid;
       grid-template-columns: 280px 1fr;
+      grid-template-rows: 1fr;
       box-shadow: 0 16px 50px rgba(0,0,0,.28);
       border-radius: 12px;
       overflow: hidden;
@@ -371,7 +373,10 @@ def render_preview_html(preview: Preview) -> str:
       background: #f3f6f9;
       border-right: 1px solid var(--line);
       padding: 18px 12px 32px;
+      overflow-y: auto;
+      min-height: 0;
     }}
+    main {{ overflow-y: auto; min-height: 0; padding: 22px 28px 40px; }}
     h1 {{ font-size: 16px; margin: 0 0 4px; color: #0f2744; }}
     .sub {{ color: var(--muted); font-size: 12px; margin-bottom: 16px; }}
     .tree {{ list-style: none; padding: 0; margin: 0; font-size: 14px; }}
@@ -379,7 +384,6 @@ def render_preview_html(preview: Preview) -> str:
     .tree .inbox {{ font-weight: 700; }}
     .tree .child {{ padding-left: 28px; color: #243547; }}
     .tree .n {{ float: right; color: var(--muted); }}
-    main {{ padding: 22px 28px 40px; }}
     .banner {{
       background: #e7f2fb;
       border: 1px solid #b9d6ee;
