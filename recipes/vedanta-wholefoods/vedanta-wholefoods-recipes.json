@@ -611,7 +611,7 @@
       "allergens": [
         "gluten"
       ],
-      "folder": "05-mains"
+      "folder": "01-breakfast"
     },
     {
       "id": "black-bean-and-rice-salad",
@@ -1843,7 +1843,7 @@
         "gluten",
         "dairy"
       ],
-      "folder": "05-mains"
+      "folder": "07-desserts"
     },
     {
       "id": "chocolate-courgette-cake",
@@ -3059,7 +3059,7 @@
       "allergens": [
         "nuts"
       ],
-      "folder": "07-desserts"
+      "folder": "01-breakfast"
     },
     {
       "id": "ginger-cabbage-fried-rice-with-sticky-tempeh",
@@ -4543,7 +4543,7 @@
         "gluten",
         "nuts"
       ],
-      "folder": "05-mains"
+      "folder": "07-desserts"
     },
     {
       "id": "peanut-butter-flapjack",
@@ -4611,7 +4611,7 @@
         "nuts",
         "dairy"
       ],
-      "folder": "02-starters-snacks"
+      "folder": "07-desserts"
     },
     {
       "id": "penne-arrabbiata",
@@ -5530,7 +5530,7 @@
         "nuts",
         "dairy"
       ],
-      "folder": "05-mains"
+      "folder": "07-desserts"
     },
     {
       "id": "protein-packed-granola-bar",
@@ -5608,7 +5608,7 @@
         "gluten",
         "dairy"
       ],
-      "folder": "07-desserts"
+      "folder": "01-breakfast"
     },
     {
       "id": "raisin-and-vanilla-muffin",
@@ -5676,7 +5676,7 @@
         "gluten",
         "nuts"
       ],
-      "folder": "05-mains"
+      "folder": "07-desserts"
     },
     {
       "id": "raspberry-no-bake-cheesecake",
@@ -6207,7 +6207,7 @@
       "allergens": [
         "dairy"
       ],
-      "folder": "04-salads"
+      "folder": "05-mains"
     },
     {
       "id": "roasted-cauliflower-roti",
@@ -7572,7 +7572,7 @@
         "Aubergine, walnuts and sun-dried tomato stand in for mushrooms."
       ],
       "allergens": [],
-      "folder": "03-soups"
+      "folder": "05-mains"
     },
     {
       "id": "spicy-plant-based-ragu",
@@ -8705,7 +8705,7 @@
         "gluten",
         "nuts"
       ],
-      "folder": "01-breakfast"
+      "folder": "07-desserts"
     },
     {
       "id": "vegan-plum-cake",
@@ -8771,7 +8771,7 @@
       "allergens": [
         "gluten"
       ],
-      "folder": "05-mains"
+      "folder": "07-desserts"
     },
     {
       "id": "vegetable-paella",
@@ -9108,7 +9108,7 @@
         "gluten",
         "nuts"
       ],
-      "folder": "04-salads"
+      "folder": "05-mains"
     },
     {
       "id": "walnut-tempeh-burger",

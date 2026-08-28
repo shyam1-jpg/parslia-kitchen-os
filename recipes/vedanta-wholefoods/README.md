@@ -48,17 +48,18 @@ Regenerate with `python3 scripts/build_vedanta_wholefoods_recipes.py`.
 
 ### 01-breakfast
 
+- Banana Flour Waffles
 - Buckwheat and Hemp Porridge
 - Buckwheat Bread
+- Fruit and Nut Granola
 - Organic Four Seed Bread Rolls
+- Protein Packed Granola Bar
 - Spiced Pecan Nut Butter
-- Vegan Dorset Apple Cake
 
 ### 02-starters-snacks
 
 - Crispy Tempeh
 - Houmous With Roasted Chickpeas
-- Peanut Butter Flapjack
 
 ### 03-soups
 
@@ -69,7 +70,6 @@ Regenerate with `python3 scripts/build_vedanta_wholefoods_recipes.py`.
 - Pinto Bean Soup
 - Roasted Aubergine and Cashew Soup
 - Roasted Carrot and Coriander Soup
-- Spicy Lentil Stew
 
 ### 04-salads
 
@@ -82,11 +82,9 @@ Regenerate with `python3 scripts/build_vedanta_wholefoods_recipes.py`.
 - Plant-Based Caesar Salad
 - Potato and Spinach Salad
 - Roasted Carrot and Parsnip Salad with Tahini
-- Roasted Cauliflower Bowl
 - Roasted Root Salad with Lemon-Tahini
 - Roasted Vegetable and Couscous Salad
 - Spinach And Olive Pasta Salad
-- Walnut Pesto and Peas
 
 ### 05-mains
 
@@ -94,7 +92,6 @@ Regenerate with `python3 scripts/build_vedanta_wholefoods_recipes.py`.
 - Almond Pesto With Roasted Tomato
 - Aubergine and Harissa Rice
 - Aubergine Pappardelle
-- Banana Flour Waffles
 - Black Bean Chilli
 - Broccoli and Aubergine Quesadilla
 - Broccoli and Olive Pasta
@@ -103,7 +100,6 @@ Regenerate with `python3 scripts/build_vedanta_wholefoods_recipes.py`.
 - Chana Masala
 - Chickpea and Sweet Potato Tagine
 - Chickpea Tray Bake
-- Chocolate and Date Muffin
 - Coconut Laksa
 - Creamy Aubergine and Walnut Stew
 - Crispy Potatoes with Lemon and Feta
@@ -116,13 +112,11 @@ Regenerate with `python3 scripts/build_vedanta_wholefoods_recipes.py`.
 - Millet Burger
 - Orecchiette with Broccoli and Hing
 - Parsnip and Fennel Gratin
-- Peanut Butter Chocolate Cookie
 - Penne Arrabbiata
 - Plant-Based Black Bean Burrito
 - Plant-Based Minestrone
-- Protein Flapjack
-- Raisin and Vanilla Muffin
 - Rigatoni With A Creamy Rocket Sauce
+- Roasted Cauliflower Bowl
 - Roasted Cauliflower Roti
 - Roasted Green Beans
 - Roasted Kale, Chickpea and Ginger
@@ -134,6 +128,7 @@ Regenerate with `python3 scripts/build_vedanta_wholefoods_recipes.py`.
 - Slow-Roasted Tomato Spaghetti
 - Spaghetti With Cavolo Nero
 - Spaghetti with Slow-Roasted Fennel
+- Spicy Lentil Stew
 - Spicy Plant-Based Ragu
 - Spicy Satay Noodles
 - Spiralised Courgette Satay Noodles
@@ -145,10 +140,10 @@ Regenerate with `python3 scripts/build_vedanta_wholefoods_recipes.py`.
 - Thai Basil Stir Fry
 - Thai Green Curry
 - Three-Bean Tamatar Chilli
-- Vegan Plum Cake
 - Vegetable Paella
 - Vegetable, Ginger and Lime Noodles
 - Walnut and Aubergine Ragu
+- Walnut Pesto and Peas
 - Walnut Tempeh Burger
 - Walnut-Bean Kofta with Tomato Sauce
 
@@ -162,23 +157,28 @@ Regenerate with `python3 scripts/build_vedanta_wholefoods_recipes.py`.
 - Acai Coconut Pudding
 - Apple and Pecan Tart
 - Blueberry and Almond Muffins
+- Chocolate and Date Muffin
 - Chocolate Courgette Cake
 - Chocolate Mousse with Hazelnuts
 - Date Roll with Coconut Cream
 - Energy Boost Breakfast Bars
-- Fruit and Nut Granola
 - Grain Free Banana Cake
 - Lemon and Poppy Seed Drizzle Cake
 - Maple Baked Pears
 - Oat and Raisin Cookies
+- Peanut Butter Chocolate Cookie
+- Peanut Butter Flapjack
 - Pistachio Chicory Layer Pudding
 - Plant Based Banoffee Pie
 - Plant-Based Apple, Blueberry and Almond Crumble
 - Plant-Based Carrot Cake
-- Protein Packed Granola Bar
+- Protein Flapjack
+- Raisin and Vanilla Muffin
 - Raspberry No-Bake Cheesecake
 - Rocky Road
 - Vegan Blueberry Ice Cream
+- Vegan Dorset Apple Cake
+- Vegan Plum Cake
 
 ### 08-drinks
 

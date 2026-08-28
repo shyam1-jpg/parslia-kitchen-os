@@ -533,19 +533,23 @@ def folder_for(courses: list[str], title: str) -> str:
         return "04-salads"
     if re.search(r"(?i)\bsoup\b", title):
         return "03-soups"
+    if re.search(r"(?i)porridge|granola|waffle|bread rolls|buckwheat bread", title):
+        return "01-breakfast"
+    if SWEET_RE.search(title) and not re.search(r"(?i)dog treat", title):
+        return "07-desserts"
     keys = {c.lower() for c in courses}
     order = [
         ("drinks", "08-drinks"),
-        ("soup", "03-soups"),
-        ("salad", "04-salads"),
         ("breakfast", "01-breakfast"),
-        ("dessert", "07-desserts"),
         ("lunch", "05-mains"),
         ("main course", "05-mains"),
         ("dinner", "05-mains"),
         ("appetizer", "02-starters-snacks"),
         ("snack", "02-starters-snacks"),
         ("side dish", "06-sides"),
+        ("soup", "03-soups"),
+        ("salad", "04-salads"),
+        ("dessert", "07-desserts"),
     ]
     for key, folder in order:
         if key in keys:
