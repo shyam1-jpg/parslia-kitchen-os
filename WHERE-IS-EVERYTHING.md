@@ -53,6 +53,7 @@ GitHub Pages is set to `parslia.app`, but **GoDaddy DNS still points to GoDaddy*
 | `Desktop\parslia-brand\` | Logo SVGs only |
 | `kitchen-os\` | **Kiteline** — separate product, not Parslia |
 | `recipes/vedanta-wholefoods/` | Vedanta-ethos wholefood recipes (116 dishes, no onion/garlic/eggs) |
+| `Desktop/Kitchn-Vegan-Vegetarian-Recipes/` | The Kitchn vegan + vegetarian recipes — copy this folder to your Windows Desktop |
 
 ---
 
