@@ -1,0 +1,121 @@
+diff --git a/js/store.js b/js/store.js
+index 0266c5d..2522043 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -543,12 +543,12 @@
+     {
+       id: 'site_vedanta',
+       assigneeMap: { u_sarah: 'u_ved_chef', u_james: 'u_ved_sous', u_marco: 'u_ved_kp', u_amy: 'u_ved_comp' },
+-      links: [{ label: 'Vedanta Rota', href: '/vedanta-rota/' }, { label: 'Vedanta Ordering', href: '/vedanta-ordering/' }, { label: 'Menu Creator', href: '/menu-creator/' }],
++      links: [{ label: 'Vedanta Rota', href: '/vedanta-rota/' }, { label: 'Vedanta Ordering', href: '/vedanta-ordering/' }, { label: 'Menu Creator', href: '/menu-creator/' }, { label: 'Kitchen SOP', href: '/kitchen-sop/' }],
+     },
+     {
+       id: 'site_govindas',
+       assigneeMap: { u_sarah: 'u_gov_chef', u_james: 'u_gov_prep', u_marco: 'u_gov_kp', u_lena: 'u_gov_prep' },
+-      links: [{ label: 'Menu Creator', href: '/menu-creator/' }],
++      links: [{ label: 'Menu Creator', href: '/menu-creator/' }, { label: 'Kitchen SOP', href: '/kitchen-sop/' }],
+     },
+   ];
+   const PILOT_CLONE_KEYS = [
+diff --git a/js/views.js b/js/views.js
+index 04b2cc4..d87c65d 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -2095,6 +2095,11 @@
+         ${kpiCard('Expiring ?30d', expiring, 'alert')}
+         ${kpiCard('Expired', expired, 'alert')}
+       </div>
++      <div class="card card-pad mb-5 border border-brand-100 bg-brand-50/40">
++        <div class="font-bold text-ink-900">Kitchen SOP</div>
++        <p class="text-sm text-ink-500 mt-1">Professional commercial kitchen procedures and short videos (CK-00–CK-12).</p>
++        <a class="btn btn-primary btn-sm mt-3 inline-flex" href="/kitchen-sop/">Open Kitchen SOP</a>
++      </div>
+       <div class="card overflow-hidden">
+         <table class="table"><thead><tr><th>Staff member</th><th>Course</th><th>Completed</th><th>Certificate</th></tr></thead><tbody>${rows}</tbody></table>
+       </div>`;
+@@ -2472,6 +2477,7 @@
+       {l:'Maintenance',route:'maintenance',i:'wrench',c:'#475569'},
+       {l:'Assets',route:'assets',i:'box',c:'#9333ea'},
+       {l:'Training',route:'training',i:'cap',c:'#0d9488'},
++      {l:'Kitchen SOP',href:'/kitchen-sop/',i:'cap',c:'#0f766e'},
+       {l:'Sites',route:'sites',i:'sites',c:'#16a34a'},
+       {l:'Team',route:'team',i:'team',c:'#db2777'},
+       {l:'Recipes',route:'recipes',i:'recipe',c:'#ca8a04'},
+diff --git a/server/server.js b/server/server.js
+index 5c5248e..260c485 100644
+--- a/server/server.js
++++ b/server/server.js
+@@ -522,7 +522,7 @@ function serveFile(res, filePath, opts) {
+       headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
+     } else if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp' || ext === '.svg') {
+       headers['Cache-Control'] = 'public, max-age=86400';
+-    } else if ((filePath.includes('vedanta-rota') || filePath.includes('vedanta-ordering') || filePath.includes('academy') || filePath.includes('menu-creator')) && (ext === '.html' || ext === '.js')) {
++    } else if ((filePath.includes('vedanta-rota') || filePath.includes('vedanta-ordering') || filePath.includes('academy') || filePath.includes('menu-creator') || filePath.includes('kitchen-sop')) && (ext === '.html' || ext === '.js')) {
+       headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
+     } else if (ext === '.html' || ext === '.js' || ext === '.css') {
+       headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
+@@ -1430,6 +1430,28 @@ const server = http.createServer(async (req, res) => {
+       return serveFile(res, path.join(ROOT, 'site', 'vedanta-rota', 'index.html'));
+     }
+ 
++    // Kiteline Kitchen SOP (PWA under site/kitchen-sop/)
++    if (url.pathname === '/kitchen-sop') {
++      res.writeHead(302, security.securityHeaders({ Location: '/kitchen-sop/', 'Cache-Control': 'no-store' }));
++      return res.end();
++    }
++    if (url.pathname === '/kitchen-sop/') {
++      return serveFile(res, path.join(ROOT, 'site', 'kitchen-sop', 'index.html'));
++    }
++    if (url.pathname === '/kitchen-sop/sw.js') {
++      res.writeHead(200, security.securityHeaders({
++        'Content-Type': 'text/javascript',
++        'Cache-Control': 'no-cache, no-store, must-revalidate',
++        'Service-Worker-Allowed': '/kitchen-sop/',
++      }));
++      try {
++        return res.end(fs.readFileSync(path.join(ROOT, 'site', 'kitchen-sop', 'sw.js')));
++      } catch {
++        return send(res, 404, { error: 'Not found' }, null, req);
++      }
++    }
++
++
+     // Vedanta Ordering System (PWA under site/vedanta-ordering/)
+     if (url.pathname === '/vedanta-ordering' || url.pathname === '/vedanta-ordering/') {
+       return serveFile(res, path.join(ROOT, 'site', 'vedanta-ordering', 'index.html'));
+diff --git a/site/index.html b/site/index.html
+index e65b2d5..9ba30a5 100644
+--- a/site/index.html
++++ b/site/index.html
+@@ -29,6 +29,7 @@
+         <a href="pricing.html" class="hover:text-brand-700">Pricing</a>
+         <a href="hardware.html" class="hover:text-brand-700">Hardware</a>
+         <a href="contact.html" class="hover:text-brand-700">Contact</a>
++        <a href="/kitchen-sop/" class="hover:text-brand-700">Kitchen SOP</a>
+         <a href="#milestones" class="hover:text-brand-700">Milestones</a>
+       </nav>
+       <div class="flex items-center gap-2">
+@@ -52,6 +53,7 @@
+         <a href="pricing.html">Pricing</a>
+         <a href="hardware.html">Hardware</a>
+         <a href="contact.html">Contact</a>
++        <a href="/kitchen-sop/">Kitchen SOP</a>
+         <a href="#why">Why Kiteline</a>
+         <a href="#milestones">Milestones</a>
+         <a href="/app" class="text-brand-700">Sign in</a>
+@@ -136,6 +138,7 @@
+       <a href="use-cases/hotels.html" class="rounded-xl border border-ink-100 p-5 hover:border-brand-300 hover:bg-brand-50/30 transition"><strong>Hotel kitchen</strong><p class="text-sm text-ink-500 mt-1">Multi-outlet control from one account.</p></a>
+       <a href="use-cases/schools.html" class="rounded-xl border border-ink-100 p-5 hover:border-brand-300 hover:bg-brand-50/30 transition"><strong>School kitchen</strong><p class="text-sm text-ink-500 mt-1">Clear records for catering teams and inspections.</p></a>
+       <a href="use-cases/catering.html" class="rounded-xl border border-ink-100 p-5 hover:border-brand-300 hover:bg-brand-50/30 transition"><strong>Catering business</strong><p class="text-sm text-ink-500 mt-1">Labels, recipes, and logs across events and sites.</p></a>
++      <a href="/kitchen-sop/" class="rounded-xl border border-ink-100 p-5 hover:border-brand-300 hover:bg-brand-50/30 transition"><strong>Kitchen SOP</strong><p class="text-sm text-ink-500 mt-1">Commercial kitchen procedures and short training videos.</p></a>
+       <a href="faq.html" class="rounded-xl border border-ink-100 p-5 hover:border-brand-300 hover:bg-brand-50/30 transition"><strong>FAQ</strong><p class="text-sm text-ink-500 mt-1">Trials, pricing, hardware pilot, and support.</p></a>
+     </div>
+   </section>
+@@ -329,6 +332,7 @@
+         <a href="mailto:contact@kiteline.uk" class="hover:text-white">contact@kiteline.uk</a>
+         <span class="text-ink-600">·</span>
+         <a href="/academy/" class="hover:text-white text-ink-500">Kiteline Academy</a>
++        <a href="/kitchen-sop/" class="hover:text-white text-ink-500">Kitchen SOP</a>
+       </div>
+       <div class="text-center sm:text-right">© 2026 Kiteline · All rights reserved</div>
+     </div>

@@ -29,7 +29,10 @@ Each SOP has a **short video briefing** (about one minute) in the pocket app.
 
 ## Pocket app
 
-[`kiteline-kitchen-sop/`](../../../kiteline-kitchen-sop/)
+Live on Kiteline (after kitline1 deploy): **https://kiteline.uk/kitchen-sop/**
+
+Source: [`kiteline-kitchen-sop/`](../../../kiteline-kitchen-sop/)  
+Kiteline drop-in: [`kiteline-uk-dropin/`](../../../kiteline-uk-dropin/)
 
 ## House rules (post on the pass)
 
