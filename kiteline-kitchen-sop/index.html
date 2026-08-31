@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f766e" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Kitchen SOP" />
+  <meta name="description" content="Kiteline professional commercial kitchen SOPs and short training videos — HACCP, allergens, stores, pass, and close-down." />
+  <title>Kiteline · Kitchen SOP</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="topbar" id="topbar">
+      <button type="button" class="icon-btn" id="backBtn" hidden aria-label="Back">←</button>
+      <div class="topbar-text">
+        <p class="brand-mark" id="brandMark">Kiteline</p>
+        <h1 class="screen-title" id="screenTitle">Kitchen SOP</h1>
+      </div>
+      <button type="button" class="icon-btn" id="searchToggle" aria-label="Search">⌕</button>
+    </header>
+
+    <div class="search-bar" id="searchBar" hidden>
+      <input type="search" id="searchInput" placeholder="Search SOPs and videos…" autocomplete="off" enterkeyhint="search" />
+    </div>
+
+    <main class="main" id="main"></main>
+
+    <nav class="tabbar" aria-label="Primary">
+      <button type="button" class="tab active" data-tab="home" aria-current="page">
+        <span class="tab-ico">⌂</span><span>Home</span>
+      </button>
+      <button type="button" class="tab" data-tab="sops">
+        <span class="tab-ico">☰</span><span>SOPs</span>
+      </button>
+      <button type="button" class="tab" data-tab="videos">
+        <span class="tab-ico">▶</span><span>Videos</span>
+      </button>
+      <button type="button" class="tab" data-tab="rules">
+        <span class="tab-ico">!</span><span>Rules</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="data/sops.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
