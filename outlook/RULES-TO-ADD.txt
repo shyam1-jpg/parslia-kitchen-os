@@ -1,0 +1,263 @@
+Outlook rules to add (only if the one-click script cannot run)
+============================================================
+
+Best path: double-click FILE-ALL-EMAIL-FOLDERS.bat and sign in.
+That files ALL company mail in your Hotmail (outlook.live.com).
+
+Manual path: https://outlook.live.com/mail/ → Settings → Mail → Rules
+
+Create a folder named Companies under Inbox, then one folder per company.
+Outlook on the web allows about 64 rules, so add the companies you see most.
+
+Rule: File → GitHub
+  If sender address includes: github.com OR githubapp.com OR githubstatus.com OR githubcopilot.com
+  Move to folder: Inbox / Companies / GitHub
+  Stop processing more rules: Yes
+
+Rule: File → Cursor
+  If sender address includes: cursor.com OR cursor.sh OR anysphere.co OR anysphere.com
+  Move to folder: Inbox / Companies / Cursor
+  Stop processing more rules: Yes
+
+Rule: File → Cloud
+  If sender address includes: render.com OR netlify.com OR vercel.com OR heroku.com OR herokuapp.com OR amazonaws.com OR aws.amazon.com OR azure.com OR windowsazure.com OR cloud.google.com OR digitalocean.com OR cloudflare.com OR fly.io OR railway.app
+  Move to folder: Inbox / Companies / Cloud
+  Stop processing more rules: Yes
+
+Rule: File → Apple
+  If sender address includes: apple.com OR email.apple.com OR insideapple.apple.com OR id.apple.com
+  Move to folder: Inbox / Companies / Apple
+  Stop processing more rules: Yes
+
+Rule: File → Google
+  If sender address includes: google.com OR googleplay.com OR android.com OR googleapis.com OR youtube.com OR yt.be
+  Move to folder: Inbox / Companies / Google
+  Stop processing more rules: Yes
+
+Rule: File → Microsoft
+  If sender address includes: microsoft.com OR microsoftonline.com OR office.com OR office365.com OR onmicrosoft.com OR xbox.com OR skype.com OR live.net
+  Move to folder: Inbox / Companies / Microsoft
+  Stop processing more rules: Yes
+
+Rule: File → OpenAI
+  If sender address includes: openai.com OR chatgpt.com
+  Move to folder: Inbox / Companies / OpenAI
+  Stop processing more rules: Yes
+
+Rule: File → Anthropic
+  If sender address includes: anthropic.com OR claude.ai
+  Move to folder: Inbox / Companies / Anthropic
+  Stop processing more rules: Yes
+
+Rule: File → Stripe
+  If sender address includes: stripe.com
+  Move to folder: Inbox / Companies / Stripe
+  Stop processing more rules: Yes
+
+Rule: File → GoDaddy
+  If sender address includes: godaddy.com OR secureserver.net
+  Move to folder: Inbox / Companies / GoDaddy
+  Stop processing more rules: Yes
+
+Rule: File → Amazon
+  If sender address includes: amazon.co.uk OR amazon.com OR amazon.in OR amazon.co.in
+  Move to folder: Inbox / Companies / Amazon
+  Stop processing more rules: Yes
+
+Rule: File → PayPal
+  If sender address includes: paypal.com OR paypal.co.uk
+  Move to folder: Inbox / Companies / PayPal
+  Stop processing more rules: Yes
+
+Rule: File → LinkedIn
+  If sender address includes: linkedin.com OR linkedinmail.com
+  Move to folder: Inbox / Companies / LinkedIn
+  Stop processing more rules: Yes
+
+Rule: File → Dropbox
+  If sender address includes: dropbox.com
+  Move to folder: Inbox / Companies / Dropbox
+  Stop processing more rules: Yes
+
+Rule: File → Adobe
+  If sender address includes: adobe.com
+  Move to folder: Inbox / Companies / Adobe
+  Stop processing more rules: Yes
+
+Rule: File → Zoom
+  If sender address includes: zoom.us OR zoom.com
+  Move to folder: Inbox / Companies / Zoom
+  Stop processing more rules: Yes
+
+Rule: File → Slack
+  If sender address includes: slack.com
+  Move to folder: Inbox / Companies / Slack
+  Stop processing more rules: Yes
+
+Rule: File → Notion
+  If sender address includes: notion.so OR notion.com
+  Move to folder: Inbox / Companies / Notion
+  Stop processing more rules: Yes
+
+Rule: File → Meta
+  If sender address includes: facebook.com OR facebookmail.com OR instagram.com OR meta.com OR whatsapp.com
+  Move to folder: Inbox / Companies / Meta
+  Stop processing more rules: Yes
+
+Rule: File → Netflix
+  If sender address includes: netflix.com
+  Move to folder: Inbox / Companies / Netflix
+  Stop processing more rules: Yes
+
+Rule: File → Spotify
+  If sender address includes: spotify.com
+  Move to folder: Inbox / Companies / Spotify
+  Stop processing more rules: Yes
+
+Rule: File → X-Twitter
+  If sender address includes: x.com OR twitter.com OR xmail.twitter.com
+  Move to folder: Inbox / Companies / X-Twitter
+  Stop processing more rules: Yes
+
+Rule: File → TikTok
+  If sender address includes: tiktok.com OR tiktokv.com
+  Move to folder: Inbox / Companies / TikTok
+  Stop processing more rules: Yes
+
+Rule: File → Vedanta
+  If sender address includes: vedanta.co.in OR vedanta.com OR vedantalimited.com
+  Move to folder: Inbox / Companies / Vedanta
+  Stop processing more rules: Yes
+
+Rule: File → Brakes
+  If sender address includes: brakes.co.uk OR brake.co.uk OR brakebros.co.uk
+  Move to folder: Inbox / Companies / Brakes
+  Stop processing more rules: Yes
+
+Rule: File → Bidfood
+  If sender address includes: bidfood.co.uk OR bidfood.com
+  Move to folder: Inbox / Companies / Bidfood
+  Stop processing more rules: Yes
+
+Rule: File → Booker
+  If sender address includes: booker.co.uk
+  Move to folder: Inbox / Companies / Booker
+  Stop processing more rules: Yes
+
+Rule: File → Sysco
+  If sender address includes: sysco.com OR sysco.co.uk
+  Move to folder: Inbox / Companies / Sysco
+  Stop processing more rules: Yes
+
+Rule: File → Nisbets
+  If sender address includes: nisbets.co.uk OR nisbets.com
+  Move to folder: Inbox / Companies / Nisbets
+  Stop processing more rules: Yes
+
+Rule: File → Cypad
+  If sender address includes: cypad.com
+  Move to folder: Inbox / Companies / Cypad
+  Stop processing more rules: Yes
+
+Rule: File → Kiteline
+  If sender address includes: kiteline.uk OR kiteline.com
+  Move to folder: Inbox / Companies / Kiteline
+  Stop processing more rules: Yes
+
+Rule: File → Parslia
+  If sender address includes: parslia.app OR parslia.com
+  Move to folder: Inbox / Companies / Parslia
+  Stop processing more rules: Yes
+
+Rule: File → Libraix
+  If sender address includes: libraix.ai OR libraix.com
+  Move to folder: Inbox / Companies / Libraix
+  Stop processing more rules: Yes
+
+Rule: File → Hercules
+  If sender address includes: hercules.app OR hercules.com
+  Move to folder: Inbox / Companies / Hercules
+  Stop processing more rules: Yes
+
+Rule: File → HMRC
+  If sender address includes: hmrc.gov.uk OR tax.service.gov.uk OR mail.hmrc.gov.uk
+  Move to folder: Inbox / Companies / HMRC
+  Stop processing more rules: Yes
+
+Rule: File → GovUK
+  If sender address includes: gov.uk OR notifications.service.gov.uk
+  Move to folder: Inbox / Companies / GovUK
+  Stop processing more rules: Yes
+
+Rule: File → NHS
+  If sender address includes: nhs.uk OR nhs.net
+  Move to folder: Inbox / Companies / NHS
+  Stop processing more rules: Yes
+
+Rule: File → CompaniesHouse
+  If sender address includes: companieshouse.gov.uk
+  Move to folder: Inbox / Companies / CompaniesHouse
+  Stop processing more rules: Yes
+
+Rule: File → DVLA
+  If sender address includes: dvla.gov.uk
+  Move to folder: Inbox / Companies / DVLA
+  Stop processing more rules: Yes
+
+Rule: File → Barclays
+  If sender address includes: barclays.co.uk OR barclays.com
+  Move to folder: Inbox / Companies / Barclays
+  Stop processing more rules: Yes
+
+Rule: File → HSBC
+  If sender address includes: hsbc.co.uk OR hsbc.com
+  Move to folder: Inbox / Companies / HSBC
+  Stop processing more rules: Yes
+
+Rule: File → Lloyds
+  If sender address includes: lloydsbank.com OR lloydsbank.co.uk OR halifax.co.uk
+  Move to folder: Inbox / Companies / Lloyds
+  Stop processing more rules: Yes
+
+Rule: File → NatWest
+  If sender address includes: natwest.com OR natwest.co.uk OR rbs.co.uk
+  Move to folder: Inbox / Companies / NatWest
+  Stop processing more rules: Yes
+
+Rule: File → Santander
+  If sender address includes: santander.co.uk OR santander.com
+  Move to folder: Inbox / Companies / Santander
+  Stop processing more rules: Yes
+
+Rule: File → Nationwide
+  If sender address includes: nationwide.co.uk
+  Move to folder: Inbox / Companies / Nationwide
+  Stop processing more rules: Yes
+
+Rule: File → EE
+  If sender address includes: ee.co.uk
+  Move to folder: Inbox / Companies / EE
+  Stop processing more rules: Yes
+
+Rule: File → Vodafone
+  If sender address includes: vodafone.co.uk OR vodafone.com
+  Move to folder: Inbox / Companies / Vodafone
+  Stop processing more rules: Yes
+
+Rule: File → O2
+  If sender address includes: o2.co.uk OR telefonica.com
+  Move to folder: Inbox / Companies / O2
+  Stop processing more rules: Yes
+
+Rule: File → Three
+  If sender address includes: three.co.uk
+  Move to folder: Inbox / Companies / Three
+  Stop processing more rules: Yes
+
+Rule: File → BT
+  If sender address includes: bt.com
+  Move to folder: Inbox / Companies / BT
+  Stop processing more rules: Yes
+
+One-off company mail goes in Inbox / Companies / Other companies.
+Personal emails (Gmail, Hotmail friends, etc.) stay in Inbox.

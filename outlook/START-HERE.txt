@@ -1,0 +1,49 @@
+If you cannot see the folders
+=============================
+
+They are NOT on the Windows desktop.
+They are INSIDE Outlook, on the LEFT side.
+
+Last time: only a picture was made in GitHub. Your live
+Hotmail (shyam_1@hotmail.co.uk) was not organised.
+The helper files were on a pull request, not on this PC.
+
+This time: double-click FILE-ALL-EMAIL-FOLDERS.bat
+
+
+File the live mailbox
+=====================
+
+1. Double-click  FILE-ALL-EMAIL-FOLDERS.bat
+2. Open the sign-in page it prints and enter the code
+3. Sign in as shyam_1@hotmail.co.uk
+4. Press Y
+5. Refresh https://outlook.live.com/mail/
+6. Look LEFT: Inbox → Companies → GitHub, Cursor, Apple, …
+
+If one email fills the whole page:
+  Outlook → View → Folder Pane → Normal
+  Web: click the folder icon on the far left.
+
+To put this helper on your Desktop:
+  Double-click  PUT-OUTLOOK-SETUP-ON-DESKTOP.bat
+
+
+What gets filed
+===============
+
+Every company in the mailbox gets a folder:
+  GitHub, Cursor, Cloud, Apple, Google, Microsoft,
+  Brakes, Bidfood, Nisbets, HMRC, banks, parcels, …
+
+Unknown firms with several emails get their own folder.
+One-off shops go in  Other companies.
+Friends and family stay in Inbox.
+
+
+Classic Outlook only
+====================
+
+If Hotmail sign-in fails and you have classic Outlook:
+  Open Outlook, turn New Outlook OFF,
+  then run SETUP-OUTLOOK-FOLDERS.bat

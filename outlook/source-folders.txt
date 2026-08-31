@@ -1,0 +1,3 @@
+# Extra Outlook folders to organise (besides Inbox).
+# The ID below is the folder you opened in Outlook on the web.
+AQMkADAwATZiZmYAZC1hMDYzLWExNmQtMDACLTAwCgAuAAADiEv2l+AK0EaTAOdRsYr5vAEAikQfPHlIwUG3S+T9livOIAAGukJK2QAAAA==

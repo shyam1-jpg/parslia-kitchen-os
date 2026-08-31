@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Outlook company folders — preview</title>
+  <style>
+    :root {
+      --bg: #0f2744;
+      --pane: #16385c;
+      --card: #ffffff;
+      --ink: #1b1b1b;
+      --muted: #5c6b7a;
+      --accent: #0f6cbd;
+      --line: #d8e1ea;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: linear-gradient(180deg, #0b1f36, #123258);
+      color: var(--ink);
+    }
+    .shell {
+      max-width: 1100px;
+      height: calc(100vh - 32px);
+      margin: 16px auto;
+      background: var(--card);
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      grid-template-rows: 1fr;
+      box-shadow: 0 16px 50px rgba(0,0,0,.28);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    aside {
+      background: #f3f6f9;
+      border-right: 1px solid var(--line);
+      padding: 18px 12px 32px;
+      overflow-y: auto;
+      min-height: 0;
+    }
+    main { overflow-y: auto; min-height: 0; padding: 22px 28px 40px; }
+    h1 { font-size: 16px; margin: 0 0 4px; color: #0f2744; }
+    .sub { color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+    .tree { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+    .tree li { padding: 6px 8px; border-radius: 6px; }
+    .tree .inbox { font-weight: 700; }
+    .tree .child { padding-left: 28px; color: #243547; }
+    .tree .n { float: right; color: var(--muted); }
+    .banner {
+      background: #e7f2fb;
+      border: 1px solid #b9d6ee;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      font-size: 14px;
+    }
+    .folder {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin: 0 0 10px;
+      padding: 0 10px;
+    }
+    summary {
+      cursor: pointer;
+      padding: 10px 4px;
+      font-weight: 650;
+      list-style: none;
+    }
+    .count {
+      float: right;
+      background: #e7f2fb;
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 1px 8px;
+      font-size: 12px;
+    }
+    ul { margin: 0 0 12px; padding: 0 0 8px 8px; }
+    li { padding: 8px 4px; border-top: 1px solid #eef2f6; font-size: 14px; }
+    .subject { color: var(--muted); font-size: 13px; }
+    .empty { color: var(--muted); border: 0; }
+    h2 { font-size: 15px; margin: 22px 0 8px; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <h1>Outlook</h1>
+      <div class="sub">Inbox · Companies folders</div>
+      <ul class="tree">
+        <li class="inbox">Inbox <span class="n">2</span></li>
+        <li>📁 Companies</li>
+        <li class="child">📁 Amazon <span class="n">1</span></li><li class="child">📁 Apple <span class="n">2</span></li><li class="child">📁 Barclays <span class="n">1</span></li><li class="child">📁 Bidfood <span class="n">1</span></li><li class="child">📁 Brakes <span class="n">1</span></li><li class="child">📁 Cloud <span class="n">2</span></li><li class="child">📁 Cursor <span class="n">2</span></li><li class="child">📁 Cypad <span class="n">1</span></li><li class="child">📁 Freshbeans <span class="n">2</span></li><li class="child">📁 GitHub <span class="n">3</span></li><li class="child">📁 GoDaddy <span class="n">1</span></li><li class="child">📁 Google <span class="n">2</span></li><li class="child">📁 HMRC <span class="n">1</span></li><li class="child">📁 Microsoft <span class="n">1</span></li><li class="child">📁 NHS <span class="n">1</span></li><li class="child">📁 Nisbets <span class="n">1</span></li><li class="child">📁 OpenAI <span class="n">1</span></li><li class="child">📁 Other companies <span class="n">1</span></li><li class="child">📁 PayPal <span class="n">1</span></li><li class="child">📁 RoyalMail <span class="n">1</span></li><li class="child">📁 Stripe <span class="n">1</span></li><li class="child">📁 Vedanta <span class="n">1</span></li>
+      </ul>
+    </aside>
+    <main>
+      <div class="banner">
+        <strong>29</strong> company emails sit in company folders.
+        <strong>2</strong> personal emails stay in Inbox.
+        This picture is a sample. Your real Hotmail is filed by
+        <code>FILE-ALL-EMAIL-FOLDERS.bat</code> after you sign in.
+      </div>
+      <h2>Company folders</h2>
+      <details open class='folder'><summary><span class='glyph'>📁</span> Amazon<span class='count'>1</span></summary><ul><li><strong>Amazon</strong> &lt;auto-confirm@amazon.co.uk&gt;<br><span class='subject'>Your Amazon.co.uk order</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Apple<span class='count'>2</span></summary><ul><li><strong>Apple</strong> &lt;appleid@id.apple.com&gt;<br><span class='subject'>Your Apple ID code</span></li><li><strong>Apple</strong> &lt;no_reply@email.apple.com&gt;<br><span class='subject'>Your App Store invoice</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Barclays<span class='count'>1</span></summary><ul><li><strong>Barclays</strong> &lt;alerts@barclays.co.uk&gt;<br><span class='subject'>Your Barclays alert</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Bidfood<span class='count'>1</span></summary><ul><li><strong>Bidfood</strong> &lt;orders@bidfood.co.uk&gt;<br><span class='subject'>Your Bidfood invoice</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Brakes<span class='count'>1</span></summary><ul><li><strong>Brakes</strong> &lt;noreply@brakes.co.uk&gt;<br><span class='subject'>Your Brakes delivery note</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Cloud<span class='count'>2</span></summary><ul><li><strong>Render</strong> &lt;noreply@render.com&gt;<br><span class='subject'>libraix-api deploy succeeded</span></li><li><strong>Netlify</strong> &lt;hello@netlify.com&gt;<br><span class='subject'>Deploy published for libraix.ai</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Cursor<span class='count'>2</span></summary><ul><li><strong>Cursor</strong> &lt;noreply@cursor.com&gt;<br><span class='subject'>Your cloud agent finished: Outlook email folders</span></li><li><strong>Cursor Cloud</strong> &lt;notifications@cursor.sh&gt;<br><span class='subject'>Cloud agent needs your review</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Cypad<span class='count'>1</span></summary><ul><li><strong>Cypad</strong> &lt;noreply@cypad.com&gt;<br><span class='subject'>Your timesheet is ready</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Freshbeans<span class='count'>2</span></summary><ul><li><strong>Unknown shop</strong> &lt;hello@freshbeans.example&gt;<br><span class='subject'>Thanks for your order</span></li><li><strong>Unknown shop</strong> &lt;orders@freshbeans.example&gt;<br><span class='subject'>Your beans are on the way</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> GitHub<span class='count'>3</span></summary><ul><li><strong>GitHub</strong> &lt;notifications@github.com&gt;<br><span class='subject'>[shyam1-jpg/parslia-kitchen-os] New pull request</span></li><li><strong>GitHub</strong> &lt;noreply@github.com&gt;<br><span class='subject'>A new public key was added to your account</span></li><li><strong>GitHub</strong> &lt;support@github.com&gt;<br><span class='subject'>Your GitHub Copilot invoice</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> GoDaddy<span class='count'>1</span></summary><ul><li><strong>GoDaddy</strong> &lt;donotreply@secureserver.net&gt;<br><span class='subject'>parslia.app domain reminder</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Google<span class='count'>2</span></summary><ul><li><strong>Google</strong> &lt;no-reply@accounts.google.com&gt;<br><span class='subject'>Security alert for your Google Account</span></li><li><strong>Google</strong> &lt;googleplay-noreply@google.com&gt;<br><span class='subject'>Your Google Play order</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> HMRC<span class='count'>1</span></summary><ul><li><strong>HMRC</strong> &lt;noreply@mail.hmrc.gov.uk&gt;<br><span class='subject'>Your Self Assessment</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Microsoft<span class='count'>1</span></summary><ul><li><strong>Microsoft</strong> &lt;account-security-noreply@accountprotection.microsoft.com&gt;<br><span class='subject'>New sign-in</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> NHS<span class='count'>1</span></summary><ul><li><strong>NHS</strong> &lt;no-reply@nhs.uk&gt;<br><span class='subject'>Your NHS appointment</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Nisbets<span class='count'>1</span></summary><ul><li><strong>Nisbets</strong> &lt;sales@nisbets.co.uk&gt;<br><span class='subject'>Your Nisbets order</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> OpenAI<span class='count'>1</span></summary><ul><li><strong>OpenAI</strong> &lt;noreply@openai.com&gt;<br><span class='subject'>Receipt for ChatGPT</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Other companies<span class='count'>1</span></summary><ul><li><strong>Spam once</strong> &lt;deals@oneoffspam.example&gt;<br><span class='subject'>You won a prize</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> PayPal<span class='count'>1</span></summary><ul><li><strong>PayPal</strong> &lt;service@paypal.co.uk&gt;<br><span class='subject'>You sent a payment</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> RoyalMail<span class='count'>1</span></summary><ul><li><strong>Royal Mail</strong> &lt;noreply@emails.royalmail.com&gt;<br><span class='subject'>Your parcel is on its way</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Stripe<span class='count'>1</span></summary><ul><li><strong>Stripe</strong> &lt;receipts@stripe.com&gt;<br><span class='subject'>Receipt from Libraix</span></li></ul></details><details open class='folder'><summary><span class='glyph'>📁</span> Vedanta<span class='count'>1</span></summary><ul><li><strong>Vedanta</strong> &lt;hr@vedanta.co.in&gt;<br><span class='subject'>Roster update</span></li></ul></details>
+      <h2>Left in Inbox</h2>
+      <ul><li><strong>Mum</strong> &lt;family.member@gmail.com&gt;<br><span class='subject'>Are you coming Sunday?</span></li><li><strong>Friend</strong> &lt;mate@hotmail.co.uk&gt;<br><span class='subject'>See you after shift</span></li></ul>
+    </main>
+  </div>
+</body>
+</html>
