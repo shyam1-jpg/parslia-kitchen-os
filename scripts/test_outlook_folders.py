@@ -198,6 +198,9 @@ class OpenMeTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         self.assertTrue((root / "FILE-ALL-EMAIL-FOLDERS.bat").exists())
         self.assertTrue((root / "outlook" / "File-AllCompanyMail.ps1").exists())
+        live = (root / "scripts" / "file_live_outlook.py").read_text(encoding="utf-8")
+        self.assertIn("start_device_login", live)
+        self.assertIn("file_mailbox", live)
 
 
 if __name__ == "__main__":
