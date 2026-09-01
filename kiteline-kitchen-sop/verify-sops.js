@@ -34,4 +34,9 @@ const sw = fs.readFileSync(__dirname + "/sw.js", "utf8");
 if (!app.includes("SpeechSynthesisUtterance") || !app.includes("completedAt")) throw new Error("Narration or completion tracking missing");
 if (!app.includes("competency.passed") || !app.includes("pendingSync") || !app.includes("Export offline evidence ledger")) throw new Error("Advanced competency or audit ledger missing");
 if (!sw.includes("offline.html") || !sw.includes("standalone.html") || !sw.includes("response.ok")) throw new Error("Offline strategy incomplete");
-console.log("OK", D.sops.length, "version-controlled UK SOPs with narration, completion and offline assets");
+if (!D.guidelineB || D.guidelineB.code !== "B" || !/recipe not found/i.test(D.guidelineB.title + D.guidelineB.summary)) {
+  throw new Error("Guideline B (recipe not found) missing");
+}
+if (!text.includes("guideline b") || !text.includes("do not cook from memory")) throw new Error("Recipe-not-found stop rule missing");
+if (!app.includes("guidelineBHtml") || !app.includes("Recipe not found")) throw new Error("Pocket app missing Guideline B empty state");
+console.log("OK", D.sops.length, "version-controlled UK SOPs plus Guideline B recipe-not-found");

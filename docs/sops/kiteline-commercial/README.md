@@ -27,6 +27,8 @@ This pack is **commercial kitchen only**. It is not a home-cooking guide and it 
 
 Each SOP has a **captioned animated briefing with optional British-English narration** (about one minute) in the pocket app. Completion is stored locally for offline use.
 
+**Guideline B — Recipe not found** is the stop rule when a controlled recipe card is missing. It is a guideline, not a recipe. See `GUIDELINE-B-RECIPE-NOT-FOUND.md`.
+
 ## Pocket app
 
 Live on Kiteline (after kitline1 deploy): **https://kiteline.uk/kitchen-sop/**
@@ -41,11 +43,12 @@ Kiteline drop-in: [`kiteline-uk-dropin/`](../../../kiteline-uk-dropin/)
 3. Hand-wash at the dedicated sink.  
 4. Raw and ready-to-eat stay separate.  
 5. Probe and record — do not guess temperatures.  
-6. Hot hold 63 °C+. Cold hold 8 °C or below (5 °C target). Freezer −18 °C.  
-7. Label internal containers with name, date and use-by. PPDS food needs the food name and full ingredients list with regulated allergens emphasised.  
-8. 14 UK/EU allergens — if unsure, do not send.  
-9. FIFO. Quarantine bad deliveries.  
-10. Stop the line and tell the chef if a CCP or allergen fails.
+6. Guideline B — if the recipe card is not found, stop. Do not cook from memory. 86 the dish and tell the chef.  
+7. Hot hold 63 °C+. Cold hold 8 °C or below (5 °C target). Freezer −18 °C.  
+8. Label internal containers with name, date and use-by. PPDS food needs the food name and full ingredients list with regulated allergens emphasised.  
+9. 14 UK/EU allergens — if unsure, do not send.  
+10. FIFO. Quarantine bad deliveries.  
+11. Stop the line and tell the chef if a CCP or allergen fails.
 
 ## Training sign-off
 

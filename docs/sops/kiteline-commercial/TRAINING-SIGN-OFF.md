@@ -24,6 +24,7 @@ I have read the SOP, completed the narrated briefing, and passed the 100% compet
 | CK-10 | Manual handling | ☐ | | |
 | CK-11 | Knives & equipment | ☐ | | |
 | CK-12 | Raw & ready-to-eat separation | ☐ | | |
+| B | Guideline B — Recipe not found | ☐ | | |
 
 Staff name: _______________________  
 Role: _______________________  

@@ -13,6 +13,7 @@ The 14 allergens — from recipe card to the pass.
 - **Separate kit** — Dedicated boards, fryers, and tongs for allergen-free tickets. Change gloves.
 - **The pass** — Allergen tickets get a verbal check: chef reads the allergen, CDP confirms the plate.
 - **If unsure** — Do not send. Remake or 86 the dish. Never guess.
+- **Recipe not found** — If the controlled recipe or allergen matrix does not list the dish, stop. Do not invent allergens. Follow Guideline B.
 
 ## Purpose
 

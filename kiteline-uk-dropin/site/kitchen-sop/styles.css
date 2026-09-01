@@ -265,6 +265,9 @@ body { min-height: 100dvh; }
 }
 
 .empty { text-align: center; color: var(--muted); padding: 28px 10px; }
+.guideline-b { text-align: left; }
+.guideline-b .empty-kicker { margin: 0 0 6px; font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #9a3412; }
+.guideline-b h3 { margin: 0 0 8px; }
 
 .detail-head { margin-bottom: 14px; }
 .detail-code {

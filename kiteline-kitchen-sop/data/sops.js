@@ -18,8 +18,21 @@ window.KITELINE_SOP_DATA = {
     "Label internal containers with name, preparation/opening date and use-by. PPDS food needs the food name and full ingredients list with regulated allergens emphasised.",
     "Declare the 14 UK/EU allergens. If you are not sure, do not send the dish.",
     "FIFO — first in, first out. Quarantine damaged, unlabelled, or out-of-range deliveries.",
-    "Stop the line and tell the chef or duty manager if a CCP fails, an allergen is wrong, or a guest is at risk."
+    "Stop the line and tell the chef or duty manager if a CCP fails, an allergen is wrong, or a guest is at risk.",
+    "Guideline B — Recipe not found: if the controlled recipe card is missing, stop. Do not cook from memory. 86 the dish, tell the chef, and record the gap."
   ],
+  guidelineB: {
+    id: "guideline-b",
+    code: "B",
+    title: "Recipe not found",
+    summary: "This is a guideline, not a recipe. Stop if the controlled recipe card cannot be found.",
+    bullets: [
+      "Do not cook, garnish, label or send the dish from memory, a phone photo or an unofficial note.",
+      "Do not invent ingredients, method, cook temperatures, allergens or a shelf life.",
+      "Search the current recipe file, Kiteline Recipes and the allergen matrix for the same menu version.",
+      "If the card is still missing: 86 the dish, tell the chef or duty manager, and record time, dish name, person and action."
+    ]
+  },
   categories: [
     { id: "hygiene", label: "Hygiene" },
     { id: "stores", label: "Stores" },
@@ -543,13 +556,13 @@ window.KITELINE_SOP_DATA = {
 /* Version-controlled safety additions shared by the pocket app and offline copy. */
 (function (D) {
   var additions = {
-    "ck-00": ["Report vomiting, diarrhoea, fever, infected wounds or a diagnosed food-borne illness before entering food areas; follow the site fitness-to-work and return-to-work procedure.", "SOP training never replaces site induction, risk assessments, COSHH assessments, equipment manuals or the site HACCP plan."],
+    "ck-00": ["Report vomiting, diarrhoea, fever, infected wounds or a diagnosed food-borne illness before entering food areas; follow the site fitness-to-work and return-to-work procedure.", "SOP training never replaces site induction, risk assessments, COSHH assessments, equipment manuals or the site HACCP plan.", "If the controlled recipe card is not found, stop and follow Guideline B — do not cook from memory."],
     "ck-01": ["Confirm fire exits, alarm points, emergency isolation controls and assembly-point information are accessible.", "If there is a gas smell, electrical damage, no potable water, refrigeration failure or pest evidence: stop, isolate the area where safe and escalate to the duty manager."],
     "ck-02": ["Check traceability details, lot/batch codes and recall information; quarantine rejected stock away from accepted food.", "Use a clean sanitised between-pack probe method or a disinfected penetration probe according to the site HACCP plan."],
     "ck-03": ["Keep recall and quarantined stock clearly marked and physically separated.", "Never invent a shelf life: use the validated site shelf-life table and supplier instructions."],
-    "ck-04": ["Record production start and finish times for batches where the HACCP or production plan requires them.", "Keep floors, escape routes and access to isolators clear throughout set-up."],
+    "ck-04": ["Record production start and finish times for batches where the HACCP or production plan requires them.", "Keep floors, escape routes and access to isolators clear throughout set-up.", "If a dish has no current recipe card on the section, follow Guideline B — Recipe not found. Do not prep from memory."],
     "ck-05": ["Cooling limits must come from the validated site HACCP plan; record start time, temperatures, finish time and corrective action.", "If a probe fails calibration or is damaged, remove it from use and repeat affected checks with a verified probe."],
-    "ck-06": ["Confirm every ingredient, substitute, garnish, cooking medium and shared-equipment risk against the current recipe and allergen matrix.", "Never promise ‘allergen-free’ where cross-contact cannot be controlled; explain the limitation and do not serve when safety is uncertain."],
+    "ck-06": ["Confirm every ingredient, substitute, garnish, cooking medium and shared-equipment risk against the current recipe and allergen matrix.", "Never promise ‘allergen-free’ where cross-contact cannot be controlled; explain the limitation and do not serve when safety is uncertain.", "If the recipe or allergen matrix does not list the dish, treat it as Recipe not found (Guideline B) and do not invent allergen information."],
     "ck-07": ["Stop the pass immediately for an allergen mismatch, foreign body, unsafe temperature or suspected contamination; isolate the plate and record the incident.", "Returned food is never re-plated or re-served."],
     "ck-08": ["Display wet-floor controls, clean spills immediately and keep food protected from chemical spray or splash.", "Never mix chemicals. Follow the label, safety data sheet, dilution, PPE and contact time; isolate damaged electrical cleaning equipment."],
     "ck-09": ["Complete final gas, electrical, fryer, refrigeration, fire-exit, water, window and door checks using the site checklist.", "Report breakdowns and corrective actions before handover; never leave an unresolved refrigeration or fire-safety failure for the next shift."],
@@ -569,7 +582,7 @@ window.KITELINE_SOP_DATA = {
     "ck-01": ["You smell gas during opening checks. What should happen?", ["Start extraction and continue", "Light equipment to test it", "Stop, keep ignition sources off, isolate only if safe and escalate"], 2],
     "ck-02": ["A chilled delivery is outside the site acceptance limit. What should you do?", ["Quarantine or reject it and record the failure", "Put it in the freezer", "Accept it if the packaging looks clean"], 0],
     "ck-03": ["What must a UK PPDS label include?", ["Only the 14 allergens", "Food name and full ingredients list with regulated allergens emphasised", "Preparation date only"], 1],
-    "ck-04": ["When should production times be recorded?", ["Only after a complaint", "Where required by the production plan or HACCP controls", "Never for batch work"], 1],
+    "ck-04": ["The recipe card for a boarded dish cannot be found. What should you do?", ["Cook from memory and write it later", "Stop, do not cook from memory, 86 the dish and tell the chef", "Use a similar recipe from another site"], 1],
     "ck-05": ["A probe fails calibration. What is the correct action?", ["Add two degrees to every result", "Remove it from use and repeat affected checks with a verified probe", "Use it only for cold food"], 1],
     "ck-06": ["An ingredient substitution is not on the current allergen matrix. What should happen?", ["Serve it without garnish", "Ask the guest to decide", "Stop, verify every ingredient and update the controlled information before service"], 2],
     "ck-07": ["The pass finds an allergen mismatch. What should happen?", ["Remove the garnish", "Stop, isolate, remake safely and record the incident", "Send it to another table"], 1],

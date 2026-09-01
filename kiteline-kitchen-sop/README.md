@@ -21,6 +21,7 @@ Open https://kiteline.uk/kitchen-sop/ then: Android Chrome → Add to Home scree
 ## What’s inside
 
 - **13 SOPs** CK-00 → CK-12: brigade, opening, goods-in, stores, mise en place, HACCP temps, allergens, pass, cleaning, close-down, lifting, knives, raw vs RTE
+- **Guideline B — Recipe not found**: stop rule when a controlled recipe card is missing (not a recipe). Shown on house rules and when search has no match
 - **Captioned animated training** on every SOP (50–65 seconds) with optional British-English device narration, seeking, voice control and offline completion status
 - **Videos tab** — sort by station: Hygiene, Stores, Line, Service, Safety, Close-down
 - House rules for the pass

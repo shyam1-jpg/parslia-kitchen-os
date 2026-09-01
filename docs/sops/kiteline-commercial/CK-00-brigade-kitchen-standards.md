@@ -27,7 +27,7 @@ Applies to chefs, kitchen porters, stewards, agency staff, and managers on shift
 - Head chef / executive chef — menu, HACCP ownership, sign-off, discipline of the pass
 - Sous chef — service control, section cover, temperature and allergen checks
 - Chef de partie — owns one station (sauce, grill, veg, pastry, larder)
-- Commis — mise en place, labelling, following the recipe card exactly
+- Commis — mise en place, labelling, following the recipe card exactly. If the card is not found, stop and use Guideline B.
 - Kitchen porter / steward — pot-wash, floors, bins, chemical store — not food prep unless trained
 
 ## Professional appearance

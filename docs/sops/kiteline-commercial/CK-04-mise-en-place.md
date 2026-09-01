@@ -20,7 +20,7 @@ A commercial line cannot cook from cold stores during service. Mise en place is 
 
 ## Before service brief
 
-- Recipe cards and allergen matrix on the section
+- Recipe cards and allergen matrix on the section. If a dish has no current card, follow Guideline B — Recipe not found. Do not prep from memory.
 - Colour-coded boards: red raw meat, blue fish, yellow raw poultry, green salad/fruit, white bakery/dairy, brown vegetables
 - Hot hold units preheated; bain-marie water clean and at temperature
 - Bins empty, cloths in the right bucket (sanitiser vs detergent)

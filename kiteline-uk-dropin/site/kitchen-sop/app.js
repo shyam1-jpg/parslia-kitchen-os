@@ -80,8 +80,29 @@
     });
   }
 
+  function guidelineBHtml(query) {
+    var g = DATA.guidelineB || {};
+    var asked = query && String(query).trim();
+    return (
+      '<section class="block competency guideline-b" id="guidelineB">' +
+      '<p class="empty-kicker">Guideline B · not a recipe</p>' +
+      "<h3>" +
+      escapeHtml(g.title || "Recipe not found") +
+      "</h3><p>" +
+      escapeHtml(g.summary || "Stop if the controlled recipe card cannot be found.") +
+      (asked ? " Search did not match “" + escapeHtml(asked) + "”." : "") +
+      "</p><ul>" +
+      (g.bullets || [])
+        .map(function (item) {
+          return "<li>" + escapeHtml(item) + "</li>";
+        })
+        .join("") +
+      '</ul><button type="button" class="btn ghost" id="gotoRules">Open house rules</button></section>'
+    );
+  }
+
   function sopRowsHtml(list) {
-    if (!list.length) return '<div class="empty">No SOPs match that filter.</div>';
+    if (!list.length) return guidelineBHtml(state.query);
     return (
       '<div class="sop-list">' +
       list
@@ -278,9 +299,7 @@
       '<p class="section-label">' +
       list.length +
       " narrated briefings</p>" +
-      '<div class="sop-list">' +
-      rows +
-      "</div>";
+      (rows ? '<div class="sop-list">' + rows + "</div>" : guidelineBHtml(state.query));
   }
 
   function renderRules() {
@@ -288,7 +307,8 @@
     brandMark.textContent = DATA.company;
     backBtn.hidden = true;
     main.innerHTML =
-      '<div class="warn-banner">Post these on the pass. Every starter signs CK-00 and CK-06.</div>' +
+      '<div class="warn-banner">Post these on the pass. Every starter signs CK-00, CK-06 and Guideline B.</div>' +
+      guidelineBHtml("") +
       '<div class="rule-list">' +
       DATA.hardRules
         .map(function (r) {
@@ -474,6 +494,10 @@
     }
     if (e.target.id === "gotoInstall") {
       goTab("install");
+      return;
+    }
+    if (e.target.id === "gotoRules") {
+      goTab("rules");
       return;
     }
     if (e.target.id === "playerToggle") {
