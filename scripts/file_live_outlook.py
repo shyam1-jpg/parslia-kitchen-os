@@ -334,6 +334,34 @@ def collect_scan_folders(token: str) -> list[dict[str, Any]]:
         folders.append(extra)
         seen.add(fid)
         log(f"Also scanning {name} ({extra.get('totalItemCount', '?')} items)")
+
+    # Old leftover folders under Inbox (shyam, tansiq, and their children).
+    inbox_children = graph_paged(
+        token, f"/me/mailFolders/{enc(inbox['id'])}/childFolders?$top=100"
+    )
+    leftovers: list[dict[str, Any]] = []
+    for child in inbox_children:
+        name = str(child.get("displayName") or "")
+        fid = child.get("id")
+        if not fid or fid in seen or skip_folder_name(name):
+            continue
+        leftovers.append(child)
+        grandchildren = []
+        if int(child.get("childFolderCount") or 0) > 0:
+            grandchildren = graph_paged(
+                token, f"/me/mailFolders/{enc(fid)}/childFolders?$top=100"
+            )
+        leftovers.extend(grandchildren)
+    for extra in leftovers:
+        name = str(extra.get("displayName") or "")
+        fid = extra.get("id")
+        if not fid or fid in seen or skip_folder_name(name):
+            continue
+        if int(extra.get("totalItemCount") or 0) < 1:
+            continue
+        folders.append(extra)
+        seen.add(fid)
+        log(f"Also scanning leftover {name} ({extra.get('totalItemCount', '?')} items)")
     return folders
 
 

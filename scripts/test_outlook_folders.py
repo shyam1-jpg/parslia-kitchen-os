@@ -78,7 +78,9 @@ class MappingTests(unittest.TestCase):
             "sales@nisbets.co.uk": "Nisbets",
             "noreply@mail.hmrc.gov.uk": "HMRC",
             "alerts@barclays.co.uk": "Barclays",
-            "no-reply@nhs.uk": "NHS",
+            "noreply@uber.com": "Uber",
+            "estatement@icicibank.com": "ICICI",
+            "tanishq@td.transact-tcl.co.in": "Tanishq",
         }
         for address, folder in cases.items():
             result = classify_message(
