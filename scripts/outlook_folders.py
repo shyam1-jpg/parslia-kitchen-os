@@ -23,6 +23,7 @@ COMPANIES_CSV = OUTLOOK_DIR / "companies.csv"
 PERSONAL_TXT = OUTLOOK_DIR / "personal-domains.txt"
 SAMPLE_INBOX = OUTLOOK_DIR / "sample-inbox.csv"
 SOURCE_FOLDERS = OUTLOOK_DIR / "source-folders.txt"
+PIN_CSV = OUTLOOK_DIR / "pin-to-top.csv"
 PARENT_FOLDER = "Companies"
 OTHER_FOLDER = "Other companies"
 MIN_EMAILS_FOR_AUTO_FOLDER = 2
@@ -92,6 +93,35 @@ def load_personal_domains(path: Path | None = None) -> set[str]:
         if line:
             domains.add(line)
     return domains
+
+
+def load_pin_ranks(path: Path | None = None) -> dict[str, int]:
+    path = path or PIN_CSV
+    if not path.exists():
+        return {}
+    ranks: dict[str, int] = {}
+    with path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            folder = (row.get("folder") or "").strip()
+            try:
+                rank = int((row.get("rank") or "").strip())
+            except ValueError:
+                continue
+            if folder and rank > 0:
+                ranks[folder] = rank
+    return ranks
+
+
+def pinned_folder_name(folder: str, ranks: dict[str, int] | None = None) -> str:
+    name = (folder or "").strip()
+    if not name:
+        return name
+    ranks = ranks if ranks is not None else load_pin_ranks()
+    rank = ranks.get(name)
+    if not rank:
+        return name
+    return f"{rank:02d} {name}"
 
 
 def load_source_folder_ids(path: Path | None = None) -> list[str]:

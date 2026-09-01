@@ -182,6 +182,21 @@ class ExportTests(unittest.TestCase):
         self.assertTrue(ids[0].startswith("AQMk"))
 
 
+class PinTests(unittest.TestCase):
+    def test_important_folders_get_numbered_prefix(self):
+        from outlook_folders import load_pin_ranks, pinned_folder_name
+
+        ranks = load_pin_ranks()
+        self.assertEqual(pinned_folder_name("Apple", ranks), "01 Apple")
+        self.assertEqual(pinned_folder_name("Google", ranks), "02 Google")
+        self.assertEqual(pinned_folder_name("GoDaddy", ranks), "03 GoDaddy")
+        self.assertTrue(pinned_folder_name("Apple", ranks) < pinned_folder_name("Google", ranks))
+        self.assertTrue(pinned_folder_name("Apple", ranks) < "Amazon")
+        self.assertEqual(pinned_folder_name("Freshbeans", ranks), "Freshbeans")
+        order = [pinned_folder_name(name, ranks) for name, _ in sorted(ranks.items(), key=lambda item: item[1])]
+        self.assertEqual(order[:3], ["01 Apple", "02 Google", "03 GoDaddy"])
+
+
 class OpenMeTests(unittest.TestCase):
     def test_open_me_tells_user_where_to_look(self):
         root = Path(__file__).resolve().parents[1]

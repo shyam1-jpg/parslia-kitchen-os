@@ -28,7 +28,9 @@ from outlook_folders import (  # noqa: E402
     domain_to_folder,
     load_companies,
     load_personal_domains,
+    load_pin_ranks,
     load_source_folder_ids,
+    pinned_folder_name,
     title_from_domain,
 )
 
@@ -330,6 +332,7 @@ def file_mailbox(token: str) -> dict[str, Any]:
     destinations: list[tuple[str, str]] = []
     for mid, folder in classified:
         dest = auto_resolved.get(folder, folder)
+        dest = pinned_folder_name(dest)
         destinations.append((mid, dest))
         plan[dest] += 1
 
@@ -347,8 +350,12 @@ def file_mailbox(token: str) -> dict[str, Any]:
     }
     folder_objects: dict[str, dict[str, Any]] = {}
     for name in sorted(plan, key=str.lower):
-        if name in existing_children:
-            folder_objects[name] = existing_children[name]
+        found = existing_children.get(name)
+        if not found:
+            bare = name.split(" ", 1)[-1] if name[:3].isdigit() and name[2:3] == " " else name
+            found = existing_children.get(bare)
+        if found:
+            folder_objects[name] = found
             continue
         created = graph(
             token,
@@ -466,9 +473,51 @@ def file_mailbox(token: str) -> dict[str, Any]:
     return result
 
 
+def pin_important_folders(token: str) -> dict[str, Any]:
+    ranks = load_pin_ranks()
+    inbox = graph(token, "GET", "/me/mailFolders/inbox")
+    parent = get_or_create_child(token, inbox["id"], PARENT_FOLDER)
+    children = graph_paged(
+        token, f"/me/mailFolders/{enc(parent['id'])}/childFolders?$top=100"
+    )
+    by_name = {str(child.get("displayName") or ""): child for child in children}
+    renamed: list[str] = []
+    missing: list[str] = []
+    already: list[str] = []
+    for folder, rank in sorted(ranks.items(), key=lambda item: item[1]):
+        display = pinned_folder_name(folder, ranks)
+        current = by_name.get(display) or by_name.get(folder)
+        if not current:
+            missing.append(folder)
+            continue
+        if current.get("displayName") == display:
+            already.append(display)
+            continue
+        updated = graph(
+            token,
+            "PATCH",
+            f"/me/mailFolders/{enc(current['id'])}",
+            {"displayName": display},
+        )
+        by_name.pop(str(current.get("displayName") or ""), None)
+        by_name[display] = updated or current
+        renamed.append(f"{folder} -> {display}")
+        log(f"Pinned {display}")
+    result = {
+        "renamed": renamed,
+        "already_on_top": already,
+        "missing": missing,
+        "top_order": [pinned_folder_name(name, ranks) for name, _ in sorted(ranks.items(), key=lambda item: item[1])],
+    }
+    Path("/opt/cursor/artifacts/pin-to-top-result.json").write_text(
+        json.dumps(result, indent=2) + "\n", encoding="utf-8"
+    )
+    return result
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="File live Outlook company mail")
-    parser.add_argument("command", choices=["start", "poll", "file", "status"])
+    parser.add_argument("command", choices=["start", "poll", "file", "status", "pin"])
     args = parser.parse_args(argv)
 
     if args.command == "start":
@@ -512,6 +561,10 @@ def main(argv: list[str] | None = None) -> int:
     if record.get("status") != "ready":
         print(json.dumps({"status": record.get("status"), "error": "not signed in"}, indent=2))
         return 3
+    if args.command == "pin":
+        result = pin_important_folders(record["access_token"])
+        print(json.dumps(result, indent=2))
+        return 0
     result = file_mailbox(record["access_token"])
     print(json.dumps(result, indent=2))
     return 0
