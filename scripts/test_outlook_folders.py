@@ -79,7 +79,7 @@ class MappingTests(unittest.TestCase):
             "noreply@mail.hmrc.gov.uk": "HMRC",
             "alerts@barclays.co.uk": "Barclays",
             "noreply@uber.com": "Uber",
-            "estatement@icicibank.com": "ICICI",
+            "estatement@icicibank.com": "Icicibank",
             "tanishq@td.transact-tcl.co.in": "Tanishq",
         }
         for address, folder in cases.items():

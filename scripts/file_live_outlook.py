@@ -474,16 +474,46 @@ def file_mailbox(token: str) -> dict[str, Any]:
         )
     }
 
+    def lookup_in_pool(pool: dict[str, dict[str, Any]], wanted: str) -> dict[str, Any] | None:
+        if wanted in pool:
+            return pool[wanted]
+        lowered = wanted.lower()
+        for key, value in pool.items():
+            if key.lower() == lowered:
+                return value
+        return None
+
     def lookup_existing(name: str) -> dict[str, Any] | None:
         if name.startswith(PEOPLE_PREFIX):
-            return people_children.get(name[len(PEOPLE_PREFIX) :])
+            return lookup_in_pool(people_children, name[len(PEOPLE_PREFIX) :])
         bare = name.split(" ", 1)[-1] if name[:3].isdigit() and name[2:3] == " " else name
         for pool in (inbox_children, company_children):
-            if name in pool:
-                return pool[name]
-            if bare in pool:
-                return pool[bare]
+            found = lookup_in_pool(pool, name) or lookup_in_pool(pool, bare)
+            if found:
+                return found
         return None
+
+    def create_child(parent_id: str, display: str) -> dict[str, Any]:
+        try:
+            return graph(
+                token,
+                "POST",
+                f"/me/mailFolders/{enc(parent_id)}/childFolders",
+                {"displayName": display},
+            )
+        except RuntimeError as exc:
+            if "ErrorFolderExists" not in str(exc) and "409" not in str(exc):
+                raise
+            refreshed = {
+                str(child.get("displayName")): child
+                for child in graph_paged(
+                    token, f"/me/mailFolders/{enc(parent_id)}/childFolders?$top=100"
+                )
+            }
+            found = lookup_in_pool(refreshed, display)
+            if not found:
+                raise
+            return found
 
     folder_objects: dict[str, dict[str, Any]] = {}
     for name in sorted(plan, key=str.lower):
@@ -494,22 +524,12 @@ def file_mailbox(token: str) -> dict[str, Any]:
         if name.startswith(PEOPLE_PREFIX):
             display = name[len(PEOPLE_PREFIX) :]
             try:
-                created = graph(
-                    token,
-                    "POST",
-                    f"/me/mailFolders/{enc(people_parent['id'])}/childFolders",
-                    {"displayName": display},
-                )
+                created = create_child(people_parent["id"], display)
             except RuntimeError as exc:
                 log(f"Could not create {PEOPLE_FOLDER} / {display}: {exc}")
                 other = lookup_existing(PEOPLE_PREFIX + "Other people")
                 if not other:
-                    other = graph(
-                        token,
-                        "POST",
-                        f"/me/mailFolders/{enc(people_parent['id'])}/childFolders",
-                        {"displayName": "Other people"},
-                    )
+                    other = create_child(people_parent["id"], "Other people")
                     people_children["Other people"] = other
                 folder_objects[name] = other
                 continue
@@ -518,13 +538,13 @@ def file_mailbox(token: str) -> dict[str, Any]:
             log(f"Created folder {PEOPLE_FOLDER} / {display}")
             continue
         parent_id = inbox["id"] if name in pinned_names else parent["id"]
-        created = graph(
-            token,
-            "POST",
-            f"/me/mailFolders/{enc(parent_id)}/childFolders",
-            {"displayName": name},
-        )
+        created = create_child(parent_id, name)
         folder_objects[name] = created
+        if name in pinned_names:
+            inbox_children[name] = created
+        else:
+            company_children[name] = created
+        log(f"Created folder {name}")
         if name in pinned_names:
             inbox_children[name] = created
         else:
