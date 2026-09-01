@@ -1,4 +1,4 @@
-const CACHE = "kiteline-kitchen-sop-v3";
+const CACHE = "kiteline-kitchen-sop-v4";
 const OFFLINE_URL = "./offline.html";
 const ASSETS = ["./", "./index.html", OFFLINE_URL, "./standalone.html", "./styles.css", "./app.js", "./data/sops.js", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png", "./icons/mark.png"];
 self.addEventListener("install", (event) => { event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS))); self.skipWaiting(); });

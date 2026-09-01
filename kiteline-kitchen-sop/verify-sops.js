@@ -34,6 +34,7 @@ const sw = fs.readFileSync(__dirname + "/sw.js", "utf8");
 if (!app.includes("SpeechSynthesisUtterance") || !app.includes("completedAt")) throw new Error("Narration or completion tracking missing");
 if (!app.includes("competency.passed") || !app.includes("pendingSync") || !app.includes("Export offline evidence ledger")) throw new Error("Advanced competency or audit ledger missing");
 if (!sw.includes("offline.html") || !sw.includes("standalone.html") || !sw.includes("response.ok")) throw new Error("Offline strategy incomplete");
+if (!sw.includes("kiteline-kitchen-sop-v4")) throw new Error("Service worker cache not bumped for Guideline B");
 if (!D.guidelineB || D.guidelineB.code !== "B" || !/recipe not found/i.test(D.guidelineB.title + D.guidelineB.summary)) {
   throw new Error("Guideline B (recipe not found) missing");
 }
