@@ -261,8 +261,13 @@ def collect_scan_folders(token: str) -> list[dict[str, Any]]:
 
 
 def file_mailbox(token: str) -> dict[str, Any]:
-    me = graph(token, "GET", "/me")
-    upn = me.get("userPrincipalName") or me.get("mail") or ""
+    # Personal Hotmail tokens often 401 on /me but allow mail folder APIs.
+    upn = "shyam_1@hotmail.co.uk"
+    try:
+        me = graph(token, "GET", "/me")
+        upn = str(me.get("userPrincipalName") or me.get("mail") or upn)
+    except RuntimeError:
+        pass
     companies = load_companies()
     personal = load_personal_domains()
     mapping = domain_to_folder(companies)
