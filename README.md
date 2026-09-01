@@ -12,6 +12,9 @@
 | `script.js` | Menu + early access form |
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
 | `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
+| `kiteline-kitchen-sop/` | Kiteline commercial Kitchen SOP pocket app (safety + offline PWA) |
+| `docs/sops/kiteline-commercial/` | Controlled SOP markdown pack (CK-00–CK-12) |
+| `kiteline-uk-dropin/` | Apply script to serve the pack at kiteline.uk/kitchen-sop/ |
 
 ## Preview locally (Windows)
 

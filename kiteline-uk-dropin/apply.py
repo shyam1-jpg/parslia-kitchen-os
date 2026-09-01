@@ -55,13 +55,13 @@ USE_CASE = (
     '      <a href="/kitchen-sop/" class="rounded-xl border border-ink-100 p-5 '
     'hover:border-brand-300 hover:bg-brand-50/30 transition">'
     "<strong>Kitchen SOP</strong>"
-    '<p class="text-sm text-ink-500 mt-1">Commercial kitchen procedures and short training videos.</p></a>\n'
+    '<p class="text-sm text-ink-500 mt-1">UK commercial procedures, narrated training, competency checks and offline access.</p></a>\n'
 )
 HUB_TILE = "      {l:'Kitchen SOP',href:'/kitchen-sop/',i:'cap',c:'#0f766e'},\n"
 SOP_LINK = "{ label: 'Kitchen SOP', href: '/kitchen-sop/' }"
 TRAINING_BANNER = """      <div class="card card-pad mb-5 border border-brand-100 bg-brand-50/40">
         <div class="font-bold text-ink-900">Kitchen SOP</div>
-        <p class="text-sm text-ink-500 mt-1">Professional commercial kitchen procedures and short videos (CK-00–CK-12).</p>
+        <p class="text-sm text-ink-500 mt-1">UK commercial procedures, narrated training and 100% competency checks (CK-00–CK-12).</p>
         <a class="btn btn-primary btn-sm mt-3 inline-flex" href="/kitchen-sop/">Open Kitchen SOP</a>
       </div>
 """

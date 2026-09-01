@@ -7,9 +7,9 @@ Date: _______________________
 Pack version: **1.1**
 Effective date: **31 August 2026**
 
-I have read and watched the short videos for the SOPs ticked below. I will work to these commercial kitchen standards.
+I have read the SOP, completed the narrated briefing, and passed the 100% competency check for the SOPs ticked below. I will work to these commercial kitchen standards.
 
-| SOP | Title | Watched video | Signed | Date |
+| SOP | Title | Training + competency | Signed | Date |
 |-----|--------|---------------|--------|------|
 | CK-00 | Brigade & kitchen standards | ☐ | | |
 | CK-01 | Opening checks | ☐ | | |

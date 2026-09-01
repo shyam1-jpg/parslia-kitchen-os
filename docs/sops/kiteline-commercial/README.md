@@ -42,7 +42,7 @@ Kiteline drop-in: [`kiteline-uk-dropin/`](../../../kiteline-uk-dropin/)
 4. Raw and ready-to-eat stay separate.  
 5. Probe and record — do not guess temperatures.  
 6. Hot hold 63 °C+. Cold hold 8 °C or below (5 °C target). Freezer −18 °C.  
-7. Label name, allergens, date, use-by. Natasha’s Law for PPDS.  
+7. Label internal containers with name, date and use-by. PPDS food needs the food name and full ingredients list with regulated allergens emphasised.  
 8. 14 UK/EU allergens — if unsure, do not send.  
 9. FIFO. Quarantine bad deliveries.  
 10. Stop the line and tell the chef if a CCP or allergen fails.
