@@ -336,26 +336,34 @@ def collect_scan_folders(token: str) -> list[dict[str, Any]]:
         log(f"Also scanning {name} ({extra.get('totalItemCount', '?')} items)")
 
     # Old leftover folders under Inbox (shyam, tansiq, and their children).
+    leftovers: list[dict[str, Any]] = []
+
+    def walk_leftover(folder: dict[str, Any]) -> None:
+        fid = folder.get("id")
+        name = str(folder.get("displayName") or "")
+        if not fid or fid in seen or skip_folder_name(name):
+            return
+        leftovers.append(folder)
+        if int(folder.get("childFolderCount") or 0) < 1:
+            return
+        for grandchild in graph_paged(
+            token, f"/me/mailFolders/{enc(fid)}/childFolders?$top=100"
+        ):
+            walk_leftover(grandchild)
+
     inbox_children = graph_paged(
         token, f"/me/mailFolders/{enc(inbox['id'])}/childFolders?$top=100"
     )
-    leftovers: list[dict[str, Any]] = []
     for child in inbox_children:
         name = str(child.get("displayName") or "")
         fid = child.get("id")
         if not fid or fid in seen or skip_folder_name(name):
             continue
-        leftovers.append(child)
-        grandchildren = []
-        if int(child.get("childFolderCount") or 0) > 0:
-            grandchildren = graph_paged(
-                token, f"/me/mailFolders/{enc(fid)}/childFolders?$top=100"
-            )
-        leftovers.extend(grandchildren)
+        walk_leftover(child)
     for extra in leftovers:
         name = str(extra.get("displayName") or "")
         fid = extra.get("id")
-        if not fid or fid in seen or skip_folder_name(name):
+        if not fid or fid in seen:
             continue
         if int(extra.get("totalItemCount") or 0) < 1:
             continue
