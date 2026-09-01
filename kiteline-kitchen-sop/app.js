@@ -9,6 +9,7 @@
   var searchToggle = document.getElementById("searchToggle");
   var searchBar = document.getElementById("searchBar");
   var searchInput = document.getElementById("searchInput");
+  var networkStatus = document.getElementById("networkStatus");
   var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
 
   var state = {
@@ -24,8 +25,22 @@
     sopId: null,
     playing: false,
     t: 0,
-    timer: null
+    timer: null,
+    rate: 1,
+    narration: true,
+    sceneTitle: null
   };
+
+  var completed = JSON.parse(localStorage.getItem("kiteline-sop-completed-v1") || "{}");
+  var competencyResults = JSON.parse(localStorage.getItem("kiteline-sop-competency-v1") || "{}");
+  var evidenceLedger = JSON.parse(localStorage.getItem("kiteline-sop-evidence-v1") || "[]");
+
+  function recordEvidence(type, sop, detail) {
+    var event = { id: (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random()), type: type, sopId: sop.id, sopVersion: sop.revision, occurredAt: new Date().toISOString(), pendingSync: true, detail: detail || {} };
+    evidenceLedger.push(event);
+    localStorage.setItem("kiteline-sop-evidence-v1", JSON.stringify(evidenceLedger));
+    return event;
+  }
 
   function escapeHtml(str) {
     return String(str)
@@ -119,6 +134,19 @@
       player.timer = null;
     }
     player.playing = false;
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  }
+
+  function speakScene(scene) {
+    if (!player.narration || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    var utterance = new SpeechSynthesisUtterance(scene.title + ". " + scene.line);
+    utterance.lang = "en-GB";
+    utterance.rate = player.rate;
+    var voices = window.speechSynthesis.getVoices();
+    var preferred = voices.find(function (v) { return v.lang === "en-GB" && /premium|natural|enhanced/i.test(v.name); }) || voices.find(function (v) { return v.lang === "en-GB"; });
+    if (preferred) utterance.voice = preferred;
+    window.speechSynthesis.speak(utterance);
   }
 
   function currentScene(sop, t) {
@@ -146,13 +174,17 @@
     var scene = currentScene(sop, player.t);
     var dur = sop.video.durationSec;
     stage.innerHTML =
-      '<p class="player-kicker">Short video · ' +
+      '<div class="scene-visual" aria-hidden="true"><span></span><span></span><span></span></div><p class="player-kicker">Narrated animation · ' +
       escapeHtml(catLabel(sop.category)) +
       "</p><h3>" +
       escapeHtml(scene.title) +
       "</h3><p>" +
       escapeHtml(scene.line) +
       "</p>";
+    if (player.playing && player.sceneTitle !== scene.title) {
+      player.sceneTitle = scene.title;
+      speakScene(scene);
+    }
     if (fill) fill.style.width = Math.min(100, (player.t / dur) * 100) + "%";
     if (time) time.textContent = fmtTime(player.t) + " / " + fmtTime(dur);
     if (toggle) toggle.textContent = player.playing ? "Pause" : "Play";
@@ -168,6 +200,9 @@
       if (player.t >= sop.video.durationSec) {
         player.t = sop.video.durationSec;
         stopPlayer();
+        completed[sop.id] = { version: sop.revision, completedAt: new Date().toISOString() };
+        localStorage.setItem("kiteline-sop-completed-v1", JSON.stringify(completed));
+        recordEvidence("training.completed", sop, { durationSec: sop.video.durationSec, narrated: player.narration });
       }
       paintPlayer(sop);
     }, 250);
@@ -189,7 +224,7 @@
       '<span class="chip">Commercial only</span>' +
       '<span class="chip">HACCP</span>' +
       '<span class="chip">Allergens</span>' +
-      '<span class="chip">Short videos</span>' +
+      '<span class="chip">Narrated training</span>' +
       '<span class="chip">v' +
       escapeHtml(DATA.version) +
       "</span></div>" +
@@ -198,7 +233,7 @@
       sopRowsHtml(DATA.sops.slice(0, 4)) +
       '<p class="section-label" style="margin-top:18px">Full pack</p>' +
       '<button type="button" class="btn" id="gotoSops">All kitchen SOPs</button>' +
-      '<button type="button" class="btn ghost" id="gotoVideos" style="margin-top:10px">Sort short videos</button>' +
+      '<button type="button" class="btn ghost" id="gotoVideos" style="margin-top:10px">Narrated training</button>' +
       '<button type="button" class="btn ghost" id="gotoInstall" style="margin-top:10px">Install on phone</button>';
   }
 
@@ -217,7 +252,7 @@
   }
 
   function renderVideos() {
-    screenTitle.textContent = "Short videos";
+    screenTitle.textContent = "Narrated training";
     brandMark.textContent = DATA.company;
     backBtn.hidden = true;
     var list = filteredSops();
@@ -231,7 +266,7 @@
           "<div><strong>" +
           escapeHtml(sop.video.title) +
           "</strong><span>" +
-          escapeHtml(sop.code + " · " + catLabel(sop.category) + " · " + sop.video.durationSec + "s") +
+          escapeHtml(sop.code + " · " + catLabel(sop.category) + " · " + sop.video.durationSec + "s" + (completed[sop.id] && completed[sop.id].version === sop.revision ? " · Completed" : "")) +
           "</span></div>" +
           '<span class="chev">›</span></button>'
         );
@@ -242,7 +277,7 @@
       filterBarHtml() +
       '<p class="section-label">' +
       list.length +
-      " short briefings</p>" +
+      " narrated briefings</p>" +
       '<div class="sop-list">' +
       rows +
       "</div>";
@@ -311,14 +346,15 @@
       escapeHtml(sop.title) +
       "</h2><p>" +
       escapeHtml(sop.blurb) +
-      "</p></div>" +
+      "</p><p class=\"doc-control\">Version " + escapeHtml(sop.revision) + " · Effective " + escapeHtml(sop.effectiveDate) + " · Review " + escapeHtml(sop.reviewDate) + "</p></div>" +
       '<div class="player" id="sopPlayer">' +
       '<div class="player-stage" id="playerStage"></div>' +
       '<div class="player-bar">' +
       '<button type="button" id="playerToggle">Play</button>' +
-      '<div class="player-progress"><span id="playerFill"></span></div>' +
+      '<button type="button" id="narrationToggle" aria-pressed="true">Voice on</button>' +
+      '<div class="player-progress" id="playerSeek" role="slider" aria-label="Training progress" tabindex="0"><span id="playerFill"></span></div>' +
       '<div class="player-time" id="playerTime"></div></div></div>' +
-      sections;
+      sections + assessmentHtml(sop);
 
     if (player.sopId !== sop.id) {
       player.t = 0;
@@ -326,6 +362,17 @@
       stopPlayer();
     }
     paintPlayer(sop);
+  }
+
+  function assessmentHtml(sop) {
+    var prior = competencyResults[sop.id];
+    var questions = sop.assessment.questions.map(function (q, qi) {
+      return '<fieldset class="quiz-question"><legend>' + (qi + 1) + '. ' + escapeHtml(q.prompt) + '</legend>' + q.options.map(function (option, oi) {
+        return '<label><input type="radio" name="q' + qi + '" value="' + oi + '"> <span>' + escapeHtml(option) + '</span></label>';
+      }).join("") + '</fieldset>';
+    }).join("");
+    return '<section class="block competency"><h3>Competency check</h3><p>Pass mark: 100%. Results are stored offline with the controlled SOP version.</p>' + questions + '<button type="button" class="btn" id="submitAssessment">Submit competency check</button><div id="assessmentResult" role="status" aria-live="polite">' + (prior ? escapeHtml("Previous result: " + prior.score + "% · " + (prior.passed ? "Passed" : "Retraining required")) : "") + '</div></section>' +
+      '<section class="block"><h3>Evidence & audit</h3><ul>' + sop.evidenceRequired.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join("") + '</ul><button type="button" class="btn ghost" id="exportEvidence">Export offline evidence ledger</button></section>';
   }
 
   function setTabActive(tab) {
@@ -442,6 +489,46 @@
       }
       return;
     }
+    if (e.target.id === "narrationToggle") {
+      player.narration = !player.narration;
+      e.target.textContent = player.narration ? "Voice on" : "Voice off";
+      e.target.setAttribute("aria-pressed", player.narration ? "true" : "false");
+      if (!player.narration && "speechSynthesis" in window) window.speechSynthesis.cancel();
+      return;
+    }
+    var seek = e.target.closest("#playerSeek");
+    if (seek) {
+      var sopSeek = findSop(state.sopId);
+      var rect = seek.getBoundingClientRect();
+      player.t = Math.max(0, Math.min(sopSeek.video.durationSec, ((e.clientX - rect.left) / rect.width) * sopSeek.video.durationSec));
+      player.sceneTitle = null;
+      paintPlayer(sopSeek);
+      return;
+    }
+    if (e.target.id === "submitAssessment") {
+      var assessedSop = findSop(state.sopId);
+      var answers = assessedSop.assessment.questions.map(function (_, qi) {
+        var selected = main.querySelector('input[name="q' + qi + '"]:checked');
+        return selected ? Number(selected.value) : -1;
+      });
+      var correct = answers.filter(function (answer, qi) { return answer === assessedSop.assessment.questions[qi].correctIndex; }).length;
+      var score = Math.round((correct / answers.length) * 100);
+      var passed = score >= assessedSop.assessment.passPercent;
+      competencyResults[assessedSop.id] = { score: score, passed: passed, sopVersion: assessedSop.revision, attemptedAt: new Date().toISOString() };
+      localStorage.setItem("kiteline-sop-competency-v1", JSON.stringify(competencyResults));
+      recordEvidence(passed ? "competency.passed" : "competency.retraining_required", assessedSop, { score: score, answersComplete: answers.indexOf(-1) === -1 });
+      document.getElementById("assessmentResult").textContent = passed ? "Passed: " + score + "%. Manager sign-off may now be completed." : "Score: " + score + "%. Review this SOP and repeat the check.";
+      return;
+    }
+    if (e.target.id === "exportEvidence") {
+      var blob = new Blob([JSON.stringify({ schemaVersion: 1, exportedAt: new Date().toISOString(), records: evidenceLedger }, null, 2)], { type: "application/json" });
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "kiteline-sop-evidence-" + new Date().toISOString().slice(0, 10) + ".json";
+      link.click();
+      URL.revokeObjectURL(link.href);
+      return;
+    }
     if (e.target.id === "installBtn" && state.deferredPrompt) {
       state.deferredPrompt.prompt();
       state.deferredPrompt.userChoice.finally(function () {
@@ -461,6 +548,15 @@
       navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(function () {});
     });
   }
+
+  function updateNetworkStatus() {
+    if (!networkStatus) return;
+    networkStatus.hidden = navigator.onLine;
+    networkStatus.textContent = navigator.onLine ? "" : "Offline mode — saved SOPs and training remain available; updates resume when connected.";
+  }
+  window.addEventListener("online", updateNetworkStatus);
+  window.addEventListener("offline", updateNetworkStatus);
+  updateNetworkStatus();
 
   render();
 })();

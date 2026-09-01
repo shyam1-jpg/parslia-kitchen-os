@@ -19,4 +19,19 @@ const text = JSON.stringify(D).toLowerCase();
 ["haccp", "allergen", "brigade", "fifo", "natasha", "63", "commercial"].forEach((w) => {
   if (!text.includes(w)) throw new Error("Missing commercial keyword: " + w);
 });
-console.log("OK", D.sops.length, "commercial kitchen SOPs with short videos");
+if (text.includes("2 hours to 21") || text.includes("4 hours to 8")) throw new Error("US-style cooling limits remain");
+if (text.includes("14 allergens highlighted on the label")) throw new Error("Incomplete PPDS wording remains");
+D.sops.forEach((sop) => {
+  if (!sop.revision || !sop.effectiveDate || !sop.reviewDate) throw new Error(sop.id + " missing document control");
+  if (!sop.sections.some((section) => section.h === "Safety controls & escalation")) throw new Error(sop.id + " missing escalation controls");
+  if (!sop.assessment || sop.assessment.questions.length < 3 || sop.assessment.passPercent !== 100) throw new Error(sop.id + " missing competency assessment");
+  if (!sop.evidenceRequired || sop.evidenceRequired.length < 4) throw new Error(sop.id + " missing evidence rules");
+});
+const requiredAssets = ["index.html", "offline.html", "standalone.html", "app.js", "styles.css", "sw.js", "manifest.webmanifest"];
+requiredAssets.forEach((name) => { if (!fs.existsSync(__dirname + "/" + name)) throw new Error("Missing offline asset: " + name); });
+const app = fs.readFileSync(__dirname + "/app.js", "utf8");
+const sw = fs.readFileSync(__dirname + "/sw.js", "utf8");
+if (!app.includes("SpeechSynthesisUtterance") || !app.includes("completedAt")) throw new Error("Narration or completion tracking missing");
+if (!app.includes("competency.passed") || !app.includes("pendingSync") || !app.includes("Export offline evidence ledger")) throw new Error("Advanced competency or audit ledger missing");
+if (!sw.includes("offline.html") || !sw.includes("standalone.html") || !sw.includes("response.ok")) throw new Error("Offline strategy incomplete");
+console.log("OK", D.sops.length, "version-controlled UK SOPs with narration, completion and offline assets");

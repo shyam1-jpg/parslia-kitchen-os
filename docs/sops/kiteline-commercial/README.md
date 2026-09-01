@@ -2,7 +2,7 @@
 
 **Product:** Kiteline  
 **Audience:** Hotels, restaurants, catering, schools, and multi-site production kitchens  
-**Version:** 1.0  
+**Version:** 1.1
 **Effective date:** 31 August 2026  
 
 This pack is **commercial kitchen only**. It is not a home-cooking guide and it is not the Vedanta vegetarian SOP pack.
@@ -25,7 +25,7 @@ This pack is **commercial kitchen only**. It is not a home-cooking guide and it 
 | CK-11 | Knives & equipment | Safety |
 | CK-12 | Raw & ready-to-eat separation | Safety |
 
-Each SOP has a **short video briefing** (about one minute) in the pocket app.
+Each SOP has a **captioned animated briefing with optional British-English narration** (about one minute) in the pocket app. Completion is stored locally for offline use.
 
 ## Pocket app
 
@@ -56,5 +56,5 @@ Print `TRAINING-SIGN-OFF.md`. Every starter signs CK-00, CK-05, and CK-06.
 | Field | Value |
 |-------|--------|
 | Owner | Head chef / kitchen manager |
-| Review | Every 12 months, or after a menu or allergen change |
+| Review | 31 August 2027, or earlier after an incident, legal change, menu/allergen change or process change |
 | Brand | Kiteline |

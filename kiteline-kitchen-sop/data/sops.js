@@ -3,16 +3,19 @@ window.KITELINE_SOP_DATA = {
   company: "Kiteline",
   appName: "Kitchen SOP",
   tagline: "Professional commercial kitchen standards — brigade, HACCP, allergens, and close-down.",
-  version: "1.0",
+  version: "1.1",
+  effectiveDate: "31 August 2026",
+  reviewDate: "31 August 2027",
+  jurisdiction: "UK",
   audience: "Hotels, restaurants, catering, schools, and multi-site production kitchens",
   hardRules: [
     "This pack is for professional commercial kitchens only — not home cooking.",
     "Work in uniform: clean chef whites or branded kit, hair restrained, closed shoes, no jewellery on the line.",
     "Wash hands at the dedicated sink before food work, after raw protein, waste, chemicals, or leaving the kitchen.",
     "Keep raw and ready-to-eat (RTE) food, boards, knives, and cloths separate at all times.",
-    "Never guess a temperature — probe, wipe, and record. Core cook 75 °C / 82 °C for poultry where local policy requires.",
+    "Never guess a temperature — use a sanitised, calibrated probe and record the result. Follow the validated site HACCP cooking standard.",
     "Hot hold at 63 °C or above. Cold hold at 8 °C or below (5 °C target). Freezer −18 °C.",
-    "Label every container: name, allergens, prep date, use-by. Natasha’s Law applies to prepacked-for-direct-sale food.",
+    "Label internal containers with name, preparation/opening date and use-by. PPDS food needs the food name and full ingredients list with regulated allergens emphasised.",
     "Declare the 14 UK/EU allergens. If you are not sure, do not send the dish.",
     "FIFO — first in, first out. Quarantine damaged, unlabelled, or out-of-range deliveries.",
     "Stop the line and tell the chef or duty manager if a CCP fails, an allergen is wrong, or a guest is at risk."
@@ -179,7 +182,7 @@ window.KITELINE_SOP_DATA = {
           { t: 0, title: "Zones", line: "Raw bottom. RTE top. Allergens in sealed, named containers — never open bags on a high shelf." },
           { t: 12, title: "FIFO", line: "New stock behind old. Date-check every time you take a tray." },
           { t: 24, title: "Label", line: "Name, date prepped, use-by, allergens, chef initials. No mystery cambros." },
-          { t: 38, title: "Natasha’s Law", line: "PPDS food needs the 14 allergens highlighted on the label before it leaves the kitchen." },
+          { t: 38, title: "Natasha’s Law", line: "PPDS food needs its name and a full ingredients list, with every regulated allergen emphasised." },
           { t: 50, title: "Floor rule", line: "Nothing stored on the floor. 15 cm off the ground on racks." }
         ]
       },
@@ -198,7 +201,7 @@ window.KITELINE_SOP_DATA = {
           bullets: [
             "Dish or ingredient name as the guest will see it",
             "Prep date and use-by (follow site shelf-life table)",
-            "Allergens in bold / highlighted",
+            "For PPDS food: food name plus the full ingredients list, with regulated allergens emphasised within that list",
             "Initials of the person who prepped"
           ]
         },
@@ -261,7 +264,7 @@ window.KITELINE_SOP_DATA = {
         scenes: [
           { t: 0, title: "CCP", line: "A Critical Control Point is a step that stops people getting ill. You measure it. You write it." },
           { t: 12, title: "Cook", line: "Probe the thickest part. 75 °C for 30 seconds is the house cook standard unless the HACCP card says otherwise." },
-          { t: 26, title: "Cool", line: "From 63 °C to 8 °C as fast as possible — blast chiller preferred. Two-stage cooling: 2 hours to 21 °C, 4 hours to 8 °C max." },
+          { t: 26, title: "Cool", line: "Cool cooked food rapidly using the validated site HACCP method. Divide batches and use a blast chiller where provided; record time and temperature." },
           { t: 42, title: "Reheat", line: "Reheat once, to 75 °C. Never mix a new batch into an old bain." },
           { t: 54, title: "Hold", line: "Hot hold 63 °C+. If it drops, reheat or discard. Do not ‘just leave it’." }
         ]
@@ -536,3 +539,53 @@ window.KITELINE_SOP_DATA = {
     }
   ]
 };
+
+/* Version-controlled safety additions shared by the pocket app and offline copy. */
+(function (D) {
+  var additions = {
+    "ck-00": ["Report vomiting, diarrhoea, fever, infected wounds or a diagnosed food-borne illness before entering food areas; follow the site fitness-to-work and return-to-work procedure.", "SOP training never replaces site induction, risk assessments, COSHH assessments, equipment manuals or the site HACCP plan."],
+    "ck-01": ["Confirm fire exits, alarm points, emergency isolation controls and assembly-point information are accessible.", "If there is a gas smell, electrical damage, no potable water, refrigeration failure or pest evidence: stop, isolate the area where safe and escalate to the duty manager."],
+    "ck-02": ["Check traceability details, lot/batch codes and recall information; quarantine rejected stock away from accepted food.", "Use a clean sanitised between-pack probe method or a disinfected penetration probe according to the site HACCP plan."],
+    "ck-03": ["Keep recall and quarantined stock clearly marked and physically separated.", "Never invent a shelf life: use the validated site shelf-life table and supplier instructions."],
+    "ck-04": ["Record production start and finish times for batches where the HACCP or production plan requires them.", "Keep floors, escape routes and access to isolators clear throughout set-up."],
+    "ck-05": ["Cooling limits must come from the validated site HACCP plan; record start time, temperatures, finish time and corrective action.", "If a probe fails calibration or is damaged, remove it from use and repeat affected checks with a verified probe."],
+    "ck-06": ["Confirm every ingredient, substitute, garnish, cooking medium and shared-equipment risk against the current recipe and allergen matrix.", "Never promise ‘allergen-free’ where cross-contact cannot be controlled; explain the limitation and do not serve when safety is uncertain."],
+    "ck-07": ["Stop the pass immediately for an allergen mismatch, foreign body, unsafe temperature or suspected contamination; isolate the plate and record the incident.", "Returned food is never re-plated or re-served."],
+    "ck-08": ["Display wet-floor controls, clean spills immediately and keep food protected from chemical spray or splash.", "Never mix chemicals. Follow the label, safety data sheet, dilution, PPE and contact time; isolate damaged electrical cleaning equipment."],
+    "ck-09": ["Complete final gas, electrical, fryer, refrigeration, fire-exit, water, window and door checks using the site checklist.", "Report breakdowns and corrective actions before handover; never leave an unresolved refrigeration or fire-safety failure for the next shift."],
+    "ck-10": ["Complete a task-specific manual-handling assessment for heavy, hot, awkward or repeated loads; house weight guides do not replace assessment.", "Never carry a hot stockpot, full fryer vessel or heavy gastronorm without the correct aid and enough trained people."],
+    "ck-11": ["For a burn, cool under cool running water for 20 minutes, remove jewellery or clothing not stuck to skin, cover loosely and obtain appropriate first-aid or emergency help; do not apply creams or gels unless directed by the site first-aid procedure.", "Never use water on burning oil. Raise the alarm, isolate heat only if safe, evacuate and follow the site fire procedure."],
+    "ck-12": ["Separate people, equipment, storage, workflow and cleaning for raw and ready-to-eat work as required by the site HACCP assessment.", "After cross-contamination, discard affected ready-to-eat food, clean and disinfect, wash hands, change protective clothing and record corrective action."]
+  };
+  D.sops.forEach(function (sop) {
+    sop.revision = "1.1";
+    sop.effectiveDate = D.effectiveDate;
+    sop.reviewDate = D.reviewDate;
+    sop.sections.push({ h: "Safety controls & escalation", bullets: additions[sop.id] });
+  });
+
+  var competency = {
+    "ck-00": ["A team member reports vomiting before shift. What is the safe action?", ["Let them work away from the pass", "Stop food work and follow the fitness-to-work procedure", "Wear two pairs of gloves"], 1],
+    "ck-01": ["You smell gas during opening checks. What should happen?", ["Start extraction and continue", "Light equipment to test it", "Stop, keep ignition sources off, isolate only if safe and escalate"], 2],
+    "ck-02": ["A chilled delivery is outside the site acceptance limit. What should you do?", ["Quarantine or reject it and record the failure", "Put it in the freezer", "Accept it if the packaging looks clean"], 0],
+    "ck-03": ["What must a UK PPDS label include?", ["Only the 14 allergens", "Food name and full ingredients list with regulated allergens emphasised", "Preparation date only"], 1],
+    "ck-04": ["When should production times be recorded?", ["Only after a complaint", "Where required by the production plan or HACCP controls", "Never for batch work"], 1],
+    "ck-05": ["A probe fails calibration. What is the correct action?", ["Add two degrees to every result", "Remove it from use and repeat affected checks with a verified probe", "Use it only for cold food"], 1],
+    "ck-06": ["An ingredient substitution is not on the current allergen matrix. What should happen?", ["Serve it without garnish", "Ask the guest to decide", "Stop, verify every ingredient and update the controlled information before service"], 2],
+    "ck-07": ["The pass finds an allergen mismatch. What should happen?", ["Remove the garnish", "Stop, isolate, remake safely and record the incident", "Send it to another table"], 1],
+    "ck-08": ["Which chemical practice is safe?", ["Mix products for stronger cleaning", "Follow the label, SDS, dilution, PPE and contact time", "Spray beside uncovered food"], 1],
+    "ck-09": ["A refrigerator failure remains at close-down. What should you do?", ["Leave a note for tomorrow", "Move or condemn affected food, record action and escalate before leaving", "Turn the thermostat down and lock up"], 1],
+    "ck-10": ["A stockpot is hot, heavy and awkward. What is required?", ["A task assessment, correct aid and enough trained people", "One strong person", "Carry it faster"], 0],
+    "ck-11": ["What must never be used on burning oil?", ["The site alarm", "Water", "The site evacuation procedure"], 1],
+    "ck-12": ["Ready-to-eat food is contaminated by raw-food equipment. What should happen?", ["Rinse and serve", "Cook it later", "Discard it, clean and disinfect, wash hands and record corrective action"], 2]
+  };
+  D.sops.forEach(function (sop) {
+    var q = competency[sop.id];
+    sop.assessment = { passPercent: 100, questions: [
+      { prompt: q[0], options: q[1], correctIndex: q[2] },
+      { prompt: "If a safety control cannot be achieved, what is the correct response?", options: ["Continue and record it later", "Stop the task or service, make safe and escalate", "Ask an untrained colleague"], correctIndex: 1 },
+      { prompt: "What makes a compliance record useful?", options: ["Time, result, person, corrective action and controlled SOP version", "A tick without a name", "A verbal message only"], correctIndex: 0 }
+    ] };
+    sop.evidenceRequired = ["Training watched to completion", "Competency score 100%", "Staff and trainer sign-off", "Retraining due after revision or local review date"];
+  });
+})(window.KITELINE_SOP_DATA);

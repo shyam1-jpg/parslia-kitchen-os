@@ -1,7 +1,7 @@
 {
   "name": "Kiteline Kitchen SOP",
   "short_name": "Kitchen SOP",
-  "description": "Professional commercial kitchen SOPs and short training videos.",
+  "description": "Version-controlled UK commercial kitchen SOPs with narrated animated training and offline access.",
   "id": "/kitchen-sop/",
   "scope": "./",
   "start_url": "./",

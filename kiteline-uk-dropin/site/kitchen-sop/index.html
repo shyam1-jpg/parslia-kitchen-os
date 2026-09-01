@@ -14,13 +14,11 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="app" id="app">
+    <div class="network-status" id="networkStatus" role="status" aria-live="polite" hidden></div>
     <header class="topbar" id="topbar">
       <button type="button" class="icon-btn" id="backBtn" hidden aria-label="Back">←</button>
       <div class="topbar-text">

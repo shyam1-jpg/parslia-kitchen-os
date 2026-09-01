@@ -21,10 +21,12 @@ Open https://kiteline.uk/kitchen-sop/ then: Android Chrome → Add to Home scree
 ## What’s inside
 
 - **13 SOPs** CK-00 → CK-12: brigade, opening, goods-in, stores, mise en place, HACCP temps, allergens, pass, cleaning, close-down, lifting, knives, raw vs RTE
-- **Short video** on every SOP (50–65 second briefing, play/pause)
+- **Captioned animated training** on every SOP (50–65 seconds) with optional British-English device narration, seeking, voice control and offline completion status
 - **Videos tab** — sort by station: Hygiene, Stores, Line, Service, Safety, Close-down
 - House rules for the pass
-- Offline PWA after first open (scope `/kitchen-sop/`)
+- Offline PWA after the first successful online load, with an offline indicator, fallback page, versioned cache and locally stored completion status (scope `/kitchen-sop/`)
+- Three-question competency check for every controlled SOP, with a 100% safety pass mark and automatic retraining status
+- Offline-first, exportable evidence ledger carrying SOP version, timestamps, result and pending-sync state
 
 ## Local preview
 
@@ -33,7 +35,7 @@ cd kiteline-kitchen-sop
 python3 -m http.server 8766
 ```
 
-Open http://localhost:8766
+Open http://localhost:8766. `standalone.html` redirects to the current version-controlled pack so it cannot preserve obsolete safety content.
 
 To preview the Kiteline URL shape (`/kitchen-sop/`):
 

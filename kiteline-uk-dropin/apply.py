@@ -21,6 +21,8 @@ KEEP = {
     "styles.css",
     "sw.js",
     "manifest.webmanifest",
+    "offline.html",
+    "standalone.html",
 }
 
 ROUTE_BLOCK = """    // Kiteline Kitchen SOP (PWA under site/kitchen-sop/)

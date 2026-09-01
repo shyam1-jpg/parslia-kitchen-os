@@ -12,7 +12,7 @@ Sharp tools, slicers, and fryers in a commercial kitchen.
 - **Carry** — Blade down, by your side, announce ‘sharp’. Never in a busy corridor pointing forward.
 - **Machines** — Guards on. No loose cloths near a mixer. Isolate before you clean a slicer.
 - **Fryer** — Dry food only. Lower baskets slowly. Never throw ice or water into hot oil.
-- **Burns** — Cool running water 20 minutes. Burn gel. Tell the chef. Do not work a septic burn.
+- **Burns** — Cool under cool running water for 20 minutes, cover loosely and obtain appropriate first-aid or emergency help. Do not apply creams or gels unless directed by the site first-aid procedure.
 
 ## Knives
 
@@ -24,3 +24,4 @@ Sharp tools, slicers, and fryers in a commercial kitchen.
 
 Switch off, unplug or lock-out, and wait for moving parts to stop before cleaning. Only trained staff use the slicer, mincer, or buffalo chopper.
 
+Never use water on burning oil. Raise the alarm, isolate heat only if safe, evacuate and follow the site fire procedure.
