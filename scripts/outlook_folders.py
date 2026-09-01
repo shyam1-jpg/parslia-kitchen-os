@@ -24,10 +24,19 @@ PERSONAL_TXT = OUTLOOK_DIR / "personal-domains.txt"
 SAMPLE_INBOX = OUTLOOK_DIR / "sample-inbox.csv"
 SOURCE_FOLDERS = OUTLOOK_DIR / "source-folders.txt"
 PIN_CSV = OUTLOOK_DIR / "pin-to-top.csv"
+PEOPLE_CSV = OUTLOOK_DIR / "people.csv"
 PARENT_FOLDER = "Companies"
 OTHER_FOLDER = "Other companies"
+PEOPLE_FOLDER = "People"
+OTHER_PEOPLE = "Other people"
+ME_FOLDER = "Me"
+MAIL_FAILURES = "Mail failures"
+PEOPLE_PREFIX = "PEOPLE:"
+AUTO_PERSON_PREFIX = "PEOPLE:AUTO:"
 MIN_EMAILS_FOR_AUTO_FOLDER = 2
+MIN_EMAILS_FOR_PERSON_FOLDER = 2
 MAX_INBOX_RULES = 50
+MAIL_FAILURE_LOCALS = {"postmaster", "mailer-daemon", "mailerdaemon"}
 
 PUBLIC_SUFFIXES = {
     "co.uk",
@@ -52,6 +61,13 @@ EMAIL_RE = re.compile(r"([A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,})", re.I)
 class Company:
     folder: str
     domains: tuple[str, ...]
+    from_contains: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class Person:
+    folder: str
+    emails: tuple[str, ...]
     from_contains: tuple[str, ...]
 
 
@@ -134,6 +150,94 @@ def load_source_folder_ids(path: Path | None = None) -> list[str]:
         if line:
             ids.append(line)
     return ids
+
+
+def load_people(path: Path | None = None) -> list[Person]:
+    path = path or PEOPLE_CSV
+    if not path.exists():
+        return []
+    people: list[Person] = []
+    with path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            folder = (row.get("folder") or "").strip()
+            if not folder:
+                continue
+            emails = tuple(
+                e.strip().lower()
+                for e in (row.get("emails") or "").split(";")
+                if e.strip()
+            )
+            names = tuple(
+                n.strip()
+                for n in (row.get("from_contains") or "").split(";")
+                if n.strip()
+            )
+            people.append(Person(folder=folder, emails=emails, from_contains=names))
+    return people
+
+
+def people_group_name(folder: str) -> str:
+    return f"{PEOPLE_FOLDER} / {folder}"
+
+
+def is_mail_failure(email: str) -> bool:
+    local = (email or "").split("@", 1)[0].strip().lower()
+    local = local.strip("<> ")
+    if local in MAIL_FAILURE_LOCALS:
+        return True
+    return local.startswith("postmaster") or local.startswith("mailer-daemon")
+
+
+def safe_person_folder(from_name: str, from_email: str) -> str:
+    cleaned = re.sub(r"\s+", " ", (from_name or "").strip())
+    cleaned = re.sub(r'[\\/:*?"<>|]', "", cleaned)
+    if not cleaned or "@" in cleaned:
+        local = (from_email or "").split("@", 1)[0]
+        cleaned = re.sub(r"[._\-]+", " ", local).strip()
+        cleaned = re.sub(r"\s+", " ", cleaned)
+    if not cleaned:
+        return "Unknown"
+    if cleaned.islower() or cleaned.isupper():
+        cleaned = cleaned.title()
+    return cleaned[:64]
+
+
+def folder_from_known_person(from_name: str, from_email: str, people: list[Person]) -> str | None:
+    email = (from_email or "").strip().lower()
+    lowered = (from_name or "").lower()
+    for person in people:
+        if email and email in person.emails:
+            return person.folder
+        for needle in person.from_contains:
+            if needle and needle.lower() in lowered:
+                return person.folder
+    return None
+
+
+def classify_person(message: Message, people: list[Person] | None = None) -> SortResult:
+    people = people if people is not None else load_people()
+    email = (message.from_email or "").strip().lower()
+    if is_mail_failure(email):
+        return SortResult(folder=f"{PEOPLE_PREFIX}{MAIL_FAILURES}", reason="mail failure", domain="")
+    known = folder_from_known_person(message.from_name, email, people)
+    if known:
+        return SortResult(folder=f"{PEOPLE_PREFIX}{known}", reason=f"known person {known}", domain="")
+    if not email:
+        return SortResult(folder=f"{AUTO_PERSON_PREFIX}", reason="no sender", domain="")
+    return SortResult(folder=f"{AUTO_PERSON_PREFIX}{email}", reason="person", domain="")
+
+
+def resolve_auto_person_folder(
+    auto_key: str,
+    count: int,
+    sample_name: str,
+    min_person: int = MIN_EMAILS_FOR_PERSON_FOLDER,
+) -> str:
+    email = auto_key[len(AUTO_PERSON_PREFIX) :] if auto_key.startswith(AUTO_PERSON_PREFIX) else ""
+    if not email or count < min_person:
+        return OTHER_PEOPLE
+    return safe_person_folder(sample_name, email)
 
 
 def load_companies(path: Path | None = None) -> list[Company]:
@@ -277,19 +381,36 @@ def sort_messages(
     companies: list[Company] | None = None,
     personal: set[str] | None = None,
     min_auto: int = MIN_EMAILS_FOR_AUTO_FOLDER,
+    min_person: int = MIN_EMAILS_FOR_PERSON_FOLDER,
+    people: list[Person] | None = None,
 ) -> Preview:
     companies = companies if companies is not None else load_companies()
     personal = personal if personal is not None else load_personal_domains()
+    people = people if people is not None else load_people()
     mapping = domain_to_folder(companies)
     first_pass = [(msg, classify_message(msg, companies, personal, mapping)) for msg in messages]
 
     auto_counts: dict[str, int] = defaultdict(int)
-    for _, result in first_pass:
+    person_pass: list[tuple[Message, SortResult]] = []
+    auto_person_counts: dict[str, int] = defaultdict(int)
+    auto_person_names: dict[str, str] = {}
+    for message, result in first_pass:
         if result.folder and result.folder.startswith("AUTO:"):
             auto_counts[result.folder] += 1
+            person_pass.append((message, result))
+            continue
+        if result.folder:
+            person_pass.append((message, result))
+            continue
+        person = classify_person(message, people)
+        person_pass.append((message, person))
+        if person.folder and person.folder.startswith(AUTO_PERSON_PREFIX):
+            auto_person_counts[person.folder] += 1
+            if message.from_name and person.folder not in auto_person_names:
+                auto_person_names[person.folder] = message.from_name
 
     preview = Preview()
-    for message, result in first_pass:
+    for message, result in person_pass:
         folder = result.folder
         if folder and folder.startswith("AUTO:"):
             if auto_counts[folder] >= min_auto:
@@ -302,6 +423,18 @@ def sort_messages(
                     reason=result.reason + " (one-off company — Other companies)",
                     domain=result.domain,
                 )
+        elif folder and folder.startswith(AUTO_PERSON_PREFIX):
+            dest = resolve_auto_person_folder(
+                folder,
+                auto_person_counts[folder],
+                auto_person_names.get(folder, message.from_name),
+                min_person,
+            )
+            folder = people_group_name(dest)
+            result = SortResult(folder=folder, reason=result.reason, domain=result.domain)
+        elif folder and folder.startswith(PEOPLE_PREFIX):
+            folder = people_group_name(folder[len(PEOPLE_PREFIX) :])
+            result = SortResult(folder=folder, reason=result.reason, domain=result.domain)
         preview.reasons.append((message, result))
         if folder:
             preview.groups[folder].append(message)
@@ -349,7 +482,8 @@ def rules_cheat_sheet(companies: list[Company] | None = None) -> str:
         lines.append("  Stop processing more rules: Yes")
         lines.append("")
     lines.append(f"One-off company mail goes in Inbox / {PARENT_FOLDER} / {OTHER_FOLDER}.")
-    lines.append("Personal emails (Gmail, Hotmail friends, etc.) stay in Inbox.")
+    lines.append(f"Friends and family go in Inbox / {PEOPLE_FOLDER} (one folder per person).")
+    lines.append(f"One-off people go in Inbox / {PEOPLE_FOLDER} / {OTHER_PEOPLE}.")
     return "\n".join(lines) + "\n"
 
 
@@ -379,13 +513,24 @@ def render_preview_html(preview: Preview) -> str:
             html.escape(msg.subject),
         )
         for msg in preview.inbox
-    ) or "<li class='empty'>Inbox is clear of company mail.</li>"
+    ) or "<li class='empty'>Inbox is clear of leftover mail.</li>"
 
     filed = sum(len(v) for v in preview.groups.values())
-    tree = "".join(
+    people_prefix = f"{PEOPLE_FOLDER} / "
+    company_names = [name for name in preview.folder_names if not name.startswith(people_prefix)]
+    people_names = [name for name in preview.folder_names if name.startswith(people_prefix)]
+    people_filed = sum(len(preview.groups[name]) for name in people_names)
+    company_filed = filed - people_filed
+    company_tree = "".join(
         f'<li class="child">📁 {html.escape(name)} <span class="n">{len(preview.groups[name])}</span></li>'
-        for name in preview.folder_names
+        for name in company_names
     )
+    people_tree = "".join(
+        f'<li class="child">📁 {html.escape(name.split(" / ", 1)[-1])} '
+        f'<span class="n">{len(preview.groups[name])}</span></li>'
+        for name in people_names
+    )
+    tree = company_tree
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -476,17 +621,20 @@ def render_preview_html(preview: Preview) -> str:
   <div class="shell">
     <aside>
       <h1>Outlook</h1>
-      <div class="sub">Inbox · {PARENT_FOLDER} folders</div>
+      <div class="sub">Inbox · {PARENT_FOLDER} and {PEOPLE_FOLDER}</div>
       <ul class="tree">
         <li class="inbox">Inbox <span class="n">{len(preview.inbox)}</span></li>
         <li>📁 {html.escape(PARENT_FOLDER)}</li>
         {tree}
+        <li>📁 {html.escape(PEOPLE_FOLDER)}</li>
+        {people_tree}
       </ul>
     </aside>
     <main>
       <div class="banner">
-        <strong>{filed}</strong> company emails sit in company folders.
-        <strong>{len(preview.inbox)}</strong> personal emails stay in Inbox.
+        <strong>{company_filed}</strong> company emails sit in company folders.
+        <strong>{people_filed}</strong> people emails sit in {html.escape(PEOPLE_FOLDER)} folders.
+        <strong>{len(preview.inbox)}</strong> emails stay in Inbox.
         This picture is a sample. Your real Hotmail is filed by
         <code>FILE-ALL-EMAIL-FOLDERS.bat</code> after you sign in.
       </div>
@@ -516,6 +664,8 @@ def write_generated_files(
     summary = {
         "parent_folder": PARENT_FOLDER,
         "other_folder": OTHER_FOLDER,
+        "people_folder": PEOPLE_FOLDER,
+        "other_people": OTHER_PEOPLE,
         "folders": {name: len(preview.groups[name]) for name in preview.folder_names},
         "left_in_inbox": len(preview.inbox),
         "filed": sum(len(v) for v in preview.groups.values()),

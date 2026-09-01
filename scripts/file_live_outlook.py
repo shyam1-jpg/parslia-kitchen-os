@@ -22,16 +22,22 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from outlook_folders import (  # noqa: E402
+    AUTO_PERSON_PREFIX,
     OTHER_FOLDER,
     PARENT_FOLDER,
+    PEOPLE_FOLDER,
+    PEOPLE_PREFIX,
     Message,
     classify_message,
+    classify_person,
     domain_to_folder,
     load_companies,
+    load_people,
     load_personal_domains,
     load_pin_ranks,
     load_source_folder_ids,
     pinned_folder_name,
+    resolve_auto_person_folder,
     title_from_domain,
 )
 
@@ -62,6 +68,7 @@ SKIP_FOLDERS = {
     "draft",
     "infected items",
 }
+JUNK_FOLDER_NAMES = {"junk", "junk email", "junk e-mail", "clutter"}
 SCAN_WELLKNOWN = ("junkemail", "archive")
 
 
@@ -275,11 +282,15 @@ def skip_folder_name(name: str) -> bool:
     lowered = (name or "").strip().lower()
     if not lowered:
         return True
-    if lowered == PARENT_FOLDER.lower():
+    if lowered in {PARENT_FOLDER.lower(), PEOPLE_FOLDER.lower()}:
         return True
     if re.match(r"^\d{2} ", name or ""):
         return True
     return lowered in SKIP_FOLDERS
+
+
+def is_junk_folder(name: str) -> bool:
+    return (name or "").strip().lower() in JUNK_FOLDER_NAMES
 
 
 def collect_scan_folders(token: str) -> list[dict[str, Any]]:
@@ -336,11 +347,14 @@ def file_mailbox(token: str) -> dict[str, Any]:
         pass
     companies = load_companies()
     personal = load_personal_domains()
+    people = load_people()
     mapping = domain_to_folder(companies)
     scan_folders = collect_scan_folders(token)
 
     classified: list[tuple[str, str]] = []
     auto_counts: dict[str, int] = defaultdict(int)
+    auto_person_counts: dict[str, int] = defaultdict(int)
+    auto_person_names: dict[str, str] = {}
     inbox_stay = 0
     seen_ids: set[str] = set()
     scanned = 0
@@ -348,9 +362,11 @@ def file_mailbox(token: str) -> dict[str, Any]:
     for folder in scan_folders:
         if scanned >= MAX_ITEMS:
             break
-        if skip_folder_name(str(folder.get("displayName") or "")):
+        source_name = str(folder.get("displayName") or "")
+        if skip_folder_name(source_name):
             continue
-        log(f"Reading mail in {folder.get('displayName')}...")
+        skip_people = is_junk_folder(source_name)
+        log(f"Reading mail in {source_name}...")
         path = (
             f"/me/mailFolders/{enc(folder['id'])}/messages"
             f"?$select=id,from,sender,subject&$top=100"
@@ -364,40 +380,53 @@ def file_mailbox(token: str) -> dict[str, Any]:
                 continue
             seen_ids.add(mid)
             name, email = sender_of(msg)
-            result = classify_message(
-                Message(from_name=name, from_email=email, subject=str(msg.get("subject") or "")),
-                companies,
-                personal,
-                mapping,
+            parsed = Message(
+                from_name=name, from_email=email, subject=str(msg.get("subject") or "")
             )
+            result = classify_message(parsed, companies, personal, mapping)
             if not result.folder:
-                inbox_stay += 1
-                continue
+                if skip_people:
+                    inbox_stay += 1
+                    continue
+                result = classify_person(parsed, people)
             classified.append((mid, result.folder))
             if result.folder.startswith("AUTO:"):
                 auto_counts[result.folder] += 1
+            elif result.folder.startswith(AUTO_PERSON_PREFIX):
+                auto_person_counts[result.folder] += 1
+                if name and result.folder not in auto_person_names:
+                    auto_person_names[result.folder] = name
 
     auto_resolved: dict[str, str] = {}
     for key, count in auto_counts.items():
         domain = key.split(":", 1)[1]
         auto_resolved[key] = title_from_domain(domain) if count >= MIN_AUTO else OTHER_FOLDER
+    for key, count in auto_person_counts.items():
+        auto_resolved[key] = PEOPLE_PREFIX + resolve_auto_person_folder(
+            key, count, auto_person_names.get(key, ""), MIN_AUTO
+        )
 
     plan: dict[str, int] = defaultdict(int)
     destinations: list[tuple[str, str]] = []
     for mid, folder in classified:
         dest = auto_resolved.get(folder, folder)
-        dest = pinned_folder_name(dest)
+        if not dest.startswith(PEOPLE_PREFIX):
+            dest = pinned_folder_name(dest)
         destinations.append((mid, dest))
         plan[dest] += 1
 
+    people_plan = {name: n for name, n in plan.items() if name.startswith(PEOPLE_PREFIX)}
+    company_plan = {name: n for name, n in plan.items() if name not in people_plan}
     log(
-        f"Will file {len(destinations)} company emails into {len(plan)} folders; "
-        f"{inbox_stay} personal emails stay in Inbox"
+        f"Will file {sum(company_plan.values())} company emails into {len(company_plan)} folders "
+        f"and {sum(people_plan.values())} people emails into {len(people_plan)} folders; "
+        f"{inbox_stay} leftover (junk people mail stays)"
     )
     ranks = load_pin_ranks()
     pinned_names = {pinned_folder_name(name, ranks) for name in ranks}
     inbox = graph(token, "GET", "/me/mailFolders/inbox")
     parent = get_or_create_child(token, inbox["id"], PARENT_FOLDER)
+    people_parent = get_or_create_child(token, inbox["id"], PEOPLE_FOLDER)
     inbox_children = {
         str(child.get("displayName")): child
         for child in graph_paged(
@@ -410,8 +439,16 @@ def file_mailbox(token: str) -> dict[str, Any]:
             token, f"/me/mailFolders/{enc(parent['id'])}/childFolders?$top=100"
         )
     }
+    people_children = {
+        str(child.get("displayName")): child
+        for child in graph_paged(
+            token, f"/me/mailFolders/{enc(people_parent['id'])}/childFolders?$top=100"
+        )
+    }
 
     def lookup_existing(name: str) -> dict[str, Any] | None:
+        if name.startswith(PEOPLE_PREFIX):
+            return people_children.get(name[len(PEOPLE_PREFIX) :])
         bare = name.split(" ", 1)[-1] if name[:3].isdigit() and name[2:3] == " " else name
         for pool in (inbox_children, company_children):
             if name in pool:
@@ -425,6 +462,32 @@ def file_mailbox(token: str) -> dict[str, Any]:
         found = lookup_existing(name)
         if found:
             folder_objects[name] = found
+            continue
+        if name.startswith(PEOPLE_PREFIX):
+            display = name[len(PEOPLE_PREFIX) :]
+            try:
+                created = graph(
+                    token,
+                    "POST",
+                    f"/me/mailFolders/{enc(people_parent['id'])}/childFolders",
+                    {"displayName": display},
+                )
+            except RuntimeError as exc:
+                log(f"Could not create {PEOPLE_FOLDER} / {display}: {exc}")
+                other = lookup_existing(PEOPLE_PREFIX + "Other people")
+                if not other:
+                    other = graph(
+                        token,
+                        "POST",
+                        f"/me/mailFolders/{enc(people_parent['id'])}/childFolders",
+                        {"displayName": "Other people"},
+                    )
+                    people_children["Other people"] = other
+                folder_objects[name] = other
+                continue
+            folder_objects[name] = created
+            people_children[display] = created
+            log(f"Created folder {PEOPLE_FOLDER} / {display}")
             continue
         parent_id = inbox["id"] if name in pinned_names else parent["id"]
         created = graph(
@@ -536,10 +599,13 @@ def file_mailbox(token: str) -> dict[str, Any]:
         "emails_moved": moved,
         "move_failures": failed,
         "left_in_inbox_people": inbox_stay,
+        "people_emails_moved": sum(people_plan.values()),
+        "people_folders": len(people_plan),
         "rules_added": rule_created,
         "rules_skipped": rule_skipped,
         "folder_counts": dict(sorted(plan.items(), key=lambda kv: kv[0].lower())),
         "parent_folder": f"Inbox / {PARENT_FOLDER}",
+        "people_folder": f"Inbox / {PEOPLE_FOLDER}",
     }
     RESULT_PATH.parent.mkdir(parents=True, exist_ok=True)
     RESULT_PATH.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")

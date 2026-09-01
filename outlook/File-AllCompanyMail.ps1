@@ -1,6 +1,6 @@
-# Files ALL company mail in Hotmail / Outlook on the web (outlook.live.com).
+# Files ALL company and people mail in Hotmail / Outlook on the web (outlook.live.com).
 # Sign in when the code appears. Folders appear on the LEFT in Outlook.
-# Friends and family stay in Inbox.
+# Friends and family go under Inbox\People.
 
 [CmdletBinding()]
 param(
@@ -35,7 +35,7 @@ $publicSuffixes = @(
 $skipFolderNames = @(
     "Drafts", "Sent Items", "Deleted Items", "Junk Email", "Outbox",
     "Conversation History", "RSS Feeds", "Sync Issues", "Notes",
-    "Junk", "Sent", "Deleted", "Draft"
+    "Junk", "Sent", "Deleted", "Draft", "People", "Companies"
 )
 
 function Write-Step([string]$text) { Write-Host $text }
@@ -482,7 +482,8 @@ if ($failed -gt 0) { Write-Host ("  Move failures: {0}" -f $failed) }
 Write-Host ("  Rules added:   {0}  (already existed / skipped: {1})" -f $ruleCreated, $ruleSkipped)
 Write-Host ""
 Write-Host "Open https://outlook.live.com/mail/ and look LEFT."
-Write-Host "Inbox → Companies → GitHub, Cursor, Apple, Google, Brakes, ..."
+Write-Host "Inbox → 01 Apple, 02 Google, 03 GitHub, 04 Cursor"
+Write-Host "Inbox → Companies → other firms"
+Write-Host "Inbox → People → friends, family, Me"
 Write-Host "Refresh the page if the new folders are not listed yet."
-Write-Host "Friends stay in Inbox."
 Write-Host ""

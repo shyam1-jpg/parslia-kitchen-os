@@ -260,4 +260,5 @@ Rule: File → BT
   Stop processing more rules: Yes
 
 One-off company mail goes in Inbox / Companies / Other companies.
-Personal emails (Gmail, Hotmail friends, etc.) stay in Inbox.
+Friends and family go in Inbox / People (one folder per person).
+One-off people go in Inbox / People / Other people.

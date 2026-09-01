@@ -8,18 +8,27 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from outlook_folders import (
+    MAIL_FAILURES,
+    ME_FOLDER,
     OTHER_FOLDER,
+    OTHER_PEOPLE,
     PARENT_FOLDER,
+    PEOPLE_FOLDER,
+    PEOPLE_PREFIX,
     Message,
     classify_message,
+    classify_person,
     domain_to_folder,
     extract_domain,
     load_companies,
     load_messages_csv,
+    load_people,
     load_personal_domains,
     load_source_folder_ids,
+    people_group_name,
     registrable_domain,
     rules_cheat_sheet,
+    safe_person_folder,
     sort_messages,
     title_from_domain,
     write_generated_files,
@@ -77,7 +86,7 @@ class MappingTests(unittest.TestCase):
             )
             self.assertEqual(result.folder, folder, address)
 
-    def test_personal_stays_in_inbox(self):
+    def test_personal_is_not_a_company_folder(self):
         for address in (
             "family.member@gmail.com",
             "mate@hotmail.co.uk",
@@ -103,8 +112,44 @@ class MappingTests(unittest.TestCase):
         self.assertEqual(result.folder, "GitHub")
 
 
+class PeopleTests(unittest.TestCase):
+    def test_known_people_and_mail_failures(self):
+        people = load_people()
+        me = classify_person(Message("shyam prasad", "shyam_1@hotmail.co.uk", "note"), people)
+        self.assertEqual(me.folder, f"{PEOPLE_PREFIX}{ME_FOLDER}")
+        fail = classify_person(Message("Microsoft Outlook", "postmaster@outlook.com", "Undeliverable"), people)
+        self.assertEqual(fail.folder, f"{PEOPLE_PREFIX}{MAIL_FAILURES}")
+        david = classify_person(
+            Message("david metcalfe", "davidjohnmetcalfe@yahoo.com", "hi"), people
+        )
+        self.assertEqual(david.folder, f"{PEOPLE_PREFIX}David Metcalfe")
+
+    def test_person_folder_names_are_readable(self):
+        self.assertEqual(safe_person_folder("david metcalfe", "x@gmail.com"), "David Metcalfe")
+        self.assertEqual(safe_person_folder("DAJANI JEGAN", "x@gmail.com"), "Dajani Jegan")
+        self.assertEqual(safe_person_folder("Ask Ganesha", "x@gmail.com"), "Ask Ganesha")
+        self.assertEqual(safe_person_folder("", "anna.metcalfe@gmail.com"), "Anna Metcalfe")
+
+    def test_two_emails_from_same_person_get_a_named_folder(self):
+        messages = [
+            Message("Anna Metcalfe", "anna.m@gmail.com", "Hi"),
+            Message("Anna Metcalfe", "anna.m@gmail.com", "Sunday"),
+            Message("Once", "once.friend@yahoo.com", "yo"),
+        ]
+        preview = sort_messages(messages)
+        self.assertEqual(
+            [m.from_email for m in preview.groups[people_group_name("Anna Metcalfe")]],
+            ["anna.m@gmail.com", "anna.m@gmail.com"],
+        )
+        self.assertEqual(
+            [m.from_email for m in preview.groups[people_group_name(OTHER_PEOPLE)]],
+            ["once.friend@yahoo.com"],
+        )
+        self.assertEqual(preview.inbox, [])
+
+
 class SortTests(unittest.TestCase):
-    def test_sample_inbox_files_companies_and_keeps_people(self):
+    def test_sample_inbox_files_companies_and_people(self):
         preview = sort_messages(load_messages_csv())
         self.assertGreaterEqual(len(preview.groups["GitHub"]), 3)
         self.assertGreaterEqual(len(preview.groups["Cursor"]), 2)
@@ -115,11 +160,14 @@ class SortTests(unittest.TestCase):
         self.assertIn("HMRC", preview.groups)
         self.assertIn("Barclays", preview.groups)
         self.assertIn("NHS", preview.groups)
-        inbox_emails = {m.from_email for m in preview.inbox}
-        self.assertIn("family.member@gmail.com", inbox_emails)
-        self.assertIn("mate@hotmail.co.uk", inbox_emails)
+        people_other = preview.groups[people_group_name(OTHER_PEOPLE)]
+        people_emails = {m.from_email for m in people_other}
+        self.assertIn("family.member@gmail.com", people_emails)
+        self.assertIn("mate@hotmail.co.uk", people_emails)
         self.assertTrue(any("oneoffspam" in m.from_email for m in preview.groups[OTHER_FOLDER]))
+        inbox_emails = {m.from_email for m in preview.inbox}
         self.assertNotIn("deals@oneoffspam.example", inbox_emails)
+        self.assertNotIn("family.member@gmail.com", inbox_emails)
         self.assertIn("Freshbeans", preview.groups)
         self.assertEqual(len(preview.groups["Freshbeans"]), 2)
 
@@ -131,7 +179,11 @@ class SortTests(unittest.TestCase):
         preview = sort_messages(messages)
         self.assertNotIn("Once", preview.groups)
         self.assertEqual([m.from_email for m in preview.groups[OTHER_FOLDER]], ["a@once.example"])
-        self.assertEqual([m.from_email for m in preview.inbox], ["mum@gmail.com"])
+        self.assertEqual(
+            [m.from_email for m in preview.groups[people_group_name(OTHER_PEOPLE)]],
+            ["mum@gmail.com"],
+        )
+        self.assertEqual(preview.inbox, [])
 
     def test_two_unknown_same_company_create_folder(self):
         messages = [
@@ -142,16 +194,9 @@ class SortTests(unittest.TestCase):
         self.assertEqual(list(preview.groups), ["Freshbeans"])
         self.assertEqual(preview.inbox, [])
 
-    def test_all_company_mail_leaves_inbox(self):
+    def test_sample_inbox_is_cleared_into_folders(self):
         preview = sort_messages(load_messages_csv())
-        for message in preview.inbox:
-            domain = message.from_email.rsplit("@", 1)[-1]
-            self.assertTrue(
-                domain in {"gmail.com", "hotmail.co.uk", "outlook.com", "icloud.com"}
-                or "gmail" in domain
-                or "hotmail" in domain,
-                msg=f"company mail left in inbox: {message.from_email}",
-            )
+        self.assertEqual(preview.inbox, [])
 
 
 class ExportTests(unittest.TestCase):
@@ -165,6 +210,8 @@ class ExportTests(unittest.TestCase):
         self.assertIn("File → Google", text)
         self.assertIn(f"Move to folder: Inbox / {PARENT_FOLDER} /", text)
         self.assertIn(OTHER_FOLDER, text)
+        self.assertIn(PEOPLE_FOLDER, text)
+        self.assertIn(OTHER_PEOPLE, text)
 
     def test_write_preview_files(self):
         paths = write_generated_files()
@@ -210,6 +257,7 @@ class OpenMeTests(unittest.TestCase):
         self.assertIn("FILE-ALL-EMAIL-FOLDERS.bat", html)
         self.assertIn("outlook.live.com", html)
         self.assertIn("shyam_1@hotmail.co.uk", html)
+        self.assertIn("People", html)
 
     def test_one_click_bat_exists(self):
         root = Path(__file__).resolve().parents[1]

@@ -1,6 +1,8 @@
 {
   "parent_folder": "Companies",
   "other_folder": "Other companies",
+  "people_folder": "People",
+  "other_people": "Other people",
   "folders": {
     "Amazon": 1,
     "Apple": 2,
@@ -21,16 +23,14 @@
     "OpenAI": 1,
     "Other companies": 1,
     "PayPal": 1,
+    "People / Other people": 2,
     "RoyalMail": 1,
     "Stripe": 1,
     "Vedanta": 1
   },
-  "left_in_inbox": 2,
-  "filed": 29,
-  "inbox_subjects": [
-    "Are you coming Sunday?",
-    "See you after shift"
-  ],
+  "left_in_inbox": 0,
+  "filed": 31,
+  "inbox_subjects": [],
   "source_folder_ids": [
     "AQMkADAwATZiZmYAZC1hMDYzLWExNmQtMDACLTAwCgAuAAADiEv2l+AK0EaTAOdRsYr5vAEAikQfPHlIwUG3S+T9livOIAAGukJK2QAAAA=="
   ]

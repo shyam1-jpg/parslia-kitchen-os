@@ -19,7 +19,9 @@ File the live mailbox
 3. Sign in as shyam_1@hotmail.co.uk
 4. Press Y
 5. Refresh https://outlook.live.com/mail/
-6. Look LEFT: Inbox → Companies → GitHub, Cursor, Apple, …
+6. Look LEFT: Inbox → 01 Apple, 02 Google, 03 GitHub, 04 Cursor
+   Inbox → Companies (other firms)
+   Inbox → People (friends, family, your own mail)
 
 If one email fills the whole page:
   Outlook → View → Folder Pane → Normal
@@ -38,7 +40,10 @@ Every company in the mailbox gets a folder:
 
 Unknown firms with several emails get their own folder.
 One-off shops go in  Other companies.
-Friends and family stay in Inbox.
+Friends and family go in Inbox → People (one folder each).
+One-off people go in  Other people.
+Your own copies go in  Me.
+Failed deliveries go in  Mail failures.
 
 
 Classic Outlook only

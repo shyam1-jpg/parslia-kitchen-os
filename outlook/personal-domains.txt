@@ -1,4 +1,4 @@
-# Personal inboxes — leave these in Inbox (friends and family).
+# Personal inboxes — file these into People folders (friends and family).
 gmail.com
 googlemail.com
 hotmail.com
