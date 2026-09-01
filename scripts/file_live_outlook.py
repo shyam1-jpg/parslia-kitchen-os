@@ -202,6 +202,33 @@ def poll_device_login() -> dict[str, Any]:
     return auth
 
 
+def refresh_access_token(auth: dict[str, Any]) -> dict[str, Any]:
+    refresh = auth.get("refresh_token")
+    if not refresh:
+        raise RuntimeError("No refresh token. Run start again.")
+    tenant = auth.get("tenant") or "consumers"
+    token = _json_request(
+        "POST",
+        f"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
+        form={
+            "grant_type": "refresh_token",
+            "client_id": CLIENT_ID,
+            "refresh_token": refresh,
+            "scope": SCOPES,
+        },
+    )
+    auth.update(
+        {
+            "status": "ready",
+            "access_token": token["access_token"],
+            "refresh_token": token.get("refresh_token") or refresh,
+            "token_obtained_at": time.time(),
+        }
+    )
+    save_auth(auth)
+    return auth
+
+
 def graph(token: str, method: str, path: str, data: dict[str, Any] | None = None) -> Any:
     url = path if path.startswith("http") else f"{GRAPH}{path}"
     return _json_request(method, url, data=data, token=token)
@@ -558,9 +585,17 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     record = poll_device_login()
-    if record.get("status") != "ready":
+    if record.get("status") != "ready" or not record.get("access_token"):
         print(json.dumps({"status": record.get("status"), "error": "not signed in"}, indent=2))
         return 3
+    try:
+        graph(record["access_token"], "GET", "/me/mailFolders/inbox")
+    except RuntimeError as exc:
+        if "InvalidAuthenticationToken" in str(exc) or "401" in str(exc):
+            log("Refreshing Hotmail access...")
+            record = refresh_access_token(record)
+        else:
+            raise
     if args.command == "pin":
         result = pin_important_folders(record["access_token"])
         print(json.dumps(result, indent=2))
