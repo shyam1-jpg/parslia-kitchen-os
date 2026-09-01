@@ -61,6 +61,10 @@ SKIP_FOLDERS = {
 }
 
 
+def log(message: str) -> None:
+    print(message, flush=True)
+
+
 def _json_request(
     method: str,
     url: str,
@@ -80,21 +84,28 @@ def _json_request(
     elif data is not None:
         body = json.dumps(data).encode()
         headers["Content-Type"] = "application/json"
-    req = urllib.request.Request(url, data=body, method=method, headers=headers)
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            raw = resp.read()
-            if not raw:
-                return {}
-            return json.loads(raw.decode())
-    except urllib.error.HTTPError as exc:
-        payload = exc.read().decode("utf-8", errors="replace")
+    last_error: RuntimeError | None = None
+    for attempt in range(6):
+        req = urllib.request.Request(url, data=body, method=method, headers=headers)
         try:
-            parsed = json.loads(payload)
-        except json.JSONDecodeError:
-            parsed = {"raw": payload}
-        error = {**parsed, "_http_status": exc.code, "_url": url}
-        raise RuntimeError(json.dumps(error)) from exc
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                raw = resp.read()
+                if not raw:
+                    return {}
+                return json.loads(raw.decode())
+        except urllib.error.HTTPError as exc:
+            payload = exc.read().decode("utf-8", errors="replace")
+            try:
+                parsed = json.loads(payload)
+            except json.JSONDecodeError:
+                parsed = {"raw": payload}
+            error = {**parsed, "_http_status": exc.code, "_url": url}
+            last_error = RuntimeError(json.dumps(error))
+            if exc.code in {429, 503, 504} and attempt < 5:
+                time.sleep(min(30, 2 ** attempt))
+                continue
+            raise last_error from exc
+    raise last_error or RuntimeError("request failed")
 
 
 def save_auth(payload: dict[str, Any]) -> None:
@@ -242,21 +253,20 @@ def collect_scan_folders(token: str) -> list[dict[str, Any]]:
     inbox = graph(token, "GET", "/me/mailFolders/inbox")
     folders = [inbox]
     seen = {inbox["id"]}
+    log(f"Inbox has {inbox.get('totalItemCount', '?')} items")
     for folder_id in load_source_folder_ids():
         try:
             extra = graph(token, "GET", f"/me/mailFolders/{enc(folder_id)}")
-        except RuntimeError:
+        except RuntimeError as exc:
+            log(f"Linked folder not readable: {exc}")
             continue
         if extra.get("id") and extra["id"] not in seen:
             folders.append(extra)
             seen.add(extra["id"])
-    for folder in graph_paged(token, "/me/mailFolders?$top=100"):
-        name = str(folder.get("displayName") or "")
-        fid = folder.get("id")
-        if not fid or fid in seen or skip_folder_name(name):
-            continue
-        folders.append(folder)
-        seen.add(fid)
+            log(
+                f"Also scanning {extra.get('displayName')} "
+                f"({extra.get('totalItemCount', '?')} items)"
+            )
     return folders
 
 
@@ -284,12 +294,14 @@ def file_mailbox(token: str) -> dict[str, Any]:
             break
         if skip_folder_name(str(folder.get("displayName") or "")):
             continue
+        log(f"Reading mail in {folder.get('displayName')}...")
         path = (
             f"/me/mailFolders/{enc(folder['id'])}/messages"
-            f"?$select=id,from,sender,subject&$top=50"
+            f"?$select=id,from,sender,subject&$top=100"
         )
         messages = graph_paged(token, path, limit=max(0, MAX_ITEMS - scanned))
         scanned += len(messages)
+        log(f"  read {len(messages)} messages (total {scanned})")
         for msg in messages:
             mid = msg.get("id")
             if not mid or mid in seen_ids:
@@ -321,25 +333,80 @@ def file_mailbox(token: str) -> dict[str, Any]:
         destinations.append((mid, dest))
         plan[dest] += 1
 
+    log(
+        f"Will file {len(destinations)} company emails into {len(plan)} folders; "
+        f"{inbox_stay} personal emails stay in Inbox"
+    )
     inbox = graph(token, "GET", "/me/mailFolders/inbox")
     parent = get_or_create_child(token, inbox["id"], PARENT_FOLDER)
+    existing_children = {
+        str(child.get("displayName")): child
+        for child in graph_paged(
+            token, f"/me/mailFolders/{enc(parent['id'])}/childFolders?$top=100"
+        )
+    }
     folder_objects: dict[str, dict[str, Any]] = {}
-    needed = set(plan) | {row.folder for row in companies}
-    for name in sorted(needed, key=str.lower):
-        folder_objects[name] = get_or_create_child(token, parent["id"], name)
+    for name in sorted(plan, key=str.lower):
+        if name in existing_children:
+            folder_objects[name] = existing_children[name]
+            continue
+        created = graph(
+            token,
+            "POST",
+            f"/me/mailFolders/{enc(parent['id'])}/childFolders",
+            {"displayName": name},
+        )
+        folder_objects[name] = created
+        existing_children[name] = created
+        log(f"Created folder {name}")
 
     moved = 0
     failed = 0
-    for mid, dest in destinations:
-        target = folder_objects.get(dest)
-        if not target:
-            failed += 1
+    batch_size = 20
+    for start in range(0, len(destinations), batch_size):
+        chunk = destinations[start : start + batch_size]
+        requests = []
+        for index, (mid, dest) in enumerate(chunk):
+            target = folder_objects.get(dest)
+            if not target:
+                failed += 1
+                continue
+            requests.append(
+                {
+                    "id": str(index + 1),
+                    "method": "POST",
+                    "url": f"/me/messages/{enc(mid)}/move",
+                    "headers": {"Content-Type": "application/json"},
+                    "body": {"destinationId": target["id"]},
+                }
+            )
+        if not requests:
             continue
         try:
-            graph(token, "POST", f"/me/messages/{enc(mid)}/move", {"destinationId": target["id"]})
-            moved += 1
+            batch = graph(token, "POST", "/$batch", {"requests": requests})
+            for item in batch.get("responses") or []:
+                status = int(item.get("status") or 0)
+                if 200 <= status < 300:
+                    moved += 1
+                else:
+                    failed += 1
         except RuntimeError:
-            failed += 1
+            for mid, dest in chunk:
+                target = folder_objects.get(dest)
+                if not target:
+                    failed += 1
+                    continue
+                try:
+                    graph(
+                        token,
+                        "POST",
+                        f"/me/messages/{enc(mid)}/move",
+                        {"destinationId": target["id"]},
+                    )
+                    moved += 1
+                except RuntimeError:
+                    failed += 1
+        log(f"Moved {moved}/{len(destinations)} emails...")
 
     rule_created = 0
     rule_skipped = 0
