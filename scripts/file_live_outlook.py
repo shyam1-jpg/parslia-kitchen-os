@@ -45,7 +45,7 @@ GRAPH = "https://graph.microsoft.com/v1.0"
 AUTH_PATH = Path("/tmp/outlook-graph-auth.json")
 RESULT_PATH = Path("/opt/cursor/artifacts/live-outlook-file-result.json")
 MAX_ITEMS = 12000
-MIN_AUTO = 1
+MIN_AUTO = 2
 MAX_RULES = 50
 SKIP_FOLDERS = {
     "drafts",
