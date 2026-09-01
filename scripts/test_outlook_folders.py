@@ -189,12 +189,14 @@ class PinTests(unittest.TestCase):
         ranks = load_pin_ranks()
         self.assertEqual(pinned_folder_name("Apple", ranks), "01 Apple")
         self.assertEqual(pinned_folder_name("Google", ranks), "02 Google")
-        self.assertEqual(pinned_folder_name("GoDaddy", ranks), "03 GoDaddy")
+        self.assertEqual(pinned_folder_name("GitHub", ranks), "03 GitHub")
+        self.assertEqual(pinned_folder_name("Cursor", ranks), "04 Cursor")
+        self.assertEqual(pinned_folder_name("GoDaddy", ranks), "05 GoDaddy")
         self.assertTrue(pinned_folder_name("Apple", ranks) < pinned_folder_name("Google", ranks))
         self.assertTrue(pinned_folder_name("Apple", ranks) < "Amazon")
         self.assertEqual(pinned_folder_name("Freshbeans", ranks), "Freshbeans")
         order = [pinned_folder_name(name, ranks) for name, _ in sorted(ranks.items(), key=lambda item: item[1])]
-        self.assertEqual(order[:3], ["01 Apple", "02 Google", "03 GoDaddy"])
+        self.assertEqual(order[:4], ["01 Apple", "02 Google", "03 GitHub", "04 Cursor"])
 
 
 class OpenMeTests(unittest.TestCase):

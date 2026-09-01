@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import time
 import urllib.error
@@ -44,13 +45,12 @@ GRAPH = "https://graph.microsoft.com/v1.0"
 AUTH_PATH = Path("/tmp/outlook-graph-auth.json")
 RESULT_PATH = Path("/opt/cursor/artifacts/live-outlook-file-result.json")
 MAX_ITEMS = 12000
-MIN_AUTO = 2
+MIN_AUTO = 1
 MAX_RULES = 50
 SKIP_FOLDERS = {
     "drafts",
     "sent items",
     "deleted items",
-    "junk email",
     "outbox",
     "conversation history",
     "rss feeds",
@@ -60,7 +60,9 @@ SKIP_FOLDERS = {
     "sent",
     "deleted",
     "draft",
+    "infected items",
 }
+SCAN_WELLKNOWN = ("junkemail", "archive")
 
 
 def log(message: str) -> None:
@@ -275,6 +277,8 @@ def skip_folder_name(name: str) -> bool:
         return True
     if lowered == PARENT_FOLDER.lower():
         return True
+    if re.match(r"^\d{2} ", name or ""):
+        return True
     return lowered in SKIP_FOLDERS
 
 
@@ -296,6 +300,29 @@ def collect_scan_folders(token: str) -> list[dict[str, Any]]:
                 f"Also scanning {extra.get('displayName')} "
                 f"({extra.get('totalItemCount', '?')} items)"
             )
+    for wellknown in SCAN_WELLKNOWN:
+        try:
+            extra = graph(token, "GET", f"/me/mailFolders/{wellknown}")
+        except RuntimeError:
+            continue
+        if extra.get("id") and extra["id"] not in seen:
+            folders.append(extra)
+            seen.add(extra["id"])
+            log(
+                f"Also scanning {extra.get('displayName')} "
+                f"({extra.get('totalItemCount', '?')} items)"
+            )
+    roots = graph_paged(token, "/me/mailFolders?$top=50")
+    for extra in roots:
+        name = str(extra.get("displayName") or "")
+        fid = extra.get("id")
+        if not fid or fid in seen or skip_folder_name(name):
+            continue
+        if int(extra.get("totalItemCount") or 0) < 1:
+            continue
+        folders.append(extra)
+        seen.add(fid)
+        log(f"Also scanning {name} ({extra.get('totalItemCount', '?')} items)")
     return folders
 
 
@@ -367,31 +394,50 @@ def file_mailbox(token: str) -> dict[str, Any]:
         f"Will file {len(destinations)} company emails into {len(plan)} folders; "
         f"{inbox_stay} personal emails stay in Inbox"
     )
+    ranks = load_pin_ranks()
+    pinned_names = {pinned_folder_name(name, ranks) for name in ranks}
     inbox = graph(token, "GET", "/me/mailFolders/inbox")
     parent = get_or_create_child(token, inbox["id"], PARENT_FOLDER)
-    existing_children = {
+    inbox_children = {
+        str(child.get("displayName")): child
+        for child in graph_paged(
+            token, f"/me/mailFolders/{enc(inbox['id'])}/childFolders?$top=100"
+        )
+    }
+    company_children = {
         str(child.get("displayName")): child
         for child in graph_paged(
             token, f"/me/mailFolders/{enc(parent['id'])}/childFolders?$top=100"
         )
     }
+
+    def lookup_existing(name: str) -> dict[str, Any] | None:
+        bare = name.split(" ", 1)[-1] if name[:3].isdigit() and name[2:3] == " " else name
+        for pool in (inbox_children, company_children):
+            if name in pool:
+                return pool[name]
+            if bare in pool:
+                return pool[bare]
+        return None
+
     folder_objects: dict[str, dict[str, Any]] = {}
     for name in sorted(plan, key=str.lower):
-        found = existing_children.get(name)
-        if not found:
-            bare = name.split(" ", 1)[-1] if name[:3].isdigit() and name[2:3] == " " else name
-            found = existing_children.get(bare)
+        found = lookup_existing(name)
         if found:
             folder_objects[name] = found
             continue
+        parent_id = inbox["id"] if name in pinned_names else parent["id"]
         created = graph(
             token,
             "POST",
-            f"/me/mailFolders/{enc(parent['id'])}/childFolders",
+            f"/me/mailFolders/{enc(parent_id)}/childFolders",
             {"displayName": name},
         )
         folder_objects[name] = created
-        existing_children[name] = created
+        if name in pinned_names:
+            inbox_children[name] = created
+        else:
+            company_children[name] = created
         log(f"Created folder {name}")
 
     moved = 0
@@ -503,38 +549,78 @@ def file_mailbox(token: str) -> dict[str, Any]:
 def pin_important_folders(token: str) -> dict[str, Any]:
     ranks = load_pin_ranks()
     inbox = graph(token, "GET", "/me/mailFolders/inbox")
-    parent = get_or_create_child(token, inbox["id"], PARENT_FOLDER)
-    children = graph_paged(
-        token, f"/me/mailFolders/{enc(parent['id'])}/childFolders?$top=100"
+    companies = get_or_create_child(token, inbox["id"], PARENT_FOLDER)
+    inbox_children = graph_paged(
+        token, f"/me/mailFolders/{enc(inbox['id'])}/childFolders?$top=100"
     )
-    by_name = {str(child.get("displayName") or ""): child for child in children}
+    company_children = graph_paged(
+        token, f"/me/mailFolders/{enc(companies['id'])}/childFolders?$top=100"
+    )
+    all_children = inbox_children + company_children
+
+    def find_folder(folder: str) -> dict[str, Any] | None:
+        wanted = {folder, pinned_folder_name(folder, ranks)}
+        wanted.update(f"{n:02d} {folder}" for n in range(1, 40))
+        for child in all_children:
+            name = str(child.get("displayName") or "")
+            if name in wanted:
+                return child
+        return None
+
     renamed: list[str] = []
+    moved_up: list[str] = []
     missing: list[str] = []
-    already: list[str] = []
+    # Phase 1: unique temp names so 03 GitHub / 03 GoDaddy cannot clash.
+    temps: dict[str, dict[str, Any]] = {}
     for folder, rank in sorted(ranks.items(), key=lambda item: item[1]):
-        display = pinned_folder_name(folder, ranks)
-        current = by_name.get(display) or by_name.get(folder)
+        current = find_folder(folder)
         if not current:
             missing.append(folder)
             continue
-        if current.get("displayName") == display:
-            already.append(display)
+        temp_name = f"__pin_{rank:02d}_{folder}"
+        if current.get("displayName") != temp_name:
+            current = graph(
+                token,
+                "PATCH",
+                f"/me/mailFolders/{enc(current['id'])}",
+                {"displayName": temp_name},
+            ) or current
+        temps[folder] = current
+        log(f"Holding {folder} as {temp_name}")
+
+    # Phase 2: final names + move to Inbox so they sit at the top of the left list.
+    for folder, rank in sorted(ranks.items(), key=lambda item: item[1]):
+        current = temps.get(folder)
+        if not current:
             continue
-        updated = graph(
-            token,
-            "PATCH",
-            f"/me/mailFolders/{enc(current['id'])}",
-            {"displayName": display},
-        )
-        by_name.pop(str(current.get("displayName") or ""), None)
-        by_name[display] = updated or current
-        renamed.append(f"{folder} -> {display}")
-        log(f"Pinned {display}")
+        display = pinned_folder_name(folder, ranks)
+        if current.get("displayName") != display:
+            current = graph(
+                token,
+                "PATCH",
+                f"/me/mailFolders/{enc(current['id'])}",
+                {"displayName": display},
+            ) or current
+            renamed.append(f"{folder} -> {display}")
+            log(f"Pinned {display}")
+        parent_ref = (current.get("parentFolderId") or "")
+        if parent_ref != inbox["id"]:
+            graph(
+                token,
+                "POST",
+                f"/me/mailFolders/{enc(current['id'])}/move",
+                {"destinationId": inbox["id"]},
+            )
+            moved_up.append(display)
+            log(f"Moved {display} up under Inbox")
     result = {
         "renamed": renamed,
-        "already_on_top": already,
+        "moved_up": moved_up,
         "missing": missing,
-        "top_order": [pinned_folder_name(name, ranks) for name, _ in sorted(ranks.items(), key=lambda item: item[1])],
+        "top_order": [
+            pinned_folder_name(name, ranks)
+            for name, _ in sorted(ranks.items(), key=lambda item: item[1])
+        ],
     }
     Path("/opt/cursor/artifacts/pin-to-top-result.json").write_text(
         json.dumps(result, indent=2) + "\n", encoding="utf-8"
