@@ -52,7 +52,8 @@ GitHub Pages is set to `parslia.app`, but **GoDaddy DNS still points to GoDaddy*
 | `Desktop\parslia-site\` | Cursor copy (simpler) — **use GitHub repo instead** |
 | `Desktop\parslia-brand\` | Logo SVGs only |
 | `kitchen-os\` | **Kiteline** — separate product, not Parslia |
-| `kitchen-sop/` | **Open this** — Kiteline Kitchen SOP pocket app at `/kitchen-sop/` |
+| `open-kitchen-sop.html` | **Open this** — single-file Kiteline Kitchen SOP (no extra pack files) |
+| `kitchen-sop/` | Same pack as a PWA folder at `/kitchen-sop/` |
 | `kiteline-kitchen-sop/` | Source files for the same PWA |
 | `kiteline-uk-dropin/` | Drop-in for [kitline1](https://github.com/shyam1-jpg/kitline1) so kiteline.uk serves `/kitchen-sop/` |
 

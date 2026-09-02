@@ -50,6 +50,11 @@
     </nav>
   </div>
 
+  <script>
+    if (location.protocol === "file:") {
+      location.replace("standalone.html");
+    }
+  </script>
   <script src="data/sops.js"></script>
   <script src="app.js"></script>
 </body>

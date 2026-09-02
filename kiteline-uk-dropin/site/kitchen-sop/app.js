@@ -12,6 +12,13 @@
   var networkStatus = document.getElementById("networkStatus");
   var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
 
+  if (!DATA || !DATA.sops || !main) {
+    if (main) {
+      main.innerHTML = '<section class="block"><h3>Kitchen SOP did not open</h3><p>The pack files did not load. Open <code>open-kitchen-sop.html</code> or <code>kitchen-sop/index.html</code> through a local server (not a dead kiteline.uk / parslia.app link).</p><p><a class="btn" href="./index.html">Retry this pack</a></p></section>';
+    }
+    return;
+  }
+
   var state = {
     tab: "home",
     sopId: null,

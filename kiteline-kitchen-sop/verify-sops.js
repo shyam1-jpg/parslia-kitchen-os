@@ -34,17 +34,25 @@ const sw = fs.readFileSync(__dirname + "/sw.js", "utf8");
 if (!app.includes("SpeechSynthesisUtterance") || !app.includes("completedAt")) throw new Error("Narration or completion tracking missing");
 if (!app.includes("competency.passed") || !app.includes("pendingSync") || !app.includes("Export offline evidence ledger")) throw new Error("Advanced competency or audit ledger missing");
 if (!sw.includes("offline.html") || !sw.includes("standalone.html") || !sw.includes("response.ok")) throw new Error("Offline strategy incomplete");
-if (!sw.includes("kiteline-kitchen-sop-v5")) throw new Error("Service worker cache not bumped after removing dead live URL");
+if (!sw.includes("kiteline-kitchen-sop-v6")) throw new Error("Service worker cache not bumped after standalone opener");
 if (app.includes("https://kiteline.uk/kitchen-sop/")) throw new Error("Pocket app still links to the live 404 URL");
+if (!app.includes("Kitchen SOP did not open")) throw new Error("Pocket app missing boot-failure message");
 if (!D.guidelineB || D.guidelineB.code !== "B" || !/recipe not found/i.test(D.guidelineB.title + D.guidelineB.summary)) {
   throw new Error("Guideline B (recipe not found) missing");
 }
 if (!text.includes("guideline b") || !text.includes("do not cook from memory")) throw new Error("Recipe-not-found stop rule missing");
 if (!app.includes("guidelineBHtml") || !app.includes("Recipe not found")) throw new Error("Pocket app missing Guideline B empty state");
+const standalone = fs.readFileSync(__dirname + "/standalone.html", "utf8");
+if (!standalone.includes("KITELINE_SOP_DATA") || !standalone.includes("Guideline B") || standalone.length < 50000) {
+  throw new Error("standalone.html is not a self-contained opener");
+}
 const publicDir = __dirname.replace(/kiteline-kitchen-sop$/, "kitchen-sop");
-["index.html", "app.js", "data/sops.js", "sw.js"].forEach((name) => {
+const rootDir = __dirname.replace(/kiteline-kitchen-sop$/, "");
+["index.html", "app.js", "data/sops.js", "sw.js", "standalone.html"].forEach((name) => {
   const a = fs.readFileSync(__dirname + "/" + name, "utf8");
   const b = fs.readFileSync(publicDir + "/" + name, "utf8");
   if (a !== b) throw new Error("Public /kitchen-sop/ is out of date: " + name);
 });
+const opener = fs.readFileSync(rootDir + "open-kitchen-sop.html", "utf8");
+if (opener !== standalone) throw new Error("open-kitchen-sop.html is out of date");
 console.log("OK", D.sops.length, "version-controlled UK SOPs plus Guideline B recipe-not-found");

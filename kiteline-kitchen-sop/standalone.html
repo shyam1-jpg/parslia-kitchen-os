@@ -1,1 +1,1661 @@
-<!doctype html><html lang="en-GB"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kiteline Kitchen SOP</title><meta http-equiv="refresh" content="0;url=./"><body><p><a href="./">Open the current, version-controlled Kitchen SOP pack</a>.</p></body></html>
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f766e" />
+  <title>Kiteline · Kitchen SOP</title>
+  <style>/* Kiteline — professional commercial kitchen SOP + short videos */
+:root {
+  --ink: #0f172a;
+  --ink-soft: #1e293b;
+  --muted: #64748b;
+  --teal: #0d9488;
+  --teal-deep: #0f766e;
+  --cyan: #5eead4;
+  --paper: #f8fafc;
+  --line: rgba(15, 23, 42, 0.1);
+  --warn: #9a3412;
+  --warn-bg: #ffedd5;
+  --ok: #0f766e;
+  --shadow: 0 16px 44px rgba(15, 23, 42, 0.12);
+  --radius: 18px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --tab-h: calc(64px + var(--safe-b));
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(120% 80% at 8% -12%, #99f6e4 0%, transparent 50%),
+    radial-gradient(90% 70% at 100% 0%, #bae6fd 0%, transparent 42%),
+    linear-gradient(180deg, #e2e8f0 0%, #f1f5f9 40%, #f8fafc 100%);
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body { min-height: 100dvh; }
+
+.network-status {
+  position: sticky; top: 0; z-index: 40; padding: 9px 14px; text-align: center;
+  background: #7c2d12; color: #fff; font-size: .78rem; font-weight: 800;
+}
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  position: relative;
+  padding-bottom: var(--tab-h);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  gap: 8px;
+  align-items: center;
+  padding: calc(10px + var(--safe-t)) 14px 12px;
+  background: rgba(248, 250, 252, 0.9);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar-text { min-width: 0; text-align: center; }
+
+.brand-mark {
+  margin: 0;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--teal-deep);
+  font-weight: 800;
+}
+
+.screen-title {
+  margin: 2px 0 0;
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.icon-btn[hidden] { visibility: hidden; }
+
+.search-bar { padding: 8px 14px 0; }
+.search-bar[hidden] { display: none; }
+.search-bar input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  font: inherit;
+  background: #fff;
+}
+
+.main { padding: 16px 14px 28px; animation: rise 0.32s ease both; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.hero {
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 24px 20px 22px;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.12), transparent 42%),
+    linear-gradient(160deg, #042f2e 0%, #0f766e 58%, #14b8a6 100%);
+  color: #f8fafc;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+
+.hero-lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.hero-lockup img {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #0f172a;
+}
+
+.hero h2 {
+  margin: 0;
+  font-size: 1.45rem;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.hero p { margin: 8px 0 0; color: rgba(248, 250, 252, 0.82); font-size: 0.92rem; line-height: 1.5; }
+
+.hero-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
+.hero-url { margin: 12px 0 0; font-size: 0.78rem; }
+.hero-url a { color: var(--cyan); font-weight: 700; text-decoration: none; }
+
+.chip {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.section-label {
+  margin: 4px 0 10px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 6px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter {
+  flex: none;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.filter.active {
+  background: var(--teal-deep);
+  color: #fff;
+  border-color: var(--teal-deep);
+}
+
+.sop-list { display: flex; flex-direction: column; gap: 10px; }
+
+.sop-row {
+  display: grid;
+  grid-template-columns: 64px 1fr 16px;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.sop-glyph {
+  width: 64px;
+  height: 52px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  color: var(--teal-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.78rem;
+}
+
+.sop-row strong { display: block; font-size: 0.95rem; }
+.sop-row span { display: block; color: var(--muted); font-size: 0.78rem; margin-top: 2px; line-height: 1.35; }
+.chev { color: #94a3b8; }
+
+.btn {
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--teal), #2dd4bf);
+  color: #042f2e;
+  cursor: pointer;
+}
+
+.btn.ghost {
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.warn-banner {
+  background: var(--warn-bg);
+  color: var(--warn);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+  line-height: 1.45;
+}
+
+.empty { text-align: center; color: var(--muted); padding: 28px 10px; }
+.guideline-b { text-align: left; }
+.guideline-b .empty-kicker { margin: 0 0 6px; font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #9a3412; }
+.guideline-b h3 { margin: 0 0 8px; }
+
+.detail-head { margin-bottom: 14px; }
+.detail-code {
+  display: inline-flex;
+  background: #ecfdf5;
+  color: var(--teal-deep);
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 5px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+}
+.detail-head h2 { margin: 10px 0 6px; font-size: 1.4rem; letter-spacing: -0.04em; }
+.detail-head p { margin: 0; color: var(--muted); }
+.detail-head .doc-control { margin-top: 8px; font-size: .76rem; font-weight: 700; }
+
+.player {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #042f2e;
+  color: #ecfdf5;
+  aspect-ratio: 16 / 10;
+  margin: 0 0 16px;
+  box-shadow: var(--shadow);
+}
+
+.player-stage {
+  position: absolute;
+  inset: 0;
+  padding: 22px 18px 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background:
+    radial-gradient(80% 70% at 90% 0%, rgba(45, 212, 191, 0.35), transparent 50%),
+    linear-gradient(180deg, #0f766e 0%, #042f2e 72%);
+}
+
+.scene-visual { position: absolute; inset: 18px 18px auto; height: 48%; display: flex; align-items: flex-end; justify-content: center; gap: 12px; }
+.scene-visual span { width: 22%; height: 60%; border-radius: 14px 14px 4px 4px; background: linear-gradient(180deg,#99f6e4,#14b8a6); animation: briefing 1.4s ease-in-out infinite alternate; box-shadow: 0 12px 30px rgba(45,212,191,.18); }
+.scene-visual span:nth-child(2) { height: 88%; animation-delay: .25s; }
+.scene-visual span:nth-child(3) { height: 72%; animation-delay: .5s; }
+@keyframes briefing { from { transform: translateY(5px); opacity: .72; } to { transform: translateY(-5px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .scene-visual span { animation: none; } }
+
+.player-kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--cyan);
+  margin: 0 0 8px;
+}
+
+.player-stage h3 { margin: 0 0 8px; font-size: 1.35rem; letter-spacing: -0.03em; }
+.player-stage p { margin: 0; font-size: 0.95rem; line-height: 1.45; color: rgba(236, 253, 245, 0.9); }
+
+.player-bar {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  background: rgba(2, 6, 23, 0.45);
+}
+
+.player-bar button {
+  border: 0;
+  background: #fff;
+  color: #042f2e;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: .72rem;
+  cursor: pointer;
+}
+
+.player-progress {
+  flex: 1;
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.2);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.player-progress > span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--cyan);
+}
+
+.player-time { font-size: 0.72rem; font-weight: 700; color: #ccfbf1; min-width: 64px; text-align: right; }
+
+.block {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.block h3 { margin: 0 0 8px; font-size: 0.95rem; }
+.block p, .block li { color: var(--ink-soft); font-size: 0.9rem; line-height: 1.5; }
+.block ul { margin: 0; padding-left: 18px; }
+.block li { margin: 4px 0; }
+
+.rule-list { display: flex; flex-direction: column; gap: 8px; }
+.rule {
+  background: #fff;
+  border-left: 4px solid var(--teal);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.install ol { margin: 0; padding-left: 18px; }
+.install li { margin: 8px 0; line-height: 1.45; }
+
+.competency { border-color: rgba(13,148,136,.35); box-shadow: 0 12px 30px rgba(13,148,136,.08); }
+.quiz-question { border: 0; padding: 10px 0 14px; margin: 0; }
+.quiz-question legend { font-size: .88rem; font-weight: 800; line-height: 1.4; margin-bottom: 8px; }
+.quiz-question label { display: flex; gap: 8px; align-items: flex-start; margin: 7px 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.quiz-question input { margin-top: 3px; }
+#assessmentResult { min-height: 24px; margin-top: 10px; font-size: .84rem; font-weight: 800; color: var(--teal-deep); }
+
+.tabbar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: min(480px, 100%);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 8px 8px calc(8px + var(--safe-b));
+  background: rgba(255,255,255,0.94);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+}
+
+.tab {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 0.68rem;
+  padding: 6px 4px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.tab.active { color: var(--teal-deep); background: #ecfdf5; }
+.tab-ico { display: block; font-size: 1.1rem; margin-bottom: 2px; }
+</style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="network-status" id="networkStatus" role="status" aria-live="polite" hidden></div>
+    <header class="topbar" id="topbar">
+      <button type="button" class="icon-btn" id="backBtn" hidden aria-label="Back">←</button>
+      <div class="topbar-text">
+        <p class="brand-mark" id="brandMark">Kiteline</p>
+        <h1 class="screen-title" id="screenTitle">Kitchen SOP</h1>
+      </div>
+      <button type="button" class="icon-btn" id="searchToggle" aria-label="Search">⌕</button>
+    </header>
+    <div class="search-bar" id="searchBar" hidden>
+      <input type="search" id="searchInput" placeholder="Search SOPs and training…" autocomplete="off" enterkeyhint="search" />
+    </div>
+    <main class="main" id="main"></main>
+    <nav class="tabbar" aria-label="Primary">
+      <button type="button" class="tab active" data-tab="home" aria-current="page"><span class="tab-ico">⌂</span><span>Home</span></button>
+      <button type="button" class="tab" data-tab="sops"><span class="tab-ico">☰</span><span>SOPs</span></button>
+      <button type="button" class="tab" data-tab="videos"><span class="tab-ico">▶</span><span>Videos</span></button>
+      <button type="button" class="tab" data-tab="rules"><span class="tab-ico">!</span><span>Rules</span></button>
+    </nav>
+  </div>
+  <script>/* Kiteline — professional commercial kitchen SOP + short video data (offline) */
+window.KITELINE_SOP_DATA = {
+  company: "Kiteline",
+  appName: "Kitchen SOP",
+  tagline: "Professional commercial kitchen standards — brigade, HACCP, allergens, and close-down.",
+  version: "1.1",
+  effectiveDate: "31 August 2026",
+  reviewDate: "31 August 2027",
+  jurisdiction: "UK",
+  audience: "Hotels, restaurants, catering, schools, and multi-site production kitchens",
+  hardRules: [
+    "This pack is for professional commercial kitchens only — not home cooking.",
+    "Work in uniform: clean chef whites or branded kit, hair restrained, closed shoes, no jewellery on the line.",
+    "Wash hands at the dedicated sink before food work, after raw protein, waste, chemicals, or leaving the kitchen.",
+    "Keep raw and ready-to-eat (RTE) food, boards, knives, and cloths separate at all times.",
+    "Never guess a temperature — use a sanitised, calibrated probe and record the result. Follow the validated site HACCP cooking standard.",
+    "Hot hold at 63 °C or above. Cold hold at 8 °C or below (5 °C target). Freezer −18 °C.",
+    "Label internal containers with name, preparation/opening date and use-by. PPDS food needs the food name and full ingredients list with regulated allergens emphasised.",
+    "Declare the 14 UK/EU allergens. If you are not sure, do not send the dish.",
+    "FIFO — first in, first out. Quarantine damaged, unlabelled, or out-of-range deliveries.",
+    "Stop the line and tell the chef or duty manager if a CCP fails, an allergen is wrong, or a guest is at risk.",
+    "Guideline B — Recipe not found: if the controlled recipe card is missing, stop. Do not cook from memory. 86 the dish, tell the chef, and record the gap."
+  ],
+  guidelineB: {
+    id: "guideline-b",
+    code: "B",
+    title: "Recipe not found",
+    summary: "This is a guideline, not a recipe. Stop if the controlled recipe card cannot be found.",
+    bullets: [
+      "Do not cook, garnish, label or send the dish from memory, a phone photo or an unofficial note.",
+      "Do not invent ingredients, method, cook temperatures, allergens or a shelf life.",
+      "Search the current recipe file, Kiteline Recipes and the allergen matrix for the same menu version.",
+      "If the card is still missing: 86 the dish, tell the chef or duty manager, and record time, dish name, person and action."
+    ]
+  },
+  categories: [
+    { id: "hygiene", label: "Hygiene" },
+    { id: "stores", label: "Stores" },
+    { id: "line", label: "Line" },
+    { id: "service", label: "Service" },
+    { id: "safety", label: "Safety" },
+    { id: "close", label: "Close-down" }
+  ],
+  sops: [
+    {
+      id: "ck-00",
+      code: "CK-00",
+      title: "Brigade & kitchen standards",
+      category: "hygiene",
+      blurb: "How a professional kitchen works: roles, kit, and the line.",
+      video: {
+        title: "Brigade standards — 55 seconds",
+        durationSec: 55,
+        scenes: [
+          { t: 0, title: "Commercial kitchen", line: "This is a professional brigade — not a home cook-along." },
+          { t: 9, title: "Roles", line: "Head chef sets the pass. Sous runs the line. CDP owns a section. Commis support prep." },
+          { t: 20, title: "Kit", line: "Clean whites, hat or hairnet, apron, closed shoes. No rings, watches, or nail varnish on food work." },
+          { t: 32, title: "Stations", line: "Know your section: garnish, sauce, grill, pastry, pot-wash, pass." },
+          { t: 42, title: "Voice", line: "Call orders back. Say ‘behind’, ‘hot’, ‘sharp’. The pass is the only send authority." }
+        ]
+      },
+      sections: [
+        {
+          h: "Purpose",
+          body: "Set the professional standard for every person who enters a commercial kitchen operated with Kiteline — hotels, restaurants, catering, schools, and production sites."
+        },
+        {
+          h: "Scope",
+          body: "Applies to chefs, kitchen porters, stewards, agency staff, and managers on shift. Front of house only enter the kitchen on the agreed walkway and never touch the pass without permission."
+        },
+        {
+          h: "Brigade roles",
+          bullets: [
+            "Head chef / executive chef — menu, HACCP ownership, sign-off, discipline of the pass",
+            "Sous chef — service control, section cover, temperature and allergen checks",
+            "Chef de partie — owns one station (sauce, grill, veg, pastry, larder)",
+            "Commis — mise en place, labelling, following the recipe card exactly",
+            "Kitchen porter / steward — pot-wash, floors, bins, chemical store — not food prep unless trained"
+          ]
+        },
+        {
+          h: "Professional appearance",
+          bullets: [
+            "Clean uniform at the start of every shift; change if soiled",
+            "Hair fully restrained; beard net where policy requires",
+            "Hands: short nails, no varnish, waterproof plaster + blue glove if a cut",
+            "No personal phones on the pass during service"
+          ]
+        },
+        {
+          h: "Kitchen language",
+          bullets: [
+            "Acknowledge every order: ‘Yes chef’",
+            "Warn: ‘Behind’, ‘Hot pan’, ‘Sharp’, ‘Corner’",
+            "Never send a plate that the pass has not checked"
+          ]
+        }
+      ]
+    },
+    {
+      id: "ck-01",
+      code: "CK-01",
+      title: "Opening checks",
+      category: "hygiene",
+      blurb: "Power, temps, pests, sinks, and the first walk of the kitchen.",
+      video: {
+        title: "Opening the kitchen — 60 seconds",
+        durationSec: 60,
+        scenes: [
+          { t: 0, title: "Lights & kit", line: "Power on. Extract on. Check fire exits are clear before anyone starts prep." },
+          { t: 10, title: "Walk the room", line: "Look for pests, leaks, overnight waste, and unlabelled food left out." },
+          { t: 22, title: "Probe fridges", line: "Record every fridge and freezer. 5 °C target / 8 °C legal cold. Freezer −18 °C." },
+          { t: 36, title: "Hand wash", line: "Soap, hot water, paper towel, pedal bin. No cloths at the hand sink." },
+          { t: 48, title: "Sign the sheet", line: "Opening checklist in Kiteline or paper — signed by the duty chef before mise en place." }
+        ]
+      },
+      sections: [
+        {
+          h: "Purpose",
+          body: "Prove the kitchen is safe to produce food before the first knife comes out."
+        },
+        {
+          h: "Do this first",
+          bullets: [
+            "Unlock, lights, extract, fly-killers, insect screens closed",
+            "Fire exits, gas isolation, first-aid kit, burn gel visible",
+            "Walk-in, reach-in, and freezer temperatures recorded",
+            "Hot water at wash-up and hand basins",
+            "Pest signs: droppings, gnawing, insects — stop and report if found",
+            "Remove any food left at ambient overnight — do not taste, discard and log"
+          ]
+        },
+        {
+          h: "Do not start prep until",
+          bullets: [
+            "Opening checklist is complete",
+            "Any failed fridge is emptied to a working unit or condemned",
+            "Hand-wash stations are stocked"
+          ]
+        }
+      ]
+    },
+    {
+      id: "ck-02",
+      code: "CK-02",
+      title: "Goods-in & deliveries",
+      category: "stores",
+      blurb: "Check, probe, reject, and put away — commercial receiving.",
+      video: {
+        title: "Goods-in in 60 seconds",
+        durationSec: 60,
+        scenes: [
+          { t: 0, title: "Bay ready", line: "Clear the receiving bench. Sanitise. Have probe, wipes, and the order sheet ready." },
+          { t: 10, title: "Check the van", line: "Clean vehicle, sealed packaging, no crushed boxes sitting in melt water." },
+          { t: 22, title: "Probe it", line: "Chilled ≤ 8 °C, frozen hard at −18 °C, hot deliveries ≥ 63 °C. Write the reading." },
+          { t: 36, title: "Reject", line: "Refuse damaged, leaking, bloated, unlabelled, or out-of-range stock. Note on the invoice." },
+          { t: 48, title: "Put away now", line: "High-risk chilled first, then frozen, then dry. Never leave a pallet in the corridor." }
+        ]
+      },
+      sections: [
+        {
+          h: "Purpose",
+          body: "Stop unsafe food at the door. Commercial kitchens live or die on goods-in discipline."
+        },
+        {
+          h: "Accept only if",
+          bullets: [
+            "Supplier is on the approved list",
+            "Use-by / best-before dates allow a safe production window",
+            "Chilled product is 8 °C or below (reject if warm)",
+            "Frozen product is rock-hard with no thaw drip",
+            "Packaging intact; allergen labelling present where required"
+          ]
+        },
+        {
+          h: "Reject and log",
+          bullets: [
+            "Temperature fail, damaged seal, pest evidence, missing use-by",
+            "Photograph if the supplier disputes",
+            "Do not put rejected stock into the walk-in ‘to deal with later’"
+          ]
+        }
+      ]
+    },
+    {
+      id: "ck-03",
+      code: "CK-03",
+      title: "Storage, FIFO & labelling",
+      category: "stores",
+      blurb: "Walk-in, dry store, and Natasha’s Law labels.",
+      video: {
+        title: "Stores & labels — 58 seconds",
+        durationSec: 58,
+        scenes: [
+          { t: 0, title: "Zones", line: "Raw bottom. RTE top. Allergens in sealed, named containers — never open bags on a high shelf." },
+          { t: 12, title: "FIFO", line: "New stock behind old. Date-check every time you take a tray." },
+          { t: 24, title: "Label", line: "Name, date prepped, use-by, allergens, chef initials. No mystery cambros." },
+          { t: 38, title: "Natasha’s Law", line: "PPDS food needs its name and a full ingredients list, with every regulated allergen emphasised." },
+          { t: 50, title: "Floor rule", line: "Nothing stored on the floor. 15 cm off the ground on racks." }
+        ]
+      },
+      sections: [
+        {
+          h: "Walk-in layout",
+          bullets: [
+            "Ready-to-eat and cooked above raw",
+            "Raw poultry on the lowest shelf in a lidded tray",
+            "Allergen-critical items (nuts, sesame, celery) in dedicated sealed boxes",
+            "No cardboard on wet floors"
+          ]
+        },
+        {
+          h: "Label every container",
+          bullets: [
+            "Dish or ingredient name as the guest will see it",
+            "Prep date and use-by (follow site shelf-life table)",
+            "For PPDS food: food name plus the full ingredients list, with regulated allergens emphasised within that list",
+            "Initials of the person who prepped"
+          ]
+        },
+        {
+          h: "Dry store",
+          body: "Cool, dry, pest-proof. Open sacks decanted into lidded bins. Scoop stored clean and dry, not buried in flour."
+        }
+      ]
+    },
+    {
+      id: "ck-04",
+      code: "CK-04",
+      title: "Mise en place",
+      category: "line",
+      blurb: "Section set-up so service can run at commercial pace.",
+      video: {
+        title: "Mise en place — 55 seconds",
+        durationSec: 55,
+        scenes: [
+          { t: 0, title: "Read the board", line: "Covers, 86’d dishes, allergens, and the function sheet before you touch a board." },
+          { t: 10, title: "Set the station", line: "Boards coded, knives sharp, sanitiser, probe, tasting spoons, labelled mise." },
+          { t: 22, title: "Batch smart", line: "Prep to the forecast. Over-prepping is waste. Under-prepping kills the pass." },
+          { t: 34, title: "Taste & temp", line: "Season, taste with a clean spoon, and check sauces are at hold temperature." },
+          { t: 46, title: "Ready for the pass", line: "When the brief starts, your section is lit, labelled, and you can fire on the first ticket." }
+        ]
+      },
+      sections: [
+        {
+          h: "Purpose",
+          body: "A commercial line cannot cook from cold stores during service. Mise en place is the production system."
+        },
+        {
+          h: "Before service brief",
+          bullets: [
+            "Recipe cards and allergen matrix on the section",
+            "Colour-coded boards: red raw meat, blue fish, yellow raw poultry, green salad/fruit, white bakery/dairy, brown vegetables",
+            "Hot hold units preheated; bain-marie water clean and at temperature",
+            "Bins empty, cloths in the right bucket (sanitiser vs detergent)"
+          ]
+        },
+        {
+          h: "During prep",
+          bullets: [
+            "Work one task at a time on a clean board",
+            "Return high-risk food to the fridge within 30 minutes",
+            "Do not use service cloths for floors or raw trays"
+          ]
+        }
+      ]
+    },
+    {
+      id: "ck-05",
+      code: "CK-05",
+      title: "Cooking temperatures & HACCP",
+      category: "line",
+      blurb: "Critical control points: cook, cool, reheat, hot hold.",
+      video: {
+        title: "HACCP on the line — 65 seconds",
+        durationSec: 65,
+        scenes: [
+          { t: 0, title: "CCP", line: "A Critical Control Point is a step that stops people getting ill. You measure it. You write it." },
+          { t: 12, title: "Cook", line: "Probe the thickest part. 75 °C for 30 seconds is the house cook standard unless the HACCP card says otherwise." },
+          { t: 26, title: "Cool", line: "Cool cooked food rapidly using the validated site HACCP method. Divide batches and use a blast chiller where provided; record time and temperature." },
+          { t: 42, title: "Reheat", line: "Reheat once, to 75 °C. Never mix a new batch into an old bain." },
+          { t: 54, title: "Hold", line: "Hot hold 63 °C+. If it drops, reheat or discard. Do not ‘just leave it’." }
+        ]
+      },
+      sections: [
+        {
+          h: "Probe rules",
+          bullets: [
+            "Wipe and sanitise the probe between foods",
+            "Calibrate weekly in ice water (0 °C) and boiling water (~100 °C)",
+            "Record time, food, reading, and initials on the cook / cool / hold sheet"
+          ]
+        },
+        {
+          h: "House targets (UK commercial)",
+          bullets: [
+            "Cook / reheat: 75 °C core (poultry often 82 °C on site cards)",
+            "Hot hold: 63 °C or above",
+            "Cold hold: 8 °C or below, 5 °C target",
+            "Freezer: −18 °C",
+            "Delivery chilled: 8 °C or below"
+          ]
+        },
+        {
+          h: "If a CCP fails",
+          body: "Stop service of that item. Correct (reheat, blast, discard). Record the corrective action. Tell the duty manager. Do not hide a fail."
+        }
+      ]
+    },
+    {
+      id: "ck-06",
+      code: "CK-06",
+      title: "Allergen control",
+      category: "line",
+      blurb: "The 14 allergens — from recipe card to the pass.",
+      video: {
+        title: "Allergens — 60 seconds",
+        durationSec: 60,
+        scenes: [
+          { t: 0, title: "14 allergens", line: "Celery, gluten, crustaceans, egg, fish, lupin, milk, molluscs, mustard, peanut, sesame, soya, sulphites, tree nuts." },
+          { t: 14, title: "Recipe is law", line: "Cook the card. A ‘secret’ garnish can hospitalise a guest." },
+          { t: 26, title: "Separate kit", line: "Dedicated boards, fryers, and tongs for allergen-free tickets. Change gloves." },
+          { t: 40, title: "The pass", line: "Allergen tickets get a verbal check: chef reads the allergen, CDP confirms the plate." },
+          { t: 52, title: "If unsure", line: "Do not send. Remake or 86 the dish. Never guess." }
+        ]
+      },
+      sections: [
+        {
+          h: "Purpose",
+          body: "Prevent allergen harm in a commercial service. Natasha’s Law and Natasha’s legacy: accurate information, every time."
+        },
+        {
+          h: "The 14 (UK / EU)",
+          bullets: [
+            "Celery", "Cereals containing gluten", "Crustaceans", "Eggs", "Fish", "Lupin",
+            "Milk", "Molluscs", "Mustard", "Peanuts", "Sesame", "Soybeans",
+            "Sulphur dioxide & sulphites", "Tree nuts"
+          ]
+        },
+        {
+          h: "On the line",
+          bullets: [
+            "Allergen matrix printed and current — same version as the menu",
+            "No unmarked squeeze bottles",
+            "Fryer oil is an allergen if it cooked breaded or nut items",
+            "FOH must not invent answers; they check the matrix or the chef"
+          ]
+        }
+      ]
+    },
+    {
+      id: "ck-07",
+      code: "CK-07",
+      title: "Pass & service",
+      category: "service",
+      blurb: "Tickets, timing, plate check, and the pass.",
+      video: {
+        title: "Running the pass — 58 seconds",
+        durationSec: 58,
+        scenes: [
+          { t: 0, title: "The pass", line: "One voice. The pass chef calls, checks, and sends. Sections do not self-send." },
+          { t: 12, title: "Ticket", line: "Read table, covers, allergens, and fire time. Call the fire in brigade order." },
+          { t: 24, title: "Plate check", line: "Heat, garnish, sauce, protein, allergen garnish, wipe the rim. Then it leaves." },
+          { t: 38, title: "Hold the line", line: "If a section is late, hold the table — do not send a split main." },
+          { t: 48, title: "Recovery", line: "Remake beats an argument. Log the incident after service, not on the pass." }
+        ]
+      },
+      sections: [
+        {
+          h: "Purpose",
+          body: "Commercial service is timed production. The pass protects the guest and the brigade."
+        },
+        {
+          h: "Pass checks before send",
+          bullets: [
+            "Correct dish and dietary notes",
+            "Temperature — hot food hot, cold food cold",
+            "Allergen confirmation spoken and heard",
+            "Clean plate, correct garnish, no cloth fibres"
+          ]
+        },
+        {
+          h: "Never",
+          bullets: [
+            "Never send a plate you have not seen",
+            "Never shout at FOH across a full pass — step aside after the fire",
+            "Never reuse a returned plate without a full remake"
+          ]
+        }
+      ]
+    },
+    {
+      id: "ck-08",
+      code: "CK-08",
+      title: "Cleaning & COSHH",
+      category: "hygiene",
+      blurb: "Clean as you go, chemical store, and contact time.",
+      video: {
+        title: "Clean-as-you-go — 55 seconds",
+        durationSec: 55,
+        scenes: [
+          { t: 0, title: "Two-stage clean", line: "Detergent to remove grease. Rinse. Sanitiser — and wait the contact time on the bottle." },
+          { t: 12, title: "Cloths", line: "Colour-coded. Never the floor cloth on a board. Change when dirty, not ‘at the end’." },
+          { t: 24, title: "COSHH", line: "Chemicals stay in the locked store. Dilute as the wall chart says. PPE for oven cleaner and descaler." },
+          { t: 38, title: "Machines", line: "Empty, clean, and dry fryers, slicers, and mixers before they go back on the line." },
+          { t: 48, title: "Floors last", line: "Food surfaces first. Floors and drains last so you do not splash clean benches." }
+        ]
+      },
+      sections: [
+        {
+          h: "Clean as you go",
+          body: "A commercial kitchen that waits until close-down is already failing hygiene. Wipe, sanitise, and reset between tasks."
+        },
+        {
+          h: "COSHH",
+          bullets: [
+            "Safety data sheets in the chemical folder",
+            "Never mix bleach and acid",
+            "Spray away from food; cover or remove product first",
+            "Report spills; do not leave a wet chemical floor"
+          ]
+        }
+      ]
+    },
+    {
+      id: "ck-09",
+      code: "CK-09",
+      title: "Closing checks",
+      category: "close",
+      blurb: "Food away, kit off, pests out, tomorrow set.",
+      video: {
+        title: "Close-down — 60 seconds",
+        durationSec: 60,
+        scenes: [
+          { t: 0, title: "Food first", line: "Label and fridge all high-risk food. Discard anything that sat in the danger zone." },
+          { t: 12, title: "Line down", line: "Gas off or isolated per site. Fryers filtered. Ovens empty. Extract run to clear steam." },
+          { t: 24, title: "Wash-up", line: "No pans in the sink overnight. Machines emptied, arms clean, doors ajar to dry." },
+          { t: 36, title: "Pests & bins", line: "Bins out, lids on, floors dry, doors shut. No food scraps under the pass." },
+          { t: 48, title: "Sign out", line: "Closing checklist signed. Alarms set. Only the duty manager locks the last door." }
+        ]
+      },
+      sections: [
+        {
+          h: "Close-down order",
+          bullets: [
+            "Service equipment cleaned and stored",
+            "Walk-in organised, door shut, temp recorded",
+            "Dry store tidy, lights off",
+            "Floors mopped, mats hung",
+            "Pest proofing: gaps closed, bait stations not disturbed",
+            "Checklist signed; keys to the agreed person"
+          ]
+        }
+      ]
+    },
+    {
+      id: "ck-10",
+      code: "CK-10",
+      title: "Manual handling",
+      category: "safety",
+      blurb: "Flour sacks, stock pots, and the walk-in — lift like a pro.",
+      video: {
+        title: "How to lift — 50 seconds",
+        durationSec: 50,
+        scenes: [
+          { t: 0, title: "Assess", line: "Weight, path, floor, and whether you need a sack truck or a second person." },
+          { t: 10, title: "Set up", line: "Feet apart, load close, back straight, bend the knees — not the spine." },
+          { t: 22, title: "Move", line: "Turn with the feet. Never twist with a 20 kg pot of stock." },
+          { t: 34, title: "Team lift", line: "One person calls. Same height. Same pace. No hero lifts on the stairs." },
+          { t: 44, title: "Stop", line: "If it feels wrong, put it down. Get the truck." }
+        ]
+      },
+      sections: [
+        {
+          h: "House limits",
+          bullets: [
+            "Use a sack truck for 15 kg+ bags where the route allows",
+            "Team-lift stock pots, full gastronorms, and oven trays",
+            "Never catch a falling pot — step back"
+          ]
+        },
+        {
+          h: "Walk-in safety",
+          body: "Keep aisles clear. Do not climb shelves. Use the step stool. Prop the door only with the approved catch — never a box."
+        }
+      ]
+    },
+    {
+      id: "ck-11",
+      code: "CK-11",
+      title: "Knives & equipment",
+      category: "safety",
+      blurb: "Sharp tools, slicers, and fryers in a commercial kitchen.",
+      video: {
+        title: "Kit safety — 55 seconds",
+        durationSec: 55,
+        scenes: [
+          { t: 0, title: "Sharp is safer", line: "A dull knife slips. Steel before service. Cut away from the body. Claw grip." },
+          { t: 12, title: "Carry", line: "Blade down, by your side, announce ‘sharp’. Never in a busy corridor pointing forward." },
+          { t: 24, title: "Machines", line: "Guards on. No loose cloths near a mixer. Isolate before you clean a slicer." },
+          { t: 36, title: "Fryer", line: "Dry food only. Lower baskets slowly. Never throw ice or water into hot oil." },
+          { t: 46, title: "Burns", line: "Cool running water 20 minutes. Burn gel. Tell the chef. Do not work a septic burn." }
+        ]
+      },
+      sections: [
+        {
+          h: "Knives",
+          bullets: [
+            "Store in a block, magnet, or roll — never loose in a drawer with spoons",
+            "Wash separately; never leave in a sink of soapy water",
+            "Damaged or loose-rivet knives go out of service"
+          ]
+        },
+        {
+          h: "Equipment isolation",
+          body: "Switch off, unplug or lock-out, and wait for moving parts to stop before cleaning. Only trained staff use the slicer, mincer, or buffalo chopper."
+        }
+      ]
+    },
+    {
+      id: "ck-12",
+      code: "CK-12",
+      title: "Raw & ready-to-eat separation",
+      category: "safety",
+      blurb: "Stop cross-contamination on a busy commercial line.",
+      video: {
+        title: "Raw vs RTE — 58 seconds",
+        durationSec: 58,
+        scenes: [
+          { t: 0, title: "Two worlds", line: "Raw protein can carry bacteria. Ready-to-eat food is eaten as it is. They never share a board." },
+          { t: 12, title: "Colour code", line: "Yellow poultry, red meat, blue fish, green salad. If the board is scored and stained, replace it." },
+          { t: 26, title: "Hands", line: "Wash after raw. Change gloves. Do not touch the ticket, the pass, or a garnish with raw hands." },
+          { t: 40, title: "Cloths & oil", line: "A cloth that wiped a raw tray is contaminated. Fryer oil that cooked raw-breaded items is not for chips only — manage it." },
+          { t: 50, title: "If it mixes", line: "Discard the RTE food. Clean. Log. Do not ‘quick rinse and send’." }
+        ]
+      },
+      sections: [
+        {
+          h: "Purpose",
+          body: "Cross-contamination is a top cause of commercial kitchen outbreaks. Separation is a CCP in most HACCP plans."
+        },
+        {
+          h: "Non-negotiable",
+          bullets: [
+            "Separate fridge space or sealed boxes for raw vs RTE",
+            "Separate knives, tongs, and probe wipes after raw",
+            "Wash hands every time you switch",
+            "Never store raw trays above garnish or dessert"
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+/* Version-controlled safety additions shared by the pocket app and offline copy. */
+(function (D) {
+  var additions = {
+    "ck-00": ["Report vomiting, diarrhoea, fever, infected wounds or a diagnosed food-borne illness before entering food areas; follow the site fitness-to-work and return-to-work procedure.", "SOP training never replaces site induction, risk assessments, COSHH assessments, equipment manuals or the site HACCP plan.", "If the controlled recipe card is not found, stop and follow Guideline B — do not cook from memory."],
+    "ck-01": ["Confirm fire exits, alarm points, emergency isolation controls and assembly-point information are accessible.", "If there is a gas smell, electrical damage, no potable water, refrigeration failure or pest evidence: stop, isolate the area where safe and escalate to the duty manager."],
+    "ck-02": ["Check traceability details, lot/batch codes and recall information; quarantine rejected stock away from accepted food.", "Use a clean sanitised between-pack probe method or a disinfected penetration probe according to the site HACCP plan."],
+    "ck-03": ["Keep recall and quarantined stock clearly marked and physically separated.", "Never invent a shelf life: use the validated site shelf-life table and supplier instructions."],
+    "ck-04": ["Record production start and finish times for batches where the HACCP or production plan requires them.", "Keep floors, escape routes and access to isolators clear throughout set-up.", "If a dish has no current recipe card on the section, follow Guideline B — Recipe not found. Do not prep from memory."],
+    "ck-05": ["Cooling limits must come from the validated site HACCP plan; record start time, temperatures, finish time and corrective action.", "If a probe fails calibration or is damaged, remove it from use and repeat affected checks with a verified probe."],
+    "ck-06": ["Confirm every ingredient, substitute, garnish, cooking medium and shared-equipment risk against the current recipe and allergen matrix.", "Never promise ‘allergen-free’ where cross-contact cannot be controlled; explain the limitation and do not serve when safety is uncertain.", "If the recipe or allergen matrix does not list the dish, treat it as Recipe not found (Guideline B) and do not invent allergen information."],
+    "ck-07": ["Stop the pass immediately for an allergen mismatch, foreign body, unsafe temperature or suspected contamination; isolate the plate and record the incident.", "Returned food is never re-plated or re-served."],
+    "ck-08": ["Display wet-floor controls, clean spills immediately and keep food protected from chemical spray or splash.", "Never mix chemicals. Follow the label, safety data sheet, dilution, PPE and contact time; isolate damaged electrical cleaning equipment."],
+    "ck-09": ["Complete final gas, electrical, fryer, refrigeration, fire-exit, water, window and door checks using the site checklist.", "Report breakdowns and corrective actions before handover; never leave an unresolved refrigeration or fire-safety failure for the next shift."],
+    "ck-10": ["Complete a task-specific manual-handling assessment for heavy, hot, awkward or repeated loads; house weight guides do not replace assessment.", "Never carry a hot stockpot, full fryer vessel or heavy gastronorm without the correct aid and enough trained people."],
+    "ck-11": ["For a burn, cool under cool running water for 20 minutes, remove jewellery or clothing not stuck to skin, cover loosely and obtain appropriate first-aid or emergency help; do not apply creams or gels unless directed by the site first-aid procedure.", "Never use water on burning oil. Raise the alarm, isolate heat only if safe, evacuate and follow the site fire procedure."],
+    "ck-12": ["Separate people, equipment, storage, workflow and cleaning for raw and ready-to-eat work as required by the site HACCP assessment.", "After cross-contamination, discard affected ready-to-eat food, clean and disinfect, wash hands, change protective clothing and record corrective action."]
+  };
+  D.sops.forEach(function (sop) {
+    sop.revision = "1.1";
+    sop.effectiveDate = D.effectiveDate;
+    sop.reviewDate = D.reviewDate;
+    sop.sections.push({ h: "Safety controls & escalation", bullets: additions[sop.id] });
+  });
+
+  var competency = {
+    "ck-00": ["A team member reports vomiting before shift. What is the safe action?", ["Let them work away from the pass", "Stop food work and follow the fitness-to-work procedure", "Wear two pairs of gloves"], 1],
+    "ck-01": ["You smell gas during opening checks. What should happen?", ["Start extraction and continue", "Light equipment to test it", "Stop, keep ignition sources off, isolate only if safe and escalate"], 2],
+    "ck-02": ["A chilled delivery is outside the site acceptance limit. What should you do?", ["Quarantine or reject it and record the failure", "Put it in the freezer", "Accept it if the packaging looks clean"], 0],
+    "ck-03": ["What must a UK PPDS label include?", ["Only the 14 allergens", "Food name and full ingredients list with regulated allergens emphasised", "Preparation date only"], 1],
+    "ck-04": ["The recipe card for a boarded dish cannot be found. What should you do?", ["Cook from memory and write it later", "Stop, do not cook from memory, 86 the dish and tell the chef", "Use a similar recipe from another site"], 1],
+    "ck-05": ["A probe fails calibration. What is the correct action?", ["Add two degrees to every result", "Remove it from use and repeat affected checks with a verified probe", "Use it only for cold food"], 1],
+    "ck-06": ["An ingredient substitution is not on the current allergen matrix. What should happen?", ["Serve it without garnish", "Ask the guest to decide", "Stop, verify every ingredient and update the controlled information before service"], 2],
+    "ck-07": ["The pass finds an allergen mismatch. What should happen?", ["Remove the garnish", "Stop, isolate, remake safely and record the incident", "Send it to another table"], 1],
+    "ck-08": ["Which chemical practice is safe?", ["Mix products for stronger cleaning", "Follow the label, SDS, dilution, PPE and contact time", "Spray beside uncovered food"], 1],
+    "ck-09": ["A refrigerator failure remains at close-down. What should you do?", ["Leave a note for tomorrow", "Move or condemn affected food, record action and escalate before leaving", "Turn the thermostat down and lock up"], 1],
+    "ck-10": ["A stockpot is hot, heavy and awkward. What is required?", ["A task assessment, correct aid and enough trained people", "One strong person", "Carry it faster"], 0],
+    "ck-11": ["What must never be used on burning oil?", ["The site alarm", "Water", "The site evacuation procedure"], 1],
+    "ck-12": ["Ready-to-eat food is contaminated by raw-food equipment. What should happen?", ["Rinse and serve", "Cook it later", "Discard it, clean and disinfect, wash hands and record corrective action"], 2]
+  };
+  D.sops.forEach(function (sop) {
+    var q = competency[sop.id];
+    sop.assessment = { passPercent: 100, questions: [
+      { prompt: q[0], options: q[1], correctIndex: q[2] },
+      { prompt: "If a safety control cannot be achieved, what is the correct response?", options: ["Continue and record it later", "Stop the task or service, make safe and escalate", "Ask an untrained colleague"], correctIndex: 1 },
+      { prompt: "What makes a compliance record useful?", options: ["Time, result, person, corrective action and controlled SOP version", "A tick without a name", "A verbal message only"], correctIndex: 0 }
+    ] };
+    sop.evidenceRequired = ["Training watched to completion", "Competency score 100%", "Staff and trainer sign-off", "Retraining due after revision or local review date"];
+  });
+})(window.KITELINE_SOP_DATA);
+</script>
+  <script>(function () {
+  "use strict";
+
+  var DATA = window.KITELINE_SOP_DATA;
+  var main = document.getElementById("main");
+  var screenTitle = document.getElementById("screenTitle");
+  var brandMark = document.getElementById("brandMark");
+  var backBtn = document.getElementById("backBtn");
+  var searchToggle = document.getElementById("searchToggle");
+  var searchBar = document.getElementById("searchBar");
+  var searchInput = document.getElementById("searchInput");
+  var networkStatus = document.getElementById("networkStatus");
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+
+  if (!DATA || !DATA.sops || !main) {
+    if (main) {
+      main.innerHTML = '<section class="block"><h3>Kitchen SOP did not open</h3><p>The pack files did not load. Open <code>open-kitchen-sop.html</code> or <code>kitchen-sop/index.html</code> through a local server (not a dead kiteline.uk / parslia.app link).</p><p><a class="btn" href="./index.html">Retry this pack</a></p></section>';
+    }
+    return;
+  }
+
+  var state = {
+    tab: "home",
+    sopId: null,
+    query: "",
+    category: "all",
+    searchOpen: false,
+    deferredPrompt: null
+  };
+
+  var player = {
+    sopId: null,
+    playing: false,
+    t: 0,
+    timer: null,
+    rate: 1,
+    narration: true,
+    sceneTitle: null
+  };
+
+  var completed = JSON.parse(localStorage.getItem("kiteline-sop-completed-v1") || "{}");
+  var competencyResults = JSON.parse(localStorage.getItem("kiteline-sop-competency-v1") || "{}");
+  var evidenceLedger = JSON.parse(localStorage.getItem("kiteline-sop-evidence-v1") || "[]");
+
+  function recordEvidence(type, sop, detail) {
+    var event = { id: (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random()), type: type, sopId: sop.id, sopVersion: sop.revision, occurredAt: new Date().toISOString(), pendingSync: true, detail: detail || {} };
+    evidenceLedger.push(event);
+    localStorage.setItem("kiteline-sop-evidence-v1", JSON.stringify(evidenceLedger));
+    return event;
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function findSop(id) {
+    for (var i = 0; i < DATA.sops.length; i++) {
+      if (DATA.sops[i].id === id) return DATA.sops[i];
+    }
+    return null;
+  }
+
+  function catLabel(id) {
+    for (var i = 0; i < DATA.categories.length; i++) {
+      if (DATA.categories[i].id === id) return DATA.categories[i].label;
+    }
+    return id;
+  }
+
+  function filteredSops() {
+    var q = state.query.trim().toLowerCase();
+    return DATA.sops.filter(function (sop) {
+      if (state.category !== "all" && sop.category !== state.category) return false;
+      if (!q) return true;
+      var blob = (sop.code + " " + sop.title + " " + sop.blurb + " " + catLabel(sop.category)).toLowerCase();
+      sop.sections.forEach(function (sec) {
+        blob += " " + sec.h;
+        if (sec.body) blob += " " + sec.body;
+        if (sec.bullets) blob += " " + sec.bullets.join(" ");
+      });
+      if (sop.video) blob += " " + sop.video.title;
+      return blob.indexOf(q) !== -1;
+    });
+  }
+
+  function guidelineBHtml(query) {
+    var g = DATA.guidelineB || {};
+    var asked = query && String(query).trim();
+    return (
+      '<section class="block competency guideline-b" id="guidelineB">' +
+      '<p class="empty-kicker">Guideline B · not a recipe</p>' +
+      "<h3>" +
+      escapeHtml(g.title || "Recipe not found") +
+      "</h3><p>" +
+      escapeHtml(g.summary || "Stop if the controlled recipe card cannot be found.") +
+      (asked ? " Search did not match “" + escapeHtml(asked) + "”." : "") +
+      "</p><ul>" +
+      (g.bullets || [])
+        .map(function (item) {
+          return "<li>" + escapeHtml(item) + "</li>";
+        })
+        .join("") +
+      '</ul><button type="button" class="btn ghost" id="gotoRules">Open house rules</button></section>'
+    );
+  }
+
+  function sopRowsHtml(list) {
+    if (!list.length) return guidelineBHtml(state.query);
+    return (
+      '<div class="sop-list">' +
+      list
+        .map(function (sop) {
+          return (
+            '<button type="button" class="sop-row" data-open="' +
+            escapeHtml(sop.id) +
+            '">' +
+            '<span class="sop-glyph">' +
+            escapeHtml(sop.code) +
+            "</span>" +
+            "<div><strong>" +
+            escapeHtml(sop.title) +
+            "</strong><span>" +
+            escapeHtml(catLabel(sop.category) + " · " + sop.blurb) +
+            "</span></div>" +
+            '<span class="chev" aria-hidden="true">›</span>' +
+            "</button>"
+          );
+        })
+        .join("") +
+      "</div>"
+    );
+  }
+
+  function filterBarHtml() {
+    var chips =
+      '<button type="button" class="filter' +
+      (state.category === "all" ? " active" : "") +
+      '" data-cat="all">All</button>' +
+      DATA.categories
+        .map(function (c) {
+          return (
+            '<button type="button" class="filter' +
+            (state.category === c.id ? " active" : "") +
+            '" data-cat="' +
+            escapeHtml(c.id) +
+            '">' +
+            escapeHtml(c.label) +
+            "</button>"
+          );
+        })
+        .join("");
+    return '<div class="filters" role="tablist" aria-label="Sort by station">' + chips + "</div>";
+  }
+
+  function stopPlayer() {
+    if (player.timer) {
+      clearInterval(player.timer);
+      player.timer = null;
+    }
+    player.playing = false;
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  }
+
+  function speakScene(scene) {
+    if (!player.narration || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    var utterance = new SpeechSynthesisUtterance(scene.title + ". " + scene.line);
+    utterance.lang = "en-GB";
+    utterance.rate = player.rate;
+    var voices = window.speechSynthesis.getVoices();
+    var preferred = voices.find(function (v) { return v.lang === "en-GB" && /premium|natural|enhanced/i.test(v.name); }) || voices.find(function (v) { return v.lang === "en-GB"; });
+    if (preferred) utterance.voice = preferred;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function currentScene(sop, t) {
+    var scenes = sop.video.scenes;
+    var cur = scenes[0];
+    for (var i = 0; i < scenes.length; i++) {
+      if (t >= scenes[i].t) cur = scenes[i];
+    }
+    return cur;
+  }
+
+  function fmtTime(sec) {
+    var s = Math.max(0, Math.floor(sec));
+    var m = Math.floor(s / 60);
+    var r = s % 60;
+    return m + ":" + (r < 10 ? "0" : "") + r;
+  }
+
+  function paintPlayer(sop) {
+    var stage = document.getElementById("playerStage");
+    var fill = document.getElementById("playerFill");
+    var time = document.getElementById("playerTime");
+    var toggle = document.getElementById("playerToggle");
+    if (!stage || !sop.video) return;
+    var scene = currentScene(sop, player.t);
+    var dur = sop.video.durationSec;
+    stage.innerHTML =
+      '<div class="scene-visual" aria-hidden="true"><span></span><span></span><span></span></div><p class="player-kicker">Narrated animation · ' +
+      escapeHtml(catLabel(sop.category)) +
+      "</p><h3>" +
+      escapeHtml(scene.title) +
+      "</h3><p>" +
+      escapeHtml(scene.line) +
+      "</p>";
+    if (player.playing && player.sceneTitle !== scene.title) {
+      player.sceneTitle = scene.title;
+      speakScene(scene);
+    }
+    if (fill) fill.style.width = Math.min(100, (player.t / dur) * 100) + "%";
+    if (time) time.textContent = fmtTime(player.t) + " / " + fmtTime(dur);
+    if (toggle) toggle.textContent = player.playing ? "Pause" : "Play";
+  }
+
+  function startPlayer(sop) {
+    stopPlayer();
+    player.sopId = sop.id;
+    player.playing = true;
+    player.timer = setInterval(function () {
+      if (!player.playing) return;
+      player.t += 0.25;
+      if (player.t >= sop.video.durationSec) {
+        player.t = sop.video.durationSec;
+        stopPlayer();
+        completed[sop.id] = { version: sop.revision, completedAt: new Date().toISOString() };
+        localStorage.setItem("kiteline-sop-completed-v1", JSON.stringify(completed));
+        recordEvidence("training.completed", sop, { durationSec: sop.video.durationSec, narrated: player.narration });
+      }
+      paintPlayer(sop);
+    }, 250);
+    paintPlayer(sop);
+  }
+
+  function renderHome() {
+    screenTitle.textContent = "Kitchen SOP";
+    brandMark.textContent = DATA.company;
+    backBtn.hidden = true;
+    main.innerHTML =
+      '<section class="hero">' +
+      '<div class="hero-lockup"><img src="data:image/png;base64,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" alt="Kiteline" width="48" height="48">' +
+      "<div><h2>Kiteline Kitchen SOP</h2></div></div>" +
+      "<p>" +
+      escapeHtml(DATA.tagline) +
+      "</p>" +
+      '<div class="hero-meta">' +
+      '<span class="chip">Commercial only</span>' +
+      '<span class="chip">HACCP</span>' +
+      '<span class="chip">Allergens</span>' +
+      '<span class="chip">Narrated training</span>' +
+      '<span class="chip">v' +
+      escapeHtml(DATA.version) +
+      "</span></div>" +
+      '<p class="hero-url">This pack — current Kitchen SOP</p></section>' +
+      '<p class="section-label">Start here</p>' +
+      sopRowsHtml(DATA.sops.slice(0, 4)) +
+      '<p class="section-label" style="margin-top:18px">Full pack</p>' +
+      '<button type="button" class="btn" id="gotoSops">All kitchen SOPs</button>' +
+      '<button type="button" class="btn ghost" id="gotoVideos" style="margin-top:10px">Narrated training</button>' +
+      '<button type="button" class="btn ghost" id="gotoInstall" style="margin-top:10px">Install on phone</button>';
+  }
+
+  function renderSops() {
+    screenTitle.textContent = "All SOPs";
+    brandMark.textContent = DATA.company;
+    backBtn.hidden = true;
+    var list = filteredSops();
+    main.innerHTML =
+      '<div class="warn-banner">Professional commercial kitchen only — hotels, restaurants, catering, schools, production. Not home cooking.</div>' +
+      filterBarHtml() +
+      '<p class="section-label">' +
+      list.length +
+      " procedures</p>" +
+      sopRowsHtml(list);
+  }
+
+  function renderVideos() {
+    screenTitle.textContent = "Narrated training";
+    brandMark.textContent = DATA.company;
+    backBtn.hidden = true;
+    var list = filteredSops();
+    var rows = list
+      .map(function (sop) {
+        return (
+          '<button type="button" class="sop-row" data-open="' +
+          escapeHtml(sop.id) +
+          '">' +
+          '<span class="sop-glyph">▶</span>' +
+          "<div><strong>" +
+          escapeHtml(sop.video.title) +
+          "</strong><span>" +
+          escapeHtml(sop.code + " · " + catLabel(sop.category) + " · " + sop.video.durationSec + "s" + (completed[sop.id] && completed[sop.id].version === sop.revision ? " · Completed" : "")) +
+          "</span></div>" +
+          '<span class="chev">›</span></button>'
+        );
+      })
+      .join("");
+    main.innerHTML =
+      '<p class="section-label">Sort by station</p>' +
+      filterBarHtml() +
+      '<p class="section-label">' +
+      list.length +
+      " narrated briefings</p>" +
+      (rows ? '<div class="sop-list">' + rows + "</div>" : guidelineBHtml(state.query));
+  }
+
+  function renderRules() {
+    screenTitle.textContent = "House rules";
+    brandMark.textContent = DATA.company;
+    backBtn.hidden = true;
+    main.innerHTML =
+      '<div class="warn-banner">Post these on the pass. Every starter signs CK-00, CK-06 and Guideline B.</div>' +
+      guidelineBHtml("") +
+      '<div class="rule-list">' +
+      DATA.hardRules
+        .map(function (r) {
+          return '<div class="rule">' + escapeHtml(r) + "</div>";
+        })
+        .join("") +
+      "</div>";
+  }
+
+  function renderInstall() {
+    screenTitle.textContent = "Install";
+    brandMark.textContent = DATA.company;
+    backBtn.hidden = true;
+    var installBtn = state.deferredPrompt
+      ? '<button type="button" class="btn" id="installBtn">Install this app</button>'
+      : "";
+    main.innerHTML =
+      '<section class="block install"><h3>Android (Chrome)</h3>' +
+      "<ol><li>Open this page in Chrome.</li><li>Menu ⋮ → <b>Install app</b> or <b>Add to Home screen</b>.</li><li>Open Kitchen SOP from the home screen.</li></ol></section>" +
+      '<section class="block install"><h3>iPhone / iPad (Safari)</h3>' +
+      "<ol><li>Open this page in Safari.</li><li>Share □↑ → <b>Add to Home Screen</b>.</li><li>Tap Add. Works offline after first open.</li></ol></section>" +
+      installBtn +
+      '<p class="section-label" style="margin-top:18px">For</p>' +
+      "<p>" +
+      escapeHtml(DATA.audience) +
+      "</p>";
+  }
+
+  function renderDetail(sop) {
+    screenTitle.textContent = sop.code;
+    brandMark.textContent = DATA.company;
+    backBtn.hidden = false;
+    var sections = sop.sections
+      .map(function (sec) {
+        var inner = "";
+        if (sec.body) inner += "<p>" + escapeHtml(sec.body) + "</p>";
+        if (sec.bullets && sec.bullets.length) {
+          inner +=
+            "<ul>" +
+            sec.bullets
+              .map(function (b) {
+                return "<li>" + escapeHtml(b) + "</li>";
+              })
+              .join("") +
+            "</ul>";
+        }
+        return '<article class="block"><h3>' + escapeHtml(sec.h) + "</h3>" + inner + "</article>";
+      })
+      .join("");
+
+    main.innerHTML =
+      '<div class="detail-head"><div class="detail-code">' +
+      escapeHtml(sop.code + " · " + catLabel(sop.category)) +
+      "</div><h2>" +
+      escapeHtml(sop.title) +
+      "</h2><p>" +
+      escapeHtml(sop.blurb) +
+      "</p><p class=\"doc-control\">Version " + escapeHtml(sop.revision) + " · Effective " + escapeHtml(sop.effectiveDate) + " · Review " + escapeHtml(sop.reviewDate) + "</p></div>" +
+      '<div class="player" id="sopPlayer">' +
+      '<div class="player-stage" id="playerStage"></div>' +
+      '<div class="player-bar">' +
+      '<button type="button" id="playerToggle">Play</button>' +
+      '<button type="button" id="narrationToggle" aria-pressed="true">Voice on</button>' +
+      '<div class="player-progress" id="playerSeek" role="slider" aria-label="Training progress" tabindex="0"><span id="playerFill"></span></div>' +
+      '<div class="player-time" id="playerTime"></div></div></div>' +
+      sections + assessmentHtml(sop);
+
+    if (player.sopId !== sop.id) {
+      player.t = 0;
+      player.sopId = sop.id;
+      stopPlayer();
+    }
+    paintPlayer(sop);
+  }
+
+  function assessmentHtml(sop) {
+    var prior = competencyResults[sop.id];
+    var questions = sop.assessment.questions.map(function (q, qi) {
+      return '<fieldset class="quiz-question"><legend>' + (qi + 1) + '. ' + escapeHtml(q.prompt) + '</legend>' + q.options.map(function (option, oi) {
+        return '<label><input type="radio" name="q' + qi + '" value="' + oi + '"> <span>' + escapeHtml(option) + '</span></label>';
+      }).join("") + '</fieldset>';
+    }).join("");
+    return '<section class="block competency"><h3>Competency check</h3><p>Pass mark: 100%. Results are stored offline with the controlled SOP version.</p>' + questions + '<button type="button" class="btn" id="submitAssessment">Submit competency check</button><div id="assessmentResult" role="status" aria-live="polite">' + (prior ? escapeHtml("Previous result: " + prior.score + "% · " + (prior.passed ? "Passed" : "Retraining required")) : "") + '</div></section>' +
+      '<section class="block"><h3>Evidence & audit</h3><ul>' + sop.evidenceRequired.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join("") + '</ul><button type="button" class="btn ghost" id="exportEvidence">Export offline evidence ledger</button></section>';
+  }
+
+  function setTabActive(tab) {
+    tabs.forEach(function (btn) {
+      var on = btn.getAttribute("data-tab") === tab;
+      btn.classList.toggle("active", on);
+      if (on) btn.setAttribute("aria-current", "page");
+      else btn.removeAttribute("aria-current");
+    });
+  }
+
+  function render() {
+    main.style.animation = "none";
+    main.offsetHeight;
+    main.style.animation = "";
+
+    if (state.sopId) {
+      var sop = findSop(state.sopId);
+      if (sop) {
+        setTabActive(state.tab === "videos" ? "videos" : "sops");
+        renderDetail(sop);
+        return;
+      }
+      state.sopId = null;
+    }
+
+    stopPlayer();
+    setTabActive(state.tab);
+    if (state.tab === "home") renderHome();
+    else if (state.tab === "sops") renderSops();
+    else if (state.tab === "videos") renderVideos();
+    else if (state.tab === "rules") renderRules();
+    else renderInstall();
+  }
+
+  function goTab(tab) {
+    state.tab = tab;
+    state.sopId = null;
+    if (tab !== "sops" && tab !== "videos") {
+      state.searchOpen = false;
+      searchBar.hidden = true;
+    }
+    render();
+  }
+
+  document.querySelector(".tabbar").addEventListener("click", function (e) {
+    var btn = e.target.closest(".tab");
+    if (!btn) return;
+    goTab(btn.getAttribute("data-tab"));
+  });
+
+  backBtn.addEventListener("click", function () {
+    state.sopId = null;
+    if (state.tab !== "videos") state.tab = "sops";
+    render();
+  });
+
+  searchToggle.addEventListener("click", function () {
+    if (state.tab !== "videos") state.tab = "sops";
+    state.sopId = null;
+    state.searchOpen = !state.searchOpen;
+    searchBar.hidden = !state.searchOpen;
+    render();
+    if (state.searchOpen) searchInput.focus();
+  });
+
+  searchInput.addEventListener("input", function () {
+    state.query = searchInput.value;
+    if (state.tab !== "videos") state.tab = "sops";
+    state.sopId = null;
+    render();
+  });
+
+  main.addEventListener("click", function (e) {
+    var cat = e.target.closest("[data-cat]");
+    if (cat) {
+      state.category = cat.getAttribute("data-cat");
+      render();
+      return;
+    }
+    var open = e.target.closest("[data-open]");
+    if (open) {
+      state.sopId = open.getAttribute("data-open");
+      searchBar.hidden = true;
+      state.searchOpen = false;
+      player.t = 0;
+      stopPlayer();
+      render();
+      window.scrollTo(0, 0);
+      return;
+    }
+    if (e.target.id === "gotoSops") {
+      goTab("sops");
+      return;
+    }
+    if (e.target.id === "gotoVideos") {
+      goTab("videos");
+      return;
+    }
+    if (e.target.id === "gotoInstall") {
+      goTab("install");
+      return;
+    }
+    if (e.target.id === "gotoRules") {
+      goTab("rules");
+      return;
+    }
+    if (e.target.id === "playerToggle") {
+      var sop = findSop(state.sopId);
+      if (!sop) return;
+      if (player.playing) {
+        player.playing = false;
+        stopPlayer();
+        paintPlayer(sop);
+      } else {
+        if (player.t >= sop.video.durationSec) player.t = 0;
+        startPlayer(sop);
+      }
+      return;
+    }
+    if (e.target.id === "narrationToggle") {
+      player.narration = !player.narration;
+      e.target.textContent = player.narration ? "Voice on" : "Voice off";
+      e.target.setAttribute("aria-pressed", player.narration ? "true" : "false");
+      if (!player.narration && "speechSynthesis" in window) window.speechSynthesis.cancel();
+      return;
+    }
+    var seek = e.target.closest("#playerSeek");
+    if (seek) {
+      var sopSeek = findSop(state.sopId);
+      var rect = seek.getBoundingClientRect();
+      player.t = Math.max(0, Math.min(sopSeek.video.durationSec, ((e.clientX - rect.left) / rect.width) * sopSeek.video.durationSec));
+      player.sceneTitle = null;
+      paintPlayer(sopSeek);
+      return;
+    }
+    if (e.target.id === "submitAssessment") {
+      var assessedSop = findSop(state.sopId);
+      var answers = assessedSop.assessment.questions.map(function (_, qi) {
+        var selected = main.querySelector('input[name="q' + qi + '"]:checked');
+        return selected ? Number(selected.value) : -1;
+      });
+      var correct = answers.filter(function (answer, qi) { return answer === assessedSop.assessment.questions[qi].correctIndex; }).length;
+      var score = Math.round((correct / answers.length) * 100);
+      var passed = score >= assessedSop.assessment.passPercent;
+      competencyResults[assessedSop.id] = { score: score, passed: passed, sopVersion: assessedSop.revision, attemptedAt: new Date().toISOString() };
+      localStorage.setItem("kiteline-sop-competency-v1", JSON.stringify(competencyResults));
+      recordEvidence(passed ? "competency.passed" : "competency.retraining_required", assessedSop, { score: score, answersComplete: answers.indexOf(-1) === -1 });
+      document.getElementById("assessmentResult").textContent = passed ? "Passed: " + score + "%. Manager sign-off may now be completed." : "Score: " + score + "%. Review this SOP and repeat the check.";
+      return;
+    }
+    if (e.target.id === "exportEvidence") {
+      var blob = new Blob([JSON.stringify({ schemaVersion: 1, exportedAt: new Date().toISOString(), records: evidenceLedger }, null, 2)], { type: "application/json" });
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "kiteline-sop-evidence-" + new Date().toISOString().slice(0, 10) + ".json";
+      link.click();
+      URL.revokeObjectURL(link.href);
+      return;
+    }
+    if (e.target.id === "installBtn" && state.deferredPrompt) {
+      state.deferredPrompt.prompt();
+      state.deferredPrompt.userChoice.finally(function () {
+        state.deferredPrompt = null;
+        render();
+      });
+    }
+  });
+
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    state.deferredPrompt = e;
+  });
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(function () {});
+    });
+  }
+
+  function updateNetworkStatus() {
+    if (!networkStatus) return;
+    networkStatus.hidden = navigator.onLine;
+    networkStatus.textContent = navigator.onLine ? "" : "Offline mode — saved SOPs and training remain available; updates resume when connected.";
+  }
+  window.addEventListener("online", updateNetworkStatus);
+  window.addEventListener("offline", updateNetworkStatus);
+  updateNetworkStatus();
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -9,8 +9,9 @@ Do **not** use `https://kiteline.uk/kitchen-sop/` or `https://parslia.app/kitche
 
 Open the pack from this repository:
 
+- One file: `open-kitchen-sop.html` (opens without extra requests)
 - Folder: `kitchen-sop/`
-- Local: `python3 -m http.server 8766` then http://localhost:8766/kitchen-sop/
+- Local: `python3 -m http.server 8766` then http://localhost:8766/open-kitchen-sop.html
 
 Those live URLs only work after this branch is on `main` (parslia.app) and after kitline1 deploy (kiteline.uk).
 
@@ -42,7 +43,7 @@ cd kiteline-kitchen-sop
 python3 -m http.server 8766
 ```
 
-Open http://localhost:8766. `standalone.html` redirects to the current version-controlled pack so it cannot preserve obsolete safety content.
+Open http://localhost:8766. `standalone.html` is a self-contained copy of the pack (same as `open-kitchen-sop.html`).
 
 To preview the Kiteline URL shape (`/kitchen-sop/`):
 
