@@ -40,4 +40,10 @@ if (!D.guidelineB || D.guidelineB.code !== "B" || !/recipe not found/i.test(D.gu
 }
 if (!text.includes("guideline b") || !text.includes("do not cook from memory")) throw new Error("Recipe-not-found stop rule missing");
 if (!app.includes("guidelineBHtml") || !app.includes("Recipe not found")) throw new Error("Pocket app missing Guideline B empty state");
+const publicDir = __dirname.replace(/kiteline-kitchen-sop$/, "kitchen-sop");
+["index.html", "app.js", "data/sops.js", "sw.js"].forEach((name) => {
+  const a = fs.readFileSync(__dirname + "/" + name, "utf8");
+  const b = fs.readFileSync(publicDir + "/" + name, "utf8");
+  if (a !== b) throw new Error("Public /kitchen-sop/ is out of date: " + name);
+});
 console.log("OK", D.sops.length, "version-controlled UK SOPs plus Guideline B recipe-not-found");

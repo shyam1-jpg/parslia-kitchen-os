@@ -3,6 +3,14 @@
 Pocket app for **professional commercial kitchens** (hotels, restaurants, catering, schools, production).  
 Not home cooking. Not the Vedanta vegetarian pack.
 
+## Live URL (this repo / parslia.app)
+
+After this branch is merged to `main`, the pocket app is at:
+
+**https://parslia.app/kitchen-sop/**
+
+Source files in this repo: `kitchen-sop/` (public) and `kiteline-kitchen-sop/` (edit source here).
+
 ## Live URL (Kiteline)
 
 **Intended production URL (same host as the rota):**  
