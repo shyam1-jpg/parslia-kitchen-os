@@ -190,6 +190,7 @@ Property facts: 45 rooms · restaurant 150 seats / 130 max covers · 25 staff ·
     placements load on a fresh database.
   - Render Postgres TLS in `db.ts`. `BOOTSTRAP_OWNER_EMAIL` upserts a system owner every boot.
   - Seed includes `shyam_1@hotmail.co.uk` as SYSTEM_OWNER alongside `shyam@thevedanta.org`.
+  - Staff admins: Dan, Shannon, Losi, Gram (`dan@` / `shannon@` / `losi@` / `gram@thevedanta.org`).
   - `docs/deploy.md` leads with the Render + Entra steps; example price list included.
 
 ## Next (in order)

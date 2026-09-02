@@ -256,16 +256,22 @@ function listSql(subdir: string): string[] {
   }
 }
 
-async function bootstrapOwner(client: pg.Client) {
-  const email = (process.env.BOOTSTRAP_OWNER_EMAIL ?? "").trim().toLowerCase();
-  if (!email || !email.includes("@")) return;
-  const name = process.env.BOOTSTRAP_OWNER_NAME?.trim() || email.split("@")[0];
-  log(`ensuring system owner ${email}`);
+const STAFF_ADMINS: { email: string; name: string }[] = [
+  { email: "dan@thevedanta.org", name: "Dan" },
+  { email: "shannon@thevedanta.org", name: "Shannon" },
+  { email: "losi@thevedanta.org", name: "Losi" },
+  { email: "gram@thevedanta.org", name: "Gram" },
+];
+
+async function ensureAdmin(client: pg.Client, email: string, name: string) {
+  const addr = email.trim().toLowerCase();
+  if (!addr.includes("@")) return;
+  log(`ensuring system owner ${addr}`);
   await client.query(`
     INSERT INTO app_user (tenant_id, email, display_name, status)
     SELECT t.id, $1, $2, 'ACTIVE' FROM tenant t LIMIT 1
     ON CONFLICT (tenant_id, email) DO UPDATE SET display_name = EXCLUDED.display_name, status = 'ACTIVE'
-  `, [email, name]);
+  `, [addr, name.trim() || addr.split("@")[0]]);
   await client.query(`
     INSERT INTO membership (tenant_id, user_id, property_id, role_id, department_id)
     SELECT t.id, u.id, p.id, r.id, d.id
@@ -277,7 +283,15 @@ async function bootstrapOwner(client: pg.Client) {
     WHERE NOT EXISTS (
       SELECT 1 FROM membership m WHERE m.user_id = u.id AND m.property_id = p.id AND m.role_id = r.id
     )
-  `, [email]);
+  `, [addr]);
+}
+
+async function bootstrapOwner(client: pg.Client) {
+  for (const a of STAFF_ADMINS) await ensureAdmin(client, a.email, a.name);
+  const extra = (process.env.BOOTSTRAP_OWNER_EMAIL ?? "").trim().toLowerCase();
+  if (extra) await ensureAdmin(client, extra, process.env.BOOTSTRAP_OWNER_NAME?.trim() || extra.split("@")[0]);
+  const more = (process.env.BOOTSTRAP_ADMIN_EMAILS ?? "").split(",").map(s => s.trim()).filter(Boolean);
+  for (const email of more) await ensureAdmin(client, email, email.split("@")[0]);
 }
 
 export async function migrate(): Promise<void> {

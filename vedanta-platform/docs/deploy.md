@@ -56,7 +56,7 @@ Staff sign in with their existing Microsoft accounts; there are no passwords to 
 4. **API permissions** should list `openid`, `profile`, `email` under Microsoft Graph. Click **Grant admin consent**.
 5. Render → **vedanta-api → Environment** → set `MS_TENANT_ID`, `MS_CLIENT_ID`, `MS_CLIENT_SECRET` → Save. It redeploys; the Microsoft button appears.
 
-If staff use `@thevedanta.org` addresses, the seed already has `shyam@thevedanta.org`. This trial also seeds **`shyam_1@hotmail.co.uk`** as system owner so a first sign-in works if that is the Microsoft account. Personal Hotmail accounts only work if the Entra app allows personal Microsoft accounts (step 1: change “who can sign in”). Otherwise add the work email on Render as `BOOTSTRAP_OWNER_EMAIL` and redeploy, or add it from **Staff access** after the first owner is in.
+If staff use `@thevedanta.org` addresses, the seed already has system owners for **Shyam**, **Dan**, **Shannon**, **Losi** and **Gram** (`dan@thevedanta.org`, etc.). This trial also seeds **`shyam_1@hotmail.co.uk`** as system owner so a first sign-in works if that is the Microsoft account. Personal Hotmail accounts only work if the Entra app allows personal Microsoft accounts (step 1: change “who can sign in”). Otherwise add the work email on Render as `BOOTSTRAP_OWNER_EMAIL` and redeploy, or add it from **Staff access** after the first owner is in.
 
 ## 3. First sign-in
 
