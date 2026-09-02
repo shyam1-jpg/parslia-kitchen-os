@@ -12,7 +12,7 @@
 | `script.js` | Menu + early access form |
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
 | `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
-| `kitchen-sop/` | **Live pocket app URL** after merge: `https://parslia.app/kitchen-sop/` |
+| `kitchen-sop/` | Kitchen SOP pocket app. Open locally at `/kitchen-sop/`. Live parslia.app and kiteline.uk URLs 404 until this is on `main` / kitline1. |
 | `kiteline-kitchen-sop/` | Source copy of the same Kiteline SOP PWA (edit here, then republish) |
 | `docs/sops/kiteline-commercial/` | Controlled SOP markdown pack (CK-00–CK-12 + Guideline B) |
 | `kiteline-uk-dropin/` | Apply script to serve the pack at kiteline.uk/kitchen-sop/ |

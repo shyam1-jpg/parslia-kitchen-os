@@ -31,7 +31,8 @@ Each SOP has a **captioned animated briefing with optional British-English narra
 
 ## Pocket app
 
-Live on Kiteline (after kitline1 deploy): **https://kiteline.uk/kitchen-sop/**
+Open in this repo: [`kitchen-sop/`](../../../kitchen-sop/).  
+`https://kiteline.uk/kitchen-sop/` is **not live yet** (404 until kitline1 is updated).
 
 Source: [`kiteline-kitchen-sop/`](../../../kiteline-kitchen-sop/)  
 Kiteline drop-in: [`kiteline-uk-dropin/`](../../../kiteline-uk-dropin/)

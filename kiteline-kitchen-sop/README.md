@@ -3,18 +3,16 @@
 Pocket app for **professional commercial kitchens** (hotels, restaurants, catering, schools, production).  
 Not home cooking. Not the Vedanta vegetarian pack.
 
-## Live URL (this repo / parslia.app)
+## Where to open it (this repo)
 
-After this branch is merged to `main`, the pocket app is at:
+Do **not** use `https://kiteline.uk/kitchen-sop/` or `https://parslia.app/kitchen-sop/` yet — both currently 404.
 
-**https://parslia.app/kitchen-sop/**
+Open the pack from this repository:
 
-Source files in this repo: `kitchen-sop/` (public) and `kiteline-kitchen-sop/` (edit source here).
+- Folder: `kitchen-sop/`
+- Local: `python3 -m http.server 8766` then http://localhost:8766/kitchen-sop/
 
-## Live URL (Kiteline)
-
-**Intended production URL (same host as the rota):**  
-https://kiteline.uk/kitchen-sop/
+Those live URLs only work after this branch is on `main` (parslia.app) and after kitline1 deploy (kiteline.uk).
 
 The rota is at https://kiteline.uk/vedanta-rota/. This SOP is a matching static PWA under `site/kitchen-sop/` on [kitline1](https://github.com/shyam1-jpg/kitline1) (Render → kiteline.uk).
 

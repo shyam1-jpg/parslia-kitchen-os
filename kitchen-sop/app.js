@@ -249,7 +249,7 @@
       '<span class="chip">v' +
       escapeHtml(DATA.version) +
       "</span></div>" +
-      '<p class="hero-url"><a href="https://kiteline.uk/kitchen-sop/">kiteline.uk/kitchen-sop</a></p></section>' +
+      '<p class="hero-url">This pack — current Kitchen SOP</p></section>' +
       '<p class="section-label">Start here</p>' +
       sopRowsHtml(DATA.sops.slice(0, 4)) +
       '<p class="section-label" style="margin-top:18px">Full pack</p>' +
