@@ -1,0 +1,33 @@
+# Property configuration — replaces the [CONFIGURE] fields in the Master Specification.
+# Facts supplied by the sponsor on 2 Sept 2026. Everything here is data, not code:
+# the platform reads it at seed time and stores it in the property tables.
+
+tenant:
+  name: Vedanta Oway Retreat
+  legal_entity: The Vedanta Way Ltd
+  website: https://www.thevedanta.org/
+  country: GB
+  currency: GBP
+  timezone: Europe/London
+
+property:
+  code: VOR
+  name: Vedanta Oway Retreat
+  rooms_total: 45
+  check_in_from: "15:00"
+  check_out_by: "11:00"
+
+restaurant:
+  name: Main Dining Room
+  seats: 150                    # physical seating capacity
+  max_covers_per_service: 130   # operational maximum guests served per sitting
+  services: [breakfast, lunch, dinner]
+
+staff:
+  headcount: 25                 # initial rota sizing and licence planning
+
+# Real inventory lives in db/seed/0001_property.sql (42 rooms from the 2026 Room Sheet).
+# Sponsor stated 45 rooms; 2024/25 sheets also listed 301-307. Discrepancy to confirm.
+sections: [Ground Floor, Pink Corridor, First Floor, Green Corridor, Second Floor]
+packages: [Standard, Standard with spa, Premium, Day retreat, Venue hire, Grand Vedanta (weddings)]
+use_basis: [Exclusive, Shared]

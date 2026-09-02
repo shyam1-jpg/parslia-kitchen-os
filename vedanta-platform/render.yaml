@@ -1,0 +1,81 @@
+# Render Blueprint — New → Blueprint → this repo → Apply.
+# Creates vedanta-db, vedanta-api and vedanta-admin.
+# Microsoft secrets are left empty; add them after the first deploy (docs/deploy.md).
+
+databases:
+  - name: vedanta-db
+    databaseName: vedanta
+    user: vedanta
+    plan: basic-256mb
+    postgresMajorVersion: "16"
+
+services:
+  - type: web
+    name: vedanta-api
+    runtime: node
+    plan: starter
+    buildCommand: npm --prefix services/platform-api install --omit=dev
+    startCommand: npm --prefix services/platform-api run start:prod
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vedanta-db
+          property: connectionString
+      - key: PUBLIC_URL
+        fromService:
+          name: vedanta-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: WEB_URL
+        fromService:
+          name: vedanta-admin
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: BOOTSTRAP_OWNER_EMAIL
+        value: shyam_1@hotmail.co.uk
+      - key: BOOTSTRAP_OWNER_NAME
+        value: Shyam Prasad
+      - key: MS_TENANT_ID
+        sync: false
+      - key: MS_CLIENT_ID
+        sync: false
+      - key: MS_CLIENT_SECRET
+        sync: false
+      - key: SMTP_URL
+        sync: false
+      - key: MAIL_FROM
+        value: Vedanta Oway Retreat <bookings@thevedanta.org>
+
+  - type: web
+    name: vedanta-admin
+    runtime: static
+    rootDir: apps/web-admin
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./out
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          name: vedanta-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
