@@ -27,7 +27,7 @@ export default function Users() {
 
   return (
     <>
-      <div className="topbar"><div><h1>Staff access</h1><p>Who can sign in, and as what. Sign-in itself is through Microsoft 365 — the email here must match their Microsoft account.</p></div></div>
+      <div className="topbar"><div><h1>Staff of the house</h1><p>Who may enter, and as what. Email must match their Microsoft account when that is connected.</p></div></div>
       <div className="panel">
         <h3>Add a person</h3>
         <div className="frow" style={{ flexWrap: "wrap", gap: 8 }}>

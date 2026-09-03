@@ -18,7 +18,7 @@ export default function Settings() {
   const dirty = (p: Pkg) => !!draft[p.id] && Object.keys(draft[p.id]).length > 0;
   return (
     <>
-      <div className="topbar"><div><h1>Settings</h1><p>Packages and prices, and keys for connected systems.</p></div></div>
+      <div className="topbar"><div><h1>The estate</h1><p>Packages, prices, and keys for the systems that serve the house.</p></div></div>
       <div className="panel">
         <h3>Packages</h3>
         <p className="m" style={{ color: "var(--ink-2)" }}>Prices are per person unless the basis says otherwise. Twin = sharing; single = own room. Changing a price does not change bookings already priced.</p>

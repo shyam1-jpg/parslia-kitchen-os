@@ -195,6 +195,12 @@ Property facts: 45 rooms · restaurant 150 seats / 130 max covers · 25 staff ·
   - Trial email sign-in: `ALLOW_EMAIL_LOGIN=true` on the Blueprint so production can sign in as
     `shyam_1@hotmail.co.uk` before Microsoft 365 is configured. `/auth/providers` reports `email`.
 
+- 2026-09-03 · Session 13 — luxury house layer
+  - Frontend: estate arrival sign-in, grouped nav, cream/forest/gold system (Cormorant + Outfit),
+    “Today at the house” home. Organiser form on forest ground.
+  - Backend: `GET /v1/estate` — London-dated pulse (in residence, arrivals, rooms tonight, dinner)
+    plus property facts. New booking colours use the house palette.
+
 ## Next (in order)
 1. Shyam: Apply `vedanta-platform/render.monorepo.yaml` from this branch on Render, open vedanta-admin, sign in as `shyam_1@hotmail.co.uk`; paste the API migrate log. Entra later.
 2. Confirm the live price list (Settings, or reply with the eight package prices).

@@ -61,7 +61,7 @@ export default function GroupsScreen() {
   return (
     <>
       <div className="topbar">
-        <div><h1>Group bookings</h1><p>{shown.length} shown · {groups.filter(g => g.status === "CONFIRMED" && g.departure >= TODAY).length} confirmed ahead{loading ? " · refreshing…" : ""}</p></div>
+        <div><h1>The book</h1><p>{shown.length} shown · {groups.filter(g => g.status === "CONFIRMED" && g.departure >= TODAY).length} confirmed ahead{loading ? " · refreshing…" : ""}</p></div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <div className="seg" role="tablist">
             {(["upcoming", "attention", "all"] as const).map(f => (

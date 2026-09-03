@@ -13,7 +13,7 @@ const STATUS_FLOW: Record<string, Record<string, string>> = {
   COMPLETED: {}, CANCELLED: {},
 };
 const CMD_PERM: Record<string, string> = { hold: "group.confirm", confirm: "group.confirm", check_in: "group.confirm", check_out: "group.confirm", cancel: "group.cancel" };
-const PALETTE = ["#2C6E8A", "#5B7B5A", "#B8632B", "#7A4E8A", "#8A5A2C", "#A2382C", "#3C7A7A"];
+const PALETTE = ["#1F3A32", "#8A6A3B", "#4F6758", "#6B3A32", "#3D5A66", "#7A5A3C", "#4A3F55"];
 
 export function* halfDays(g: { arrival_date: string; arrival_slot: Slot; departure_date: string; departure_slot: Slot }) {
   const d = new Date(g.arrival_date + "T00:00:00Z"); const end = new Date(g.departure_date + "T00:00:00Z");

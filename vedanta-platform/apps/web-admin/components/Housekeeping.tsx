@@ -30,7 +30,7 @@ export default function Housekeeping() {
   return (
     <>
       <div className="topbar">
-        <div><h1>Housekeeping</h1><p>{fmt(date, { weekday: "long", day: "numeric", month: "long" })} · {counts.departure_clean ?? 0} departures · {counts.arrival_prepare ?? 0} arrivals · {counts.stayover ?? 0} stay-overs · {counts.out ?? 0} out of use</p></div>
+        <div><h1>Housekeeping</h1><p>The rooms, in the order the house needs them. {fmt(date, { weekday: "long", day: "numeric", month: "long" })} · {counts.departure_clean ?? 0} departures · {counts.arrival_prepare ?? 0} arrivals · {counts.stayover ?? 0} stay-overs · {counts.out ?? 0} out of use</p></div>
         <div className="seg"><button onClick={() => setDate(addDays(date, -1))}>‹</button><button onClick={() => setDate(new Date().toISOString().slice(0, 10))}>Today</button><input type="date" aria-label="Go to date" value={date} onChange={e => e.target.value && setDate(e.target.value)} style={{ border: 0, padding: "6px 8px", font: "inherit", color: "var(--ink-2)", background: "transparent" }} /><button onClick={() => setDate(addDays(date, 1))}>›</button></div>
       </div>
       <div className="seg" style={{ marginBottom: 14 }}>

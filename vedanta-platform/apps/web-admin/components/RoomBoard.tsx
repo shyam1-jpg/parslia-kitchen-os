@@ -68,7 +68,7 @@ export default function RoomBoard() {
   return (
     <>
       <div className="topbar">
-        <div><h1>Room board</h1><p>{editable ? "Click an empty cell to place someone; drag a stay to another room." : "Who is in which room, morning and evening."}</p></div>
+        <div><h1>The board</h1><p>{editable ? "Place a guest, or draw a stay from room to room." : "Who is in which room, morning and evening."}</p></div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <div className="seg">
             <button onClick={() => setStart(addDays(start, -span))} aria-label="Earlier">‹</button>

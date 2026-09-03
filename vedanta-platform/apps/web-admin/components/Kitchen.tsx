@@ -23,7 +23,7 @@ export default function Kitchen() {
   return (
     <>
       <div className="topbar">
-        <div><h1>Kitchen covers</h1><p>Guests eating each service, from the groups in house. Maximum {max} per sitting.</p></div>
+        <div><h1>The kitchen</h1><p>Covers for each sitting. Maximum {max} at the Main Dining Room.</p></div>
         <div className="seg"><button onClick={() => setStart(addDays(start, -7))} aria-label="Earlier">‹</button><button onClick={() => setStart(TODAY)}>This week</button><button onClick={() => setStart(addDays(start, 7))} aria-label="Later">›</button></div>
       </div>
       {err && <div className="note">{err}</div>}

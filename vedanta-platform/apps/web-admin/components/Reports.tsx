@@ -13,7 +13,7 @@ export default function Reports() {
   const maxRN = Math.max(1, ...(rep?.items.map(m => m.room_nights) ?? [1]));
   return (
     <>
-      <div className="topbar"><div><h1>Reports</h1><p>Monthly occupancy and volume from the bookings and the room board. {rep ? `${rep.sellable_rooms} sellable rooms.` : ""}</p></div>
+      <div className="topbar"><div><h1>The ledgers</h1><p>Occupancy and volume from the book and the board. {rep ? `${rep.sellable_rooms} sellable rooms.` : ""}</p></div>
         <div style={{ display: "flex", gap: 10 }}><div className="seg"><button onClick={() => setYear(y => y - 1)}>‹</button><button className="on">{year}</button><button onClick={() => setYear(y => y + 1)}>›</button></div><button className="btn" onClick={csv} disabled={!rep}>Download CSV</button></div></div>
       {err && <div className="note">{err}</div>}
       {rep && (<>

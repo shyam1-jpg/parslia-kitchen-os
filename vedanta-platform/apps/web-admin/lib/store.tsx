@@ -16,7 +16,7 @@ const fromApiGroup = (g: ApiGroup): Group => ({
   packageName: (g.package_name as string) ?? "", priceNotes: (g.price_notes as string) ?? "", packageId: (g.package_id as string) ?? null, packageCode: ((g.package as any)?.code as string) ?? null, packageInfo: (g.package as Group["packageInfo"]) ?? null, agreedTwin: g.agreed_price_twin as string | null, agreedSingle: g.agreed_price_single as string | null, singles: (g.singles_count as number) ?? null, agreedTotal: g.agreed_total as string | null, formToken: (g.form_token as string) ?? null, formSubmittedAt: (g.form_submitted_at as string) ?? null, attendees: (g.attendees as number) ?? 0, spa: !!g.spa_access, status: g.status as Group["status"],
   bookingForm: ((g.booking_form_status as string) ?? "NOT_SENT") as Group["bookingForm"], termsSigned: !!g.terms_signed,
   feedback: ((g.feedback_form_status as string) ?? "NOT_SENT") as Group["feedback"], notes: (g.notes as string) ?? undefined, dietaryNotes: (g.dietary_notes as string) ?? undefined, mealsFrom: (g.meals_from as string) ?? undefined, mealsTo: (g.meals_to as string) ?? undefined,
-  colour: (g.colour as string) ?? "#2C6E8A", version: Number(g.version), source: g.source as string,
+  colour: (g.colour as string) ?? "#1F3A32", version: Number(g.version), source: g.source as string,
 });
 const fmtTime = (t: string | null) => { if (!t) return ""; const [h, m] = t.split(":").map(Number); return `${h % 12 || 12}${m ? ":" + String(m).padStart(2, "0") : ""}${h >= 12 ? "pm" : "am"}`; };
 const fromApiRoom = (r: ApiRoom): Room => ({

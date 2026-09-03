@@ -36,7 +36,7 @@ export default function Guests() {
   const create = async () => { try { const r = await api<{ id: string }>("/v1/guests", { method: "POST", body: JSON.stringify(add) }); setAdding(false); setAdd({ given_name: "", family_name: "", email: "", phone: "", organisation: "" }); say("Guest added"); await load(); setQ(add.family_name); } catch (e) { say(e instanceof ApiError ? e.problem.detail : "Could not add"); } };
   return (
     <>
-      <div className="topbar"><div><h1>Guests</h1><p>Attendees behind the names on the board. Dietary and allergen declarations here reach the kitchen.</p></div>
+      <div className="topbar"><div><h1>Guests</h1><p>The people behind the names on the board. What you record here is what the kitchen sees.</p></div>
         {can("guest.write") && <button className="btn primary" onClick={() => setAdding(true)}>Add guest</button>}</div>
       <div className="frow" style={{ marginBottom: 12, maxWidth: 640 }}>
         <input placeholder="Search name, email or organisation" value={q} onChange={e => setQ(e.target.value)} style={{ flex: 1 }} />
