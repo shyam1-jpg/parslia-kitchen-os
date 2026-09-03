@@ -9,7 +9,7 @@ const FLOW: Record<string, Record<string, string>> = {
   WAITING_PARTS: { start: "IN_PROGRESS", done: "DONE", cancel: "CANCELLED" },
   DONE: { reopen: "OPEN" }, CANCELLED: { reopen: "OPEN" },
 };
-const COLS = `t.id, t.number, t.title, t.description, t.priority, t.status, t.location, t.takes_room_out, t.resolution, t.created_at, t.updated_at, t.resolved_at, t.version,
+const COLS = `t.id, t.number, t.title, t.description, t.priority, t.status, t.location, t.department, t.takes_room_out, t.resolution, t.created_at, t.updated_at, t.resolved_at, t.version,
   r.number room, rep.display_name reported_by, asg.display_name assigned_to, t.assigned_to_user_id`;
 const FROM = `from maintenance_ticket t left join room r on r.id=t.room_id left join app_user rep on rep.id=t.reported_by_user_id left join app_user asg on asg.id=t.assigned_to_user_id`;
 
@@ -23,14 +23,16 @@ export default async function routes(f: FastifyInstance) {
     return { items: r.rows, assignees: people.rows };
   });
 
-  f.post<{ Body: { title: string; description?: string; room?: string; location?: string; priority?: string; takes_room_out?: boolean } }>("/maintenance", async (req, reply) => {
+  f.post<{ Body: { title: string; description?: string; room?: string; location?: string; department?: string; priority?: string; takes_room_out?: boolean } }>("/maintenance", async (req, reply) => {
     const a = await requireActor(req, reply); if (!a || !allow(a, "maintenance.report", reply)) return;
     const b = req.body ?? {} as any; if (!b.title?.trim()) return reply.code(422).send(problem(422, "validation", "Say what the problem is"));
+    if (!b.room?.trim() && !b.location?.trim()) return reply.code(422).send(problem(422, "validation", "Choose a room or a building area"));
+    if (!b.department?.trim()) return reply.code(422).send(problem(422, "validation", "Say which department is reporting"));
     return tx(async c => {
       const room = b.room ? (await c.query(`select id, status from room where property_id=$1 and number=$2 for update`, [a.propertyId, b.room])).rows[0] : null;
       if (b.room && !room) { reply.code(404); return problem(404, "not_found", `No room ${b.room}`); }
-      const r = await c.query(`insert into maintenance_ticket (tenant_id, property_id, room_id, location, title, description, priority, reported_by_user_id, takes_room_out) values ($1,$2,$3,$4,$5,$6,$7,$8,$9) returning id, number`,
-        [a.tenantId, a.propertyId, room?.id ?? null, b.location ?? null, b.title.trim(), b.description ?? null, b.priority ?? "NORMAL", a.userId, !!b.takes_room_out && !!room]);
+      const r = await c.query(`insert into maintenance_ticket (tenant_id, property_id, room_id, location, department, title, description, priority, reported_by_user_id, takes_room_out) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning id, number`,
+        [a.tenantId, a.propertyId, room?.id ?? null, b.location ?? null, b.department.trim(), b.title.trim(), b.description ?? null, b.priority ?? "NORMAL", a.userId, !!b.takes_room_out && !!room]);
       if (b.takes_room_out && room && !["OUT_OF_SERVICE", "OUT_OF_ORDER"].includes(room.status)) {
         await c.query(`update room set status='OUT_OF_ORDER', status_before_oos=$2, version=version+1 where id=$1`, [room.id, room.status]);
         await c.query(`insert into room_status_event (tenant_id, room_id, from_status, to_status, by_user_id, reason) values ($1,$2,$3,'OUT_OF_ORDER',$4,$5)`, [a.tenantId, room.id, room.status, a.userId, `M-${r.rows[0].number}: ${b.title.trim()}`]);

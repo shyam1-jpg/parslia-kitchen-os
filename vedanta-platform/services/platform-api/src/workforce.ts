@@ -135,7 +135,12 @@ export default async function workforce(f: FastifyInstance) {
     const today = (await pool.query(`select (timezone('Europe/London', now()))::date::text t`)).rows[0].t;
     const from = String(req.query?.from ?? weekStart(today));
     const to = String(req.query?.to ?? today);
-    const users = (await pool.query(`select u.id, u.display_name as name, u.email, r.code as role from app_user u join membership m on m.user_id=u.id join role r on r.id=m.role_id where m.property_id=$1 and u.status='ACTIVE'`, [a.propertyId])).rows;
+    const dept = String(req.query?.department ?? "");
+    const users = (await pool.query(`select u.id, u.display_name as name, u.email, r.code as role, d.code as department
+      from app_user u join membership m on m.user_id=u.id join role r on r.id=m.role_id
+      left join department d on d.id=m.department_id
+      where m.property_id=$1 and u.status='ACTIVE' and ($2 = '' or d.code = $2)
+      order by u.display_name`, [a.propertyId, dept])).rows;
     const items = [];
     for (const u of users) {
       const p = await punches(a.propertyId, u.id, from, to);
@@ -234,16 +239,23 @@ export default async function workforce(f: FastifyInstance) {
     if (!(total >= 0)) return reply.code(422).send(problem(422, "validation", "total is required"));
     const method = (["EVEN", "HOURS", "RATE"].includes(b.method) ? b.method : "HOURS") as TipMethod;
     const rate = Number(b.rate_per_hour ?? 0);
+    const dept = String(b.department ?? "");
     const today = (await pool.query(`select (timezone('Europe/London', now()))::date::text t`)).rows[0].t;
     const from = String(b.week_start ?? weekStart(today));
     const to = new Date(+new Date(from) + 6 * 86400000).toISOString().slice(0, 10);
-    const users = (await pool.query(`select u.id from app_user u join membership m on m.user_id=u.id where m.property_id=$1 and u.status='ACTIVE'`, [a.propertyId])).rows;
+    const users = (await pool.query(`select u.id, u.display_name as name, d.code as department
+      from app_user u join membership m on m.user_id=u.id
+      left join department d on d.id=m.department_id
+      where m.property_id=$1 and u.status='ACTIVE' and ($2 = '' or d.code = $2)
+      order by u.display_name`, [a.propertyId, dept])).rows;
     const staff = [];
     for (const u of users) {
       const hours = hoursFromPunches(await punches(a.propertyId, u.id, from, to));
-      if (hours > 0 || (b.include_zero && b.user_ids?.includes(u.id))) staff.push({ userId: u.id, hours });
+      const include = b.include_all || method === "EVEN" || hours > 0 || (Array.isArray(b.user_ids) && b.user_ids.includes(u.id));
+      if (include) staff.push({ userId: u.id, hours: hours > 0 ? hours : 1, name: u.name, department: u.department });
     }
-    const picked = Array.isArray(b.user_ids) && b.user_ids.length ? staff.filter(s => b.user_ids.includes(s.userId)) : staff.filter(s => s.hours > 0);
+    const picked = Array.isArray(b.user_ids) && b.user_ids.length ? staff.filter(s => b.user_ids.includes(s.userId)) : staff;
+    if (!picked.length) return reply.code(422).send(problem(422, "validation", dept ? `No staff found in ${dept} for this week` : "No staff to split tips between — choose a department or clock in first"));
     const shares = splitTips({ total, ratePerHour: rate, method, staff: picked, manual: b.manual ?? {} });
     const poolId = (await pool.query(`insert into tip_pool (tenant_id,property_id,week_start,total,rate_per_hour,method,created_by) values ($1,$2,$3,$4,$5,$6,$7) returning id`,
       [a.tenantId, a.propertyId, from, total, rate, method, a.userId])).rows[0].id;

@@ -23,6 +23,18 @@ export default async function routes(f: FastifyInstance) {
       from room r left join today t on t.room_id=r.id left join yday y on y.room_id=r.id
       where r.property_id=$1
       order by array_position(array['Ground Floor','Pink Corridor','First Floor','Green Corridor','Second Floor'], r.section), r.number`, [a.propertyId, date]);
+    const groups = await pool.query(`
+      select g.name, g.organisation, g.arrival_date::text arrival, g.departure_date::text departure,
+             g.expected_rooms, g.expected_guests,
+             (select count(distinct o.room_id)::int from room_occupancy o where o.group_id=g.id and o.on_date=$2) rooms_placed
+      from booking_group g
+      where g.property_id=$1 and g.status not in ('CANCELLED','COMPLETED')
+        and g.arrival_date <= $2::date and g.departure_date >= $2::date
+      order by g.arrival_date, g.name`, [a.propertyId, date]);
+    const arrivals = groups.rows.filter((g: { arrival: string }) => g.arrival === date);
+    const departures = groups.rows.filter((g: { departure: string }) => g.departure === date);
+    const stayovers = groups.rows.filter((g: { arrival: string; departure: string }) => g.arrival < date && g.departure > date);
+    const unplaced = groups.rows.filter((g: { rooms_placed: number; expected_rooms: number | null }) => (g.expected_rooms ?? 0) > g.rooms_placed);
     const rooms = r.rows.map(x => ({ ...x,
       // What housekeeping should do with this room today.
       task: x.staff_only ? null : ["OUT_OF_SERVICE", "OUT_OF_ORDER"].includes(x.status) ? "out"
@@ -31,7 +43,15 @@ export default async function routes(f: FastifyInstance) {
         : !x.occupied_last_night && x.occupied_tonight ? "arrival_prepare"
         : "vacant" }));
     const counts = Object.fromEntries(["departure_clean", "stayover", "arrival_prepare", "vacant", "out"].map(k => [k, rooms.filter(x => x.task === k).length]));
-    return { date, rooms, counts };
+    return {
+      date, rooms, counts,
+      groups: { arrivals, departures, stayovers, unplaced },
+      hint: unplaced.length
+        ? `${unplaced.length} group(s) in house today still need rooms on the board — place guests on the Room board first, then departure and arrival cleans will appear here.`
+        : counts.departure_clean + counts.arrival_prepare + counts.stayover === 0 && (arrivals.length + departures.length + stayovers.length) > 0
+          ? "Groups are in house but no room placements for today — open the Room board and assign guests to rooms."
+          : null,
+    };
   });
 
   f.post<{ Params: { number: string; cmd: RoomCommand }; Body: { reason?: string; safety_check_passed?: boolean }; Headers: { "if-match"?: string } }>("/rooms/:number/commands/:cmd", async (req, reply) => {

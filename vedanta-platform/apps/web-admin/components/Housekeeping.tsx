@@ -5,6 +5,7 @@ import { useStore } from "@/lib/store";
 import { fmt, addDays } from "@/lib/format";
 import { ReportFault } from "@/components/Maintenance";
 type R = { number: string; section: string; status: string; max_capacity: number; notes: string | null; staff_only: boolean; version: number; occupied_last_night: boolean; occupied_tonight: boolean; names: string | null; group_name: string | null; last_change: string | null; task: string | null };
+type G = { name: string; organisation: string | null; arrival: string; departure: string; expected_rooms: number | null; expected_guests: number | null; rooms_placed: number };
 const STATUS: Record<string, string> = { VACANT_DIRTY: "Dirty", CLEANING: "Cleaning", VACANT_CLEAN: "Clean", INSPECTED: "Inspected", OCCUPIED: "Occupied", OUT_OF_SERVICE: "Out of service", OUT_OF_ORDER: "Out of order" };
 const TASK: Record<string, string> = { departure_clean: "Departure — full clean", stayover: "Stay-over — service", arrival_prepare: "Arrival today — must be ready", vacant: "Vacant", out: "Out of use" };
 const NEXT: Record<string, [string, string][]> = {
@@ -14,9 +15,11 @@ const NEXT: Record<string, [string, string][]> = {
 export default function Housekeeping() {
   const { can } = useStore(); const editable = can("room.status.update");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10)); const [rooms, setRooms] = useState<R[]>([]); const [counts, setCounts] = useState<Record<string, number>>({});
+  const [groups, setGroups] = useState<{ arrivals: G[]; departures: G[]; stayovers: G[]; unplaced: G[] } | null>(null);
+  const [hint, setHint] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("todo"); const [toast, setToast] = useState<string | null>(null); const [fault, setFault] = useState<string | null>(null);
   const say = (t: string) => { setToast(t); setTimeout(() => setToast(null), 3000); };
-  const load = () => api<{ rooms: R[]; counts: Record<string, number> }>(`/v1/housekeeping?date=${date}`).then(r => { setRooms(r.rooms); setCounts(r.counts); }).catch(e => say(e instanceof ApiError ? e.problem.detail : "Could not load"));
+  const load = () => api<{ rooms: R[]; counts: Record<string, number>; groups?: { arrivals: G[]; departures: G[]; stayovers: G[]; unplaced: G[] }; hint?: string | null }>(`/v1/housekeeping?date=${date}`).then(r => { setRooms(r.rooms); setCounts(r.counts); setGroups(r.groups ?? null); setHint(r.hint ?? null); }).catch(e => say(e instanceof ApiError ? e.problem.detail : "Could not load"));
   useEffect(() => { load(); }, [date]); // eslint-disable-line react-hooks/exhaustive-deps
   const cmd = async (r: R, c: string) => {
     const body: Record<string, unknown> = {};
@@ -36,6 +39,16 @@ export default function Housekeeping() {
       <div className="seg" style={{ marginBottom: 14 }}>
         {[["todo", "To do"], ["departure_clean", "Departures"], ["arrival_prepare", "Arrivals"], ["stayover", "Stay-overs"], ["vacant", "Vacant"], ["out", "Out of use"], ["all", "All rooms"]].map(([k, l]) => <button key={k} className={filter === k ? "on" : ""} onClick={() => setFilter(k)}>{l}</button>)}
       </div>
+      {hint && <div className="note" style={{ marginBottom: 14 }}>{hint}</div>}
+      {groups && (groups.arrivals.length + groups.departures.length + groups.stayovers.length > 0) && (
+        <div className="panel" style={{ marginBottom: 14 }}>
+          <h3 style={{ marginTop: 0 }}>Groups in house today</h3>
+          {groups.departures.length > 0 && <p className="m"><b>Departing ({groups.departures.length}):</b> {groups.departures.map(g => g.name).join(", ")}</p>}
+          {groups.arrivals.length > 0 && <p className="m"><b>Arriving ({groups.arrivals.length}):</b> {groups.arrivals.map(g => g.name).join(", ")}</p>}
+          {groups.stayovers.length > 0 && <p className="m"><b>Staying over ({groups.stayovers.length}):</b> {groups.stayovers.map(g => g.name).join(", ")}</p>}
+          {groups.unplaced.length > 0 && <p className="m" style={{ color: "var(--brick)" }}><b>Rooms not placed:</b> {groups.unplaced.map(g => `${g.name} (${g.rooms_placed}/${g.expected_rooms ?? "?"} rooms)`).join("; ")}</p>}
+        </div>
+      )}
       {shown.length === 0 && <div className="empty" style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 10 }}>Nothing here — all done.</div>}
       {sections.map(sec => (
         <div key={sec}>
