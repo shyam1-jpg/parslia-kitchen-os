@@ -106,7 +106,7 @@ export default function Book() {
   return (
     <>
       <header className="top">
-        <div className="mark">Retreat Center · The Vedanta Way</div>
+        <div className="mark">The Vedanta Way</div>
         <div className="who">
           {me
             ? <>{me.name} · <button onClick={signOut}>Sign out</button></>
@@ -115,9 +115,8 @@ export default function Book() {
       </header>
 
       <section className="hero">
-        <div className="kicker">{prop?.kicker ?? "Retreat Center"}</div>
-        <h1>{prop?.name ?? "The Vedanta Way"}</h1>
-        <p className="tag">Luxury retreat centre</p>
+        <h1>The Vedanta Way</h1>
+        <p className="tag">Retreat Center · Luxury Holistic</p>
         <p>{prop?.about}</p>
       </section>
 
@@ -126,8 +125,8 @@ export default function Book() {
           {!me && (
             <div className="split" style={{ maxWidth: 760 }}>
               <div>
-                <h2>Sign in to your guest book</h2>
-                <p className="lead">Register to see open programmes and your own rooms. Your stay is private — no other guest can open it.</p>
+                <h2>Your private guest book</h2>
+                <p className="lead">Sign in to see only your own stay and rooms. Other guests&apos; names and bookings stay private — they are never listed here.</p>
                 <p className="m">Check-in from {prop?.check_in_from ?? "15:00"} · Check-out by {prop?.check_out_by ?? "11:00"} · {prop?.rooms ?? 41} guest rooms.</p>
               </div>
               <div className="card">
@@ -160,18 +159,40 @@ export default function Book() {
           {me && (
             <div className="split">
               <div>
-                <h2>Open retreats</h2>
-                <p className="lead">Select a retreat to see details and register your place.</p>
-                <div className="grid">
-                  {programmes.length === 0 && <p className="m">No retreats are open right now. Use the form to ask about your own dates.</p>}
-                  {programmes.map(p => (
-                    <button key={p.id} className={"prog" + (sel?.id === p.id ? " on" : "")} onClick={() => { setSel(p); setOk(null); setErr(null); }}>
-                      <div className="k">{p.kind}</div>
-                      <h3>{p.name}</h3>
-                      <div className="d">{fmt(p.arrival)} → {fmt(p.departure)} · {nights(p)}</div>
-                    </button>
-                  ))}
-                </div>
+                <h2>Your stay</h2>
+                <p className="lead">Only you can see this. Other guests cannot open your rooms or details.</p>
+                {mine && mine.length > 0 ? (
+                  <div className="grid" style={{ marginBottom: 36 }}>
+                    {mine.map(x => (
+                      <div className="prog" key={x.id} style={{ cursor: "default" }}>
+                        <div className="k">{x.status === "CONVERTED" ? "In the house book" : x.status.toLowerCase()}</div>
+                        <h3>{x.programme_name ?? "Your dates"}</h3>
+                        <div className="d">{fmt(x.arrival)} → {fmt(x.departure)} · {x.people} {Number(x.people) === 1 ? "person" : "people"}</div>
+                        {x.rooms?.length
+                          ? <div className="rooms">{x.rooms.map(r => <span key={r.number} className="room">{r.number}{r.section ? ` · ${r.section}` : ""}</span>)}</div>
+                          : <p className="m" style={{ margin: "8px 0 0" }}>Rooms will appear here when the house assigns them to you.</p>}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="m" style={{ marginBottom: 28 }}>No stay on your book yet. Ask about your own dates, or join a retreat the house has opened.</p>
+                )}
+
+                {programmes.length > 0 && (
+                  <>
+                    <h2>Open retreats</h2>
+                    <p className="lead">Programmes the house has published for registration. Private client bookings are never listed here.</p>
+                    <div className="grid">
+                      {programmes.map(p => (
+                        <button key={p.id} className={"prog" + (sel?.id === p.id ? " on" : "")} onClick={() => { setSel(p); setOk(null); setErr(null); }}>
+                          <div className="k">{p.kind}</div>
+                          <h3>{p.name}</h3>
+                          <div className="d">{fmt(p.arrival)} → {fmt(p.departure)} · {nights(p)}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
               <aside>
                 {sel && (
@@ -207,30 +228,13 @@ export default function Book() {
                   {ok && <div className="note">{ok}</div>}
                   {err && <div className="note">{err}</div>}
                 </div>
-                {mine && mine.length > 0 && (
-                  <div className="card" style={{ marginTop: 18 }}>
-                    <h2 style={{ fontSize: 22 }}>Your stay</h2>
-                    <p className="m">Only you can see this. Other guests cannot open your rooms or details.</p>
-                    {mine.map(x => (
-                      <div className="row" key={x.id} style={{ display: "block" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                          <span>{x.programme_name ?? "Your dates"} · {fmt(x.arrival)} → {fmt(x.departure)} · {x.people} {Number(x.people) === 1 ? "person" : "people"}</span>
-                          <span className="m">{x.status === "CONVERTED" ? "in the house book" : x.status.toLowerCase()}</span>
-                        </div>
-                        {x.rooms?.length
-                          ? <div className="rooms">{x.rooms.map(r => <span key={r.number} className="room">{r.number}{r.section ? ` · ${r.section}` : ""}</span>)}</div>
-                          : <p className="m" style={{ margin: "8px 0 0" }}>Rooms will appear here when the house assigns them to you.</p>}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </aside>
             </div>
           )}
         </div>
       </div>
       <footer className="foot">
-        {prop?.name ?? "The Vedanta Way"} · {prop?.company ?? "The Vedanta Way Ltd"} · {prop?.address}<br />
+        The Vedanta Way · {prop?.company ?? "The Vedanta Way Ltd"} · {prop?.address}<br />
         <a href={prop?.website ?? "https://www.thevedanta.org/"}>{(prop?.website ?? "https://www.thevedanta.org/").replace(/^https?:\/\//, "")}</a>
       </footer>
     </>

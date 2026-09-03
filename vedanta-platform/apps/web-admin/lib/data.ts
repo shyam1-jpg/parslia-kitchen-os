@@ -11,6 +11,7 @@ export type Group = {
   agreedTwin: string | null; agreedSingle: string | null; singles: number | null; agreedTotal: string | null; formToken: string | null; formSubmittedAt: string | null; attendees: number;
   bookingForm: "NOT_SENT" | "SENT" | "COMPLETE"; termsSigned: boolean; feedback: "NOT_SENT" | "SENT" | "RECEIVED";
   notes?: string; dietaryNotes?: string; mealsFrom?: string; mealsTo?: string; colour: string; version: number; source?: string;
+  openForGuests: boolean;
 };
 export type Occupancy = { room: string; date: string; slot: Slot; label: string; groupId: string; colour: string };
 export const sections = ["Ground Floor", "Pink Corridor", "First Floor", "Green Corridor", "Second Floor"];

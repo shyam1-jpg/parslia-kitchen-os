@@ -150,7 +150,7 @@ export default function GroupsScreen() {
             <header>
               <div>
                 <h2>{sel.name}</h2>
-                <div style={{ color: "var(--ink-2)" }}>{sel.organisation}{sel.contact ? ` · ${sel.contact}` : ""} · {RETREAT_TYPES[sel.retreatType] ?? sel.retreatType} · {sel.useBasis === "EXCLUSIVE" ? "Exclusive use" : "Shared use"}{sel.source === "IMPORT:SHEET" ? " · from the sheet" : ""}</div>
+                <div style={{ color: "var(--ink-2)" }}>{sel.organisation}{sel.contact ? ` · ${sel.contact}` : ""} · {RETREAT_TYPES[sel.retreatType] ?? sel.retreatType} · {sel.useBasis === "EXCLUSIVE" ? "Exclusive use" : "Shared use"}{sel.openForGuests ? " · on guest book" : " · private"}{sel.source === "IMPORT:SHEET" ? " · from the sheet" : ""}</div>
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 {can("group.update") && sel.status !== "CANCELLED" && <button className="btn" onClick={() => setEditing(true)}>Edit</button>}

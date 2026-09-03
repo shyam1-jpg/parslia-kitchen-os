@@ -17,6 +17,7 @@ export default function EditGroupForm({ g, onClose, onSaved }: { g: Group; onClo
     guests: g.guests ?? 0, roomsWanted: g.roomsWanted ?? 0, packageName: g.packageName ?? "", priceNotes: g.priceNotes ?? "", notes: g.notes ?? "", dietaryNotes: g.dietaryNotes ?? "",
     mealsFrom: g.mealsFrom ?? "", mealsTo: g.mealsTo ?? "",
     packageId: g.packageId ?? "", agreedTwin: g.agreedTwin ?? "", agreedSingle: g.agreedSingle ?? "", singles: g.singles ?? 0, agreedTotal: g.agreedTotal ?? "",
+    openForGuests: g.openForGuests,
   });
   const [pkgs, setPkgs] = useState<Pkg[]>([]);
   useEffect(() => { api<{ items: Pkg[] }>("/v1/packages").then(r => setPkgs(r.items.filter(x => x.active || x.id === g.packageId))).catch(() => {}); }, [g.packageId]);
@@ -45,8 +46,8 @@ export default function EditGroupForm({ g, onClose, onSaved }: { g: Group; onClo
     setBusy(true); setErr(null);
     const patch: Record<string, unknown> = {};
     const map: [keyof typeof f, string][] = [["name", "name"], ["organisation", "organisation"], ["retreatType", "retreat_type"], ["useBasis", "use_basis"], ["arrival", "arrival_date"], ["arrivalSlot", "arrival_slot"], ["arrivalTime", "arrival_time"],
-      ["departure", "departure_date"], ["departureSlot", "departure_slot"], ["departureTime", "departure_time"], ["guests", "expected_guests"], ["roomsWanted", "expected_rooms"], ["packageName", "package_name"], ["priceNotes", "price_notes"], ["packageId", "package_id"], ["agreedTwin", "agreed_price_twin"], ["agreedSingle", "agreed_price_single"], ["singles", "singles_count"], ["agreedTotal", "agreed_total"], ["notes", "notes"], ["dietaryNotes", "dietary_notes"], ["mealsFrom", "meals_from"], ["mealsTo", "meals_to"]];
-    const orig: Record<string, unknown> = { name: g.name, organisation: g.organisation, retreatType: g.retreatType, useBasis: g.useBasis, arrival: g.arrival, arrivalSlot: g.arrivalSlot, arrivalTime: g.arrivalTime ?? "", departure: g.departure, departureSlot: g.departureSlot, departureTime: g.departureTime ?? "", guests: g.guests ?? 0, roomsWanted: g.roomsWanted ?? 0, packageName: g.packageName ?? "", priceNotes: g.priceNotes ?? "", notes: g.notes ?? "", dietaryNotes: g.dietaryNotes ?? "", mealsFrom: g.mealsFrom ?? "", mealsTo: g.mealsTo ?? "", packageId: g.packageId ?? "", agreedTwin: g.agreedTwin ?? "", agreedSingle: g.agreedSingle ?? "", singles: g.singles ?? 0, agreedTotal: g.agreedTotal ?? "" };
+      ["departure", "departure_date"], ["departureSlot", "departure_slot"], ["departureTime", "departure_time"], ["guests", "expected_guests"], ["roomsWanted", "expected_rooms"], ["packageName", "package_name"], ["priceNotes", "price_notes"], ["packageId", "package_id"], ["agreedTwin", "agreed_price_twin"], ["agreedSingle", "agreed_price_single"], ["singles", "singles_count"], ["agreedTotal", "agreed_total"], ["notes", "notes"], ["dietaryNotes", "dietary_notes"], ["mealsFrom", "meals_from"], ["mealsTo", "meals_to"], ["openForGuests", "open_for_guests"]];
+    const orig: Record<string, unknown> = { name: g.name, organisation: g.organisation, retreatType: g.retreatType, useBasis: g.useBasis, arrival: g.arrival, arrivalSlot: g.arrivalSlot, arrivalTime: g.arrivalTime ?? "", departure: g.departure, departureSlot: g.departureSlot, departureTime: g.departureTime ?? "", guests: g.guests ?? 0, roomsWanted: g.roomsWanted ?? 0, packageName: g.packageName ?? "", priceNotes: g.priceNotes ?? "", notes: g.notes ?? "", dietaryNotes: g.dietaryNotes ?? "", mealsFrom: g.mealsFrom ?? "", mealsTo: g.mealsTo ?? "", packageId: g.packageId ?? "", agreedTwin: g.agreedTwin ?? "", agreedSingle: g.agreedSingle ?? "", singles: g.singles ?? 0, agreedTotal: g.agreedTotal ?? "", openForGuests: g.openForGuests };
     for (const [k, col] of map) if (f[k] !== orig[k]) patch[col] = f[k] === "" ? null : f[k];
     if (f.packageId !== (g.packageId ?? "")) { patch.package_name = pkg?.name ?? null; patch.spa_access = !!pkg && /spa/i.test(pkg.name); }
     if (!Object.keys(patch).length) { onClose(); return; }
@@ -65,6 +66,10 @@ export default function EditGroupForm({ g, onClose, onSaved }: { g: Group; onClo
           <label>Main contact<input value={f.contact} disabled title="Contact details are edited on the guest record (coming)" /></label>
           <label>Type<select value={f.retreatType} onChange={e => set("retreatType", e.target.value)}>{TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
           <label>Use of venue<select value={f.useBasis} onChange={e => set("useBasis", e.target.value as "SHARED" | "EXCLUSIVE")}><option value="SHARED">Shared with other guests</option><option value="EXCLUSIVE">Exclusive use</option></select></label>
+          <label className="span2"><span style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <input type="checkbox" checked={f.openForGuests} onChange={e => set("openForGuests", e.target.checked)} />
+            Show on guest book — guests can see this name and register a place
+          </span></label>
         </div>
         <div className="fdates">
           <div><div className="lbl">Arrive</div>

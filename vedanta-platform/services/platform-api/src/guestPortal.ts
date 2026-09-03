@@ -31,6 +31,7 @@ const PROGRAMME_SQL = `select g.id, g.name, g.organisation, g.retreat_type, g.us
 from booking_group g
 left join package pk on pk.id = g.package_id
 where g.property_id=$1
+  and g.open_for_guests = true
   and g.departure_date >= current_date
   and g.status in ('PROVISIONAL','CONFIRMED','IN_HOUSE')
   and g.retreat_type in ('residential','day_retreat')
@@ -114,10 +115,10 @@ export default async function guestPortal(f: FastifyInstance) {
   f.get("/guest/property", async () => {
     const r = await propertyRow();
     return {
-      name: r?.name ?? "The Vedanta Way",
+      name: "The Vedanta Way",
       kicker: "Retreat Center",
-      tagline: "Luxury retreat centre",
-      about: "A beautiful grade II-listed luxury retreat centre. Nestled amongst 75 acres of woodlands, meadows and lakes in Lincolnshire — a Grade II listed Elizabethan estate.",
+      tagline: "Luxury Holistic",
+      about: "Nestled amongst 75 acres of woodlands, meadows and lakes in Lincolnshire — a Grade II listed Elizabethan estate.",
       welcome: "Host your retreats and events with us for an unforgettably meaningful experience. When you arrive, the house is ready. We take care of the rest.",
       address: "Lincoln Rd, Branston, Lincolnshire, LN4 1PD",
       website: r?.website ?? "https://www.thevedanta.org/",

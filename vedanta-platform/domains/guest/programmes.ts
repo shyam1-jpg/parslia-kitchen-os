@@ -1,4 +1,8 @@
-/** What guests may see. House notes, private "booking" holds and HOLDs stay off the public list. */
+/** What guests may see. House notes, private "booking" holds and HOLDs stay off the public list.
+ *
+ * Primary gate is booking_group.open_for_guests (default false). These name heuristics are a
+ * second line of defence if staff accidentally publish a private-looking name.
+ */
 
 const HIDDEN_LINE = /^(paid|tbc|tba|\(?vacating.*\)?|5%\s+increase.*)$/i;
 

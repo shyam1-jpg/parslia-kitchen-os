@@ -17,6 +17,7 @@ const fromApiGroup = (g: ApiGroup): Group => ({
   bookingForm: ((g.booking_form_status as string) ?? "NOT_SENT") as Group["bookingForm"], termsSigned: !!g.terms_signed,
   feedback: ((g.feedback_form_status as string) ?? "NOT_SENT") as Group["feedback"], notes: (g.notes as string) ?? undefined, dietaryNotes: (g.dietary_notes as string) ?? undefined, mealsFrom: (g.meals_from as string) ?? undefined, mealsTo: (g.meals_to as string) ?? undefined,
   colour: (g.colour as string) ?? "#1F3A32", version: Number(g.version), source: g.source as string,
+  openForGuests: !!g.open_for_guests,
 });
 const fmtTime = (t: string | null) => { if (!t) return ""; const [h, m] = t.split(":").map(Number); return `${h % 12 || 12}${m ? ":" + String(m).padStart(2, "0") : ""}${h >= 12 ? "pm" : "am"}`; };
 const fromApiRoom = (r: ApiRoom): Room => ({
