@@ -4,6 +4,8 @@
  *   accepted when NODE_ENV=production. Production staff use Microsoft 365.
  * - Guest email + access-code routes are separate; `emailLoginEnabled` is retained
  *   as the guest-portal feature flag because guestPortal.ts imports it.
+ * - SYSTEM_OWNER is honoured in production only when the email is explicitly
+ *   allow-listed through deployment secrets. This neutralises old/public trial seeds.
  */
 import { randomBytes } from "node:crypto";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -25,6 +27,21 @@ export function staffEmailLoginEnabled(): boolean {
   if (process.env.NODE_ENV === "production") return false;
   const v = process.env.ALLOW_EMAIL_LOGIN;
   return v == null ? true : truthy(v);
+}
+
+function configuredOwnerEmails(): Set<string> {
+  const values = [
+    process.env.BOOTSTRAP_OWNER_EMAIL,
+    ...(process.env.BOOTSTRAP_ADMIN_EMAILS ?? "").split(","),
+    ...(process.env.SYSTEM_OWNER_ALLOWLIST ?? "").split(","),
+  ];
+  return new Set(values.map(x => x?.trim().toLowerCase()).filter(Boolean) as string[]);
+}
+
+/** Production SYSTEM_OWNER privilege requires an explicit deployment allowlist. */
+export function productionOwnerAllowed(email: string): boolean {
+  if (process.env.NODE_ENV !== "production") return true;
+  return configuredOwnerEmails().has(email.trim().toLowerCase());
 }
 
 export type Audience = "ADMIN" | "STAFF";
@@ -53,6 +70,7 @@ async function loadActor(where: string, param: string): Promise<Actor | null> {
     ${where} and u.status = 'ACTIVE'
     group by u.id, m.property_id, r.code, r.name, d.code limit 1`, [param]);
   const r = rows[0]; if (!r) return null;
+  if (r.role === "SYSTEM_OWNER" && !productionOwnerAllowed(r.email)) return null;
   return { userId: r.user_id, tenantId: r.tenant_id, propertyId: r.property_id, email: r.email, name: r.display_name, role: r.role, roleName: r.role_name, department: r.department ?? null, perms: new Set(r.perms), audience: "ADMIN" };
 }
 
