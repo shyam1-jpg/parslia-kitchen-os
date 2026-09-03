@@ -1,17 +1,30 @@
 /**
- * Sign-in: POST /auth/login {email} → session token (table `session`, 12h).
- * Always on outside production. In production it is on only when ALLOW_EMAIL_LOGIN=true
- * so the first trial can start before Microsoft 365 is wired. Microsoft (microsoft.ts)
- * is the long-term path; permissions still come from app_user + membership.
+ * Authentication rules:
+ * - Staff email-only sign-in is a development/trial convenience only and is NEVER
+ *   accepted when NODE_ENV=production. Production staff use Microsoft 365.
+ * - Guest email + access-code routes are separate; `emailLoginEnabled` is retained
+ *   as the guest-portal feature flag because guestPortal.ts imports it.
  */
 import { randomBytes } from "node:crypto";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { pool } from "./db.ts";
 
+function truthy(v: string | undefined): boolean {
+  if (v == null) return false;
+  return ["1", "true", "yes", "on"].includes(v.trim().toLowerCase());
+}
+
+/** Guest registration / email+code sign-in feature flag. Enabled by default. */
 export function emailLoginEnabled(): boolean {
-  if (process.env.NODE_ENV !== "production") return true;
-  const v = (process.env.ALLOW_EMAIL_LOGIN ?? "").trim().toLowerCase();
-  return v === "1" || v === "true" || v === "yes";
+  const v = process.env.GUEST_PORTAL_ENABLED;
+  return v == null ? true : truthy(v);
+}
+
+/** Insecure staff email-only sign-in. Never available in production. */
+export function staffEmailLoginEnabled(): boolean {
+  if (process.env.NODE_ENV === "production") return false;
+  const v = process.env.ALLOW_EMAIL_LOGIN;
+  return v == null ? true : truthy(v);
 }
 
 export type Audience = "ADMIN" | "STAFF";
@@ -70,20 +83,24 @@ export function allow(a: Actor, perm: string, reply: FastifyReply): boolean {
 
 export default async function authRoutes(f: FastifyInstance) {
   const devOnly = (reply: FastifyReply) => { if (process.env.NODE_ENV === "production") { reply.code(404).send(problem(404, "not_found", "Development sign-in is disabled in production")); return false; } return true; };
-  const emailLoginOk = (reply: FastifyReply) => { if (emailLoginEnabled()) return true; reply.code(404).send(problem(404, "not_found", "Email sign-in is disabled. Use Microsoft 365, or set ALLOW_EMAIL_LOGIN=true for the trial.")); return false; };
+  const staffEmailLoginOk = (reply: FastifyReply) => {
+    if (staffEmailLoginEnabled()) return true;
+    reply.code(404).send(problem(404, "not_found", "Email-only staff sign-in is disabled. Use Microsoft 365."));
+    return false;
+  };
   f.get("/auth/users", async (_req, reply) => {
     if (!devOnly(reply)) return;
     const { rows } = await pool.query(`select u.email, u.display_name name, r.name role from app_user u join membership m on m.user_id=u.id join role r on r.id=m.role_id where u.status='ACTIVE' order by r.code, u.display_name`);
     return { items: rows };
   });
   f.post("/auth/login", async (req: FastifyRequest<{ Body: { email?: string; surface?: string } }>, reply) => {
-    if (!emailLoginOk(reply)) return;
+    if (!staffEmailLoginOk(reply)) return;
     const ip = req.ip || "local";
     if (!rateOk(`login:${ip}`)) return reply.code(429).send(problem(429, "rate_limited", "Too many sign-in attempts. Wait a minute."));
-    const email = req.body?.email?.toLowerCase();
+    const email = req.body?.email?.trim().toLowerCase();
     const surface = (req.body?.surface === "staff" ? "STAFF" : "ADMIN") as Audience;
     const a = email ? await loadActor("where lower(u.email) = $1", email) : null;
-    if (!a) return reply.code(401).send(problem(401, "unknown_user", "No active user with that email"));
+    if (!a) return reply.code(401).send(problem(401, "sign_in_failed", "Sign-in was not recognised"));
     const token = randomBytes(32).toString("base64url");
     await pool.query(`insert into session (token, user_id, property_id, audience, expires_at) values ($1,$2,$3,$4, now() + interval '12 hours')`, [token, a.userId, a.propertyId, surface]);
     a.audience = surface;
