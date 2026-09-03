@@ -9,6 +9,7 @@ import { pool, tx } from "./db.ts";
 import { emailLoginEnabled, problem, requireActor, allow } from "./auth.ts";
 import { audit } from "./groups.ts";
 import { cleanName, guestCopy, isPublicProgrammeName, nightsBetween, programmeBasis, programmeKind } from "../../../domains/guest/programmes.ts";
+import { backupGuestEvent } from "./kiteline.ts";
 
 const hits = new Map<string, { n: number; t: number }>();
 function rateOk(key: string): boolean {
@@ -141,6 +142,7 @@ export default async function guestPortal(f: FastifyInstance) {
     const guest = (await pool.query(`insert into guest_account (tenant_id, property_id, email, display_name) values ($1,$2,$3,$4)
       on conflict (property_id, email) do update set display_name=excluded.display_name returning id, email, display_name`,
       [prop.tenant_id, prop.id, email, name])).rows[0];
+    void backupGuestEvent({ id: `guest_reg_${guest.id}`, kind: "register", name: guest.display_name, email: guest.email });
     return issueGuest(guest.id, guest.email, guest.display_name);
   });
 
@@ -168,6 +170,11 @@ export default async function guestPortal(f: FastifyInstance) {
     const e = (await pool.query(`insert into guest_enquiry (tenant_id,property_id,guest_id,name,email,people,arrival_date,departure_date,notes,programme_id)
       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning id, status`, [prop.tenant_id, prop.id, guest.id, name, email, people, arrival, departure, b.notes ?? null, programmeId])).rows[0];
     const session = await issueGuest(guest.id, email, name);
+    void backupGuestEvent({
+      id: `guest_enq_${e.id}`,
+      kind: programmeId ? "programme" : "dates",
+      name, email, people, arrival, departure, notes: b.notes ?? null, programme_id: programmeId,
+    });
     return { id: e.id, status: e.status, ...session };
   });
 
