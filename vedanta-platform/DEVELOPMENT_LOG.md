@@ -1,5 +1,21 @@
 # Vedanta Retreat Operating System — development log
 
+## Increment — P0 pulse, public booking, programme sheet (2026-09-03)
+
+**What.** Staff `/house/` redirects to Staff Sign In instead of a signed-out loading shell. Guests browse retreats, dates, room types and prices before creating My Stay. House Today is a live occupancy/HK/task pulse. One booking exposes a programme operating sheet to every department.
+
+| | |
+| --- | --- |
+| Files | `domains/guest/access.ts`, `availability.ts`, `domains/ops/pulse.ts`, `domains/housekeeping/board.ts`, `domains/retreat/sheet.ts`, `0023_guest_stay_and_access.sql`, `guestPortal.ts`, `estate.ts`, `housekeeping.ts`, `groups.ts` (`/sheet`), admin Shell/Guard/HouseToday/Housekeeping/RoomBoard/GroupsScreen, `apps/web-guest` |
+| Database | **Additive.** Guest code expiry/lockout columns. Enquiry diet/access/travel/room preference. No rooms, bookings or occupancy rewritten. |
+| New public APIs | `GET /guest/programmes` (no session), `/guest/rooms`, `/guest/availability`, `/guest/calendar`, `POST /guest/recover`, `PATCH /guest/me` |
+| Staff APIs | `GET /v1/estate` pulse fields extended. `GET /v1/groups/:id/sheet`. HK visit minutes from existing `room_status_event`. |
+| Not built | Folio, card payments, IoT, digital twin, seva, shop, AI briefing, waiting lists. Those map to the five OS in `MASTER_ARCHITECTURE_2026.md`. |
+| Payments | Still “the house confirms the deposit.” No PAN/CVV. Not Kiteline billing. |
+
+---
+
+
 Handover record for work added on `cursor/vedanta-render-deploy-f604`. Existing pages, routes, schemas and Kiteline/Parslia behaviour are preserved unless a row below says otherwise.
 
 ## Increment — Phase A consolidate + Phase B data quality (2026-09-03)

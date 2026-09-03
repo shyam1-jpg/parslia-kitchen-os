@@ -271,7 +271,20 @@ button { font: inherit; cursor: pointer; }
 
 /* House today */
 .pulse { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+.pulse.pulse-wide { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 .pulse article { background: var(--paper); border: 1px solid var(--line); padding: 18px 20px; }
+.pulse article.crit { border-color: var(--brick); background: var(--brick-soft); }
+.day-beats { list-style: none; padding: 0; margin: 12px 0 0; }
+.day-beats li { display: grid; grid-template-columns: 64px 1fr; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); color: var(--ink-2); }
+.day-beats li.done { color: var(--ink); }
+.day-beats .t { font-variant-numeric: tabular-nums; font-weight: 500; }
+.hkdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; background: #bbb; }
+.hkdot.dirty { background: var(--brick); } .hkdot.cleaning { background: var(--marigold); }
+.hkdot.clean { background: #1E546A; } .hkdot.ready { background: var(--moss); }
+.hkdot.occupied { background: var(--ink-2); } .hkdot.ooo { background: #888; }
+.room-open { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-align: left; }
+td.mark-arr { box-shadow: inset 3px 0 0 var(--lake); }
+td.mark-dep { box-shadow: inset 3px 0 0 var(--marigold); }
 .pulse .k { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-2); }
 .pulse b { display: block; font-family: var(--serif); font-size: 36px; font-weight: 500; margin-top: 6px; line-height: 1; }
 .pulse .s { color: var(--ink-2); font-size: 12.5px; margin-top: 8px; }

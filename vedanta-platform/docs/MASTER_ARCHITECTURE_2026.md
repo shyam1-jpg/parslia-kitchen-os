@@ -200,3 +200,31 @@ A module is not done because a page exists. Done means domain, permissions, API,
 ## 11. Next safe step after this increment
 
 Phase C starts with **preserving** the existing room board (`/rooms/`, occupancy PATCH + version) and adding server-side move validation coverage + conflict copy. Do not replace the calendar.
+
+---
+
+## 12. Five connected operating systems (master direction)
+
+Research (Mews, Cloudbeds, Bookinglayer, Retreat Guru, Event Temple, OPERA, GSTC, PCI DSS v4.0.1) is mapped onto **this** codebase. Do not start a sixth app.
+
+| OS | Owns | Already in Vedanta | Not yet — attach here later |
+| --- | --- | --- | --- |
+| **Guest OS** | Booking, profile, programme, payments, communication | `/book/` browse → room → details → diet/access → deposit note → My Stay. Guest account + enquiry + stay isolation. | Folio, tokenised payments, waivers, teacher portal, waiting list |
+| **Property OS** | Rooms, HK, maintenance, assets, grounds, utilities | Room board, HK state machine, maintenance tickets, estate pulse | Digital twin, IoT, laundry, fleet, lost & found |
+| **Retreat OS** | Programmes, teachers, halls, treatments, seva, transport | `booking_group` + `GET /v1/groups/:id/sheet` drives reception/HK/kitchen/events/maintenance/grounds/finance from one stay | Activity inventory, treatment resources, volunteer engine |
+| **Business OS** | Sales, purchasing, stock, finance, HR, labour | Groups pipeline (enquiry → in house), payroll/clock stay on Kiteline | Sage/Xero AP, three-way match, POS, donations |
+| **Intelligence OS** | Rules, AI, alerts, forecasts, audit, compliance | Domain rules + `audit_event` + data quality. AI only after operational data is solid. | Sentiment, labour forecast, GM briefing |
+
+**One stay record:** Guest → Retreat/Programme → Accommodation → Meals → Sessions → Treatments → Transport → Payments → Experience.
+
+`GET /v1/groups/:id/sheet` is the first Programme Operating Sheet. It does not invent prices, hours or recipes.
+
+**Parslia / Kiteline** remain the kitchen & food-intelligence layer. A booking may later emit a kitchen forecast (covers + diet). Do not copy Kiteline billing or PINs into guest payments.
+
+**Payments:** PCI DSS v4.0.1 — tokenisation only. No PAN/CVV in Vedanta.
+
+**Privacy:** Consent, retention and anonymisation are required before “keep everything forever.” Guest never sees another guest.
+
+**Rules engine (later):** IF diet=Jain THEN kitchen +1 Jain. IF checkout today AND next arrival &lt;16:00 THEN HK priority HIGH. Domain functions first; no new microservice.
+
+Modules from the 2026 research (GM command centre extras, digital twin, seva, shop, sustainability certification, IoT, emergency mode) **map onto these five OS**. They are not thirty new routes.

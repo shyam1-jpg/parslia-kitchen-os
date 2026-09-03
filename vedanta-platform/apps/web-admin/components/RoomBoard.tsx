@@ -8,6 +8,15 @@ import { fmt, addDays } from "@/lib/format";
 const TODAY = new Date().toISOString().slice(0, 10);
 type Cell = { label: string; colour: string; groupId: string };
 type Editor = { room: string; date: string; slot: Slot; x: number; y: number; existing?: Cell[] };
+const HK: Record<string, { tone: string; label: string }> = {
+  VACANT_DIRTY: { tone: "dirty", label: "Dirty" },
+  CLEANING: { tone: "cleaning", label: "Cleaning" },
+  VACANT_CLEAN: { tone: "clean", label: "Clean" },
+  INSPECTED: { tone: "ready", label: "Inspected" },
+  OCCUPIED: { tone: "occupied", label: "Occupied" },
+  OUT_OF_SERVICE: { tone: "ooo", label: "Out of service" },
+  OUT_OF_ORDER: { tone: "ooo", label: "Out of order" },
+};
 
 export default function RoomBoard() {
   const { rooms, groups, occupancy, placeOccupant, removeOccupant, linkOccupant, linkBulk, moveParty, loadOccupancy, can } = useStore();
@@ -20,6 +29,7 @@ export default function RoomBoard() {
   const [toast, setToast] = useState<{ text: string; err?: boolean } | null>(null);
   const [drag, setDrag] = useState<{ room: string; groupId: string; labels: string[] } | null>(null);
   const [over, setOver] = useState<{ room: string; ok: boolean } | null>(null);
+  const [openRoom, setOpenRoom] = useState<string | null>(null);
 
   const say = (text: string, err = false) => { setToast({ text, err }); setTimeout(() => setToast(null), 3000); };
   const editable = can("occupancy.write");
@@ -38,6 +48,8 @@ export default function RoomBoard() {
   }, [occupancy, groups]);
 
   const shownRooms = rooms.filter(r => section === "all" || r.section === section);
+  const lastNight = new Set(occupancy.filter(o => o.date === addDays(TODAY, -1) && o.slot === "PM").map(o => o.room));
+  const tonightSet = new Set(occupancy.filter(o => o.date === TODAY && o.slot === "PM").map(o => o.room));
   const sellable = rooms.filter(r => !r.staffOnly && !outOfUse.has(r.number)).length;
   const tonight = new Set(occupancy.filter(o => o.date === TODAY && o.slot === "PM").map(o => o.room)).size;
   const arriving = groups.filter(g => g.arrival === TODAY && g.status !== "CANCELLED");
@@ -115,6 +127,7 @@ export default function RoomBoard() {
           </thead>
           <tbody>
             {sections.filter(s => section === "all" || s === section).map(sec => (<SectionRows key={sec} sec={sec} rooms={shownRooms.filter(r => r.section === sec)} days={days} occ={occ} k={key} editable={editable} outOfUse={outOfUse}
+              lastNight={lastNight} tonight={tonightSet} onRoom={setOpenRoom}
               isWeekend={isWeekend} onCell={openEditor} bulk={bulk.on ? { rooms: bulk.rooms, toggle: (n: string) => setBulk(b => { const r = new Set(b.rooms); r.has(n) ? r.delete(n) : r.add(n); return { ...b, rooms: r }; }) } : null} onDragStart={onDragStart} onDragOver={onDragOver} onDrop={onDrop} onDragLeave={() => setOver(null)} over={over} />))}
           </tbody>
         </table>
@@ -124,7 +137,11 @@ export default function RoomBoard() {
         {inRange.map(g => <span key={g.id}><i style={{ background: g.colour }} />{g.name}</span>)}
         {occupancy.some(o => !groups.find(x => x.id === o.groupId)) && <span><i style={{ background: "#8A9490" }} />From the sheet, no booking linked</span>}
         <span><i style={{ background: "repeating-linear-gradient(135deg,#f1f1f1 0 3px,#d8d8d8 3px 6px)" }} />Out of use</span>
+        <span><i className="hkdot dirty" />Dirty</span>
+        <span><i className="hkdot ready" />Inspected</span>
+        <span className="m">Today: blue edge = arrival · gold edge = departure</span>
       </div>
+      {openRoom && <RoomPulse number={openRoom} rooms={rooms} groups={groups} occupancy={occupancy} onClose={() => setOpenRoom(null)} />}
 
       {editor && <CellEditor ed={editor} candidates={groupsOn(editor.date, editor.slot)} onClose={() => setEditor(null)}
         editable={editable} rooms={rooms}
@@ -186,25 +203,45 @@ function CellEditor({ ed, candidates, onClose, onPlace, onRemove, onLink, editab
   );
 }
 
+function RoomPulse({ number, rooms, groups, occupancy, onClose }: { number: string; rooms: Room[]; groups: { id: string; name: string; arrival: string; departure: string }[]; occupancy: { room: string; date: string; slot: Slot; label: string; groupId: string }[]; onClose: () => void }) {
+  const room = rooms.find(r => r.number === number);
+  const hk = HK[room?.status ?? ""] ?? { tone: "unknown", label: room?.status ?? "—" };
+  const today = occupancy.filter(o => o.room === number && o.date === TODAY);
+  const labels = [...new Set(today.map(o => o.label))];
+  const gid = today.find(o => o.groupId)?.groupId;
+  const g = groups.find(x => x.id === gid);
+  return (
+    <div className="pop room-pulse" role="dialog" style={{ right: 24, top: 120, left: "auto" }}>
+      <h3>Room {number} <span className={"hkdot " + hk.tone} /> {hk.label}</h3>
+      <p className="m">{room?.beds} · sleeps {room?.max}{room?.features?.length ? ` · ${room.features.join(", ")}` : ""}</p>
+      {g ? <p><b>{g.name}</b><br /><span className="m">{labels.join(" · ") || "—"} · {g.arrival} → {g.departure}</span></p> : <p className="m">{labels.length ? labels.join(" · ") : "No guest placed today."}</p>}
+      <p className="m">Housekeeping, maintenance and folio stay on their own screens — this is the room as it stands now.</p>
+      <div className="actions"><button className="btn" onClick={onClose}>Close</button></div>
+    </div>
+  );
+}
+
 function SectionRows(p: { sec: string; rooms: Room[]; days: string[]; occ: Map<string, Cell[]>; k: (r: string, d: string, s: Slot) => string; isWeekend: (d: string) => boolean;
+  lastNight: Set<string>; tonight: Set<string>; onRoom: (n: string) => void;
   onCell: (e: MouseEvent, room: string, d: string, s: Slot, existing?: Cell[]) => void; editable: boolean; outOfUse: Set<string>; onDragStart: (e: DragEvent, room: string, cs: Cell[]) => void; onDragOver: (e: DragEvent, r: Room) => void; onDrop: (r: Room) => void; onDragLeave: () => void; over: { room: string; ok: boolean } | null; bulk: { rooms: Set<string>; toggle: (n: string) => void } | null }) {
   const { sec, rooms, days, occ, k, isWeekend, outOfUse } = p;
   return (<>
     <tr className="sect"><th className="room">{sec}</th><td colSpan={days.length * 2} /></tr>
     {rooms.map(r => (
       <tr key={r.number} className={p.over?.room === r.number ? (p.over.ok ? "drop-ok" : "drop-no") : ""} onDragOver={e => p.onDragOver(e, r)} onDragLeave={p.onDragLeave} onDrop={() => p.onDrop(r)}>
-        <th className="room" title={r.features.join(", ")}>{p.bulk && !r.staffOnly && <input type="checkbox" checked={p.bulk.rooms.has(r.number)} onChange={() => p.bulk!.toggle(r.number)} style={{ marginRight: 8 }} aria-label={`Select room ${r.number}`} />}{r.number}<small>{r.beds} · {r.max}</small></th>
+        <th className="room" title={r.features.join(", ")}>{p.bulk && !r.staffOnly && <input type="checkbox" checked={p.bulk.rooms.has(r.number)} onChange={() => p.bulk!.toggle(r.number)} style={{ marginRight: 8 }} aria-label={`Select room ${r.number}`} />}<button type="button" className="room-open" onClick={e => { e.stopPropagation(); p.onRoom(r.number); }}><i className={"hkdot " + (HK[r.status]?.tone ?? "unknown")} title={HK[r.status]?.label ?? r.status} />{r.number}</button><small>{r.beds} · {r.max}{p.lastNight.has(r.number) && !p.tonight.has(r.number) ? " · out" : ""}{!p.lastNight.has(r.number) && p.tonight.has(r.number) ? " · in" : ""}</small></th>
         {days.flatMap(d => (["AM", "PM"] as Slot[]).map(s => {
           if (outOfUse.has(r.number)) return <td key={d + s} className="oou">{s === "AM" ? "out of use" : ""}</td>;
           if (r.staffOnly) return <td key={d + s} className="oou">{s === "AM" ? "staff" : ""}</td>;
           const cs = occ.get(k(r.number, d, s));
-          if (!cs || cs.length === 0) return <td key={d + s} className={"free" + (isWeekend(d) ? " wk" : "")} onClick={e => { e.stopPropagation(); p.onCell(e, r.number, d, s); }} />;
+          if (!cs || cs.length === 0) return <td key={d + s} className={"free" + (isWeekend(d) ? " wk" : "") + (d === TODAY && s === "PM" && p.lastNight.has(r.number) && !p.tonight.has(r.number) ? " mark-dep" : "")} onClick={e => { e.stopPropagation(); p.onCell(e, r.number, d, s); }} />;
           const sig = (x?: Cell[]) => x ? x.map(c => c.groupId + "/" + c.label).sort().join("|") : "";
           const me = sig(cs);
           const same = sig(s === "PM" ? occ.get(k(r.number, d, "AM")) : occ.get(k(r.number, addDays(d, -1), "PM"))) === me;
           const cont = sig(s === "AM" ? occ.get(k(r.number, d, "PM")) : occ.get(k(r.number, addDays(d, 1), "AM"))) === me;
           const text = cs.map(c => c.label).join(" · ");
-          return <td key={d + s} className="occ" draggable={p.editable} onDragStart={e => p.onDragStart(e, r.number, cs)} onClick={e => { e.stopPropagation(); p.onCell(e, r.number, d, s, cs); }}
+          const mark = d === TODAY && !p.lastNight.has(r.number) && p.tonight.has(r.number) ? " mark-arr" : d === TODAY && p.lastNight.has(r.number) && !p.tonight.has(r.number) ? " mark-dep" : "";
+          return <td key={d + s} className={"occ" + mark} draggable={p.editable} onDragStart={e => p.onDragStart(e, r.number, cs)} onClick={e => { e.stopPropagation(); p.onCell(e, r.number, d, s, cs); }}
             style={{ background: cs[0].colour, borderRightColor: cont ? cs[0].colour : undefined, borderRadius: `${same ? 0 : 4}px ${cont ? 0 : 4}px ${cont ? 0 : 4}px ${same ? 0 : 4}px` }} title={text}>{same ? "" : text}</td>;
         }))}
       </tr>))}

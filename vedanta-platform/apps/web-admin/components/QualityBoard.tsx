@@ -25,7 +25,7 @@ const HOUSE_LINKS: { href: string; label: string }[] = [
   { href: "/quality/", label: "Data quality" },
   { href: "/reports/", label: "Reports" },
   { href: "/settings/", label: "Settings" },
-  { href: "/book/", label: "Guest book" },
+  { href: "/book/", label: "My Stay / Guest Portal" },
   { href: "/pocket/", label: "Pocket" },
   { href: "/sign-in/", label: "House sign-in" },
 ];
@@ -115,8 +115,8 @@ export default function QualityBoard() {
         <div className="k">House pages</div>
         <h2>Every working link</h2>
         <p className="m" style={{ color: "var(--ink-2)", marginBottom: 10 }}>
-          Guest book at /book/ stays empty of programmes until a member of staff ticks Show on guest book.
-          Pocket is /pocket/. The public root / opens the guest book, not the house.
+          My Stay / Guest Portal at /book/ lists published programmes only — tick Show on guest book.
+          Guests can still search dates and rooms without an account. Pocket is /pocket/. The public root / opens the guest portal, not the house.
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {HOUSE_LINKS.map(l => <Link key={l.href} className="btn" href={l.href}>{l.label}</Link>)}

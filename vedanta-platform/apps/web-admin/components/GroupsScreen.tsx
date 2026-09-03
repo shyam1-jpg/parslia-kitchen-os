@@ -29,12 +29,17 @@ export default function GroupsScreen() {
   const [email, setEmail] = useState<"form_link" | "confirmation" | null>(null);
   const [attendees, setAttendees] = useState<{ given_name: string; family_name: string; diet: string[] | null; allergens: string[] | null; severity: string | null; room_preference: string | null; arrives_early: boolean }[] | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [enquiries, setEnquiries] = useState<{ id: string; name: string; email: string; people: number; arrival: string; departure: string; notes: string | null; programme_name?: string | null }[]>([]);
+  const [enquiries, setEnquiries] = useState<{ id: string; name: string; email: string; people: number; arrival: string; departure: string; notes: string | null; programme_name?: string | null; dietary_notes?: string | null; accessibility_notes?: string | null; room_preference?: string | null; arrival_time_note?: string | null; travel_notes?: string | null }[]>([]);
+  const [sheet, setSheet] = useState<{ programme: string; guests: number | null; rooms_placed: string[]; rooms_short: number; meals: { breakfast: number; lunch: number; dinner: number } | null; dietary: string | null; departments: { code: string; work: string }[] } | null>(null);
   const [stays, setStays] = useState<{ id: string; name: string; email: string; people: number; arrival: string; departure: string; status: string; programme_name: string | null; rooms: { number: string; section: string | null }[]; booking_id: string | null }[]>([]);
   const [roomDraft, setRoomDraft] = useState<Record<string, string>>({});
   const today = new Date().toISOString().slice(0, 10);
   const sel = groups.find(g => g.id === selId) ?? groups.filter(g => g.status !== "CANCELLED" && g.status !== "COMPLETED" && g.departure >= today).sort((a, b) => a.arrival.localeCompare(b.arrival))[0];
-  useEffect(() => { setAttendees(null); setFormUrl(null); if (sel?.attendees) api<{ items: typeof attendees }>(`/v1/groups/${sel.id}/attendees`).then(r => setAttendees(r.items)).catch(() => {}); }, [sel?.id, sel?.attendees]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setAttendees(null); setFormUrl(null); setSheet(null);
+    if (sel?.attendees) api<{ items: typeof attendees }>(`/v1/groups/${sel.id}/attendees`).then(r => setAttendees(r.items)).catch(() => {});
+    if (sel?.id) api<NonNullable<typeof sheet>>(`/v1/groups/${sel.id}/sheet`).then(setSheet).catch(() => setSheet(null));
+  }, [sel?.id, sel?.attendees]); // eslint-disable-line react-hooks/exhaustive-deps
   const loadGuestBook = () => {
     api<{ items: typeof enquiries }>("/v1/guest-enquiries").then(r => setEnquiries(r.items)).catch(() => {});
     api<{ items: typeof stays }>("/v1/guest-stays").then(r => setStays(r.items)).catch(() => {});
@@ -87,7 +92,7 @@ export default function GroupsScreen() {
           <p className="m" style={{ color: "var(--ink-2)" }}>Guests sent these from /book. Take one into the house book to hold rooms.</p>
           {enquiries.map(e => (
             <div className="urow" key={e.id}>
-              <div><div className="t">{e.name}{e.programme_name ? ` · ${e.programme_name}` : ""}</div><div className="m">{e.email} · {e.arrival} → {e.departure} · {e.people} people{e.notes ? ` · ${e.notes}` : ""}</div></div>
+              <div><div className="t">{e.name}{e.programme_name ? ` · ${e.programme_name}` : ""}</div><div className="m">{e.email} · {e.arrival} → {e.departure} · {e.people} people{e.room_preference ? ` · ${e.room_preference}` : ""}{e.dietary_notes ? ` · diet: ${e.dietary_notes}` : ""}{e.accessibility_notes ? ` · access: ${e.accessibility_notes}` : ""}{e.travel_notes ? ` · travel: ${e.travel_notes}` : ""}{e.notes ? ` · ${e.notes}` : ""}</div></div>
               {can("group.create") && <button className="btn primary" onClick={() => run(async () => { await api(`/v1/guest-enquiries/${e.id}/take`, { method: "POST" }); await reload(); loadGuestBook(); say("Private stay opened — assign rooms below"); })}>Take into the book</button>}
             </div>
           ))}
@@ -180,6 +185,15 @@ export default function GroupsScreen() {
 
             {sel.dietaryNotes && <div className="note" style={{ borderColor: "var(--moss)", background: "var(--moss-soft)" }}>Dietary: {sel.dietaryNotes}</div>}
             {sel.notes && <div className="note" style={{ whiteSpace: "pre-wrap", maxHeight: 140, overflow: "auto" }}>{sel.notes}</div>}
+            {sheet && (
+              <div className="note" style={{ background: "var(--stone)" }}>
+                <b>Programme operating sheet</b>
+                <div className="m">{sheet.guests ?? "—"} guests · {sheet.rooms_placed.length} rooms placed{sheet.rooms_short ? ` · ${sheet.rooms_short} still needed` : ""}{sheet.meals ? ` · kitchen ${sheet.meals.dinner} dinner covers` : ""}</div>
+                <ul className="m" style={{ margin: "8px 0 0", paddingLeft: 18 }}>
+                  {sheet.departments.map(d => <li key={d.code}>{d.code.toLowerCase()}: {d.work}</li>)}
+                </ul>
+              </div>
+            )}
 
             <h3>Paperwork</h3>
             <ul className="check">

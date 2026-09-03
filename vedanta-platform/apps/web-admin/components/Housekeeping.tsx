@@ -4,7 +4,7 @@ import { api, ApiError } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { fmt, addDays } from "@/lib/format";
 import { ReportFault } from "@/components/Maintenance";
-type R = { number: string; section: string; status: string; max_capacity: number; notes: string | null; staff_only: boolean; version: number; occupied_last_night: boolean; occupied_tonight: boolean; names: string | null; group_name: string | null; last_change: string | null; task: string | null };
+type R = { number: string; section: string; status: string; max_capacity: number; notes: string | null; staff_only: boolean; version: number; occupied_last_night: boolean; occupied_tonight: boolean; here_this_morning?: boolean; names: string | null; group_name: string | null; last_change: string | null; task: string | null; stay?: string; cleaning_started?: string | null; cleaning_finished?: string | null; duration_minutes?: number | null; attendant?: string | null };
 type G = { name: string; organisation: string | null; arrival: string; departure: string; expected_rooms: number | null; expected_guests: number | null; rooms_placed: number };
 const STATUS: Record<string, string> = { VACANT_DIRTY: "Dirty", CLEANING: "Cleaning", VACANT_CLEAN: "Clean", INSPECTED: "Inspected", OCCUPIED: "Occupied", OUT_OF_SERVICE: "Out of service", OUT_OF_ORDER: "Out of order" };
 const TASK: Record<string, string> = { departure_clean: "Departure — full clean", stayover: "Stay-over — service", arrival_prepare: "Arrival today — must be ready", vacant: "Vacant", out: "Out of use" };
@@ -13,7 +13,7 @@ const NEXT: Record<string, [string, string][]> = {
   INSPECTED: [["fail_inspection", "Needs redoing"]], OCCUPIED: [], OUT_OF_SERVICE: [["restore", "Back in service"]], OUT_OF_ORDER: [["restore", "Back in service"]] };
 
 export default function Housekeeping() {
-  const { can } = useStore(); const editable = can("room.status.update");
+  const { can } = useStore(); const editable = can("room.status.update"); const canOos = can("room.oos.set");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10)); const [rooms, setRooms] = useState<R[]>([]); const [counts, setCounts] = useState<Record<string, number>>({});
   const [groups, setGroups] = useState<{ arrivals: G[]; departures: G[]; stayovers: G[]; unplaced: G[] } | null>(null);
   const [hint, setHint] = useState<string | null>(null);
@@ -58,11 +58,24 @@ export default function Housekeeping() {
               <div key={r.number} className={"hk " + r.status + (r.task === "arrival_prepare" ? " urgent" : "")}>
                 <div className="hk-top"><b>{r.number}</b><span className={"chip st-" + r.status}>{STATUS[r.status]}</span></div>
                 <div className="m">{TASK[r.task ?? "vacant"]}{r.group_name ? ` · ${r.group_name}` : ""}</div>
+                {r.here_this_morning && <div className="m" style={{ marginTop: 2 }}>Still here this morning</div>}
                 {r.names && <div className="m" style={{ marginTop: 2 }}>{r.names}</div>}
+                {r.attendant && <div className="m" style={{ marginTop: 2 }}>Assigned: {r.attendant}</div>}
+                {(r.cleaning_started || r.duration_minutes != null) && (
+                  <div className="m" style={{ marginTop: 2 }}>
+                    {r.cleaning_started ? `Started ${new Date(r.cleaning_started).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" })}` : ""}
+                    {r.cleaning_finished ? ` · finished ${new Date(r.cleaning_finished).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" })}` : ""}
+                    {r.duration_minutes != null ? ` · ${r.duration_minutes} min` : ""}
+                  </div>
+                )}
                 {r.notes && <div className="m" style={{ marginTop: 2, fontStyle: "italic" }}>{r.notes}</div>}
                 {r.last_change && <div className="m" style={{ marginTop: 4, fontSize: 11 }}>{r.last_change}</div>}
                 {editable && <div className="hk-actions">
                   {(NEXT[r.status] ?? []).map(([c, l]) => <button key={c} className={"btn" + (c === "start_cleaning" || c === "finish_cleaning" || c === "pass_inspection" ? " primary" : "")} onClick={() => cmd(r, c)}>{l}</button>)}
+                  {canOos && r.status !== "OUT_OF_SERVICE" && r.status !== "OUT_OF_ORDER" && <>
+                    <button className="btn" onClick={() => cmd(r, "set_out_of_service")}>Out of service</button>
+                    <button className="btn" onClick={() => cmd(r, "set_out_of_order")}>Out of order</button>
+                  </>}
                   {can("maintenance.report") && <button className="btn" onClick={() => setFault(r.number)}>Report fault</button>}
                 </div>}
               </div>))}

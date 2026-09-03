@@ -208,11 +208,20 @@ Property facts: config states 45 rooms; live imported inventory is 42 (see Data 
   - Data quality `/quality/` — live counts, statuses VERIFIED / NEEDS_REVIEW / SOURCE_CONFLICT / MISSING. Overlay table `data_quality_finding` does not change import rows. Rooms 301–307 and package prices are not invented.
   - Guest-book publish flag `booking_group.open_for_guests` (default false). Existing name privacy still applies.
 
+- 2026-09-03 · P0 house pulse + public booking + 5-OS direction
+  - `/house/` no longer sits on “Not signed in / Opening the house…”. Unsigned staff go to `/sign-in/`.
+  - `/book/` is My Stay / Guest Portal: browse programmes, calendar and room types **before** register. Funnel: programme → room → details → diet/access → deposit note → confirmation.
+  - Public APIs: `GET /guest/programmes`, `/guest/rooms`, `/guest/availability`, `/guest/calendar` (no session). Access-code expiry, lockout, generic errors, `/guest/recover`.
+  - House Today pulse: occupancy, arrivals/departures, in-house guests, HK ready/dirty/inspected/OOO, tasks, critical. Payments due stays “—” until folio exists.
+  - Room board HK dots + arrival/departure marks. Housekeeping shows attendant, minutes, here-this-morning, OOS buttons.
+  - `GET /v1/groups/:id/sheet` — one booking drives department work. No invented money.
+  - Architecture: five OS (Guest / Property / Retreat / Business / Intelligence). Research modules map here; no new mini-apps.
+
 ## Next (in order)
-1. Phase C — upgrade the **existing** room board (preserve drag). Server-side move validation, conflict copy, groups/spaces/Guest 360. Do not replace the calendar.
-2. Confirm the live price list and rooms 301–307 with the house (Data quality). Do not invent values.
-3. Phase D — folio and hospitality payment domain (feature-flagged). Not Kiteline billing.
-4. Later phases E–J as in `docs/MASTER_ARCHITECTURE_2026.md`.
+1. Publish selected programmes (`open_for_guests`) so `/book/` lists live retreats. Confirm 301–307 and the price list with the house.
+2. Folio + tokenised payments (PCI DSS v4.0.1). Not Kiteline billing. Not raw cards.
+3. Kitchen forecast from the same stay (covers + diet → Parslia). Activity inventory and halls later.
+4. Later research items (digital twin, seva, IoT, shop, sustainability certification) attach to the five OS — do not start separate apps.
 
 ## Open questions for Shyam
 - Rooms 301–307 appear in 2024/25 sheets but not 2026: still in use? (42 vs 45 stated)
