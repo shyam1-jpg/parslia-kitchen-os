@@ -28,7 +28,7 @@ export default function Nav() {
     <nav className="nav">
       <div className="brand">The Vedanta Way<small>Retreat Center</small></div>
       {user && sections.map(sec => (
-        <div key={sec.label}>
+        <div key={sec.label} className="nav-group">
           <div className="nav-sec">{sec.label}</div>
           {sec.items.map(([href, label, perm], i) => {
             const off = perm && !can(perm);
