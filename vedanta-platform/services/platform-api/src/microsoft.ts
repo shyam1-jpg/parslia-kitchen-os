@@ -7,14 +7,14 @@ import { createHash, randomBytes } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { pool } from "./db.ts";
-import { emailLoginEnabled, problem } from "./auth.ts";
+import { staffEmailLoginEnabled, problem, productionOwnerAllowed } from "./auth.ts";
 
 const cfg = () => ({ tenant: process.env.MS_TENANT_ID, client: process.env.MS_CLIENT_ID, secret: process.env.MS_CLIENT_SECRET, api: process.env.PUBLIC_URL, web: process.env.WEB_URL ?? "http://localhost:3000" });
 export const microsoftEnabled = () => !!(cfg().tenant && cfg().client && cfg().secret && cfg().api);
 const pending = new Map<string, { verifier: string; at: number }>();  // state → PKCE verifier, 10 minutes
 
 export default async function microsoft(f: FastifyInstance) {
-  f.get("/auth/providers", async () => ({ microsoft: microsoftEnabled(), dev: process.env.NODE_ENV !== "production", email: emailLoginEnabled() }));
+  f.get("/auth/providers", async () => ({ microsoft: microsoftEnabled(), dev: process.env.NODE_ENV !== "production", email: staffEmailLoginEnabled() }));
 
   f.get("/auth/microsoft", async (req, reply) => {
     if (!microsoftEnabled()) return reply.code(404).send(problem(404, "not_configured", "Microsoft sign-in is not configured"));
@@ -44,8 +44,15 @@ export default async function microsoft(f: FastifyInstance) {
       email = ((payload.preferred_username ?? payload.email) as string | undefined)?.toLowerCase();
     } catch { return fail("Could not verify the Microsoft token"); }
     if (!email) return fail("Microsoft did not tell us your email address");
-    const u = (await pool.query(`select u.id, m.property_id from app_user u join membership m on m.user_id=u.id where lower(u.email)=$1 and u.status='ACTIVE' limit 1`, [email])).rows[0];
-    if (!u) return fail(`${email} is not set up as a user yet — ask the system owner to add you`);
+    const u = (await pool.query(`select u.id, m.property_id, r.code role
+      from app_user u
+      join membership m on m.user_id=u.id
+      join role r on r.id=m.role_id
+      where lower(u.email)=$1 and u.status='ACTIVE' limit 1`, [email])).rows[0];
+    if (!u) return fail("This Microsoft account is not set up for Vedanta staff access");
+    if (u.role === "SYSTEM_OWNER" && !productionOwnerAllowed(email)) {
+      return fail("This system-owner account is not approved in the production allowlist");
+    }
     const token = randomBytes(32).toString("base64url");
     await pool.query(`insert into session (token, user_id, property_id, audience, expires_at) values ($1,$2,$3,'ADMIN', now() + interval '12 hours')`, [token, u.id, u.property_id]);
     return reply.redirect(`${c.web}/sign-in/#token=${token}`);
