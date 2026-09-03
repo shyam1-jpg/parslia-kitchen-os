@@ -1,0 +1,53 @@
+name: Vedanta CI
+
+on:
+  pull_request:
+    paths:
+      - 'vedanta-platform/**'
+      - '.github/workflows/vedanta-ci.yml'
+  push:
+    branches:
+      - 'cursor/vedanta-render-deploy-f604'
+    paths:
+      - 'vedanta-platform/**'
+      - '.github/workflows/vedanta-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vedanta-platform
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: vedanta-platform/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Domain tests
+        run: npm run test:domains
+
+      - name: API tests
+        run: npm run test:api
+        env:
+          NODE_ENV: test
+
+      - name: Build admin
+        run: npm --workspace apps/web-admin run build
+
+      - name: Build guest portal
+        run: npm --workspace apps/web-guest run build
+
+      - name: Build staff pocket
+        run: npm --workspace apps/web-staff run build
