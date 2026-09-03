@@ -34,21 +34,21 @@ function isApi(urlPath) {
   );
 }
 
-function staticRoot(urlPath) {
-  if (urlPath.startsWith("/pocket")) return STAFF_ROOT;
-  if (urlPath.startsWith("/book")) return GUEST_ROOT;
-  return ADMIN_ROOT;
+function staticMount(urlPath) {
+  if (urlPath.startsWith("/pocket")) return { root: STAFF_ROOT, prefix: "/pocket" };
+  if (urlPath.startsWith("/book")) return { root: GUEST_ROOT, prefix: "/book" };
+  return { root: ADMIN_ROOT, prefix: "" };
 }
 
 function safeStatic(urlPath) {
-  const root = staticRoot(urlPath);
+  const { root, prefix } = staticMount(urlPath);
   let p = decodeURIComponent(urlPath.split("?")[0]);
+  if (prefix && (p === prefix || p.startsWith(prefix + "/"))) p = p.slice(prefix.length) || "/";
   if (p.endsWith("/")) p += "index.html";
   const full = normalize(join(root, p));
   if (!full.startsWith(root)) return null;
   if (existsSync(full) && statSync(full).isFile()) return full;
-  const html = full.endsWith(".html") ? full : `${full}.html`;
-  if (existsSync(html) && statSync(html).isFile()) return html;
+  if (extname(p)) return null;
   const idx = join(root, "index.html");
   return existsSync(idx) ? idx : null;
 }
@@ -56,7 +56,7 @@ function safeStatic(urlPath) {
 const server = http.createServer((req, res) => {
   const urlPath = req.url || "/";
   const pathOnly = urlPath.split("?")[0];
-  if (pathOnly === "/" || pathOnly === "") {
+  if (pathOnly === "/" || pathOnly === "" || pathOnly === "/index.html" || pathOnly === "/index.htm") {
     res.writeHead(302, { Location: "/book/" });
     res.end();
     return;
