@@ -37,7 +37,7 @@ export default function Book() {
   const [me, setMe] = useState<Me | null>(null);
   const [mine, setMine] = useState<Mine[] | null>(null);
   const [auth, setAuth] = useState<"in" | "register" | "login">("register");
-  const [form, setForm] = useState({ name: "", email: "", people: "1", arrival: "", departure: "", notes: "" });
+  const [form, setForm] = useState({ name: "", email: "", access_code: "", people: "1", arrival: "", departure: "", notes: "" });
   const [ok, setOk] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -57,26 +57,33 @@ export default function Book() {
   const register = async () => {
     setErr(null); setOk(null);
     try {
-      const r = await api<{ token: string; user: Me }>("/guest/register", { method: "POST", body: JSON.stringify({ name: form.name, email: form.email }) });
-      tok.set(r.token); await loadMine(); setOk("You are registered. Choose a programme, or ask about your own dates.");
+      const r = await api<{ token: string; user: Me; access_code?: string | null }>("/guest/register", { method: "POST", body: JSON.stringify({ name: form.name, email: form.email }) });
+      tok.set(r.token); await loadMine();
+      setForm(f => ({ ...f, access_code: r.access_code ?? f.access_code ?? "" }));
+      setOk(r.access_code
+        ? `Registered. Your private access code is ${r.access_code}. Keep this safe.`
+        : "You are registered. Choose a programme, or ask about your own dates.");
     } catch (e) { setErr((e as Error).message); }
   };
   const login = async () => {
     setErr(null); setOk(null);
     try {
-      const r = await api<{ token: string }>("/guest/login", { method: "POST", body: JSON.stringify({ email: form.email }) });
+      const r = await api<{ token: string }>("/guest/login", { method: "POST", body: JSON.stringify({ email: form.email, access_code: form.access_code }) });
       tok.set(r.token); await loadMine();
     } catch (e) { setErr((e as Error).message); }
   };
   const send = async (programme?: Prog | null) => {
     setErr(null); setOk(null);
     try {
-      const r = await api<{ token: string; user: Me }>("/guest/enquiries", { method: "POST", body: JSON.stringify({
+      const r = await api<{ token: string; user: Me; access_code?: string | null }>("/guest/enquiries", { method: "POST", body: JSON.stringify({
         name: form.name, email: form.email, people: Number(form.people), notes: form.notes,
         ...(programme ? { programme_id: programme.id } : { arrival: form.arrival, departure: form.departure }),
       }) });
       tok.set(r.token); await loadMine();
-      setOk(programme ? `We have your place on ${programme.name}. The house will write back.` : "We have your enquiry. The house will write back.");
+      if (r.access_code) setForm(f => ({ ...f, access_code: r.access_code ?? "" }));
+      setOk(r.access_code
+        ? `Saved. Your private access code is ${r.access_code}. Keep this safe.`
+        : (programme ? `We have your place on ${programme.name}. The house will write back.` : "We have your enquiry. The house will write back."));
     } catch (e) { setErr((e as Error).message); }
   };
 
@@ -157,11 +164,15 @@ export default function Book() {
               )}
               <div className="card">
                 {auth === "in" && me ? <h2 style={{ fontSize: 28 }}>Your book</h2> : <h2 style={{ fontSize: 28 }}>{auth === "login" ? "Sign in" : "Register"}</h2>}
-                <p className="m">Guests only. There is no password. The house never opens from this page.</p>
+                <p className="m">Guests only. Use your email and private access code. The house never opens from this page.</p>
                 {auth !== "in" && (<>
                   {auth === "register" && <><label htmlFor="guest-name">Your name</label><input id="guest-name" name="name" autoComplete="name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></>}
                   <label htmlFor="guest-email">Email</label>
                   <input id="guest-email" name="email" type="email" autoComplete="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                  {auth === "login" && <>
+                    <label htmlFor="guest-code">Access code</label>
+                    <input id="guest-code" name="access_code" inputMode="numeric" placeholder="6-digit code" value={form.access_code} onChange={e => setForm({ ...form, access_code: e.target.value })} />
+                  </>}
                   {auth === "register" ? <button className="btn" onClick={register}>Create my guest book</button> : <button className="btn" onClick={login}>Open my guest book</button>}
                   <button className="btn sec" onClick={() => { setAuth(auth === "login" ? "register" : "login"); setErr(null); }}>{auth === "login" ? "I need to register" : "I already have a book"}</button>
                 </>)}

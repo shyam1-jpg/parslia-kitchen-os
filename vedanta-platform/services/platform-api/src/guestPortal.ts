@@ -3,7 +3,7 @@
  * These routes never read staff_hr, staff_clock, reports, or the room board.
  * House reads enquiries on /v1/guest-enquiries (ADMIN only).
  */
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomInt } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { pool, tx } from "./db.ts";
 import { emailLoginEnabled, problem, requireActor, allow } from "./auth.ts";
@@ -20,6 +20,7 @@ function rateOk(key: string): boolean {
 }
 
 type Guest = { id: string; tenantId: string; propertyId: string; email: string; name: string };
+type GuestRow = { id: string; email: string; display_name: string; access_code_hash: string | null };
 
 const PROGRAMME_SQL = `select g.id, g.name, g.organisation, g.retreat_type, g.use_basis,
   g.arrival_date::text arrival, g.arrival_slot, to_char(g.arrival_time,'HH24:MI') arrival_time,
@@ -75,6 +76,30 @@ async function issueGuest(guestId: string, email: string, name: string) {
   const token = randomBytes(32).toString("base64url");
   await pool.query(`insert into guest_session (token, guest_id, expires_at) values ($1,$2, now() + interval '12 hours')`, [token, guestId]);
   return { token, user: { email, name, surface: "GUEST" as const } };
+}
+
+function newAccessCode(): string {
+  return String(randomInt(0, 1_000_000)).padStart(6, "0");
+}
+function hashAccessCode(code: string): string {
+  return createHash("sha256").update(code).digest("hex");
+}
+function normAccessCode(v: unknown): string {
+  return String(v ?? "").replace(/\s+/g, "").trim();
+}
+async function upsertGuestWithCode(prop: any, email: string, name: string): Promise<{ guest: GuestRow; access_code?: string }> {
+  const cur = (await pool.query(`select id, email, display_name, access_code_hash from guest_account where property_id=$1 and lower(email)=$2`, [prop.id, email])).rows[0] as GuestRow | undefined;
+  const issue = !cur?.access_code_hash;
+  const accessCode = issue ? newAccessCode() : null;
+  const accessHash = accessCode ? hashAccessCode(accessCode) : null;
+  const guest = (await pool.query(`insert into guest_account (tenant_id, property_id, email, display_name, access_code_hash)
+      values ($1,$2,$3,$4,$5)
+      on conflict (property_id, email) do update
+      set display_name=excluded.display_name,
+          access_code_hash=coalesce(guest_account.access_code_hash, excluded.access_code_hash)
+      returning id, email, display_name, access_code_hash`,
+      [prop.tenant_id, prop.id, email, name, accessHash])).rows[0] as GuestRow;
+  return accessCode ? { guest, access_code: accessCode } : { guest };
 }
 
 async function propertyRow() {
@@ -140,11 +165,10 @@ export default async function guestPortal(f: FastifyInstance) {
     const name = String(req.body?.name ?? "").trim();
     if (!name || !email.includes("@")) return reply.code(422).send(problem(422, "validation", "Name and email are required"));
     const prop = await propertyRow();
-    const guest = (await pool.query(`insert into guest_account (tenant_id, property_id, email, display_name) values ($1,$2,$3,$4)
-      on conflict (property_id, email) do update set display_name=excluded.display_name returning id, email, display_name`,
-      [prop.tenant_id, prop.id, email, name])).rows[0];
-    void backupGuestEvent({ id: `guest_reg_${guest.id}`, kind: "register", name: guest.display_name, email: guest.email });
-    return issueGuest(guest.id, guest.email, guest.display_name);
+    const r = await upsertGuestWithCode(prop, email, name);
+    void backupGuestEvent({ id: `guest_reg_${r.guest.id}`, kind: "register", name: r.guest.display_name, email: r.guest.email });
+    const session = await issueGuest(r.guest.id, r.guest.email, r.guest.display_name);
+    return { ...session, access_code: r.access_code ?? null };
   });
 
   f.post("/guest/enquiries", async (req: any, reply) => {
@@ -166,8 +190,8 @@ export default async function guestPortal(f: FastifyInstance) {
     }
     if (!arrival || !departure) return reply.code(422).send(problem(422, "validation", "Choose a programme, or give arrival and departure dates"));
     if (departure < arrival) return reply.code(422).send(problem(422, "validation", "Departure must be on or after arrival"));
-    const guest = (await pool.query(`insert into guest_account (tenant_id, property_id, email, display_name) values ($1,$2,$3,$4)
-      on conflict (property_id, email) do update set display_name=excluded.display_name returning id`, [prop.tenant_id, prop.id, email, name])).rows[0];
+    const r = await upsertGuestWithCode(prop, email, name);
+    const guest = r.guest;
     const e = (await pool.query(`insert into guest_enquiry (tenant_id,property_id,guest_id,name,email,people,arrival_date,departure_date,notes,programme_id)
       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning id, status`, [prop.tenant_id, prop.id, guest.id, name, email, people, arrival, departure, b.notes ?? null, programmeId])).rows[0];
     const session = await issueGuest(guest.id, email, name);
@@ -176,15 +200,18 @@ export default async function guestPortal(f: FastifyInstance) {
       kind: programmeId ? "programme" : "dates",
       name, email, people, arrival, departure, notes: b.notes ?? null, programme_id: programmeId,
     });
-    return { id: e.id, status: e.status, ...session };
+    return { id: e.id, status: e.status, ...session, access_code: r.access_code ?? null };
   });
 
   f.post("/guest/login", async (req: any, reply) => {
     if (!emailLoginEnabled()) return reply.code(404).send(problem(404, "not_found", "Guest sign-in is not open"));
     if (!rateOk(`glogin:${req.ip || "x"}`)) return reply.code(429).send(problem(429, "rate_limited", "Too many sign-in attempts"));
     const email = String(req.body?.email ?? "").trim().toLowerCase();
-    const g = (await pool.query(`select id, display_name, email from guest_account where lower(email)=$1 and status='ACTIVE'`, [email])).rows[0];
+    const code = normAccessCode(req.body?.access_code);
+    const g = (await pool.query(`select id, display_name, email, access_code_hash from guest_account where lower(email)=$1 and status='ACTIVE'`, [email])).rows[0];
     if (!g) return reply.code(401).send(problem(401, "unknown_user", "No guest book under that email. Register first."));
+    if (!g.access_code_hash) return reply.code(401).send(problem(401, "guest_code_required", "Your guest book now needs an access code. Register again to receive your private code."));
+    if (!code || hashAccessCode(code) !== g.access_code_hash) return reply.code(401).send(problem(401, "wrong_code", "That access code is not correct for this email."));
     return issueGuest(g.id, g.email, g.display_name);
   });
 
