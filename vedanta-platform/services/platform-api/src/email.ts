@@ -10,7 +10,7 @@ import { audit } from "./groups.ts";
 import { bookingValue } from "./packages.ts";
 
 const transport = process.env.SMTP_URL ? nodemailer.createTransport(process.env.SMTP_URL) : null;
-const FROM = process.env.MAIL_FROM ?? "The Vedanta Way Retreat Center <bookings@thevedanta.org>";
+const FROM = process.env.MAIL_FROM ?? "The Vedanta <bookings@thevedanta.org>";
 export const emailConfigured = () => !!transport;
 
 export async function sendEmail(a: Actor, m: { to: string; subject: string; body: string; kind: string; related_type?: string; related_id?: string }) {
@@ -25,7 +25,7 @@ const fmtDate = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("en-
 const t = (s: string | null) => s ? s.slice(0, 5) : "";
 
 export function renderFormLink(g: any, url: string, signer: string) {
-  return { subject: `${g.name} — guest list for your stay at The Vedanta Way Retreat Center`,
+  return { subject: `${g.name} — guest list for your stay at The Vedanta`,
     body: `Dear ${g.contact_name ?? g.organisation ?? "organiser"},
 
 Thank you for booking ${g.name} with us, ${fmtDate(g.arrival_date)} (${g.arrival_slot}${g.arrival_time ? " " + t(g.arrival_time) : ""}) to ${fmtDate(g.departure_date)} (${g.departure_slot}${g.departure_time ? " " + t(g.departure_time) : ""}).
@@ -38,12 +38,12 @@ The kitchen reads exactly what is entered here, so please be specific about alle
 
 With warm regards,
 ${signer}
-The Vedanta Way Retreat Center, Luxury Holistic · The Vedanta Way Ltd · https://www.thevedanta.org/` };
+The Vedanta · The Vedanta Way Ltd · https://www.thevedanta.org/` };
 }
 
 export function renderConfirmation(g: any, signer: string) {
   const v = bookingValue(g);
-  return { subject: `Booking confirmed — ${g.name} at The Vedanta Way Retreat Center`,
+  return { subject: `Booking confirmed — ${g.name} at The Vedanta`,
     body: `Dear ${g.contact_name ?? g.organisation ?? "organiser"},
 
 We are pleased to confirm ${g.name}.
@@ -58,7 +58,7 @@ Your booking form is complete and we hold your signed terms and conditions. If a
 We look forward to welcoming you.
 
 ${signer}
-The Vedanta Way Retreat Center, Luxury Holistic · The Vedanta Way Ltd · https://www.thevedanta.org/` };
+The Vedanta · The Vedanta Way Ltd · https://www.thevedanta.org/` };
 }
 
 export default async function routes(f: FastifyInstance) {

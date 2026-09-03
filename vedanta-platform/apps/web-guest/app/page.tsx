@@ -42,9 +42,9 @@ export default function Book() {
   return (
     <div className="page">
       <section className="left">
-        <div className="kicker">The Vedanta Way</div>
-        <h1>Retreat<br />Center</h1>
-        <p className="tag">Luxury Holistic</p>
+        <div className="kicker">Retreat Center</div>
+        <h1>The Vedanta</h1>
+        <p className="tag">Luxury retreat centre</p>
         <p>Check-in from {prop?.check_in_from ?? "15:00"}.</p>
       </section>
       <section className="right">

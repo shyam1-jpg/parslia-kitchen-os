@@ -24,11 +24,11 @@ export default function SignIn() {
     <div className="arrive">
       <section className="arrive-hero">
         <div>
-          <div className="arrive-kicker">The Vedanta Way</div>
-          <h1>Retreat<br />Center</h1>
-          <p className="lede">Luxury Holistic</p>
+          <div className="arrive-kicker">Retreat Center</div>
+          <h1>The Vedanta</h1>
+          <p className="lede">A beautiful grade II-listed luxury retreat centre.</p>
         </div>
-        <div className="foot">The Vedanta Way Ltd</div>
+        <div className="foot"><a href="https://www.thevedanta.org/">www.thevedanta.org</a><br />The Vedanta Way Ltd</div>
       </section>
       <section className="arrive-panel">
         <div className="arrive-card">

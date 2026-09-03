@@ -44,7 +44,7 @@ export default function Pocket() {
 
   if (!me) return (
     <>
-      <div className="hero"><div className="kicker">The Vedanta Way</div><h1>Retreat<br />Center</h1><p>Luxury Holistic</p></div>
+      <div className="hero"><div className="kicker">Retreat Center</div><h1>The Vedanta</h1><p>Luxury retreat centre</p></div>
       <div className="wrap">
         <div className="card">
           <label>Staff email</label>

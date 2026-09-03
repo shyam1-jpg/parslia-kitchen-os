@@ -3,7 +3,7 @@
 # the platform reads it at seed time and stores it in the property tables.
 
 tenant:
-  name: The Vedanta Way Retreat Center
+  name: The Vedanta
   legal_entity: The Vedanta Way Ltd
   website: https://www.thevedanta.org/
   country: GB
@@ -12,8 +12,8 @@ tenant:
 
 property:
   code: VOR
-  name: The Vedanta Way Retreat Center
-  tagline: Luxury Holistic
+  name: The Vedanta
+  tagline: Luxury retreat centre
   rooms_total: 45
   check_in_from: "15:00"
   check_out_by: "11:00"

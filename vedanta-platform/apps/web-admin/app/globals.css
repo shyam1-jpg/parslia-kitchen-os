@@ -161,6 +161,7 @@ button { font: inherit; cursor: pointer; }
 .arrive-hero h1 { font-size: 64px; line-height: 0.92; margin: 18px 0 16px; color: #F7F1E6; }
 .arrive-hero .lede { font-family: var(--serif); font-size: 22px; font-style: italic; color: #D5D0C6; max-width: 18em; }
 .arrive-hero .foot { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #8A9A92; }
+.arrive-hero .foot a { color: inherit; text-decoration: none; }
 .arrive-panel { display: grid; place-items: center; padding: 40px 36px; background: var(--ivory); }
 .arrive-card { width: min(420px, 100%); }
 .arrive-card h2 { font-size: 32px; margin-bottom: 8px; }
