@@ -101,7 +101,7 @@ export default function StaffCorner() {
           <div className="frow" style={{ flexWrap: "wrap", gap: 8 }}>
             <select className="btn" value={dform.user_id} onChange={e => setDform({ ...dform, user_id: e.target.value })}><option value="">Staff</option>{people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
             <input type="date" value={dform.on_date} onChange={e => setDform({ ...dform, on_date: e.target.value })} />
-            <select className="btn" value={dform.slot} onChange={e => setDform({ ...dform, slot: e.target.value })}><option>AM</option><option>PM</option></select>
+            <select className="btn" value={dform.slot} onChange={e => setDform({ ...dform, slot: e.target.value })}><option>AM</option><option>PM</option><option>NIGHT</option></select>
             <select className="btn" value={dform.kind} onChange={e => setDform({ ...dform, kind: e.target.value })}><option>DUTY</option><option>COVER</option></select>
             {can("cover.write") && <button className="btn primary" onClick={() => run(() => api("/v1/workforce/duty", { method: "POST", body: JSON.stringify(dform) }).then(load), "On the board")}>Place</button>}
           </div>
@@ -156,7 +156,7 @@ export default function StaffCorner() {
       {tab === "sop" && showSop && (
         <div className="panel">
           <h3>Send an SOP to the pocket</h3>
-          <p className="m" style={{ color: "var(--ink-2)" }}>Professional kitchen and hotel procedures. Select who receives it on their phone.</p>
+          <p className="m" style={{ color: "var(--ink-2)" }}>Send a one-off note, or open Manual to edit the living book and send a chapter. They mark it received on the Pocket.</p>
           <input placeholder="Title" value={sop.title} onChange={e => setSop({ ...sop, title: e.target.value })} />
           <textarea rows={8} placeholder="Step-by-step procedure" value={sop.body} onChange={e => setSop({ ...sop, body: e.target.value })} style={{ width: "100%", marginTop: 8 }} />
           <div className="chips" style={{ margin: "10px 0" }}>{people.map(p => <button key={p.id} className={"chipbtn" + (sop.user_ids.includes(p.id) ? " on" : "")} onClick={() => setSop(s => ({ ...s, user_ids: s.user_ids.includes(p.id) ? s.user_ids.filter(i => i !== p.id) : [...s.user_ids, p.id] }))}>{p.name}</button>)}</div>

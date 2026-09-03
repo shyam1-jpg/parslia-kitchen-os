@@ -131,7 +131,7 @@ export default function OpsBoard({ compact = false }: { compact?: boolean }) {
               <li key={c.id}>
                 <button type="button" className={"box " + (c.done ? "ok" : "todo")} onClick={() => tick(c.id, !c.done)} aria-pressed={c.done}>{c.done ? "✓" : ""}</button>
                 <span>
-                  <div>{c.due_time ? `${c.due_time} · ` : ""}{c.title}</div>
+                  <div>{c.due_time ? <span className="chip">{c.due_time} </span> : null}{c.title}</div>
                   <div className="m">{c.department_label}{c.done_by_name ? ` · ${c.done_by_name}` : ""}</div>
                 </span>
               </li>
@@ -165,6 +165,7 @@ export default function OpsBoard({ compact = false }: { compact?: boolean }) {
               <select value={handover.shift} onChange={e => setHandover({ ...handover, shift: e.target.value })}>
                 <option value="am">Morning</option>
                 <option value="pm">Evening</option>
+                <option value="night">Night</option>
               </select>
             </div>
             <textarea required rows={3} value={handover.body} onChange={e => setHandover({ ...handover, body: e.target.value })} placeholder="What the next shift needs to know" />

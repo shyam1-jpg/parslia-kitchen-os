@@ -48,6 +48,7 @@ describe("house organogram", () => {
     const org = buildOrganogram(house);
     assert.equal(org.departments.find(d => d.code === "KITCHEN"), undefined);
     assert.ok(HOUSE_POSITIONS.some(p => p.code === "CHEF_DE_PARTIE"));
+    assert.ok(HOUSE_POSITIONS.some(p => p.code === "NIGHT_PORTER"));
     const sales = org.departments.find(d => d.code === "SALES")!;
     assert.equal(sales.seats.find(s => s.code === "SALES_MANAGER")!.people[0].name, "Shar");
     assert.equal(sales.seats.find(s => s.code === "SALES_ASSISTANT"), undefined);

@@ -5,6 +5,7 @@
 export const OPS_DEPARTMENTS = [
   { code: "HOUSE", label: "Whole house" },
   { code: "FRONT", label: "Front of house" },
+  { code: "NIGHT", label: "Night porter" },
   { code: "HK", label: "Housekeeping" },
   { code: "KITCHEN", label: "Kitchen" },
   { code: "RESTAURANT", label: "Restaurant" },
@@ -14,13 +15,14 @@ export const OPS_DEPARTMENTS = [
 ] as const;
 
 export type OpsDepartment = (typeof OPS_DEPARTMENTS)[number]["code"];
-export type OpsShift = "am" | "pm";
+export type OpsShift = "am" | "pm" | "night";
 export type GuestRequestStatus = "open" | "doing" | "done";
 
 const DEPT_SET = new Set<string>(OPS_DEPARTMENTS.map(d => d.code));
 const LABELS = Object.fromEntries(OPS_DEPARTMENTS.map(d => [d.code, d.label])) as Record<OpsDepartment, string>;
 
 const ROUTE: { dept: OpsDepartment; words: string[] }[] = [
+  { dept: "NIGHT", words: ["let me in", "let us in", "locked out", "late arrival", "after hours", "night porter", "come back late", "coming back late"] },
   { dept: "HK", words: ["towel", "linen", "duvet", "pillow", "soap", "shampoo", "clean", "housekeep", "bathroom", "vacuum", "bin"] },
   { dept: "KITCHEN", words: ["food", "meal", "breakfast", "lunch", "dinner", "diet", "vegan", "allergen", "kitchen", "tea", "coffee", "packed"] },
   { dept: "RESTAURANT", words: ["restaurant", "dining", "table", "wine", "waiter"] },
@@ -45,7 +47,9 @@ export function parseDepartment(v: unknown, fallback: OpsDepartment = "HOUSE"): 
 
 export function parseShift(v: unknown): OpsShift {
   const s = String(v ?? "").trim().toLowerCase();
-  return s === "pm" || s === "evening" || s === "night" ? "pm" : "am";
+  if (s === "night" || s === "nights" || s === "overnight" || s === "porter") return "night";
+  if (s === "pm" || s === "evening") return "pm";
+  return "am";
 }
 
 export function parseRequestStatus(v: unknown): GuestRequestStatus {
@@ -67,6 +71,7 @@ export function routeGuestRequest(text: string, explicit?: string | null): OpsDe
 }
 
 export function shiftLabel(shift: string): string {
+  if (shift === "night") return "Night";
   return shift === "pm" ? "Evening" : "Morning";
 }
 

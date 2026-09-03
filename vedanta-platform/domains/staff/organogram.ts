@@ -20,7 +20,7 @@ export type SeatHolder = { name: string; email: string; role: string; department
 
 export const HOUSE_DEPARTMENTS: HouseDepartment[] = [
   { code: "MGMT", name: "Management", sort: 10 },
-  { code: "FRONT", name: "Front of house", sort: 20, notes: "Tea and coffee is run from reception." },
+  { code: "FRONT", name: "Front of house", sort: 20, notes: "Tea and coffee is run from reception. The night porter locks the house and hands over to morning." },
   { code: "SALES", name: "Sales", sort: 25 },
   { code: "HK", name: "Housekeeping", sort: 30 },
   { code: "RESTAURANT", name: "Restaurant", sort: 40 },
@@ -40,6 +40,7 @@ export const HOUSE_POSITIONS: HousePosition[] = [
   { code: "FRONT_OFFICE_MANAGER", name: "Front office manager", department: "FRONT", hod: true, sort: 10 },
   { code: "RETREAT_MANAGER", name: "Retreat manager", department: "FRONT", hod: true, sort: 20 },
   { code: "RECEPTIONIST", name: "Receptionist", department: "FRONT", hod: false, sort: 30 },
+  { code: "NIGHT_PORTER", name: "Night porter", department: "FRONT", hod: false, sort: 40 },
   { code: "SALES_MANAGER", name: "Sales manager", department: "SALES", hod: true, sort: 10 },
   { code: "SALES_ASSISTANT", name: "Sales assistant", department: "SALES", hod: false, sort: 20 },
   { code: "HK_SUPERVISOR", name: "Housekeeping supervisor", department: "HK", hod: true, sort: 10 },

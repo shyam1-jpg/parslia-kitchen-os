@@ -41,7 +41,7 @@ export default async function service(f: FastifyInstance) {
       list.push(p);
       byDept.set(p.department, list);
     }
-    const depts = ["FRONT", "HK", "RESTAURANT", "KITCHEN", "MAINT", "GROUNDS"];
+    const depts = ["FRONT", "NIGHT", "HK", "RESTAURANT", "KITCHEN", "MAINT", "GROUNDS"];
     return {
       items: depts.map(department => {
         const row = boards.find((b: { department: string }) => b.department === department);

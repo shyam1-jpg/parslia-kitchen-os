@@ -13,6 +13,7 @@ import { buildOrganogram } from "../../../domains/staff/organogram.ts";
 import { hoursFromPunches, canPunch, type Punch } from "../../../domains/staff/hours.ts";
 import { splitTips, type TipMethod } from "../../../domains/staff/tips.ts";
 import { payrollRow, shiftsFromPunches, weekStartMonday, addDaysIso } from "../../../domains/staff/payroll.ts";
+import { parseDutySlot } from "../../../domains/ops/night.ts";
 
 const weekStart = (iso: string) => {
   const d = new Date(iso + "T00:00:00Z");
@@ -190,10 +191,11 @@ export default async function workforce(f: FastifyInstance) {
     const a = await house(req, reply, "cover.write"); if (!a) return;
     const b = req.body ?? {};
     if (!b.user_id || !b.on_date || !b.slot) return reply.code(422).send(problem(422, "validation", "user_id, on_date and slot are required"));
+    const slot = parseDutySlot(b.slot);
     const room = b.room ? (await pool.query(`select id from room where property_id=$1 and number=$2`, [a.propertyId, b.room])).rows[0] : null;
     const r = await pool.query(`insert into staff_duty (tenant_id,property_id,user_id,on_date,slot,kind,room_id,note) values ($1,$2,$3,$4,$5,$6,$7,$8)
       on conflict (user_id, on_date, slot) do update set kind=excluded.kind, room_id=excluded.room_id, note=excluded.note
-      returning id`, [a.tenantId, a.propertyId, b.user_id, b.on_date, b.slot, b.kind === "COVER" ? "COVER" : "DUTY", room?.id ?? null, b.note ?? null]);
+      returning id`, [a.tenantId, a.propertyId, b.user_id, b.on_date, slot, b.kind === "COVER" ? "COVER" : "DUTY", room?.id ?? null, b.note ?? null]);
     return { id: r.rows[0].id };
   });
 
