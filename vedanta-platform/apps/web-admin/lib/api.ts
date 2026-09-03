@@ -1,5 +1,7 @@
 "use client";
-export const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+// Same-origin by default so the live tunnel (Cloudflare / localhost.run) can
+// proxy /auth, /v1 and /me without the browser calling localhost:4000.
+export const API = process.env.NEXT_PUBLIC_API_URL ?? "";
 export type Problem = { status: number; code: string; detail: string };
 export class ApiError extends Error { problem: Problem; constructor(p: Problem) { super(p.detail); this.problem = p; } }
 
