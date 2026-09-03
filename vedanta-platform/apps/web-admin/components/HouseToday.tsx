@@ -16,8 +16,12 @@ type Estate = {
 
 export default function HouseToday() {
   const [e, setE] = useState<Estate | null>(null);
+  const [book, setBook] = useState(0);
   const [err, setErr] = useState<string | null>(null);
-  useEffect(() => { api<Estate>("/v1/estate").then(setE).catch(() => setErr("The house ledger could not be opened.")); }, []);
+  useEffect(() => {
+    api<Estate>("/v1/estate").then(setE).catch(() => setErr("The house ledger could not be opened."));
+    api<{ items: unknown[] }>("/v1/guest-enquiries").then(r => setBook(r.items.length)).catch(() => {});
+  }, []);
   if (err) return <div className="note">{err}</div>;
   if (!e) return <div className="empty">Opening the house…</div>;
   const d = fmt(e.today, { weekday: "long", day: "numeric", month: "long" });
@@ -28,7 +32,10 @@ export default function HouseToday() {
           <h1>Today at the house</h1>
           <p>{d}. Check-in from {e.property.check_in_from}, departure by {e.property.check_out_by}. {e.property.dining ? `${e.property.dining.name}, ${e.property.dining.max_covers} covers.` : ""}</p>
         </div>
-        <Link className="btn primary" href="/groups/">Open the book</Link>
+        <div style={{ display: "flex", gap: 10 }}>
+          {book > 0 && <Link className="btn" href="/groups/">{book} guest book {book === 1 ? "enquiry" : "enquiries"}</Link>}
+          <Link className="btn primary" href="/groups/">Open the book</Link>
+        </div>
       </div>
       <div className="pulse">
         <article><div className="k">In residence</div><b>{e.pulse.in_house}</b><div className="s">groups on the estate</div></article>

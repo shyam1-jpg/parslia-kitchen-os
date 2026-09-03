@@ -1,11 +1,13 @@
 /**
  * Guest book — a separate login and a separate ledger.
  * These routes never read staff_hr, staff_clock, reports, or the room board.
+ * House reads enquiries on /v1/guest-enquiries (ADMIN only).
  */
 import { randomBytes } from "node:crypto";
 import type { FastifyInstance } from "fastify";
-import { pool } from "./db.ts";
-import { emailLoginEnabled, problem } from "./auth.ts";
+import { pool, tx } from "./db.ts";
+import { emailLoginEnabled, problem, requireActor, allow } from "./auth.ts";
+import { audit } from "./groups.ts";
 
 const hits = new Map<string, { n: number; t: number }>();
 function rateOk(key: string): boolean {
@@ -71,5 +73,30 @@ export default async function guestPortal(f: FastifyInstance) {
     const r = await pool.query(`select id, name, people, arrival_date::text arrival, departure_date::text departure, notes, status, created_at
       from guest_enquiry where guest_id=$1 order by created_at desc`, [g.id]);
     return { items: r.rows };
+  });
+
+  f.get("/v1/guest-enquiries", async (req, reply) => {
+    const a = await requireActor(req, reply, "ADMIN"); if (!a || !allow(a, "group.read", reply)) return;
+    const r = await pool.query(`select id, name, email, people, arrival_date::text arrival, departure_date::text departure, notes, status, created_at
+      from guest_enquiry where property_id=$1 and status='ENQUIRY' order by created_at desc limit 50`, [a.propertyId]);
+    return { items: r.rows };
+  });
+
+  f.post("/v1/guest-enquiries/:id/take", async (req: any, reply) => {
+    const a = await requireActor(req, reply, "ADMIN"); if (!a || !allow(a, "group.create", reply)) return;
+    return tx(async c => {
+      const e = (await c.query(`select * from guest_enquiry where id=$1 and property_id=$2 for update`, [req.params.id, a.propertyId])).rows[0];
+      if (!e) { reply.code(404); return problem(404, "not_found", "No such enquiry"); }
+      if (e.status !== "ENQUIRY") { reply.code(409); return problem(409, "enquiry", "This enquiry is already in the book"); }
+      const n = await c.query(`select count(*) from booking_group where property_id=$1`, [a.propertyId]);
+      const g = (await c.query(`insert into booking_group(tenant_id,property_id,name,organisation,contact_email,arrival_date,arrival_slot,departure_date,departure_slot,
+          expected_guests,status,booking_form_status,notes,colour,source)
+        values($1,$2,$3,$4,$5,$6,'PM',$7,'AM',$8,'ENQUIRY','NOT_SENT',$9,$10,'GUEST_BOOK') returning id, name`,
+        [a.tenantId, a.propertyId, e.name, e.name, e.email, e.arrival_date, e.departure_date, e.people, e.notes,
+         ["#1F3A32", "#8A6A3B", "#4F6758", "#6B3A32"][Number(n.rows[0].count) % 4]])).rows[0];
+      await c.query(`update guest_enquiry set status='CONVERTED' where id=$1`, [e.id]);
+      await audit(c, a, "booking_group", g.id, "group.create", { to: "ENQUIRY", payload: { from_enquiry: e.id } });
+      return { id: g.id, name: g.name };
+    });
   });
 }

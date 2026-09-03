@@ -49,6 +49,7 @@ export default function SignIn() {
           </>)}
           {providers && !providers.microsoft && !providers.dev && !providers.email && <div className="note">No sign-in method is configured.</div>}
           {err && <div className="note" style={{ marginTop: 14 }}>{err}</div>}
+          <p className="m" style={{ marginTop: 28 }}>Guests book at <a href="/book/">/book</a>. Staff use <a href="/pocket/">/pocket</a>.</p>
         </div>
       </section>
     </div>

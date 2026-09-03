@@ -20,17 +20,19 @@ export default function Pocket() {
   const [me, setMe] = useState<Me | null>(null);
   const [email, setEmail] = useState("");
   const [err, setErr] = useState<string | null>(null);
-  const [tab, setTab] = useState<"clock" | "leave" | "sop">("clock");
+  const [tab, setTab] = useState<"clock" | "leave" | "duty" | "sop">("clock");
   const [clock, setClock] = useState<{ last: string | null; hours_this_week: number } | null>(null);
   const [leave, setLeave] = useState<{ items: { id: string; kind: string; starts_on: string; ends_on: string; status: string }[] } | null>(null);
   const [form, setForm] = useState({ kind: "HOLIDAY", starts_on: "", ends_on: "", note: "" });
   const [sops, setSops] = useState<{ id: string; title: string; body: string; read_at: string | null }[]>([]);
+  const [duty, setDuty] = useState<{ id: string; on_date: string; slot: string; kind: string; note: string | null }[]>([]);
 
   const load = async () => {
     const u = await api<Me>("/me"); setMe(u);
     setClock(await api("/staff/clock"));
     setLeave(await api("/staff/leave"));
     setSops((await api<{ items: typeof sops }>("/staff/sop")).items);
+    setDuty((await api<{ items: typeof duty }>("/staff/duty")).items);
   };
   useEffect(() => { if (tok.get()) load().catch(() => tok.set(null)); }, []);
 
@@ -64,6 +66,7 @@ export default function Pocket() {
         <div className="tabs">
           <button className={tab === "clock" ? "on" : ""} onClick={() => setTab("clock")}>Clock</button>
           <button className={tab === "leave" ? "on" : ""} onClick={() => setTab("leave")}>Holiday</button>
+          <button className={tab === "duty" ? "on" : ""} onClick={() => setTab("duty")}>Duty</button>
           <button className={tab === "sop" ? "on" : ""} onClick={() => setTab("sop")}>SOP</button>
         </div>
         {tab === "clock" && (
@@ -84,6 +87,14 @@ export default function Pocket() {
             <label>Note</label><textarea rows={2} value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} />
             <button className="btn" onClick={async () => { setErr(null); try { await api("/staff/leave", { method: "POST", body: JSON.stringify(form) }); setLeave(await api("/staff/leave")); } catch (e) { setErr((e as Error).message); } }}>Send request</button>
             {(leave?.items ?? []).map(l => <div className="row" key={l.id}><span>{l.kind.toLowerCase()} · {l.starts_on} → {l.ends_on}</span><span className="m">{l.status.replace(/_/g, " ").toLowerCase()}</span></div>)}
+          </div>
+        )}
+        {tab === "duty" && (
+          <div className="card">
+            <h2>Your board</h2>
+            <p className="m">The house places you here. Tips, pay and the rota stay in the house.</p>
+            {duty.length === 0 && <p className="m">No shifts on the board yet.</p>}
+            {duty.map(d => <div className="row" key={d.id}><span>{d.on_date} · {d.slot}</span><span className="m">{d.kind.toLowerCase()}{d.note ? ` · ${d.note}` : ""}</span></div>)}
           </div>
         )}
         {tab === "sop" && (

@@ -167,6 +167,7 @@ button { font: inherit; cursor: pointer; }
 .arrive-card h2 { font-size: 32px; margin-bottom: 8px; }
 .arrive-card .rule { width: 48px; height: 1px; background: var(--gold); margin: 16px 0 20px; }
 .arrive-card p { color: var(--ink-2); }
+.arrive-card p a { color: var(--gold); text-decoration: underline; }
 .arrive-card input { width: 100%; margin-top: 18px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 2px; font: inherit; background: #fff; }
 .arrive-card .btn.primary { width: 100%; margin-top: 14px; padding: 14px; }
 .users { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }

@@ -27,6 +27,9 @@ export default function Book() {
     setErr(null);
     try {
       await api("/guest/enquiries", { method: "POST", body: JSON.stringify({ ...form, people: Number(form.people) }) });
+      const r = await api<{ token: string }>("/guest/login", { method: "POST", body: JSON.stringify({ email: form.email }) });
+      tok.set(r.token);
+      setMine((await api<{ items: NonNullable<typeof mine> }>("/guest/enquiries")).items);
       setOk("We have your enquiry. The house will write back.");
     } catch (e) { setErr((e as Error).message); }
   };
@@ -45,14 +48,14 @@ export default function Book() {
         <div className="kicker">Retreat Center</div>
         <h1>The Vedanta</h1>
         <p className="tag">Luxury retreat centre</p>
-        <p>Check-in from {prop?.check_in_from ?? "15:00"}.</p>
+        <p>Book a stay. Check-in from {prop?.check_in_from ?? "15:00"}.</p>
       </section>
       <section className="right">
         <div className="card">
-          <h2>Enquire</h2>
-          <p className="m">Guests only.</p>
+          <h2>Book a stay</h2>
+          <p className="m">Guests only. There is no password. The house never opens from this page.</p>
           <label>Your name</label><input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-          <label>Email</label><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+          <label>Email</label><input type="email" autoComplete="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
           <label>How many people</label><input type="number" min={1} value={form.people} onChange={e => setForm({ ...form, people: e.target.value })} />
           <label>Arrive</label><input type="date" value={form.arrival} onChange={e => setForm({ ...form, arrival: e.target.value })} />
           <label>Depart</label><input type="date" value={form.departure} onChange={e => setForm({ ...form, departure: e.target.value })} />

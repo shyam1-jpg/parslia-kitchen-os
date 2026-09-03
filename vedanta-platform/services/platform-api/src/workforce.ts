@@ -66,6 +66,13 @@ export default async function workforce(f: FastifyInstance) {
     const r = await pool.query(`select id, kind, starts_on::text, ends_on::text, hours, status, note, decided_reason, created_at from staff_leave where user_id=$1 order by starts_on desc limit 50`, [a.userId]);
     return { items: r.rows, needs_hod_first: leaveNeedsHodFirst(a.role) };
   });
+  f.get("/staff/duty", async (req, reply) => {
+    const a = await requireActor(req, reply, "STAFF"); if (!a || !allow(a, "cover.read", reply)) return;
+    const from = new Date().toISOString().slice(0, 10);
+    const r = await pool.query(`select id, on_date::text, slot, kind, note from staff_duty
+      where property_id=$1 and user_id=$2 and on_date>=$3 order by on_date, slot limit 14`, [a.propertyId, a.userId, from]);
+    return { items: r.rows };
+  });
   f.get("/staff/sop", async (req, reply) => {
     const a = await requireActor(req, reply, "STAFF"); if (!a || !allow(a, "sop.read", reply)) return;
     const r = await pool.query(`select s.id, s.title, s.body, a.sent_at, a.read_at from staff_sop_assignment a join staff_sop s on s.id=a.sop_id where a.user_id=$1 order by a.sent_at desc`, [a.userId]);
