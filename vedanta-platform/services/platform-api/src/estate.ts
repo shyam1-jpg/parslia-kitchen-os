@@ -25,17 +25,13 @@ export default async function estate(f: FastifyInstance) {
       select id, name, organisation, status, expected_guests, expected_rooms,
              arrival_date::text arrival, arrival_slot, departure_date::text departure, departure_slot, colour
       from booking_group
-      where property_id=$1 and status not in ('CANCELLED')
-        and (status = 'IN_HOUSE'
-          or (arrival_date = $2 and status in ('CONFIRMED','PROVISIONAL','IN_HOUSE'))
-          or (departure_date = $2 and status in ('CONFIRMED','PROVISIONAL','IN_HOUSE'))
-          or (status = 'CONFIRMED' and arrival_date > $2))
+      where property_id=$1 and status not in ('CANCELLED','COMPLETED')
+        and arrival_date <= $2 and departure_date >= $2
       order by arrival_date, arrival_slot`, [a.propertyId, today])).rows;
 
-    const inHouse = groups.filter((g: { status: string; arrival: string; departure: string }) =>
-      g.status === "IN_HOUSE" || (g.arrival <= today && g.departure >= today && ["CONFIRMED", "PROVISIONAL", "IN_HOUSE"].includes(g.status) && g.arrival < today));
-    const arriving = groups.filter((g: { arrival: string; status: string }) => g.arrival === today && g.status !== "COMPLETED");
-    const departing = groups.filter((g: { departure: string; status: string }) => g.departure === today && g.status !== "COMPLETED");
+    const arriving = groups.filter((g: { arrival: string }) => g.arrival === today);
+    const departing = groups.filter((g: { departure: string }) => g.departure === today);
+    const inHouse = groups.filter((g: { arrival: string; departure: string }) => g.arrival < today && g.departure > today);
     const next = (await pool.query(`
       select name, organisation, arrival_date::text arrival, arrival_slot, expected_guests
       from booking_group
@@ -66,7 +62,7 @@ export default async function estate(f: FastifyInstance) {
       },
       today,
       pulse: {
-        in_house: inHouse.length,
+        in_house: inHouse.length + arriving.length,
         arriving: arriving.length,
         departing: departing.length,
         rooms_tonight: occ.rows[0]?.rooms ?? 0,
