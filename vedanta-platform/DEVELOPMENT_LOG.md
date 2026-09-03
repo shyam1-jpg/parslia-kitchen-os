@@ -21,6 +21,15 @@ Handover record for work added on `cursor/vedanta-render-deploy-f604`. Existing 
 
 **Data we did not invent.** Rooms 301–307 stay missing. Package prices stay “confirm the list”. Skipped-row count stays a source conflict (65 vs 6).
 
+## Increment — Data quality page readable + all house links (2026-09-03)
+
+The first `/quality/` screen dumped raw JSON and showed a house note as if it were the live status (45 vs 42 looked like “Needs review” while live data is a source conflict). Guest book at `/book/` is empty of programmes until staff publish — that is the privacy rule, not a broken list.
+
+| | |
+| --- | --- |
+| Change | Findings show house-readable lines. Badge is the **live** status. House note is labelled separately. A “Every working link” panel lists all house, guest-book and Pocket URLs. |
+| Not changed | Routes, tables, import rows, rooms, prices. |
+
 ## Increment — shared task engine (2026-09-03)
 
 **Feature.** One house task list every department can use. Guest requests, daily checklists, house log, manuals and maintenance tickets are unchanged. This list sits beside them.
