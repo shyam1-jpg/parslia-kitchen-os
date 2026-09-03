@@ -44,6 +44,8 @@ services:
         value: "false"
       - key: GUEST_PORTAL_ENABLED
         value: "true"
+      - key: ALLOW_UNVERIFIED_GUEST_BOOTSTRAP
+        value: "false"
       - key: MS_TENANT_ID
         sync: false
       - key: MS_CLIENT_ID
