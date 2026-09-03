@@ -106,7 +106,7 @@ async function upsertGuestWithCode(prop: any, email: string, name: string): Prom
   const accessHash = accessCode ? hashAccessCode(accessCode) : null;
   const expires = accessCode ? issueExpiry() : null;
   const guest = (await pool.query(`insert into guest_account (tenant_id, property_id, email, display_name, access_code_hash, access_code_expires_at, access_code_issued_at, access_code_failed_attempts, access_code_locked_until)
-      values ($1,$2,$3,$4,$5,$6, case when $5 is null then null else now() end, 0, null)
+      values ($1,$2,$3,$4,$5::text,$6::timestamptz, case when $5::text is null then null else now() end, 0, null)
       on conflict (property_id, email) do update
       set display_name=excluded.display_name,
           access_code_hash=coalesce(excluded.access_code_hash, guest_account.access_code_hash),
