@@ -267,4 +267,7 @@ button { font: inherit; cursor: pointer; }
 .house-list .t { font-weight: 500; }
 .house-list .m { color: var(--ink-2); font-size: 12.5px; }
 .next-stay { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); font-family: var(--serif); font-size: 20px; }
-@media (max-width: 900px) { .pulse { grid-template-columns: 1fr 1fr; } .house-grid { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .pulse { grid-template-columns: 1fr 1fr; } .house-grid { grid-template-columns: 1fr; } .org-grid { grid-template-columns: 1fr; } }
+.org { margin-top: 8px; }
+.org-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.house-list .open { color: var(--ink-2); font-weight: 400; font-style: italic; }

@@ -46,8 +46,8 @@ export default async function microsoft(f: FastifyInstance) {
     if (!email) return fail("Microsoft did not tell us your email address");
     const u = (await pool.query(`select u.id, m.property_id from app_user u join membership m on m.user_id=u.id where lower(u.email)=$1 and u.status='ACTIVE' limit 1`, [email])).rows[0];
     if (!u) return fail(`${email} is not set up as a user yet — ask the system owner to add you`);
-    const token = randomBytes(24).toString("base64url");
-    await pool.query(`insert into session (token, user_id, property_id, expires_at) values ($1,$2,$3, now() + interval '12 hours')`, [token, u.id, u.property_id]);
+    const token = randomBytes(32).toString("base64url");
+    await pool.query(`insert into session (token, user_id, property_id, audience, expires_at) values ($1,$2,$3,'ADMIN', now() + interval '12 hours')`, [token, u.id, u.property_id]);
     return reply.redirect(`${c.web}/sign-in/#token=${token}`);
   });
 }

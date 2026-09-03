@@ -16,6 +16,8 @@ import email from "./email.ts";
 import maintenance from "./maintenance.ts";
 import autoplace from "./autoplace.ts";
 import estate from "./estate.ts";
+import workforce from "./workforce.ts";
+import guestPortal from "./guestPortal.ts";
 
 const app = Fastify({ logger: process.env.NODE_ENV !== "test" });
 
@@ -34,5 +36,5 @@ app.setErrorHandler((err: any, req, reply) => {
 });
 
 app.get("/health", async () => { await pool.query("select 1"); return { ok: true }; });
-await app.register(authRoutes); await app.register(microsoft); await app.register(groups, { prefix: "/v1" }); await app.register(occupancy, { prefix: "/v1" }); await app.register(users, { prefix: "/v1" }); await app.register(guests, { prefix: "/v1" }); await app.register(housekeeping, { prefix: "/v1" }); await app.register(reports, { prefix: "/v1" }); await app.register(packages, { prefix: "/v1" }); await app.register(forms); await app.register(integrations); await app.register(email); await app.register(maintenance, { prefix: "/v1" }); await app.register(autoplace, { prefix: "/v1" }); await app.register(estate, { prefix: "/v1" });
+await app.register(authRoutes); await app.register(microsoft); await app.register(groups, { prefix: "/v1" }); await app.register(occupancy, { prefix: "/v1" }); await app.register(users, { prefix: "/v1" }); await app.register(guests, { prefix: "/v1" }); await app.register(housekeeping, { prefix: "/v1" }); await app.register(reports, { prefix: "/v1" }); await app.register(packages, { prefix: "/v1" }); await app.register(forms); await app.register(integrations); await app.register(email); await app.register(maintenance, { prefix: "/v1" }); await app.register(autoplace, { prefix: "/v1" }); await app.register(estate, { prefix: "/v1" }); await app.register(workforce); await app.register(guestPortal);
 app.listen({ port: Number(process.env.PORT ?? 4000), host: "0.0.0.0" }).catch(e => { console.error(e); process.exit(1); });

@@ -17,7 +17,7 @@ export default function Users() {
 
   const Row = ({ u }: { u: U }) => (
     <div className="urow">
-      <div><div className="t">{u.name}{u.email === user?.email ? <span className="m"> · you</span> : null}</div><div className="m">{u.email}{u.last_sign_in ? ` · last signed in ${new Date(u.last_sign_in).toLocaleDateString("en-GB")}` : " · never signed in"}</div></div>
+      <div><div className="t">{u.name}{u.email === user?.email ? <span className="m"> · you</span> : null}</div><div className="m">{u.email}{u.department ? ` · ${u.department}` : ""}{u.last_sign_in ? ` · last signed in ${new Date(u.last_sign_in).toLocaleDateString("en-GB")}` : " · never signed in"}</div></div>
       <select className="btn" value={u.role ?? ""} disabled={busy || u.status !== "ACTIVE"} onChange={e => run(() => api(`/v1/users/${u.id}`, { method: "PATCH", body: JSON.stringify({ role: e.target.value, department: u.department ?? undefined }) }), `${u.name} is now ${roles.find(r => r.code === e.target.value)?.name}`)}>
         {roles.map(r => <option key={r.code} value={r.code}>{r.name}</option>)}</select>
       {u.status === "ACTIVE"

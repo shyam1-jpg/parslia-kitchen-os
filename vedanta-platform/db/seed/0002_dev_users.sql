@@ -6,10 +6,10 @@ BEGIN
   FOR r IN SELECT * FROM (VALUES
     ('shyam@thevedanta.org','Shyam','SYSTEM_OWNER','MGMT'),
     ('shyam_1@hotmail.co.uk','Shyam Prasad','SYSTEM_OWNER','MGMT'),
-    ('dan@thevedanta.org','Dan','SYSTEM_OWNER','MGMT'),
+    ('dan@thevedanta.org','Dan','GENERAL_MANAGER','MGMT'),
     ('shannon@thevedanta.org','Shannon','SYSTEM_OWNER','MGMT'),
     ('losi@thevedanta.org','Losi','SYSTEM_OWNER','MGMT'),
-    ('gram@thevedanta.org','Gram','SYSTEM_OWNER','MGMT'),
+    ('gram@thevedanta.org','Graham','GROUNDS','GROUNDS'),
     ('manager@thevedanta.org','Nitesh','GENERAL_MANAGER','MGMT'),
     ('sara@thevedanta.org','Sara','FRONT_OFFICE_MANAGER','FRONT'),
     ('reception@thevedanta.org','Reception desk','RECEPTIONIST','FRONT'),

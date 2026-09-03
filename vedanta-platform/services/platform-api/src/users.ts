@@ -7,13 +7,14 @@ import { audit } from "./groups.ts";
 export default async function routes(f: FastifyInstance) {
   f.get("/users", async (req, reply) => {
     const a = await requireActor(req, reply); if (!a || !allow(a, "user.manage", reply)) return;
-    const r = await pool.query(`select u.id, u.email, u.display_name name, u.status, r.code role, r.name role_name, d.code department, u.created_at,
+    const r = await pool.query(`select distinct on (u.id) u.id, u.email, u.display_name name, u.status, r.code role, r.name role_name, d.code department, d.name department_name, u.created_at,
         (select max(created_at) from session s where s.user_id=u.id) last_sign_in
       from app_user u left join membership m on m.user_id=u.id and m.property_id=$2 left join role r on r.id=m.role_id left join department d on d.id=m.department_id
-      where u.tenant_id=$1 order by u.status, r.code, u.display_name`, [a.tenantId, a.propertyId]);
-    const roles = await pool.query(`select code, name from role where tenant_id=$1 order by code`, [a.tenantId]);
+      where u.tenant_id=$1 order by u.id, u.status, r.code, u.display_name`, [a.tenantId, a.propertyId]);
+    const roles = await pool.query(`select code, name from role where tenant_id=$1 order by name`, [a.tenantId]);
     const depts = await pool.query(`select code, name from department where property_id=$1 order by name`, [a.propertyId]);
-    return { items: r.rows, roles: roles.rows, departments: depts.rows };
+    const items = r.rows.sort((a: { status: string; name: string }, b: { status: string; name: string }) => a.status.localeCompare(b.status) || a.name.localeCompare(b.name));
+    return { items, roles: roles.rows, departments: depts.rows };
   });
 
   f.post<{ Body: { email: string; name: string; role: string; department?: string } }>("/users", async (req, reply) => {

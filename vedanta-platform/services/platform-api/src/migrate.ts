@@ -257,10 +257,8 @@ function listSql(subdir: string): string[] {
 }
 
 const STAFF_ADMINS: { email: string; name: string }[] = [
-  { email: "dan@thevedanta.org", name: "Dan" },
   { email: "shannon@thevedanta.org", name: "Shannon" },
   { email: "losi@thevedanta.org", name: "Losi" },
-  { email: "gram@thevedanta.org", name: "Gram" },
 ];
 
 async function ensureAdmin(client: pg.Client, email: string, name: string) {
@@ -281,7 +279,7 @@ async function ensureAdmin(client: pg.Client, email: string, name: string) {
     JOIN role r ON r.tenant_id = t.id AND r.code = 'SYSTEM_OWNER'
     LEFT JOIN department d ON d.property_id = p.id AND d.code = 'MGMT'
     WHERE NOT EXISTS (
-      SELECT 1 FROM membership m WHERE m.user_id = u.id AND m.property_id = p.id AND m.role_id = r.id
+      SELECT 1 FROM membership m WHERE m.user_id = u.id AND m.property_id = p.id
     )
   `, [addr]);
 }

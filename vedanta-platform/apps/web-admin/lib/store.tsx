@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { api, token, ApiError } from "@/lib/api";
 import type { Group, Occupancy, Room, Slot } from "@/lib/data";
 
-export type User = { name: string; email: string; role: string; permissions: string[] };
+export type User = { name: string; email: string; role: string; role_name?: string; permissions: string[] };
 type ApiGroup = Record<string, unknown>;
 type ApiRoom = { id: string; number: string; section: string; type: string; beds_single: number; beds_double: number; beds_king: number; mattresses: number; max_capacity: number; features: string[]; staff_only: boolean; status: string };
 
