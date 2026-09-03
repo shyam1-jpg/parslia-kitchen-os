@@ -1,4 +1,5 @@
 -- Night porter post, nightly round, and where the lock-up lives.
+-- Filename must not collide with migrations/0016_night_porter.sql (schema_applied is by basename).
 
 INSERT INTO role (tenant_id, code, name, approval_limit)
 SELECT t.id, 'NIGHT_PORTER', 'Night porter', NULL
