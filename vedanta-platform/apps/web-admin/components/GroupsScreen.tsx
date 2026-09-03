@@ -138,6 +138,7 @@ export default function GroupsScreen() {
                     </span>
                     <span className="r">
                       <span className={"chip " + g.status}>{g.status.replace("_", " ").toLowerCase()}</span>
+                      <span className="m">{g.openOnGuestBook ? "on guest book" : "private"}</span>
                       {todo > 0 && g.status !== "CANCELLED" && <span className="warn">{todo} paperwork item{todo > 1 ? "s" : ""}</span>}
                     </span>
                   </button>);
@@ -150,7 +151,7 @@ export default function GroupsScreen() {
             <header>
               <div>
                 <h2>{sel.name}</h2>
-                <div style={{ color: "var(--ink-2)" }}>{sel.organisation}{sel.contact ? ` · ${sel.contact}` : ""} · {RETREAT_TYPES[sel.retreatType] ?? sel.retreatType} · {sel.useBasis === "EXCLUSIVE" ? "Exclusive use" : "Shared use"}{sel.source === "IMPORT:SHEET" ? " · from the sheet" : ""}</div>
+                <div style={{ color: "var(--ink-2)" }}>{sel.organisation}{sel.contact ? ` · ${sel.contact}` : ""} · {RETREAT_TYPES[sel.retreatType] ?? sel.retreatType} · {sel.useBasis === "EXCLUSIVE" ? "Exclusive use" : "Shared use"}{sel.source === "IMPORT:SHEET" ? " · from the sheet" : ""} · {sel.openOnGuestBook ? "on guest book" : "private"}</div>
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 {can("group.update") && sel.status !== "CANCELLED" && <button className="btn" onClick={() => setEditing(true)}>Edit</button>}

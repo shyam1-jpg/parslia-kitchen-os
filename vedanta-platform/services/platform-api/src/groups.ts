@@ -37,7 +37,7 @@ export async function audit(c: Q, a: Actor, entity: string, id: string, action: 
 const GROUP_COLS = `id, name, organisation, contact_email, contact_phone, arrival_date::text arrival, arrival_slot, arrival_time::text, departure_date::text departure, departure_slot, departure_time::text,
   retreat_type, use_basis, expected_guests, expected_rooms, package_name, price_basis, price_notes, spa_access, status, booking_form_status, terms_signed, terms_document, feedback_form_status,
   meals_from, meals_to, dietary_notes, notes, colour, version, source, external_ref, updated_at, review_reason, sheet_text,
-  package_id, agreed_price_twin, agreed_price_single, singles_count, agreed_total, form_token, form_sent_at, form_submitted_at,
+  package_id, agreed_price_twin, agreed_price_single, singles_count, agreed_total, form_token, form_sent_at, form_submitted_at, open_for_guests,
   (select json_build_object('code', pk.code, 'name', pk.name, 'price_basis', pk.price_basis, 'price_twin', pk.price_twin, 'price_single', pk.price_single) from package pk where pk.id=booking_group.package_id) package,
   (select count(*) from group_attendee ga where ga.group_id=booking_group.id)::int attendees`;
 
@@ -96,9 +96,13 @@ export default async function routes(f: FastifyInstance) {
   f.patch<{ Params: { id: string }; Body: Record<string, unknown>; Headers: { "if-match"?: string } }>("/groups/:id", async (req, reply) => {
     const a = await requireActor(req, reply); if (!a || !allow(a, "group.update", reply)) return;
     const allowed = ["name", "organisation", "contact_email", "contact_phone", "expected_guests", "expected_rooms", "package_name", "price_notes", "spa_access", "booking_form_status", "terms_signed", "terms_document", "feedback_form_status", "notes", "meals_from", "meals_to", "dietary_notes", "retreat_type", "use_basis", "arrival_time", "departure_time",
-      "arrival_date", "arrival_slot", "departure_date", "departure_slot", "review_reason", "package_id", "agreed_price_twin", "agreed_price_single", "singles_count", "agreed_total"];
+      "arrival_date", "arrival_slot", "departure_date", "departure_slot", "review_reason", "package_id", "agreed_price_twin", "agreed_price_single", "singles_count", "agreed_total", "open_for_guests"];
     const sets: string[] = []; const vals: unknown[] = [];
-    for (const k of allowed) if (k in req.body) { vals.push(k.endsWith("_time") ? parseTime(req.body[k]) : req.body[k]); sets.push(`${k}=$${vals.length}`); }
+    for (const k of allowed) if (k in req.body) {
+      const raw = req.body[k];
+      const v = k === "open_for_guests" ? !!raw : k.endsWith("_time") ? parseTime(raw) : raw;
+      vals.push(v); sets.push(`${k}=$${vals.length}`);
+    }
     if (!sets.length) return reply.code(422).send(problem(422, "validation", "Nothing to change"));
     const ver = Number(req.headers["if-match"]);
     const datesChange = ["arrival_date", "arrival_slot", "departure_date", "departure_slot"].some(k => k in req.body);

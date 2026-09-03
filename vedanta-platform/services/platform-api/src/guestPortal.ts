@@ -36,7 +36,8 @@ where g.property_id=$1
   and g.status in ('PROVISIONAL','CONFIRMED','IN_HOUSE')
   and g.retreat_type in ('residential','day_retreat')
   and g.name not ilike 'HOLD%'
-  and g.name not ilike '%booking%'`;
+  and g.name not ilike '%booking%'
+  and coalesce(g.open_for_guests, false) = true`;
 
 function shapeProgramme(r: any) {
   const kind = programmeKind(r.retreat_type);
