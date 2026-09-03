@@ -30,6 +30,8 @@ export default function Guests() {
   const { can } = useStore();
   const [q, setQ] = useState(""); const [onlyAllergens, setOnly] = useState(false); const [items, setItems] = useState<Guest[]>([]); const [sel, setSel] = useState<Guest | null>(null);
   const [adding, setAdding] = useState(false); const [add, setAdd] = useState({ given_name: "", family_name: "", email: "", phone: "", organisation: "" });
+  const [editing, setEditing] = useState(false);
+  const [edit, setEdit] = useState({ given_name: "", family_name: "", email: "", phone: "", organisation: "" });
   const [toast, setToast] = useState<string | null>(null); const say = (t: string) => { setToast(t); setTimeout(() => setToast(null), 3500); };
   const load = () => api<{ items: Guest[] }>(`/v1/guests?q=${encodeURIComponent(q)}&allergens=${onlyAllergens ? 1 : 0}`).then(r => { setItems(r.items); if (sel) setSel(r.items.find(x => x.id === sel.id) ?? null); }).catch(() => {});
   useEffect(() => { const t = setTimeout(load, 200); return () => clearTimeout(t); }, [q, onlyAllergens]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -54,12 +56,31 @@ export default function Guests() {
         </div>
         {sel ? (
           <section className="detail">
-            <header><div><h2>{sel.given_name} {sel.family_name}</h2><div style={{ color: "var(--ink-2)" }}>{[sel.organisation, sel.email, sel.phone].filter(Boolean).join(" · ") || "No contact details"}</div></div></header>
+            <header><div><h2>{sel.given_name} {sel.family_name}</h2><div style={{ color: "var(--ink-2)" }}>{[sel.organisation, sel.email, sel.phone].filter(Boolean).join(" · ") || "No contact details"}</div></div>
+              {can("guest.write") && <button className="btn" onClick={() => { setEditing(true); setEdit({ given_name: sel.given_name, family_name: sel.family_name, email: sel.email ?? "", phone: sel.phone ?? "", organisation: sel.organisation ?? "" }); }}>Correct name</button>}</header>
             {sel.allergens?.length ? <div className={"note " + sevClass(sel.severity)}><b>{sel.severity === "ANAPHYLAXIS" ? "Life-threatening allergy" : sel.severity === "ALLERGY" ? "Allergy" : sel.severity?.toLowerCase()}:</b> {sel.allergens.map(a => ALLERGEN_LABEL[a]).join(", ")}{sel.diet_notes ? ` — ${sel.diet_notes}` : ""}</div> : null}
             <h3>Dietary record</h3>
             {can("diet.write") ? <DietEditor key={sel.id + (sel.declared_at ?? "")} g={sel} onSaved={m => { say(m); load(); }} /> : <div className="m">{sel.diet?.join(", ") || "Nothing declared"}</div>}
           </section>) : <div className="detail empty">Select a guest</div>}
       </div>
+      {editing && sel && (
+        <div className="modal-backdrop" onClick={() => setEditing(false)}><div className="modal" onClick={e => e.stopPropagation()} role="dialog">
+          <header><h2>Correct this guest&apos;s name</h2><button className="btn" onClick={() => setEditing(false)}>✕</button></header>
+          <p className="m" style={{ marginBottom: 12 }}>The new spelling moves onto the room board, their guest book and their stay. Other guests cannot see this record.</p>
+          <div className="fgrid">
+            <label>First name<input value={edit.given_name} onChange={e => setEdit({ ...edit, given_name: e.target.value })} autoFocus /></label>
+            <label>Last name<input value={edit.family_name} onChange={e => setEdit({ ...edit, family_name: e.target.value })} /></label>
+            <label>Email<input value={edit.email} onChange={e => setEdit({ ...edit, email: e.target.value })} /></label>
+            <label>Phone<input value={edit.phone} onChange={e => setEdit({ ...edit, phone: e.target.value })} /></label>
+            <label className="span2">Organisation<input value={edit.organisation} onChange={e => setEdit({ ...edit, organisation: e.target.value })} /></label>
+          </div>
+          <div className="actions"><button className="btn" onClick={() => setEditing(false)}>Cancel</button><button className="btn primary" disabled={!edit.given_name.trim() || !edit.family_name.trim()} onClick={async () => {
+            try {
+              await api(`/v1/guests/${sel.id}`, { method: "PATCH", body: JSON.stringify(edit) });
+              setEditing(false); say("Name corrected and moved across the house"); await load();
+            } catch (e) { say(e instanceof ApiError ? e.problem.detail : "Could not save"); }
+          }}>Save spelling</button></div>
+        </div></div>)}
       {adding && (
         <div className="modal-backdrop" onClick={() => setAdding(false)}><div className="modal" onClick={e => e.stopPropagation()} role="dialog">
           <header><h2>Add guest</h2><button className="btn" onClick={() => setAdding(false)}>✕</button></header>

@@ -72,7 +72,7 @@ export default function StaffCorner() {
       </div>
       {tab === "house" && (
         <div>
-          <p className="m" style={{ color: "var(--ink-2)", marginBottom: 14 }}>The people of the house.</p>
+          <p className="m" style={{ color: "var(--ink-2)", marginBottom: 14 }}>The people of the house. To fix a spelling or move someone to another department, open <a href="/users/">Names &amp; positions</a>.</p>
           {org ? <OrganogramView org={org} /> : <p className="m">Opening the household…</p>}
         </div>
       )}

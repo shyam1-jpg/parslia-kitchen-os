@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { pool, tx } from "./db.ts";
 import { requireActor, allow, problem } from "./auth.ts";
 import { audit } from "./groups.ts";
+import { moveNameAcrossHouse } from "./people.ts";
 
 /** Staff accounts. Sign-in proves identity (Microsoft); this decides who has access and as what. */
 export default async function routes(f: FastifyInstance) {
@@ -39,13 +40,18 @@ export default async function routes(f: FastifyInstance) {
     const { role, status, name, department } = req.body ?? {};
     if (req.params.id === a.userId && status && status !== "ACTIVE") return reply.code(409).send(problem(409, "self", "You cannot deactivate yourself"));
     return tx(async c => {
-      const u = (await c.query(`select id from app_user where id=$1 and tenant_id=$2`, [req.params.id, a.tenantId])).rows[0];
+      const u = (await c.query(`select id, display_name, email from app_user where id=$1 and tenant_id=$2`, [req.params.id, a.tenantId])).rows[0];
       if (!u) { reply.code(404); return problem(404, "not_found", "No such user"); }
-      if (name) await c.query(`update app_user set display_name=$2 where id=$1`, [u.id, name.trim()]);
+      let moved = { occupancy: 0, guest_accounts: 0, enquiries: 0, bookings: 0 };
+      if (name) {
+        const next = name.trim();
+        await c.query(`update app_user set display_name=$2 where id=$1`, [u.id, next]);
+        moved = await moveNameAcrossHouse(c, { propertyId: a.propertyId, oldName: u.display_name, newName: next, email: u.email });
+      }
       if (status) {
         if (!["ACTIVE", "SUSPENDED", "LEFT"].includes(status)) { reply.code(422); return problem(422, "validation", "Bad status"); }
         await c.query(`update app_user set status=$2 where id=$1`, [u.id, status]);
-        if (status !== "ACTIVE") await c.query(`delete from session where user_id=$1`, [u.id]);  // signs them out everywhere
+        if (status !== "ACTIVE") await c.query(`delete from session where user_id=$1`, [u.id]);
       }
       if (role) {
         const ro = (await c.query(`select id from role where tenant_id=$1 and code=$2`, [a.tenantId, role])).rows[0];
@@ -54,10 +60,13 @@ export default async function routes(f: FastifyInstance) {
         const dep = department ? (await c.query(`select id from department where property_id=$1 and code=$2`, [a.propertyId, department])).rows[0] : null;
         await c.query(`delete from membership where user_id=$1 and property_id=$2`, [u.id, a.propertyId]);
         await c.query(`insert into membership (tenant_id, user_id, property_id, role_id, department_id) values ($1,$2,$3,$4,$5)`, [a.tenantId, u.id, a.propertyId, ro.id, dep?.id ?? null]);
-        await c.query(`delete from session where user_id=$1`, [u.id]);  // new permissions take effect at next sign-in
+        await c.query(`delete from session where user_id=$1`, [u.id]);
+      } else if (department !== undefined) {
+        const dep = department ? (await c.query(`select id from department where property_id=$1 and code=$2`, [a.propertyId, department])).rows[0] : null;
+        await c.query(`update membership set department_id=$3 where user_id=$1 and property_id=$2`, [u.id, a.propertyId, dep?.id ?? null]);
       }
-      await audit(c, a, "app_user", u.id, "user.update", { payload: req.body });
-      return { ok: true };
+      await audit(c, a, "app_user", u.id, "user.update", { payload: { ...req.body, moved } });
+      return { ok: true, moved };
     });
   });
 }

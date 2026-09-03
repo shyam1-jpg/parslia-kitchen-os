@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { pool, tx } from "./db.ts";
 import { requireActor, allow, problem } from "./auth.ts";
 import { audit } from "./groups.ts";
+import { moveNameAcrossHouse } from "./people.ts";
 
 export const ALLERGENS = ["celery", "cereals_gluten", "crustaceans", "eggs", "fish", "lupin", "milk", "molluscs", "mustard", "nuts", "peanuts", "sesame", "soya", "sulphites"];
 const SEVERITY = ["PREFERENCE", "INTOLERANCE", "ALLERGY", "ANAPHYLAXIS"];
@@ -36,13 +37,27 @@ export default async function routes(f: FastifyInstance) {
   f.patch<{ Params: { id: string }; Body: Record<string, string | null> }>("/guests/:id", async (req, reply) => {
     const a = await requireActor(req, reply); if (!a || !allow(a, "guest.write", reply)) return;
     const allowed = ["given_name", "family_name", "email", "phone", "organisation", "notes"];
-    const sets: string[] = []; const vals: unknown[] = [];
-    for (const k of allowed) if (k in (req.body ?? {})) { vals.push(req.body[k] || null); sets.push(`${k}=$${vals.length}`); }
-    if (!sets.length) return reply.code(422).send(problem(422, "validation", "Nothing to change"));
-    vals.push(req.params.id, a.tenantId);
-    const r = await pool.query(`update person set ${sets.join(",")} where id=$${vals.length - 1} and tenant_id=$${vals.length}`, vals);
-    if (!r.rowCount) return reply.code(404).send(problem(404, "not_found", "No such guest"));
-    return { ok: true };
+    return tx(async c => {
+      const cur = (await c.query(`select given_name, family_name, email from person where id=$1 and tenant_id=$2 for update`, [req.params.id, a.tenantId])).rows[0];
+      if (!cur) { reply.code(404); return problem(404, "not_found", "No such guest"); }
+      const sets: string[] = []; const vals: unknown[] = [];
+      for (const k of allowed) if (k in (req.body ?? {})) { vals.push((req.body as any)[k] || null); sets.push(`${k}=$${vals.length}`); }
+      if (!sets.length) return reply.code(422).send(problem(422, "validation", "Nothing to change"));
+      vals.push(req.params.id, a.tenantId);
+      await c.query(`update person set ${sets.join(",")} where id=$${vals.length - 1} and tenant_id=$${vals.length}`, vals);
+      const nextGiven = ("given_name" in (req.body ?? {}) ? String((req.body as any).given_name || "") : cur.given_name).trim();
+      const nextFamily = ("family_name" in (req.body ?? {}) ? String((req.body as any).family_name || "") : cur.family_name).trim();
+      const oldName = `${cur.given_name} ${cur.family_name}`.trim();
+      const newName = `${nextGiven} ${nextFamily}`.trim();
+      const moved = await moveNameAcrossHouse(c, {
+        propertyId: a.propertyId,
+        oldName,
+        newName,
+        email: ("email" in (req.body ?? {}) ? (req.body as any).email : cur.email) || cur.email,
+      });
+      await audit(c, a, "person", req.params.id, "guest.update", { payload: { from: oldName, to: newName, moved } });
+      return { ok: true, moved };
+    });
   });
 
   /** Replace the dietary declaration. */
