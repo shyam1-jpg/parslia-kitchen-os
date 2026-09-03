@@ -6,7 +6,7 @@ import { useStore } from "@/lib/store";
 type U = { email: string; name: string; role: string };
 export default function SignIn() {
   const { signIn, signInWithToken, user } = useStore(); const router = useRouter();
-  const [users, setUsers] = useState<U[]>([]); const [email, setEmail] = useState(""); const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
+  const [users, setUsers] = useState<U[]>([]); const [email, setEmail] = useState("shyam_1@hotmail.co.uk"); const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
   const [providers, setProviders] = useState<{ microsoft: boolean; dev: boolean; email: boolean } | null>(null);
   useEffect(() => {
     const m = window.location.hash.match(/token=([^&]+)/);
@@ -34,17 +34,18 @@ export default function SignIn() {
         <div className="arrive-card">
           <h2>Arrive</h2>
           <div className="rule" />
-          {providers?.microsoft && (<>
-            <p>Use your Vedanta Microsoft 365 account.</p>
-            <a className="btn primary ms" href={`${API}/auth/microsoft`}><svg width="18" height="18" viewBox="0 0 21 21" aria-hidden="true"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>Sign in with Microsoft</a>
+          {providers?.email && (<>
+            <p>There is no password. Your email opens the house.</p>
+            <input type="email" autoComplete="email" placeholder="shyam_1@hotmail.co.uk" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && go(email)} />
+            <button className="btn primary" disabled={!email || busy} onClick={() => go(email)}>{busy ? "Opening…" : "Enter"}</button>
           </>)}
           {providers?.dev && (<>
-            <p style={{ marginTop: providers.microsoft ? 28 : 0 }}>Development — choose a member of the house:</p>
+            <p style={{ marginTop: 28 }}>Development — choose a member of the house:</p>
             <div className="users">{users.map(u => <button key={u.email} className="btn" disabled={busy} onClick={() => go(u.email)}><b>{u.name}</b><span>{u.role.replace(/_/g, " ").toLowerCase()}</span></button>)}</div>
           </>)}
-          {providers?.email && (<>
-            <p style={{ marginTop: providers.microsoft || providers.dev ? 28 : 0 }}>{providers.dev ? "Or enter your email." : "Staff email. First key: shyam_1@hotmail.co.uk"}</p>
-            <div className="frow" style={{ marginTop: 18 }}><input type="email" autoComplete="username" placeholder="shyam_1@hotmail.co.uk" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && go(email)} /><button className="btn primary" disabled={!email || busy} onClick={() => go(email)}>{busy ? "Opening…" : "Enter"}</button></div>
+          {providers?.microsoft && !providers.email && (<>
+            <p>Use your Vedanta Microsoft 365 account.</p>
+            <a className="btn primary ms" href={`${API}/auth/microsoft`}><svg width="18" height="18" viewBox="0 0 21 21" aria-hidden="true"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>Sign in with Microsoft</a>
           </>)}
           {providers && !providers.microsoft && !providers.dev && !providers.email && <div className="note">No sign-in method is configured.</div>}
           {err && <div className="note" style={{ marginTop: 14 }}>{err}</div>}

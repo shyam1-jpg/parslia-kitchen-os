@@ -48,6 +48,7 @@ export default function Pocket() {
       <div className="wrap">
         <div className="card">
           <label>Staff email</label>
+          <p className="m">There is no password.</p>
           <input value={email} onChange={e => setEmail(e.target.value)} placeholder="you@thevedanta.org" />
           <button className="btn" onClick={enter}>Enter the pocket</button>
           {err && <div className="note">{err}</div>}
