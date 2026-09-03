@@ -69,7 +69,7 @@ const SEVERITY_LABEL: Record<TaskSeverity, string> = {
 
 /** Allowed next statuses. History is never rewritten — only a new status is recorded. */
 const TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
-  new: ["assigned", "scheduled", "cancelled"],
+  new: ["assigned", "acknowledged", "accepted", "scheduled", "in_progress", "cancelled"],
   assigned: ["acknowledged", "accepted", "scheduled", "in_progress", "cancelled", "new"],
   acknowledged: ["accepted", "scheduled", "in_progress", "cancelled"],
   accepted: ["scheduled", "in_progress", "cancelled"],
@@ -289,6 +289,7 @@ export function staffActions(status: TaskStatus): StaffAction[] {
   const add = (s: TaskStatus, label: string) => {
     if (canTransition(status, s)) all.push({ status: s, label });
   };
+  add("assigned", "Take it");
   add("acknowledged", "Acknowledge");
   add("accepted", "Accept");
   add("in_progress", status === "paused" ? "Resume" : "Start");

@@ -405,7 +405,7 @@ export default async function tasks(f: FastifyInstance) {
         patch.started_at_touch, now, patch.finished_at, blocked,
       ],
     );
-    if (current.status === "new" && next === "assigned" && !current.assigned_staff_id) {
+    if (current.status === "new" && ["assigned", "acknowledged", "accepted", "in_progress"].includes(next) && !current.assigned_staff_id) {
       await pool.query(`update ops_task set assigned_staff_id=$2, updated_at=now() where id=$1`, [current.id, a.userId]);
     }
     await writeEvent({

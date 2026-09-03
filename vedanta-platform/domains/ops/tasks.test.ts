@@ -17,8 +17,11 @@ import {
 } from "./tasks.ts";
 
 describe("task status machine", () => {
-  it("lets a new task be assigned, scheduled or cancelled", () => {
-    assert.deepEqual(allowedTransitions("new"), ["assigned", "scheduled", "cancelled"]);
+  it("lets a new task be taken, started, scheduled or cancelled — not completed", () => {
+    assert.equal(canTransition("new", "assigned"), true);
+    assert.equal(canTransition("new", "in_progress"), true);
+    assert.equal(canTransition("new", "scheduled"), true);
+    assert.equal(canTransition("new", "cancelled"), true);
     assert.equal(canTransition("new", "completed"), false);
   });
   it("never jumps from new to completed", () => {
@@ -126,7 +129,10 @@ describe("pause and actual minutes", () => {
 });
 
 describe("staff actions stay short", () => {
-  it("offers acknowledge and start from assigned", () => {
+  it("offers take it and start from new, acknowledge from assigned", () => {
+    const fromNew = staffActions("new").map(a => a.label);
+    assert.ok(fromNew.includes("Take it"));
+    assert.ok(fromNew.includes("Start"));
     const labels = staffActions("assigned").map(a => a.label);
     assert.ok(labels.includes("Acknowledge"));
     assert.ok(labels.includes("Start"));
