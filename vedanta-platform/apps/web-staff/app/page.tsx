@@ -20,7 +20,13 @@ export default function Pocket() {
   const [me, setMe] = useState<Me | null>(null);
   const [email, setEmail] = useState("");
   const [err, setErr] = useState<string | null>(null);
-  const [tab, setTab] = useState<"clock" | "leave" | "duty" | "sop" | "log">("clock");
+  const [tab, setTab] = useState<"clock" | "leave" | "duty" | "sop" | "log" | "desk">("clock");
+  const [desk, setDesk] = useState<{
+    today: { weekday: string; title: string; method: string; ingredients: { name: string; qty: string }[] };
+    tomorrow: { weekday: string; title: string; method: string; ingredients: { name: string; qty: string }[] };
+    stock: { id: string; name: string; par_note: string | null }[];
+  } | null>(null);
+  const [pay, setPay] = useState<{ hours: number; shifts: { in_at: string; out_at: string | null; hours: number }[] } | null>(null);
   const [ops, setOps] = useState<{
     progress: { done: number; total: number };
     handover: { id: string; department_label: string; shift_label: string; body: string; author_name: string | null }[];
@@ -42,6 +48,8 @@ export default function Pocket() {
     setSops((await api<{ items: typeof sops }>("/staff/sop")).items);
     setDuty((await api<{ items: typeof duty }>("/staff/duty")).items);
     try { setOps(await api("/v1/ops/board")); } catch { setOps(null); }
+    try { setDesk(await api("/v1/service/front-desk")); } catch { setDesk(null); }
+    try { setPay(await api("/staff/payroll")); } catch { setPay(null); }
   };
   useEffect(() => { if (tok.get()) load().catch(() => tok.set(null)); }, []);
 
@@ -77,13 +85,15 @@ export default function Pocket() {
           <button className={tab === "leave" ? "on" : ""} onClick={() => setTab("leave")}>Holiday</button>
           <button className={tab === "duty" ? "on" : ""} onClick={() => setTab("duty")}>Duty</button>
           <button className={tab === "log" ? "on" : ""} onClick={() => setTab("log")}>House log</button>
+          <button className={tab === "desk" ? "on" : ""} onClick={() => setTab("desk")}>Front desk</button>
           <button className={tab === "sop" ? "on" : ""} onClick={() => setTab("sop")}>SOP</button>
         </div>
         {tab === "clock" && (
           <div className="card">
-            <h2>This week · {clock?.hours_this_week ?? 0} hours</h2>
-            <p className="m">{clock?.last === "IN" ? "You are on the clock." : "You are clocked out."}</p>
-            <button className="btn" onClick={async () => { setErr(null); try { await api("/staff/clock", { method: "POST", body: JSON.stringify({ kind: clock?.last === "IN" ? "OUT" : "IN" }) }); setClock(await api("/staff/clock")); } catch (e) { setErr((e as Error).message); } }}>{clock?.last === "IN" ? "Clock out" : "Clock in"}</button>
+            <h2>This week · {pay?.hours ?? clock?.hours_this_week ?? 0} hours</h2>
+            <p className="m">{clock?.last === "IN" ? "You are on the clock. Hours count until you clock out." : "You are clocked out."}</p>
+            <button className="btn" onClick={async () => { setErr(null); try { await api("/staff/clock", { method: "POST", body: JSON.stringify({ kind: clock?.last === "IN" ? "OUT" : "IN" }) }); setClock(await api("/staff/clock")); setPay(await api("/staff/payroll")); } catch (e) { setErr((e as Error).message); } }}>{clock?.last === "IN" ? "Clock out" : "Clock in"}</button>
+            {(pay?.shifts ?? []).map((s, i) => <div className="row" key={i}><span>{new Date(s.in_at).toLocaleString("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit" })} → {s.out_at ? new Date(s.out_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : "still on"}</span><span className="m">{s.hours} hrs</span></div>)}
           </div>
         )}
         {tab === "leave" && (
@@ -133,6 +143,26 @@ export default function Pocket() {
               <button className="btn" onClick={async () => { setErr(null); try { await api("/v1/ops/handover", { method: "POST", body: JSON.stringify({ department: "HOUSE", shift: "am", body: note }) }); setNote(""); setOps(await api("/v1/ops/board")); } catch (e) { setErr((e as Error).message); } }}>Leave the note</button>
             </div>
             {(ops?.notices ?? []).map(n => <div className="card" key={n.id}><h2>{n.title}</h2><p>{n.body}</p></div>)}
+          </div>
+        )}
+        {tab === "desk" && (
+          <div>
+            <div className="card">
+              <h2>Today · {desk?.today.weekday} · {desk?.today.title}</h2>
+              <p>{desk?.today.method}</p>
+              <p className="m">{desk?.today.ingredients.map(i => `${i.qty} ${i.name}`).join(" · ")}</p>
+              <button className="btn" onClick={async () => { try { await api("/v1/service/orders", { method: "POST", body: JSON.stringify({ needed_for: "Front of house", items: (desk?.today.ingredients ?? []).map(i => ({ name: i.name, qty: i.qty })) }); setErr(null); } catch (e) { setErr((e as Error).message); } }}>Order today&apos;s fruit</button>
+            </div>
+            <div className="card">
+              <h2>Tomorrow · {desk?.tomorrow.weekday} · {desk?.tomorrow.title}</h2>
+              <p className="m">{desk?.tomorrow.ingredients.map(i => `${i.qty} ${i.name}`).join(" · ")}</p>
+              <button className="btn" onClick={async () => { try { await api("/v1/service/orders", { method: "POST", body: JSON.stringify({ needed_for: "Front of house", items: (desk?.tomorrow.ingredients ?? []).map(i => ({ name: i.name, qty: i.qty })) }); } catch (e) { setErr((e as Error).message); } }}>Order tomorrow ahead</button>
+            </div>
+            <div className="card">
+              <h2>Always ready</h2>
+              <p className="m">Walkers and Nairn&apos;s (gluten-free) biscuits. Plant milks. Suma herbals. Loose teas from organic wholesale. Dirty cups to the wash; clean cups back to the restaurant. Coffee machines at 09:00.</p>
+              {(desk?.stock ?? []).map(s => <div className="row" key={s.id}><span>{s.name}</span></div>)}
+            </div>
           </div>
         )}
         {tab === "sop" && (

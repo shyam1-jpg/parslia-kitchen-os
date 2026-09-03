@@ -35,6 +35,7 @@ export default function HouseToday() {
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           {book > 0 && <Link className="btn" href="/groups/">{book} guest book {book === 1 ? "enquiry" : "enquiries"}</Link>}
+          <Link className="btn" href="/front/">Front desk</Link>
           <Link className="btn primary" href="/groups/">Open the book</Link>
         </div>
       </div>

@@ -227,30 +227,32 @@ export default function Book() {
                           : <p className="m" style={{ margin: "8px 0 0" }}>Rooms will appear here when the house assigns them to you.</p>}
                       </div>
                     ))}
-                    <h2 style={{ fontSize: 20, marginTop: 18 }}>Need something from the house?</h2>
-                    <p className="m">Towels, a taxi, a meal note — it goes to the right team. Only the house sees this, not other guests.</p>
-                    <label>Your request</label>
-                    <textarea rows={3} value={ask.request_text} onChange={e => setAsk({ ...ask, request_text: e.target.value })} placeholder="e.g. Extra towels in my room" />
-                    <label>Room (optional)</label>
-                    <input value={ask.room_label} onChange={e => setAsk({ ...ask, room_label: e.target.value })} placeholder={mine.flatMap(x => x.rooms ?? []).map(r => r.number).join(", ") || "e.g. 110"} />
-                    <button className="btn" disabled={busy} onClick={async () => {
-                      setBusy(true); setErr(null); setOk(null);
-                      try {
-                        await api("/guest/requests", { method: "POST", body: JSON.stringify(ask) });
-                        setAsk({ request_text: "", room_label: ask.room_label });
-                        setAsks((await api<{ items: GuestAsk[] }>("/guest/requests")).items);
-                        setOk("The house has your request.");
-                      } catch (e) { setErr((e as Error).message); }
-                      finally { setBusy(false); }
-                    }}>{busy ? "…" : "Send to the house"}</button>
-                    {asks.map(a => (
-                      <div className="row" key={a.id} style={{ display: "block" }}>
-                        <span>{a.request_text}</span>
-                        <div className="m">{a.department_label}{a.room_label ? ` · ${a.room_label}` : ""} · {a.status}</div>
-                      </div>
-                    ))}
                   </div>
                 )}
+                <div className="card" style={{ marginTop: 18 }}>
+                  <h2 style={{ fontSize: 20 }}>Need something from the house?</h2>
+                  <p className="m">Towels, a taxi, a meal note — it goes to the right team. Only the house sees this, not other guests.</p>
+                  <label>Your request</label>
+                  <textarea rows={3} value={ask.request_text} onChange={e => setAsk({ ...ask, request_text: e.target.value })} placeholder="e.g. Extra towels in my room" />
+                  <label>Room (optional)</label>
+                  <input value={ask.room_label} onChange={e => setAsk({ ...ask, room_label: e.target.value })} placeholder={(mine ?? []).flatMap(x => x.rooms ?? []).map(r => r.number).join(", ") || "e.g. 110"} />
+                  <button className="btn" disabled={busy} onClick={async () => {
+                    setBusy(true); setErr(null); setOk(null);
+                    try {
+                      await api("/guest/requests", { method: "POST", body: JSON.stringify(ask) });
+                      setAsk({ request_text: "", room_label: ask.room_label });
+                      setAsks((await api<{ items: GuestAsk[] }>("/guest/requests")).items);
+                      setOk("The house has your request.");
+                    } catch (e) { setErr((e as Error).message); }
+                    finally { setBusy(false); }
+                  }}>{busy ? "…" : "Send to the house"}</button>
+                  {asks.map(a => (
+                    <div className="row" key={a.id} style={{ display: "block" }}>
+                      <span>{a.request_text}</span>
+                      <div className="m">{a.department_label}{a.room_label ? ` · ${a.room_label}` : ""} · {a.status}</div>
+                    </div>
+                  ))}
+                </div>
               </aside>
             </div>
           )}

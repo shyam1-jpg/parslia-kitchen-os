@@ -12,8 +12,12 @@ export default function Kitchen() {
   const end = addDays(start, 6);
   type Flag = { date: string; name: string; room: string; diet: string[] | null; allergens: string[] | null; severity: string | null; notes: string | null; group_name: string | null };
   const [flags, setFlags] = useState<Flag[]>([]);
+  type FohOrder = { id: string; for_date: string; items: { name: string; qty: string }[]; notes: string | null; status: string; raised_by_name: string | null };
+  const [orders, setOrders] = useState<FohOrder[]>([]);
   useEffect(() => { api<{ max_covers: number; days: Day[] }>(`/v1/covers?from=${start}&to=${end}`).then(r => { setDays(r.days); setMax(r.max_covers); setErr(null); }).catch(e => setErr(e.message));
-    api<{ items: Flag[] }>(`/v1/guests/in-house?from=${start}&to=${end}`).then(r => setFlags(r.items)).catch(() => setFlags([])); }, [start, end]);
+    api<{ items: Flag[] }>(`/v1/guests/in-house?from=${start}&to=${end}`).then(r => setFlags(r.items)).catch(() => setFlags([]));
+    api<{ orders: FohOrder[] }>("/v1/service/front-desk").then(r => setOrders(r.orders.filter(o => o.status !== "done"))).catch(() => setOrders([]));
+  }, [start, end]);
   const LABEL: Record<string, string> = { celery: "celery", cereals_gluten: "gluten", crustaceans: "crustaceans", eggs: "eggs", fish: "fish", lupin: "lupin", milk: "milk", molluscs: "molluscs", mustard: "mustard", nuts: "tree nuts", peanuts: "peanuts", sesame: "sesame", soya: "soya", sulphites: "sulphites" };
   const byDate = new Map(days.map(d => [d.date, d]));
   const week = Array.from({ length: 7 }, (_, i) => addDays(start, i));
@@ -23,10 +27,21 @@ export default function Kitchen() {
   return (
     <>
       <div className="topbar">
-        <div><h1>The kitchen</h1><p>Covers for each sitting. Maximum {max} at the Main Dining Room.</p></div>
+        <div><h1>The kitchen</h1><p>Covers for each sitting. Maximum {max} at the Main Dining Room. Front of house orders for fruit, milk, biscuits and teas appear below.</p></div>
         <div className="seg"><button onClick={() => setStart(addDays(start, -7))} aria-label="Earlier">‹</button><button onClick={() => setStart(TODAY)}>This week</button><button onClick={() => setStart(addDays(start, 7))} aria-label="Later">›</button></div>
       </div>
       {err && <div className="note">{err}</div>}
+      {orders.length > 0 && (
+        <div className="panel" style={{ marginBottom: 16 }}>
+          <h3>Front of house needs</h3>
+          {orders.map(o => (
+            <div className="urow" key={o.id}>
+              <div><div className="t">{o.for_date} · {o.items.map(i => `${i.qty} ${i.name}`).join(", ")}</div><div className="m">{o.raised_by_name}{o.notes ? ` · ${o.notes}` : ""}</div></div>
+              <button className="btn" onClick={async () => { await api(`/v1/service/orders/${o.id}`, { method: "PATCH", body: JSON.stringify({ status: "done" }) }); setOrders(orders.filter(x => x.id !== o.id)); }}>Done</button>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="kweek">
         {week.map(date => { const d = byDate.get(date); return (
           <section key={date} className={"kday" + (date === TODAY ? " today" : "") + (total(d) === 0 ? " quiet" : "")}>

@@ -10,7 +10,7 @@ type Board = {
   progress: { done: number; total: number };
   handover: { id: string; department: string; department_label: string; shift: string; shift_label: string; for_date: string; body: string; author_name: string | null; created_at: string }[];
   notices: { id: string; department: string | null; department_label: string; title: string; body: string; author_name: string | null; pinned: boolean; created_at: string }[];
-  checklists: { id: string; department: string; department_label: string; title: string; done: boolean; done_by_name: string | null }[];
+  checklists: { id: string; department: string; department_label: string; title: string; due_time?: string | null; done: boolean; done_by_name: string | null }[];
   guest_requests: { id: string; guest_name: string | null; room_label: string | null; department: string; department_label: string; request_text: string; status: string; created_at: string }[];
 };
 
@@ -131,7 +131,7 @@ export default function OpsBoard({ compact = false }: { compact?: boolean }) {
               <li key={c.id}>
                 <button type="button" className={"box " + (c.done ? "ok" : "todo")} onClick={() => tick(c.id, !c.done)} aria-pressed={c.done}>{c.done ? "✓" : ""}</button>
                 <span>
-                  <div>{c.title}</div>
+                  <div>{c.due_time ? `${c.due_time} · ` : ""}{c.title}</div>
                   <div className="m">{c.department_label}{c.done_by_name ? ` · ${c.done_by_name}` : ""}</div>
                 </span>
               </li>

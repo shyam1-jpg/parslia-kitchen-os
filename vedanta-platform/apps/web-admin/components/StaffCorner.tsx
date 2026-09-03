@@ -48,7 +48,7 @@ export default function StaffCorner() {
   const [tips, setTips] = useState({ total: "200", rate_per_hour: "0.20", method: "EVEN", department: user?.department ?? "" });
   const [split, setSplit] = useState<TipRow[] | null>(null);
   const [sop, setSop] = useState({ title: "", body: "", user_ids: [] as string[] });
-  const [hr, setHr] = useState<{ id: string; name: string; role: string; designation: string | null; pay_note: string | null; contracted_hours: string | null }[]>([]);
+  const [hr, setHr] = useState<{ id: string; name: string; role: string; designation: string | null; pay_note: string | null; contracted_hours: string | null; hourly_rate: string | null }[]>([]);
   const say = (t: string) => { setToast(t); setTimeout(() => setToast(null), 3500); };
   const run = async (fn: () => Promise<unknown>, ok: string) => { try { await fn(); say(ok); } catch (e) { say(e instanceof ApiError ? e.problem.detail : "Could not save"); } };
 
@@ -72,7 +72,7 @@ export default function StaffCorner() {
       </div>
       {tab === "house" && (
         <div>
-          <p className="m" style={{ color: "var(--ink-2)", marginBottom: 14 }}>The people of the house. To fix a spelling or move someone to another department, open <a href="/users/">Names &amp; positions</a>.</p>
+          <p className="m" style={{ color: "var(--ink-2)", marginBottom: 14 }}>The people of the house. Hours and pay from clock in/out are on <a href="/payroll/">Payroll</a>. To fix a spelling or move someone, open <a href="/users/">Names &amp; positions</a>.</p>
           {org ? <OrganogramView org={org} /> : <p className="m">Opening the household…</p>}
         </div>
       )}
@@ -170,12 +170,13 @@ export default function StaffCorner() {
           {hr.length === 0 && <p className="m">No HR records yet. Click Edit on a person to add designation and pay notes.</p>}
           {hr.map(h => (
             <div className="urow" key={h.id}>
-              <div><div className="t">{h.name}</div><div className="m">{h.role} {h.designation ? `· ${h.designation}` : "· no designation yet"} {h.contracted_hours ? `· ${h.contracted_hours} hrs/week` : ""} {h.pay_note ? `· ${h.pay_note}` : ""}</div></div>
+              <div><div className="t">{h.name}</div><div className="m">{h.role} {h.designation ? `· ${h.designation}` : "· no designation yet"} {h.contracted_hours ? `· ${h.contracted_hours} hrs/week` : ""} {h.hourly_rate ? `· £${h.hourly_rate}/hr` : ""} {h.pay_note ? `· ${h.pay_note}` : ""}</div></div>
               <button className="btn" onClick={() => {
                 const designation = prompt("Designation", h.designation ?? "") ?? h.designation;
                 const contracted_hours = prompt("Contracted hours / week", h.contracted_hours ?? "") ?? h.contracted_hours;
+                const hourly_rate = prompt("Hourly rate £ (house only)", h.hourly_rate ?? "") ?? h.hourly_rate;
                 const pay_note = prompt("Pay note (house only)", h.pay_note ?? "") ?? h.pay_note;
-                run(() => api(`/v1/workforce/hr/${h.id}`, { method: "PATCH", body: JSON.stringify({ designation, contracted_hours, pay_note }) }).then(load), "Saved");
+                run(() => api(`/v1/workforce/hr/${h.id}`, { method: "PATCH", body: JSON.stringify({ designation, contracted_hours, hourly_rate, pay_note }) }).then(load), "Saved");
               }}>Edit</button>
               <button className="btn" onClick={() => {
                 const title = prompt("Contract title", "Contract of employment");

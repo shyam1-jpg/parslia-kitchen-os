@@ -12,6 +12,7 @@ import { nextLeaveStatus, leaveNeedsHodFirst } from "../../../domains/staff/leav
 import { buildOrganogram } from "../../../domains/staff/organogram.ts";
 import { hoursFromPunches, canPunch, type Punch } from "../../../domains/staff/hours.ts";
 import { splitTips, type TipMethod } from "../../../domains/staff/tips.ts";
+import { payrollRow, shiftsFromPunches, weekStartMonday, addDaysIso } from "../../../domains/staff/payroll.ts";
 
 const weekStart = (iso: string) => {
   const d = new Date(iso + "T00:00:00Z");
@@ -130,6 +131,15 @@ export default async function workforce(f: FastifyInstance) {
     });
   });
 
+  f.post("/v1/workforce/clock", async (req: any, reply) => {
+    const a = await requireActor(req, reply, ["ADMIN", "STAFF"]); if (!a || !allow(a, "clock.self", reply)) return;
+    const kind = req.body?.kind === "OUT" ? "OUT" : "IN";
+    const last = await lastKind(a.propertyId, a.userId);
+    if (!canPunch(last, kind)) return reply.code(409).send(problem(409, "clock", kind === "IN" ? "You are already clocked in" : "Clock in first"));
+    const r = await pool.query(`insert into staff_clock (tenant_id, property_id, user_id, kind) values ($1,$2,$3,$4) returning id, kind, at`, [a.tenantId, a.propertyId, a.userId, kind]);
+    return r.rows[0];
+  });
+
   f.get("/v1/workforce/clock", async (req: any, reply) => {
     const a = await house(req, reply, "clock.manage"); if (!a) return;
     const today = (await pool.query(`select (timezone('Europe/London', now()))::date::text t`)).rows[0].t;
@@ -204,7 +214,7 @@ export default async function workforce(f: FastifyInstance) {
   f.get("/v1/workforce/hr", async (req, reply) => {
     const a = await house(req, reply, "hr.read"); if (!a) return;
     const r = await pool.query(`select u.id, u.email, u.display_name as name, r.code as role, d.code as department,
-        h.designation, h.contracted_hours, h.pay_note,
+        h.designation, h.contracted_hours, h.pay_note, h.hourly_rate,
         (select json_agg(json_build_object('id',c.id,'title',c.title,'status',c.status,'sent_at',c.sent_at) order by c.created_at desc) from staff_contract c where c.user_id=u.id) contracts
       from app_user u join membership m on m.user_id=u.id join role r on r.id=m.role_id
       left join department d on d.id=m.department_id left join staff_hr h on h.user_id=u.id
@@ -214,11 +224,89 @@ export default async function workforce(f: FastifyInstance) {
   f.patch("/v1/workforce/hr/:id", async (req: any, reply) => {
     const a = await house(req, reply, "hr.read"); if (!a) return;
     const b = req.body ?? {};
-    await pool.query(`insert into staff_hr (user_id, tenant_id, property_id, designation, contracted_hours, pay_note)
-      values ($1,$2,$3,$4,$5,$6)
-      on conflict (user_id) do update set designation=excluded.designation, contracted_hours=excluded.contracted_hours, pay_note=excluded.pay_note, updated_at=now()`,
-      [req.params.id, a.tenantId, a.propertyId, b.designation ?? null, b.contracted_hours ?? null, b.pay_note ?? null]);
+    await pool.query(`insert into staff_hr (user_id, tenant_id, property_id, designation, contracted_hours, pay_note, hourly_rate)
+      values ($1,$2,$3,$4,$5,$6,$7)
+      on conflict (user_id) do update set designation=excluded.designation, contracted_hours=excluded.contracted_hours, pay_note=excluded.pay_note, hourly_rate=excluded.hourly_rate, updated_at=now()`,
+      [req.params.id, a.tenantId, a.propertyId, b.designation ?? null, b.contracted_hours ?? null, b.pay_note ?? null, b.hourly_rate != null && b.hourly_rate !== "" ? Number(b.hourly_rate) : null]);
     return { ok: true };
+  });
+
+  f.get("/v1/workforce/payroll", async (req: any, reply) => {
+    const a = await requireActor(req, reply, "ADMIN"); if (!a) return;
+    if (!a.perms.has("clock.manage") && !a.perms.has("hr.read")) {
+      return reply.code(403).send(problem(403, "forbidden", "You cannot open payroll"));
+    }
+    const today = (await pool.query(`select (timezone('Europe/London', now()))::date::text t`)).rows[0].t;
+    const from = String(req.query?.from ?? weekStartMonday(today));
+    const to = String(req.query?.to ?? addDaysIso(from, 6));
+    const dept = String(req.query?.department ?? "");
+    const users = (await pool.query(`select u.id, u.display_name as name, u.email, r.code as role, r.name as role_name, d.code as department,
+        h.contracted_hours, h.hourly_rate, h.pay_note, h.designation
+      from app_user u join membership m on m.user_id=u.id join role r on r.id=m.role_id
+      left join department d on d.id=m.department_id
+      left join staff_hr h on h.user_id=u.id
+      where m.property_id=$1 and u.status='ACTIVE' and ($2 = '' or d.code = $2)
+      order by u.display_name`, [a.propertyId, dept])).rows;
+    const duty = (await pool.query(
+      `select user_id, on_date::text, slot, kind from staff_duty
+       where property_id=$1 and on_date>=$2 and on_date<=$3 order by on_date, slot`,
+      [a.propertyId, from, to],
+    )).rows;
+    const items = [];
+    for (const u of users) {
+      const p = await punches(a.propertyId, u.id, from, to);
+      const hours = hoursFromPunches(p);
+      const rate = u.hourly_rate != null ? Number(u.hourly_rate) : null;
+      const contracted = u.contracted_hours != null ? Number(u.contracted_hours) : null;
+      const row = payrollRow({ hours, hourlyRate: rate, contractedHours: contracted });
+      items.push({
+        id: u.id,
+        name: u.name,
+        role: u.role,
+        department: u.department,
+        designation: u.designation,
+        contracted_hours: contracted,
+        hourly_rate: a.perms.has("hr.read") ? rate : null,
+        hours: row.hours,
+        pay: a.perms.has("hr.read") ? row.pay : null,
+        variance: row.variance,
+        last: p.at(-1)?.kind ?? null,
+        shifts: shiftsFromPunches(p).map(s => ({
+          in_at: s.inAt.toISOString(),
+          out_at: s.outAt ? s.outAt.toISOString() : null,
+          hours: s.hours,
+        })),
+        duty: duty.filter((d: { user_id: string }) => d.user_id === u.id).map((d: any) => ({
+          on_date: d.on_date, slot: d.slot, kind: d.kind,
+        })),
+      });
+    }
+    return {
+      from,
+      to,
+      kiteline: "https://kiteline.uk",
+      note: "Hours come from Vedanta clock in and out. Kiteline keeps its own rota and PINs.",
+      items,
+    };
+  });
+
+  f.get("/staff/payroll", async (req, reply) => {
+    const a = await requireActor(req, reply, "STAFF"); if (!a || !allow(a, "clock.self", reply)) return;
+    const today = (await pool.query(`select (timezone('Europe/London', now()))::date::text t`)).rows[0].t;
+    const from = weekStartMonday(today);
+    const to = today;
+    const p = await punches(a.propertyId, a.userId, from, to);
+    return {
+      from,
+      to,
+      hours: hoursFromPunches(p),
+      last: await lastKind(a.propertyId, a.userId),
+      shifts: shiftsFromPunches(p).map(s => ({
+        in_at: s.inAt.toISOString(),
+        out_at: s.outAt ? s.outAt.toISOString() : null,
+        hours: s.hours,
+      })),
+    };
   });
   f.post("/v1/workforce/contracts", async (req: any, reply) => {
     const a = await house(req, reply, "hr.read"); if (!a) return;

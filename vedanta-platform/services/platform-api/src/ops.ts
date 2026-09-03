@@ -45,6 +45,7 @@ function shapeBoard(
       department: item.department,
       department_label: departmentLabel(item.department),
       title: item.title,
+      due_time: item.due_time ?? null,
       done: Boolean(tick?.done),
       done_by_name: tick?.done_by_name ?? null,
     };
@@ -108,7 +109,7 @@ async function loadBoard(propertyId: string, date: string) {
       [propertyId],
     ),
     pool.query(
-      `select id, department, title, sort_order
+      `select id, department, title, sort_order, to_char(due_time,'HH24:MI') due_time
        from ops_checklist_item
        where property_id = $1 and active = true
        order by department, sort_order, title`,
