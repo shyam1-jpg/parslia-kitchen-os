@@ -4,6 +4,7 @@ import { api, ApiError } from "@/lib/api";
 
 const LABELS: Record<string, string> = {
   FRONT: "Front of house",
+  NIGHT: "Night porter",
   HK: "Housekeeping",
   RESTAURANT: "Restaurant",
   KITCHEN: "Kitchen",
@@ -51,7 +52,7 @@ export default function DeptBoards() {
       <div className="topbar">
         <div>
           <h1>Department boards</h1>
-          <p>Where things live — notes and photographs for housekeeping, front of house, restaurant and kitchen. A new starter should be able to find the cupboard from the picture.</p>
+          <p>Where things live — notes and photographs for housekeeping, front of house, night porter, restaurant and kitchen. A new starter should be able to find the cupboard from the picture. How to act is in the <a href="/manual/">house manual</a>.</p>
         </div>
       </div>
       <div className="seg" style={{ marginBottom: 16 }}>

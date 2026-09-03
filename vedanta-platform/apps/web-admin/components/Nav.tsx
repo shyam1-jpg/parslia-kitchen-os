@@ -5,13 +5,13 @@ import { useStore } from "@/lib/store";
 
 const sections: { label: string; items: [string, string, string | null][] }[] = [
   { label: "The house", items: [["/house/", "Today", "group.read"], ["/groups/", "Bookings", "group.read"], ["/rooms/", "Room board", "group.read"]] },
-  { label: "In service", items: [["/ops/", "House log", "group.read"], ["/front/", "Front desk", "group.read"], ["/service/", "Department boards", "group.read"], ["/housekeeping/", "Housekeeping", "group.read"], ["/maintenance/", "Maintenance", "maintenance.read"], ["/kitchen/", "Kitchen", "covers.read"]] },
+  { label: "In service", items: [["/ops/", "House log", "group.read"], ["/front/", "Front desk", "group.read"], ["/night/", "Night porter", "group.read"], ["/service/", "Department boards", "group.read"], ["/manual/", "Manual", "group.read"], ["/housekeeping/", "Housekeeping", "group.read"], ["/maintenance/", "Maintenance", "maintenance.read"], ["/kitchen/", "Kitchen", "covers.read"]] },
   { label: "People", items: [["/guests/", "Guests", "guest.read"], ["/staff-corner/", "Staff corner", "cover.read"], ["/payroll/", "Payroll", "clock.manage"], ["/users/", "Names & positions", "user.manage"]] },
   { label: "The estate", items: [["/review/", "Imported bookings", "group.update"], ["/reports/", "Reports", "report.read"], ["/settings/", "Settings", "package.manage"]] },
 ];
 const ROLE_NAMES: Record<string, string> = {
   SYSTEM_OWNER: "System", GENERAL_MANAGER: "General manager", OPERATIONS_MANAGER: "Operations manager", ROTA_MANAGER: "Rota manager",
-  FRONT_OFFICE_MANAGER: "Front office manager", RETREAT_MANAGER: "Retreat manager", RECEPTIONIST: "Reception",
+  FRONT_OFFICE_MANAGER: "Front office manager", RETREAT_MANAGER: "Retreat manager", RECEPTIONIST: "Reception", NIGHT_PORTER: "Night porter",
   SALES_MANAGER: "Sales manager", SALES_ASSISTANT: "Sales assistant",
   HK_SUPERVISOR: "Housekeeping supervisor", HK_ATTENDANT: "Housekeeping",
   RESTAURANT_MANAGER: "Restaurant manager", RESTAURANT_SUPERVISOR: "Restaurant supervisor", RESTAURANT_STAFF: "Waiter / waitress",

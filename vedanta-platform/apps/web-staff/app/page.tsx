@@ -20,7 +20,7 @@ export default function Pocket() {
   const [me, setMe] = useState<Me | null>(null);
   const [email, setEmail] = useState("");
   const [err, setErr] = useState<string | null>(null);
-  const [tab, setTab] = useState<"clock" | "leave" | "duty" | "sop" | "log" | "desk">("clock");
+  const [tab, setTab] = useState<"clock" | "leave" | "duty" | "sop" | "log" | "desk" | "night" | "manual">("clock");
   const [desk, setDesk] = useState<{
     today: { weekday: string; title: string; method: string; ingredients: { name: string; qty: string }[] };
     tomorrow: { weekday: string; title: string; method: string; ingredients: { name: string; qty: string }[] };
@@ -29,8 +29,8 @@ export default function Pocket() {
   const [pay, setPay] = useState<{ hours: number; shifts: { in_at: string; out_at: string | null; hours: number }[] } | null>(null);
   const [ops, setOps] = useState<{
     progress: { done: number; total: number };
-    handover: { id: string; department_label: string; shift_label: string; body: string; author_name: string | null }[];
-    checklists: { id: string; department_label: string; title: string; done: boolean }[];
+    handover: { id: string; department: string; department_label: string; shift: string; shift_label: string; body: string; author_name: string | null }[];
+    checklists: { id: string; department: string; department_label: string; title: string; due_time?: string | null; done: boolean }[];
     guest_requests: { id: string; guest_name: string | null; room_label: string | null; department_label: string; request_text: string; status: string }[];
     notices: { id: string; title: string; body: string }[];
   } | null>(null);
@@ -40,6 +40,9 @@ export default function Pocket() {
   const [form, setForm] = useState({ kind: "HOLIDAY", starts_on: "", ends_on: "", note: "" });
   const [sops, setSops] = useState<{ id: string; title: string; body: string; read_at: string | null }[]>([]);
   const [duty, setDuty] = useState<{ id: string; on_date: string; slot: string; kind: string; note: string | null }[]>([]);
+  const [manuals, setManuals] = useState<{ slug: string; title: string; department_label: string; kind_label: string; summary: string; body: string; steps: { title: string; look: string; act: string }[]; diagram: { title: string; caption: string }[] }[]>([]);
+  const [manualSlug, setManualSlug] = useState("app-how-to-use");
+  const [nightNote, setNightNote] = useState("");
 
   const load = async () => {
     const u = await api<Me>("/me"); setMe(u);
@@ -50,6 +53,7 @@ export default function Pocket() {
     try { setOps(await api("/v1/ops/board")); } catch { setOps(null); }
     try { setDesk(await api("/v1/service/front-desk")); } catch { setDesk(null); }
     try { setPay(await api("/staff/payroll")); } catch { setPay(null); }
+    try { setManuals((await api<{ items: typeof manuals }>("/v1/manuals")).items); } catch { setManuals([]); }
   };
   useEffect(() => { if (tok.get()) load().catch(() => tok.set(null)); }, []);
 
@@ -60,6 +64,22 @@ export default function Pocket() {
       tok.set(r.token); await load();
     } catch (e) { setErr((e as Error).message); }
   };
+
+  async function orderWater(which: "today" | "tomorrow") {
+    const recipe = which === "today" ? desk?.today : desk?.tomorrow;
+    try {
+      await api("/v1/service/orders", {
+        method: "POST",
+        body: JSON.stringify({
+          needed_for: "Front of house",
+          items: (recipe?.ingredients ?? []).map(i => ({ name: i.name, qty: i.qty })),
+        }),
+      });
+      setErr(null);
+    } catch (e) {
+      setErr((e as Error).message);
+    }
+  }
 
   if (!me) return (
     <>
@@ -86,6 +106,8 @@ export default function Pocket() {
           <button className={tab === "duty" ? "on" : ""} onClick={() => setTab("duty")}>Duty</button>
           <button className={tab === "log" ? "on" : ""} onClick={() => setTab("log")}>House log</button>
           <button className={tab === "desk" ? "on" : ""} onClick={() => setTab("desk")}>Front desk</button>
+          <button className={tab === "night" ? "on" : ""} onClick={() => setTab("night")}>Night</button>
+          <button className={tab === "manual" ? "on" : ""} onClick={() => setTab("manual")}>Manual</button>
           <button className={tab === "sop" ? "on" : ""} onClick={() => setTab("sop")}>SOP</button>
         </div>
         {tab === "clock" && (
@@ -140,7 +162,7 @@ export default function Pocket() {
               <h2>Handover</h2>
               {(ops?.handover ?? []).slice(0, 5).map(h => <div className="row" key={h.id} style={{ display: "block" }}><b>{h.department_label} · {h.shift_label}</b><div>{h.body}</div></div>)}
               <textarea rows={3} value={note} onChange={e => setNote(e.target.value)} placeholder="What the next shift needs to know" />
-              <button className="btn" onClick={async () => { setErr(null); try { await api("/v1/ops/handover", { method: "POST", body: JSON.stringify({ department: "HOUSE", shift: "am", body: note }) }); setNote(""); setOps(await api("/v1/ops/board")); } catch (e) { setErr((e as Error).message); } }}>Leave the note</button>
+              <button className="btn" onClick={async () => { setErr(null); try { await api("/v1/ops/handover", { method: "POST", body: JSON.stringify({ department: "HOUSE", shift: "am", body: note }) }); setNote(""); setOps(await api("/v1/ops/board")); } catch (e) { setErr((e as Error).message); } }}>Leave a morning note</button>
             </div>
             {(ops?.notices ?? []).map(n => <div className="card" key={n.id}><h2>{n.title}</h2><p>{n.body}</p></div>)}
           </div>
@@ -151,12 +173,12 @@ export default function Pocket() {
               <h2>Today · {desk?.today.weekday} · {desk?.today.title}</h2>
               <p>{desk?.today.method}</p>
               <p className="m">{desk?.today.ingredients.map(i => `${i.qty} ${i.name}`).join(" · ")}</p>
-              <button className="btn" onClick={async () => { try { await api("/v1/service/orders", { method: "POST", body: JSON.stringify({ needed_for: "Front of house", items: (desk?.today.ingredients ?? []).map(i => ({ name: i.name, qty: i.qty })) }); setErr(null); } catch (e) { setErr((e as Error).message); } }}>Order today&apos;s fruit</button>
+              <button className="btn" onClick={() => void orderWater("today")}>Order today&apos;s fruit</button>
             </div>
             <div className="card">
               <h2>Tomorrow · {desk?.tomorrow.weekday} · {desk?.tomorrow.title}</h2>
               <p className="m">{desk?.tomorrow.ingredients.map(i => `${i.qty} ${i.name}`).join(" · ")}</p>
-              <button className="btn" onClick={async () => { try { await api("/v1/service/orders", { method: "POST", body: JSON.stringify({ needed_for: "Front of house", items: (desk?.tomorrow.ingredients ?? []).map(i => ({ name: i.name, qty: i.qty })) }); } catch (e) { setErr((e as Error).message); } }}>Order tomorrow ahead</button>
+              <button className="btn" onClick={() => void orderWater("tomorrow")}>Order tomorrow ahead</button>
             </div>
             <div className="card">
               <h2>Always ready</h2>
@@ -165,9 +187,56 @@ export default function Pocket() {
             </div>
           </div>
         )}
+        {tab === "night" && (
+          <div>
+            <div className="card">
+              <h2>Night porter</h2>
+              <p className="m">Two lock-ups. Front door — never leave the latch off. Dirty cups away. Fill teas and cups for morning. Write the night note before you go.</p>
+            </div>
+            {(ops?.checklists ?? []).filter(c => c.department === "NIGHT").map(c => (
+              <label key={c.id} className="row" style={{ alignItems: "center" }}>
+                <input type="checkbox" checked={c.done} onChange={async e => { await api(`/v1/ops/checklists/${c.id}/tick`, { method: "POST", body: JSON.stringify({ done: e.target.checked }) }); setOps(await api("/v1/ops/board")); }} />
+                <span>{c.due_time ? `${c.due_time} · ` : ""}{c.title}</span>
+              </label>
+            ))}
+            <div className="card">
+              <h2>Handover to morning</h2>
+              {(ops?.handover ?? []).filter(h => h.shift === "night" || h.department === "NIGHT").slice(0, 4).map(h => <div className="row" key={h.id} style={{ display: "block" }}><b>{h.shift_label}</b><div>{h.body}</div></div>)}
+              <textarea rows={3} value={nightNote} onChange={e => setNightNote(e.target.value)} placeholder="Who arrived late, what was unlocked, what ran out" />
+              <button className="btn" onClick={async () => { setErr(null); try { await api("/v1/ops/handover", { method: "POST", body: JSON.stringify({ department: "NIGHT", shift: "night", body: nightNote }) }); setNightNote(""); setOps(await api("/v1/ops/board")); } catch (e) { setErr((e as Error).message); } }}>Leave the night note</button>
+            </div>
+          </div>
+        )}
+        {tab === "manual" && (
+          <div>
+            <p className="m">What it should look like, and how to act. A sent SOP also lands under SOP — mark that one received.</p>
+            <div className="tabs">
+              {manuals.map(m => <button key={m.slug} className={manualSlug === m.slug ? "on" : ""} onClick={() => setManualSlug(m.slug)}>{m.title}</button>)}
+            </div>
+            {manuals.filter(m => m.slug === manualSlug).map(m => (
+              <div key={m.slug}>
+                <div className="card">
+                  <h2>{m.title}</h2>
+                  <p className="m">{m.department_label} · {m.kind_label}</p>
+                  <p><b>Look.</b> {m.summary}</p>
+                  <p style={{ whiteSpace: "pre-wrap" }}><b>Act.</b> {m.body}</p>
+                </div>
+                {m.diagram.length > 0 && <div className="card"><p className="m">{m.diagram.map(d => d.title).join(" → ")}</p></div>}
+                {m.steps.map(s => (
+                  <div className="card" key={s.title}>
+                    <h2>{s.title}</h2>
+                    <p><b>Look.</b> {s.look}</p>
+                    <p><b>Act.</b> {s.act}</p>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
         {tab === "sop" && (
           <div>
-            {sops.length === 0 && <p className="m">No SOP has been sent to you yet.</p>}
+            <p className="m">Chapters sent to you. Read, then mark received — that is the house knowing you have it. The full book is under Manual.</p>
+            {sops.length === 0 && <p className="m">No SOP has been sent to you yet. Open Manual for the live book.</p>}
             {sops.map(s => (
               <div className="card" key={s.id}>
                 <h2>{s.title}</h2>

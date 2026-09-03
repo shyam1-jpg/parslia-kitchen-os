@@ -21,3 +21,4 @@ input[type=checkbox] { width: auto; flex: none; margin: 0 10px 0 0; }
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
 .tabs button { flex: 1; border: 1px solid var(--line); background: #fff; padding: 10px; cursor: pointer; }
 .tabs button.on { background: var(--forest); color: var(--ivory); border-color: var(--forest); }
+.tabs button { font-size: 13px; }

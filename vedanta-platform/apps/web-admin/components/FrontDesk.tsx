@@ -38,7 +38,7 @@ export default function FrontDesk() {
       <div className="topbar">
         <div>
           <h1>Front desk</h1>
-          <p>Today&apos;s infused water, tomorrow&apos;s fruit, teas and biscuits. Order through the kitchen a day ahead. Suma for herbal bags; organic wholesale for loose teas.</p>
+          <p>Today&apos;s infused water, tomorrow&apos;s fruit, teas and biscuits. Order through the kitchen a day ahead. Suma for herbal bags; organic wholesale for loose teas. The full Look and Act is in the <a href="/manual/?slug=front-desk-day">front-desk chapter</a>.</p>
         </div>
       </div>
       <div className="house-grid">
