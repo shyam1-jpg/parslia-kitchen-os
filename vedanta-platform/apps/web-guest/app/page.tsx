@@ -117,7 +117,7 @@ export default function Book() {
                   <button key={p.id} className={"prog" + (sel?.id === p.id ? " on" : "")} onClick={() => { setSel(p); setOk(null); setErr(null); }}>
                     <div className="k">{p.kind}</div>
                     <h3>{p.name}</h3>
-                    <div className="d">{dates(p)}{p.host && p.host !== p.name ? ` · ${p.host}` : ""}</div>
+                    <div className="d">{dates(p)}</div>
                     {p.price && <div className="d" style={{ marginTop: 6 }}>{p.price.split("\n")[0]}</div>}
                   </button>
                 ))}
@@ -136,8 +136,8 @@ export default function Book() {
                 <div className="detail">
                   <div className="kicker" style={{ letterSpacing: ".16em", textTransform: "uppercase", color: "var(--gold)", fontSize: 10 }}>{sel.kind}</div>
                   <h3>{sel.name}</h3>
-                  <p className="m">{dates(sel)}{sel.arrival_time ? ` · arrive ${sel.arrival_time}` : ""}{sel.departure_time ? ` · leave ${sel.departure_time}` : ""}</p>
-                  {sel.host && <p className="m">Hosted by {sel.host}</p>}
+                  <p className="m">{dates(sel)}</p>
+                  {sel.arrival_time ? <p className="m">Arrive {sel.arrival_time}{sel.departure_time ? ` · leave ${sel.departure_time}` : ""}</p> : null}
                   {sel.basis && <p className="m">{sel.basis}</p>}
                   {sel.places && <p className="m">About {sel.places} guests</p>}
                   {sel.package && <p className="m">{sel.package}</p>}

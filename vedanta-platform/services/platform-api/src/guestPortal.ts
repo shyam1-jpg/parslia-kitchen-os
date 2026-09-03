@@ -8,7 +8,7 @@ import type { FastifyInstance } from "fastify";
 import { pool, tx } from "./db.ts";
 import { emailLoginEnabled, problem, requireActor, allow } from "./auth.ts";
 import { audit } from "./groups.ts";
-import { cleanName, guestCopy, isPublicProgrammeName, nightsBetween, programmeBasis, programmeKind } from "../../../domains/guest/programmes.ts";
+import { cleanName, guestCopy, isPublicProgrammeName, nightsBetween, programmeBasis, programmeKind, publicProgrammeName } from "../../../domains/guest/programmes.ts";
 import { backupGuestEvent } from "./kiteline.ts";
 
 const hits = new Map<string, { n: number; t: number }>();
@@ -36,14 +36,15 @@ where g.property_id=$1
   and g.name not ilike '%booking%'`;
 
 function shapeProgramme(r: any) {
-  const name = cleanName(r.name);
+  const kind = programmeKind(r.retreat_type);
+  const name = publicProgrammeName(cleanName(r.name), kind);
   const about = guestCopy(r.sheet_text);
   const price = guestCopy(r.price_notes);
   return {
     id: r.id,
     name,
-    host: cleanName(r.organisation) || name,
-    kind: programmeKind(r.retreat_type),
+    host: null,   // host name removed from public view — GDPR
+    kind,
     basis: programmeBasis(r.use_basis),
     arrival: r.arrival,
     arrival_slot: r.arrival_slot,
@@ -223,6 +224,16 @@ export default async function guestPortal(f: FastifyInstance) {
         await c.query(`update booking_group set notes = trim(both E'\\n' from coalesce(notes,'') || E'\\n' || $2) where id=$1 and property_id=$3`, [e.programme_id, line, a.propertyId]);
         await c.query(`update guest_enquiry set status='CONVERTED' where id=$1`, [e.id]);
         await audit(c, a, "booking_group", e.programme_id, "group.update", { payload: { from_enquiry: e.id } });
+        void backupGuestEvent({
+          id: `guest_take_${e.id}`,
+          kind: "converted_programme",
+          name: e.name,
+          email: e.email,
+          people: e.people,
+          programme_id: e.programme_id,
+          booking_group_id: e.programme_id,
+          notes: e.notes ?? null,
+        });
         return { id: e.programme_id, name: e.name, attached: true };
       }
       const n = await c.query(`select count(*) from booking_group where property_id=$1`, [a.propertyId]);
@@ -233,6 +244,17 @@ export default async function guestPortal(f: FastifyInstance) {
          ["#1F3A32", "#8A6A3B", "#4F6758", "#6B3A32"][Number(n.rows[0].count) % 4]])).rows[0];
       await c.query(`update guest_enquiry set status='CONVERTED' where id=$1`, [e.id]);
       await audit(c, a, "booking_group", g.id, "group.create", { to: "ENQUIRY", payload: { from_enquiry: e.id } });
+      void backupGuestEvent({
+        id: `guest_take_${e.id}`,
+        kind: "converted_dates",
+        name: e.name,
+        email: e.email,
+        people: e.people,
+        booking_group_id: g.id,
+        arrival: e.arrival_date,
+        departure: e.departure_date,
+        notes: e.notes ?? null,
+      });
       return { id: g.id, name: g.name };
     });
   });
