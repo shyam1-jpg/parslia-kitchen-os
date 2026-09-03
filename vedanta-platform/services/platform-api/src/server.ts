@@ -27,6 +27,11 @@ import quality from "./quality.ts";
 const app = Fastify({ logger: process.env.NODE_ENV !== "test" });
 const isProd = process.env.NODE_ENV === "production";
 
+function truthy(v: string | undefined): boolean {
+  if (v == null) return false;
+  return ["1", "true", "yes", "on"].includes(v.trim().toLowerCase());
+}
+
 function configuredOrigins(): Set<string> {
   const values = [
     process.env.WEB_URL,
@@ -65,14 +70,25 @@ app.addHook("onRequest", async (req, reply) => {
 });
 
 /**
- * Existing guest identity protection.
- * An unauthenticated browser may create a NEW My Stay, but it may never obtain a
- * session for an email that already owns a guest account. Existing guests must
- * prove possession of their current guest session/access code first.
+ * Guest identity safety gate.
+ * Local/Cloudflare development can still bootstrap a new My Stay so the product can
+ * be tested. Production must not grant a private portal session merely because a
+ * browser typed an email address. Keep ALLOW_UNVERIFIED_GUEST_BOOTSTRAP=false until
+ * email OTP/magic-link verification is implemented and tested.
  */
 app.addHook("preHandler", async (req: any, reply) => {
   const path = String(req.url ?? "").split("?")[0];
   if (path !== "/guest/register" && path !== "/guest/enquiries") return;
+
+  const auth = req.headers.authorization as string | undefined;
+  if (isProd && !auth?.startsWith("Bearer ") && !truthy(process.env.ALLOW_UNVERIFIED_GUEST_BOOTSTRAP)) {
+    return reply.code(503).send(problem(
+      503,
+      "guest_email_verification_required",
+      "Online booking identity verification is being configured. You can still browse programmes and availability; contact the house to save a place.",
+    ));
+  }
+
   const email = String(req.body?.email ?? "").trim().toLowerCase();
   if (!email || !email.includes("@")) return;
 
@@ -82,7 +98,6 @@ app.addHook("preHandler", async (req: any, reply) => {
   )).rows[0];
   if (!existing) return;
 
-  const auth = req.headers.authorization as string | undefined;
   if (path === "/guest/enquiries" && auth?.startsWith("Bearer ")) {
     const token = auth.slice(7);
     const owned = (await pool.query(
