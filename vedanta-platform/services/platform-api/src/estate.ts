@@ -6,6 +6,7 @@ import type { FastifyInstance } from "fastify";
 import { pool } from "./db.ts";
 import { requireActor, allow } from "./auth.ts";
 import { coversFor } from "./occupancy.ts";
+import { guestHeadcount, houseDayBeats, roomStatusCounts } from "../../../domains/ops/pulse.ts";
 
 export default async function estate(f: FastifyInstance) {
   f.get("/estate", async (req, reply) => {
@@ -45,6 +46,19 @@ export default async function estate(f: FastifyInstance) {
     const covers = await coversFor(a.propertyId, today, today);
     const dinner = covers.days[0]?.dinner ?? 0;
     const settings = prop.settings ?? {};
+    const rooms = await pool.query(`select status, staff_only from room where property_id=$1`, [a.propertyId]);
+    const hk = roomStatusCounts(rooms.rows);
+    const guestsNow = guestHeadcount([...inHouse, ...arriving]);
+    let openTasks = 0;
+    let critical = 0;
+    try {
+      const t = await pool.query(`select
+        count(*) filter (where status not in ('completed','verified','cancelled'))::int as open,
+        count(*) filter (where severity='critical' and status not in ('completed','verified','cancelled'))::int as critical
+        from ops_task where property_id=$1`, [a.propertyId]);
+      openTasks = t.rows[0]?.open ?? 0;
+      critical = t.rows[0]?.critical ?? 0;
+    } catch { /* task engine migration may not be on an older copy */ }
 
     return {
       property: {
@@ -68,11 +82,22 @@ export default async function estate(f: FastifyInstance) {
         rooms_tonight: occ.rows[0]?.rooms ?? 0,
         guest_rooms: prop.guest_rooms,
         dinner,
+        in_house_guests: guestsNow,
+        rooms_ready: hk.ready,
+        rooms_dirty: hk.dirty,
+        rooms_inspected: hk.inspected,
+        rooms_cleaning: hk.cleaning,
+        out_of_order: hk.out_of_order,
+        out_of_service: hk.out_of_service,
+        open_tasks: openTasks,
+        critical_issues: critical,
+        payments_due: null,
       },
       arriving,
       departing,
       in_house: inHouse,
       next,
+      timeline: houseDayBeats((prop.check_in_from as string).slice(0, 5), (prop.check_out_by as string).slice(0, 5)),
     };
   });
 }

@@ -10,8 +10,11 @@ import { emailLoginEnabled, problem, requireActor, allow } from "./auth.ts";
 import { audit } from "./groups.ts";
 import { cleanName, guestCopy, isPublicProgrammeName, nightsBetween, programmeBasis, programmeKind, publicProgrammeName } from "../../../domains/guest/programmes.ts";
 import { roomsForStay } from "../../../domains/guest/stay.ts";
+import { accessOutcome, issueExpiry, nextFailedAttempts, publicLoginDetail, RECOVERY_OK } from "../../../domains/guest/access.ts";
+import { groupPublicTypes, shapePublicRoom } from "../../../domains/guest/availability.ts";
 import { backupGuestEvent } from "./kiteline.ts";
 import { departmentLabel, ownGuestRequests, routeGuestRequest } from "../../../domains/ops/board.ts";
+import { freeRooms } from "./groups.ts";
 
 const hits = new Map<string, { n: number; t: number }>();
 function rateOk(key: string): boolean {
@@ -22,7 +25,12 @@ function rateOk(key: string): boolean {
 }
 
 type Guest = { id: string; tenantId: string; propertyId: string; email: string; name: string };
-type GuestRow = { id: string; email: string; display_name: string; access_code_hash: string | null };
+type GuestRow = {
+  id: string; email: string; display_name: string; access_code_hash: string | null;
+  access_code_expires_at?: Date | string | null;
+  access_code_failed_attempts?: number;
+  access_code_locked_until?: Date | string | null;
+};
 
 const PROGRAMME_SQL = `select g.id, g.name, g.organisation, g.retreat_type, g.use_basis,
   g.arrival_date::text arrival, g.arrival_slot, to_char(g.arrival_time,'HH24:MI') arrival_time,
@@ -91,17 +99,21 @@ function normAccessCode(v: unknown): string {
   return String(v ?? "").replace(/\s+/g, "").trim();
 }
 async function upsertGuestWithCode(prop: any, email: string, name: string): Promise<{ guest: GuestRow; access_code?: string }> {
-  const cur = (await pool.query(`select id, email, display_name, access_code_hash from guest_account where property_id=$1 and lower(email)=$2`, [prop.id, email])).rows[0] as GuestRow | undefined;
-  const issue = !cur?.access_code_hash;
+  const cur = (await pool.query(`select id, email, display_name, access_code_hash, access_code_expires_at from guest_account where property_id=$1 and lower(email)=$2`, [prop.id, email])).rows[0] as GuestRow | undefined;
+  const expired = !!(cur?.access_code_hash && cur.access_code_expires_at && new Date(cur.access_code_expires_at).getTime() < Date.now());
+  const issue = !cur?.access_code_hash || expired;
   const accessCode = issue ? newAccessCode() : null;
   const accessHash = accessCode ? hashAccessCode(accessCode) : null;
-  const guest = (await pool.query(`insert into guest_account (tenant_id, property_id, email, display_name, access_code_hash)
-      values ($1,$2,$3,$4,$5)
+  const expires = accessCode ? issueExpiry() : null;
+  const guest = (await pool.query(`insert into guest_account (tenant_id, property_id, email, display_name, access_code_hash, access_code_expires_at, access_code_issued_at, access_code_failed_attempts, access_code_locked_until)
+      values ($1,$2,$3,$4,$5,$6, case when $5 is null then null else now() end, 0, null)
       on conflict (property_id, email) do update
       set display_name=excluded.display_name,
-          access_code_hash=coalesce(guest_account.access_code_hash, excluded.access_code_hash)
-      returning id, email, display_name, access_code_hash`,
-      [prop.tenant_id, prop.id, email, name, accessHash])).rows[0] as GuestRow;
+          access_code_hash=coalesce(excluded.access_code_hash, guest_account.access_code_hash),
+          access_code_expires_at=coalesce(excluded.access_code_expires_at, guest_account.access_code_expires_at),
+          access_code_issued_at=coalesce(excluded.access_code_issued_at, guest_account.access_code_issued_at)
+      returning id, email, display_name, access_code_hash, access_code_expires_at, access_code_failed_attempts, access_code_locked_until`,
+      [prop.tenant_id, prop.id, email, name, accessHash, expires])).rows[0] as GuestRow;
   return accessCode ? { guest, access_code: accessCode } : { guest };
 }
 
@@ -148,20 +160,72 @@ export default async function guestPortal(f: FastifyInstance) {
     };
   });
 
-  // Programmes require a valid guest session — no public browsing of house dates.
-  f.get("/guest/programmes", async (req, reply) => {
-    const g = await requireGuest(req, reply); if (!g) return;
+  // Public browse — only programmes staff have published, and only public names.
+  f.get("/guest/programmes", async () => {
     const prop = await propertyRow();
     const r = await pool.query(`${PROGRAMME_SQL} order by g.arrival_date, g.arrival_slot`, [prop.id]);
     return { items: r.rows.filter(x => isPublicProgrammeName(x.name)).map(shapeProgramme) };
   });
 
   f.get("/guest/programmes/:id", async (req: any, reply) => {
-    const g = await requireGuest(req, reply); if (!g) return;
     const prop = await propertyRow();
     const r = (await pool.query(`${PROGRAMME_SQL} and g.id=$2`, [prop.id, req.params.id])).rows[0];
     if (!r || !isPublicProgrammeName(r.name)) return reply.code(404).send(problem(404, "not_found", "That programme is not open"));
     return shapeProgramme(r);
+  });
+
+  f.get("/guest/rooms", async () => {
+    const prop = await propertyRow();
+    const r = await pool.query(`select r.number, r.section, t.code as type, t.name as type_name, r.max_capacity,
+        r.beds_single, r.beds_double, r.beds_king, r.mattresses, r.features
+      from room r join room_type t on t.id=r.room_type_id
+      where r.property_id=$1 and not r.staff_only and r.status not in ('OUT_OF_SERVICE','OUT_OF_ORDER')
+      order by r.section, r.number`, [prop.id]);
+    const rooms = r.rows.map(x => shapePublicRoom({ ...x, available: true }));
+    return { items: rooms, types: groupPublicTypes(rooms) };
+  });
+
+  f.get("/guest/availability", async (req: any, reply) => {
+    const arrival = String(req.query?.arrival ?? "").trim();
+    const departure = String(req.query?.departure ?? "").trim();
+    const people = Number(req.query?.people ?? 0) || null;
+    if (!arrival || !departure || departure < arrival) return reply.code(422).send(problem(422, "validation", "Choose arrival and departure dates"));
+    const prop = await propertyRow();
+    const free = new Set(await freeRooms(pool, prop.id, { arrival_date: arrival, arrival_slot: "PM", departure_date: departure, departure_slot: "AM" }));
+    const r = await pool.query(`select r.number, r.section, t.code as type, t.name as type_name, r.max_capacity,
+        r.beds_single, r.beds_double, r.beds_king, r.mattresses, r.features
+      from room r join room_type t on t.id=r.room_type_id
+      where r.property_id=$1 and not r.staff_only
+      order by r.section, r.number`, [prop.id]);
+    const rooms = r.rows.map(x => shapePublicRoom({ ...x, available: free.has(x.number) }));
+    const types = groupPublicTypes(rooms).filter(t => !people || t.sleeps >= people || t.available > 0);
+    return {
+      arrival,
+      departure,
+      nights: nightsBetween(arrival, departure),
+      people,
+      free_rooms: free.size,
+      types,
+      rooms: rooms.filter(x => x.available),
+    };
+  });
+
+  f.get("/guest/calendar", async (req: any, reply) => {
+    const from = String(req.query?.from ?? "").trim();
+    const to = String(req.query?.to ?? "").trim();
+    if (!from || !to || to < from) return reply.code(422).send(problem(422, "validation", "Give from and to dates"));
+    const prop = await propertyRow();
+    const days: { date: string; free_rooms: number }[] = [];
+    const start = new Date(from + "T00:00:00Z");
+    const end = new Date(to + "T00:00:00Z");
+    if ((end.getTime() - start.getTime()) / 86_400_000 > 62) return reply.code(422).send(problem(422, "validation", "Ask for two months or fewer"));
+    for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+      const iso = d.toISOString().slice(0, 10);
+      const next = new Date(d); next.setUTCDate(next.getUTCDate() + 1);
+      const free = await freeRooms(pool, prop.id, { arrival_date: iso, arrival_slot: "PM", departure_date: next.toISOString().slice(0, 10), departure_slot: "AM" });
+      days.push({ date: iso, free_rooms: free.length });
+    }
+    return { from, to, days };
   });
 
   f.post("/guest/register", async (req: any, reply) => {
@@ -198,8 +262,12 @@ export default async function guestPortal(f: FastifyInstance) {
     if (departure < arrival) return reply.code(422).send(problem(422, "validation", "Departure must be on or after arrival"));
     const r = await upsertGuestWithCode(prop, email, name);
     const guest = r.guest;
-    const e = (await pool.query(`insert into guest_enquiry (tenant_id,property_id,guest_id,name,email,people,arrival_date,departure_date,notes,programme_id)
-      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning id, status`, [prop.tenant_id, prop.id, guest.id, name, email, people, arrival, departure, b.notes ?? null, programmeId])).rows[0];
+    const e = (await pool.query(`insert into guest_enquiry (tenant_id,property_id,guest_id,name,email,people,arrival_date,departure_date,notes,programme_id,dietary_notes,accessibility_notes,room_preference,arrival_time_note,travel_notes)
+      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) returning id, status`,
+      [prop.tenant_id, prop.id, guest.id, name, email, people, arrival, departure, b.notes ?? null, programmeId,
+        String(b.dietary_notes ?? "").trim() || null, String(b.accessibility_notes ?? "").trim() || null,
+        String(b.room_preference ?? "").trim() || null, String(b.arrival_time_note ?? "").trim() || null,
+        String(b.travel_notes ?? "").trim() || null])).rows[0];
     const session = await issueGuest(guest.id, email, name);
     void backupGuestEvent({
       id: `guest_enq_${e.id}`,
@@ -214,16 +282,59 @@ export default async function guestPortal(f: FastifyInstance) {
     if (!rateOk(`glogin:${req.ip || "x"}`)) return reply.code(429).send(problem(429, "rate_limited", "Too many sign-in attempts"));
     const email = String(req.body?.email ?? "").trim().toLowerCase();
     const code = normAccessCode(req.body?.access_code);
-    const g = (await pool.query(`select id, display_name, email, access_code_hash from guest_account where lower(email)=$1 and status='ACTIVE'`, [email])).rows[0];
-    if (!g) return reply.code(401).send(problem(401, "unknown_user", "No guest book under that email. Register first."));
-    if (!g.access_code_hash) return reply.code(401).send(problem(401, "guest_code_required", "Your guest book now needs an access code. Register again to receive your private code."));
-    if (!code || hashAccessCode(code) !== g.access_code_hash) return reply.code(401).send(problem(401, "wrong_code", "That access code is not correct for this email."));
+    const g = (await pool.query(`select id, display_name, email, access_code_hash, access_code_expires_at, access_code_failed_attempts, access_code_locked_until
+      from guest_account where lower(email)=$1 and status='ACTIVE'`, [email])).rows[0];
+    const check = accessOutcome({
+      found: !!g?.access_code_hash,
+      hashMatches: !!(g && code && hashAccessCode(code) === g.access_code_hash),
+      expiresAt: g?.access_code_expires_at ?? null,
+      lockedUntil: g?.access_code_locked_until ?? null,
+    });
+    if (!check.ok) {
+      if (g && (check.code === "wrong" || check.code === "unknown")) {
+        const next = nextFailedAttempts(Number(g.access_code_failed_attempts ?? 0));
+        await pool.query(`update guest_account set access_code_failed_attempts=$2, access_code_locked_until=$3 where id=$1`,
+          [g.id, next.attempts, next.lockedUntil]);
+      }
+      return reply.code(401).send(problem(401, check.code, publicLoginDetail(check)));
+    }
+    await pool.query(`update guest_account set access_code_failed_attempts=0, access_code_locked_until=null where id=$1`, [g.id]);
     return issueGuest(g.id, g.email, g.display_name);
+  });
+
+  f.post("/guest/recover", async (req: any, reply) => {
+    if (!rateOk(`grec:${req.ip || "x"}`)) return reply.code(429).send(problem(429, "rate_limited", "Please wait a minute"));
+    const email = String(req.body?.email ?? "").trim().toLowerCase();
+    const name = String(req.body?.name ?? "").trim() || "Guest";
+    if (!email.includes("@")) return reply.code(422).send(problem(422, "validation", "Email is required"));
+    const prop = await propertyRow();
+    const g = (await pool.query(`select id, display_name from guest_account where property_id=$1 and lower(email)=$2 and status='ACTIVE'`, [prop.id, email])).rows[0];
+    if (g) {
+      await pool.query(
+        `insert into ops_guest_request (tenant_id, property_id, guest_account_id, guest_name, guest_email, department, request_text, status)
+         values ($1,$2,$3,$4,$5,'HOUSE','Access code help — guest cannot open My Stay', 'open')`,
+        [prop.tenant_id, prop.id, g.id, g.display_name || name, email],
+      );
+    }
+    return { ok: true, detail: RECOVERY_OK };
   });
 
   f.get("/guest/me", async (req, reply) => {
     const g = await requireGuest(req, reply); if (!g) return;
     return { email: g.email, name: g.name, surface: "GUEST" };
+  });
+
+  f.patch("/guest/me", async (req: any, reply) => {
+    const g = await requireGuest(req, reply); if (!g) return;
+    const name = String(req.body?.name ?? g.name).trim();
+    const email = String(req.body?.email ?? g.email).trim().toLowerCase();
+    if (!name || !email.includes("@")) return reply.code(422).send(problem(422, "validation", "Name and email are required"));
+    try {
+      await pool.query(`update guest_account set display_name=$2, email=$3 where id=$1`, [g.id, name, email]);
+    } catch {
+      return reply.code(409).send(problem(409, "email_taken", "That email already has a guest book. Write to the house if you need it moved."));
+    }
+    return { email, name, surface: "GUEST" };
   });
 
   async function roomsByBooking(bookingIds: string[]) {
@@ -273,7 +384,7 @@ export default async function guestPortal(f: FastifyInstance) {
   f.get("/v1/guest-enquiries", async (req, reply) => {
     const a = await requireActor(req, reply, "ADMIN"); if (!a || !allow(a, "group.read", reply)) return;
     const r = await pool.query(`select e.id, e.name, e.email, e.people, e.arrival_date::text arrival, e.departure_date::text departure, e.notes, e.status, e.created_at,
-        e.programme_id, e.booking_id, bg.name programme_name
+        e.programme_id, e.booking_id, e.dietary_notes, e.accessibility_notes, e.room_preference, e.arrival_time_note, e.travel_notes, bg.name programme_name
       from guest_enquiry e
       left join booking_group bg on bg.id = e.programme_id
       where e.property_id=$1 and e.status='ENQUIRY' order by e.created_at desc limit 50`, [a.propertyId]);

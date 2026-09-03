@@ -210,6 +210,36 @@ paths:
         '404': { $ref: '#/components/responses/Problem' }
         '422': { $ref: '#/components/responses/Problem' }
 
+  /guest/programmes:
+    get:
+      summary: Public published programmes (no guest session)
+      description: Only open_for_guests and public names. No other guest identities.
+      security: []
+      responses:
+        '200': { description: Programme list for browse-before-register }
+  /guest/availability:
+    get:
+      summary: Public room-type availability for dates
+      security: []
+      parameters:
+        - { name: arrival, in: query, required: true, schema: { type: string, format: date } }
+        - { name: departure, in: query, required: true, schema: { type: string, format: date } }
+        - { name: people, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Free room counts by type. No guest names. }
+  /guest/recover:
+    post:
+      summary: Access-code help without account enumeration
+      security: []
+      responses:
+        '200': { description: Always the same public message }
+  /groups/{groupId}/sheet:
+    get:
+      summary: Programme operating sheet from one booking
+      description: Implemented as GET /v1/groups/:id/sheet. Reception, HK, kitchen, events, maintenance, grounds, finance and management work from the same stay.
+      responses:
+        '200': { description: Department work derived from the booking }
+
 components:
   securitySchemes:
     bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }

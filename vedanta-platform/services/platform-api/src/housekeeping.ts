@@ -3,6 +3,7 @@ import { pool, tx } from "./db.ts";
 import { requireActor, allow, problem } from "./auth.ts";
 import { audit } from "./groups.ts";
 import { transitionRoom, type RoomCommand, type RoomStatus } from "../../../domains/housekeeping/room-state.ts";
+import { stayKind, visitMinutes } from "../../../domains/housekeeping/board.ts";
 
 const CMD_PERM: Record<RoomCommand, string> = { start_cleaning: "room.status.update", finish_cleaning: "room.status.update", pass_inspection: "room.status.update", fail_inspection: "room.status.update",
   occupy: "room.status.update", vacate: "room.status.update", set_out_of_service: "room.oos.set", set_out_of_order: "room.oos.set", restore: "room.oos.set" };
@@ -19,7 +20,10 @@ export default async function routes(f: FastifyInstance) {
       select r.number, r.section, r.status, r.max_capacity, r.notes, r.staff_only, r.version,
              coalesce(y.pm,false) occupied_last_night, coalesce(t.pm,false) occupied_tonight, coalesce(t.am,false) here_this_morning,
              t.names, t.grp group_name,
-             (select to_status || ' · ' || coalesce(u.display_name,'') || ' · ' || to_char(e.at at time zone 'Europe/London','HH24:MI') from room_status_event e left join app_user u on u.id=e.by_user_id where e.room_id=r.id order by e.at desc limit 1) last_change
+             (select to_status || ' · ' || coalesce(u.display_name,'') || ' · ' || to_char(e.at at time zone 'Europe/London','HH24:MI') from room_status_event e left join app_user u on u.id=e.by_user_id where e.room_id=r.id order by e.at desc limit 1) last_change,
+             (select e.at from room_status_event e where e.room_id=r.id and e.to_status='CLEANING' and (e.at at time zone 'Europe/London')::date = $2::date order by e.at desc limit 1) cleaning_started_at,
+             (select e.at from room_status_event e where e.room_id=r.id and e.to_status='VACANT_CLEAN' and (e.at at time zone 'Europe/London')::date = $2::date order by e.at desc limit 1) cleaning_finished_at,
+             (select coalesce(u.display_name,'') from room_status_event e left join app_user u on u.id=e.by_user_id where e.room_id=r.id and e.to_status='CLEANING' and (e.at at time zone 'Europe/London')::date = $2::date order by e.at desc limit 1) attendant
       from room r left join today t on t.room_id=r.id left join yday y on y.room_id=r.id
       where r.property_id=$1
       order by array_position(array['Ground Floor','Pink Corridor','First Floor','Green Corridor','Second Floor'], r.section), r.number`, [a.propertyId, date]);
@@ -35,13 +39,22 @@ export default async function routes(f: FastifyInstance) {
     const departures = groups.rows.filter((g: { departure: string }) => g.departure === date);
     const stayovers = groups.rows.filter((g: { arrival: string; departure: string }) => g.arrival < date && g.departure > date);
     const unplaced = groups.rows.filter((g: { rooms_placed: number; expected_rooms: number | null }) => (g.expected_rooms ?? 0) > g.rooms_placed);
-    const rooms = r.rows.map(x => ({ ...x,
-      // What housekeeping should do with this room today.
-      task: x.staff_only ? null : ["OUT_OF_SERVICE", "OUT_OF_ORDER"].includes(x.status) ? "out"
-        : x.occupied_last_night && !x.occupied_tonight ? "departure_clean"
-        : x.occupied_last_night && x.occupied_tonight ? "stayover"
-        : !x.occupied_last_night && x.occupied_tonight ? "arrival_prepare"
-        : "vacant" }));
+    const rooms = r.rows.map(x => {
+      const kind = stayKind({ occupied_last_night: !!x.occupied_last_night, occupied_tonight: !!x.occupied_tonight, here_this_morning: !!x.here_this_morning });
+      return {
+        ...x,
+        stay: kind,
+        cleaning_started: x.cleaning_started_at ? new Date(x.cleaning_started_at).toISOString() : null,
+        cleaning_finished: x.cleaning_finished_at ? new Date(x.cleaning_finished_at).toISOString() : null,
+        duration_minutes: visitMinutes(x.cleaning_started_at, x.cleaning_finished_at),
+        attendant: x.attendant || null,
+        task: x.staff_only ? null : ["OUT_OF_SERVICE", "OUT_OF_ORDER"].includes(x.status) ? "out"
+          : kind === "departure" ? "departure_clean"
+          : kind === "stayover" ? "stayover"
+          : kind === "arrival" ? "arrival_prepare"
+          : "vacant",
+      };
+    });
     const counts = Object.fromEntries(["departure_clean", "stayover", "arrival_prepare", "vacant", "out"].map(k => [k, rooms.filter(x => x.task === k).length]));
     return {
       date, rooms, counts,

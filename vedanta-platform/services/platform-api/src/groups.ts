@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { pool, tx, type Q } from "./db.ts";
 import { requireActor, allow, problem, type Actor } from "./auth.ts";
+import { buildProgrammeSheet } from "../../../domains/retreat/sheet.ts";
 
 type Slot = "AM" | "PM";
 export type GroupRow = { id: string; name: string; organisation: string | null; arrival_date: string; arrival_slot: Slot; departure_date: string; departure_slot: Slot; status: string; expected_rooms: number | null; version: number };
@@ -91,6 +92,29 @@ export default async function routes(f: FastifyInstance) {
     const r = await pool.query(`select ${GROUP_COLS}, (select count(distinct room_id) from room_occupancy o where o.group_id=booking_group.id) rooms_allocated from booking_group where id=$1 and property_id=$2`, [req.params.id, a.propertyId]);
     if (!r.rowCount) return reply.code(404).send(problem(404, "not_found", "No such booking"));
     return r.rows[0];
+  });
+
+  f.get<{ Params: { id: string } }>("/groups/:id/sheet", async (req, reply) => {
+    const a = await requireActor(req, reply); if (!a || !allow(a, "group.read", reply)) return;
+    const r = await pool.query(`select ${GROUP_COLS} from booking_group where id=$1 and property_id=$2`, [req.params.id, a.propertyId]);
+    if (!r.rowCount) return reply.code(404).send(problem(404, "not_found", "No such booking"));
+    const g = r.rows[0];
+    const rooms = await pool.query(`select distinct r.number from room_occupancy o join room r on r.id=o.room_id where o.group_id=$1 order by r.number`, [req.params.id]);
+    const guests = Number(g.expected_guests ?? 0);
+    return buildProgrammeSheet({
+      name: g.name,
+      organisation: g.organisation,
+      arrival: g.arrival,
+      departure: g.departure,
+      expected_guests: g.expected_guests,
+      expected_rooms: g.expected_rooms,
+      rooms_placed: rooms.rows.map((x: { number: string }) => x.number),
+      meals: guests ? { breakfast: guests, lunch: guests, dinner: guests } : null,
+      dietary: g.dietary_notes,
+      spa: !!g.spa_access,
+      status: g.status,
+      exclusive: g.use_basis === "EXCLUSIVE",
+    });
   });
 
   f.patch<{ Params: { id: string }; Body: Record<string, unknown>; Headers: { "if-match"?: string } }>("/groups/:id", async (req, reply) => {
