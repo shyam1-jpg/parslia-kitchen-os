@@ -33,7 +33,7 @@ export default function OrganiserForm() {
   return (
     <div className="pub">
       <div className="pubcard">
-        <div className="pubbrand">The Vedanta<br /><span>Retreat Center</span></div>
+        <div className="pubbrand">The Vedanta Way<br /><span>Retreat Center</span></div>
         <h1>Guest list for {info.name}</h1>
         <p className="m">{fmt(info.arrival, { weekday: "long", day: "numeric", month: "long" })} {info.arrival_slot}{info.arrival_time ? ` (${info.arrival_time.slice(0, 5)})` : ""} → {fmt(info.departure, { weekday: "long", day: "numeric", month: "long" })} {info.departure_slot}{info.departure_time ? ` (${info.departure_time.slice(0, 5)})` : ""}{info.package_name ? ` · ${info.package_name}` : ""}{info.expected_guests ? ` · ${info.expected_guests} guests expected` : ""}</p>
         {info.attendees > 0 && <div className="note">You already sent {info.attendees} name{info.attendees === 1 ? "" : "s"}. Names you enter again will be updated, new ones added.</div>}

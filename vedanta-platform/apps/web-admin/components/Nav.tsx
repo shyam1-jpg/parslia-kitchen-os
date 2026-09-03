@@ -26,7 +26,7 @@ export default function Nav() {
   const p = usePathname(); const { user, can, signOut } = useStore();
   return (
     <nav className="nav">
-      <div className="brand">The Vedanta<small>Retreat Center</small></div>
+      <div className="brand">The Vedanta Way<small>Retreat Center</small></div>
       {user && sections.map(sec => (
         <div key={sec.label}>
           <div className="nav-sec">{sec.label}</div>
