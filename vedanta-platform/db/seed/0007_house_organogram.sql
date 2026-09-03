@@ -144,3 +144,8 @@ ON CONFLICT (user_id) DO UPDATE SET designation = EXCLUDED.designation, updated_
 INSERT INTO staff_sop_assignment (sop_id, user_id)
 SELECT s.id, u.id FROM staff_sop s JOIN app_user u ON u.tenant_id = s.tenant_id
 ON CONFLICT DO NOTHING;
+
+-- Generic desk logins must not sit in seats that named people already hold.
+UPDATE app_user SET status = 'LEFT'
+WHERE email IN ('housekeeping@thevedanta.org', 'chef@thevedanta.org', 'kitchen@thevedanta.org')
+  AND status <> 'LEFT';

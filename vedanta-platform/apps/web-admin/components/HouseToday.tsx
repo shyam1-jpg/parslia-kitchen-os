@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { fmt } from "@/lib/format";
-import OrganogramView, { type Organogram } from "./Organogram";
 
 type Estate = {
   today: string;
@@ -17,12 +16,8 @@ type Estate = {
 
 export default function HouseToday() {
   const [e, setE] = useState<Estate | null>(null);
-  const [org, setOrg] = useState<Organogram | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  useEffect(() => {
-    api<Estate>("/v1/estate").then(setE).catch(() => setErr("The house ledger could not be opened."));
-    api<Organogram>("/v1/workforce/organogram").then(setOrg).catch(() => {});
-  }, []);
+  useEffect(() => { api<Estate>("/v1/estate").then(setE).catch(() => setErr("The house ledger could not be opened.")); }, []);
   if (err) return <div className="note">{err}</div>;
   if (!e) return <div className="empty">Opening the house…</div>;
   const d = fmt(e.today, { weekday: "long", day: "numeric", month: "long" });
@@ -62,17 +57,6 @@ export default function HouseToday() {
           {e.next && <div className="next-stay">Next: {e.next.name} · {fmt(e.next.arrival, { weekday: "short", day: "numeric", month: "short" })} {e.next.arrival_slot}{e.next.expected_guests ? ` · ${e.next.expected_guests} guests` : ""}</div>}
         </section>
       </div>
-      {org && (
-        <div className="org">
-          <div className="topbar" style={{ marginTop: 28 }}>
-            <div>
-              <h1>The household</h1>
-              <p>Who holds each post. Open seats stay on the chart until they are filled. Guests never see this.</p>
-            </div>
-          </div>
-          <OrganogramView org={org} />
-        </div>
-      )}
     </>
   );
 }

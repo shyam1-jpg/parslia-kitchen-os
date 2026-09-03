@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { buildOrganogram, HOD_ROLES, ROLE_NAMES } from "./organogram.ts";
+import { buildOrganogram, HOD_ROLES, HOUSE_DEPARTMENTS, HOUSE_POSITIONS, ROLE_NAMES } from "./organogram.ts";
 import { leaveNeedsHodFirst } from "./leave-state.ts";
 
 const house = [
@@ -44,24 +44,17 @@ describe("house organogram", () => {
     assert.equal(grounds.seats.find(s => s.code === "GROUNDS")!.people[0].name, "Damir");
   });
 
-  it("keeps vacant kitchen posts on the chart so they can be filled", () => {
+  it("shows named people only — not a wall of empty posts", () => {
     const org = buildOrganogram(house);
-    const kitchen = org.departments.find(d => d.code === "KITCHEN")!;
-    assert.ok(kitchen.seats.some(s => s.code === "HEAD_CHEF" && s.people.length === 0));
-    assert.ok(kitchen.seats.some(s => s.code === "SOUS_CHEF"));
-    assert.ok(kitchen.seats.some(s => s.code === "CHEF_DE_PARTIE"));
-  });
-
-  it("puts Shar as sales manager and keeps a sales assistant seat", () => {
-    const org = buildOrganogram(house);
+    assert.equal(org.departments.find(d => d.code === "KITCHEN"), undefined);
+    assert.ok(HOUSE_POSITIONS.some(p => p.code === "CHEF_DE_PARTIE"));
     const sales = org.departments.find(d => d.code === "SALES")!;
     assert.equal(sales.seats.find(s => s.code === "SALES_MANAGER")!.people[0].name, "Shar");
-    assert.equal(sales.seats.find(s => s.code === "SALES_ASSISTANT")!.people.length, 0);
+    assert.equal(sales.seats.find(s => s.code === "SALES_ASSISTANT"), undefined);
   });
 
   it("notes that reception runs tea and coffee", () => {
-    const org = buildOrganogram(house);
-    const front = org.departments.find(d => d.code === "FRONT")!;
+    const front = HOUSE_DEPARTMENTS.find(d => d.code === "FRONT")!;
     assert.match(front.notes ?? "", /tea and coffee/i);
   });
 });

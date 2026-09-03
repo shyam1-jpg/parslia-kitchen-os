@@ -38,13 +38,13 @@ export default function StaffCorner() {
 
   return (
     <>
-      <div className="topbar"><div><h1>Staff corner</h1><p>The house only. Guests never see pay, hours, holiday or SOP. Staff phones open the pocket app, not this screen.</p></div></div>
+      <div className="topbar"><div><h1>Staff</h1></div></div>
       <div className="seg" style={{ marginBottom: 16 }}>
         {(["house", "leave", "duty", "hours", "tips", "sop", "hr"] as const).map(t => <button key={t} className={tab === t ? "on" : ""} onClick={() => setTab(t)}>{t === "hr" ? "Contracts & pay" : t === "house" ? "Household" : t[0].toUpperCase() + t.slice(1)}</button>)}
       </div>
       {tab === "house" && (
         <div>
-          <p className="m" style={{ color: "var(--ink-2)", marginBottom: 14 }}>Dan is general manager. Graham is estate manager. Shar is sales manager. Open posts stay on the chart.</p>
+          <p className="m" style={{ color: "var(--ink-2)", marginBottom: 14 }}>The people of the house.</p>
           {org ? <OrganogramView org={org} /> : <p className="m">Opening the household…</p>}
         </div>
       )}

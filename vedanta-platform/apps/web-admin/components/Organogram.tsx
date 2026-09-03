@@ -15,10 +15,8 @@ export default function OrganogramView({ org }: { org: Organogram }) {
             {d.seats.map(s => (
               <li key={s.code}>
                 <span>
-                  {s.people.length === 0
-                    ? <div className="t open">{s.name}</div>
-                    : s.people.map(p => <div className="t" key={p.email}>{p.name}</div>)}
-                  <div className="m">{s.people.length === 0 ? "Open" : s.name}{s.hod ? " · head of department" : ""}</div>
+                  {s.people.map(p => <div className="t" key={p.email}>{p.name}</div>)}
+                  <div className="m">{s.name}</div>
                 </span>
               </li>
             ))}

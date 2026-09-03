@@ -18,8 +18,6 @@ export type HousePosition = {
 
 export type SeatHolder = { name: string; email: string; role: string; department: string | null };
 
-export const CORE_DEPARTMENTS = ["MGMT", "FRONT", "SALES", "HK", "RESTAURANT", "KITCHEN", "GROUNDS"] as const;
-
 export const HOUSE_DEPARTMENTS: HouseDepartment[] = [
   { code: "MGMT", name: "Management", sort: 10 },
   { code: "FRONT", name: "Front of house", sort: 20, notes: "Tea and coffee is run from reception." },
@@ -74,8 +72,6 @@ export const ROLE_NAMES: Record<string, string> = Object.fromEntries(HOUSE_POSIT
 
 export const HOD_ROLES = new Set(HOUSE_POSITIONS.filter(p => p.hod).map(p => p.code));
 
-const CORE = new Set<string>(CORE_DEPARTMENTS);
-
 export function buildOrganogram(people: SeatHolder[]) {
   const byRole = new Map<string, SeatHolder[]>();
   for (const p of people) {
@@ -91,10 +87,11 @@ export function buildOrganogram(people: SeatHolder[]) {
         for (const h of holders) placed.add(h.email);
         return { code: pos.code, name: pos.name, hod: pos.hod, people: holders };
       });
-      const filled = seats.some(s => s.people.length > 0);
-      return { code: dept.code, name: dept.name, notes: dept.notes, seats, filled };
+      const filledSeats = seats.filter(s => s.people.length > 0);
+      const filled = filledSeats.length > 0;
+      return { code: dept.code, name: dept.name, notes: dept.notes, seats: filledSeats, filled };
     })
-    .filter(d => CORE.has(d.code) || d.filled);
+    .filter(d => d.filled);
   const unlisted = people.filter(p => !placed.has(p.email)).sort((a, b) => a.name.localeCompare(b.name));
   return { departments, unlisted };
 }
