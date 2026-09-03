@@ -21,6 +21,7 @@ button { font: inherit; cursor: pointer; }
 .nav { background: var(--forest); color: #E4DDD0; padding: 28px 18px 20px; display: flex; flex-direction: column; gap: 2px; }
 .brand { font-family: var(--serif); font-size: 26px; color: #F7F1E6; margin-bottom: 6px; line-height: 1.05; font-weight: 500; }
 .brand small { display: block; font-family: var(--sans); font-size: 10px; color: var(--gold); margin-top: 8px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 400; }
+.brand small + small { margin-top: 4px; letter-spacing: 0.18em; opacity: 0.85; }
 .nav-sec { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #8A9A92; margin: 16px 8px 6px; }
 .nav a { padding: 8px 10px; border-radius: 2px; color: #D5D0C6; }
 .nav a.active { background: rgba(196,165,116,.16); color: #F7F1E6; box-shadow: inset 2px 0 0 var(--gold); }
@@ -247,6 +248,7 @@ button { font: inherit; cursor: pointer; }
 .pub { min-height: 100vh; background: var(--forest); padding: 40px 16px; }
 .pubcard { max-width: 760px; margin: 0 auto; background: var(--paper); border: 1px solid var(--line); border-radius: 2px; padding: 36px 38px; }
 .pubbrand { font-family: var(--serif); font-size: 18px; color: var(--gold); margin-bottom: 6px; letter-spacing: 0.08em; }
+.pubbrand span { display: block; font-family: var(--sans); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 6px; color: var(--ink-soft, #6b6358); }
 .att { border: 1px solid var(--line); border-radius: 2px; padding: 12px 14px; margin: 12px 0; }
 .att-head { display: flex; justify-content: space-between; margin-bottom: 6px; }
 .linkbtn { background: none; border: 0; color: var(--gold); text-decoration: underline; padding: 0; font: inherit; }

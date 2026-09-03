@@ -25,10 +25,10 @@ export default function SignIn() {
       <section className="arrive-hero">
         <div>
           <div className="arrive-kicker">The Vedanta Way</div>
-          <h1>Oway<br />Retreat</h1>
-          <p className="lede">A quiet house on the lake. Forty-five rooms, one kitchen, the whole estate held as if it must last eight generations.</p>
+          <h1>Retreat<br />Center</h1>
+          <p className="lede">Luxury Holistic</p>
         </div>
-        <div className="foot">Vedanta Oway Retreat · The Vedanta Way Ltd · United Kingdom</div>
+        <div className="foot">The Vedanta Way Ltd</div>
       </section>
       <section className="arrive-panel">
         <div className="arrive-card">

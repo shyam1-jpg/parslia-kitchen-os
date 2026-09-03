@@ -31,7 +31,7 @@ export default async function guestPortal(f: FastifyInstance) {
     const r = (await pool.query(`select p.name, p.check_in_from::text, p.check_out_by::text, t.currency,
         (select count(*) from room r where r.property_id=p.id and not r.staff_only)::int as rooms
       from property p join tenant t on t.id=p.tenant_id order by p.created_at limit 1`)).rows[0];
-    return { name: r?.name ?? "Vedanta Oway Retreat", check_in_from: (r?.check_in_from ?? "15:00").slice(0, 5), check_out_by: (r?.check_out_by ?? "11:00").slice(0, 5), currency: r?.currency ?? "GBP", rooms: r?.rooms ?? 41 };
+    return { name: r?.name ?? "The Vedanta Way Retreat Center", check_in_from: (r?.check_in_from ?? "15:00").slice(0, 5), check_out_by: (r?.check_out_by ?? "11:00").slice(0, 5), currency: r?.currency ?? "GBP", rooms: r?.rooms ?? 41 };
   });
 
   f.post("/guest/enquiries", async (req: any, reply) => {

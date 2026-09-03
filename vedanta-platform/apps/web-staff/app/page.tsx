@@ -44,7 +44,7 @@ export default function Pocket() {
 
   if (!me) return (
     <>
-      <div className="hero"><div className="kicker">Staff pocket</div><h1>Clock · leave · SOP</h1><p>This is not the house. Guests cannot open it. You will not see bookings, pay or reports here.</p></div>
+      <div className="hero"><div className="kicker">The Vedanta Way</div><h1>Retreat<br />Center</h1><p>Luxury Holistic</p></div>
       <div className="wrap">
         <div className="card">
           <label>Staff email</label>
@@ -58,7 +58,7 @@ export default function Pocket() {
 
   return (
     <>
-      <div className="hero"><div className="kicker">{me.role_name ?? me.role.replace(/_/g, " ")}</div><h1>{me.name}</h1><p>Pocket only — clock, holiday, the SOPs sent to you.</p></div>
+      <div className="hero"><div className="kicker">{me.role_name ?? me.role.replace(/_/g, " ")}</div><h1>{me.name}</h1></div>
       <div className="wrap">
         <div className="tabs">
           <button className={tab === "clock" ? "on" : ""} onClick={() => setTab("clock")}>Clock</button>

@@ -8,6 +8,7 @@ button, input, select, textarea { font: inherit; }
 .kicker { font-size: 11px; letter-spacing: .28em; text-transform: uppercase; color: var(--gold); }
 .hero { background: var(--forest); color: var(--ivory); padding: 36px 22px 28px; }
 .hero h1 { font-size: 40px; line-height: 1; margin: 8px 0; }
+.hero p { font-family: var(--serif); font-style: italic; font-size: 18px; color: #D5D0C6; margin: 0; }
 .card { background: #fff; border: 1px solid var(--line); padding: 18px; margin: 14px 0; }
 label { display: block; font-size: 12px; color: var(--ink-2); margin-top: 10px; }
 input, select, textarea { width: 100%; margin-top: 4px; padding: 10px; border: 1px solid var(--line); background: #fff; }

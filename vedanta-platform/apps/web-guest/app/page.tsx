@@ -27,7 +27,7 @@ export default function Book() {
     setErr(null);
     try {
       await api("/guest/enquiries", { method: "POST", body: JSON.stringify({ ...form, people: Number(form.people) }) });
-      setOk("We have your enquiry. The house will write back. This is not the staff app — you cannot see housekeeping, pay or the board from here.");
+      setOk("We have your enquiry. The house will write back.");
     } catch (e) { setErr((e as Error).message); }
   };
   const look = async () => {
@@ -43,13 +43,14 @@ export default function Book() {
     <div className="page">
       <section className="left">
         <div className="kicker">The Vedanta Way</div>
-        <h1>Stay with the house</h1>
-        <p>A 45-room retreat. Check-in from {prop?.check_in_from ?? "15:00"}, rooms by {prop?.check_out_by ?? "11:00"}. Tell us who is coming — the book is kept by the house, not shown here.</p>
+        <h1>Retreat<br />Center</h1>
+        <p className="tag">Luxury Holistic</p>
+        <p>Check-in from {prop?.check_in_from ?? "15:00"}.</p>
       </section>
       <section className="right">
         <div className="card">
           <h2>Enquire</h2>
-          <p className="m">Guests only. Staff sign in on a different door.</p>
+          <p className="m">Guests only.</p>
           <label>Your name</label><input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
           <label>Email</label><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
           <label>How many people</label><input type="number" min={1} value={form.people} onChange={e => setForm({ ...form, people: e.target.value })} />

@@ -7,6 +7,7 @@ h1, h2 { font-family: var(--serif); font-weight: 500; margin: 0; }
 .left { padding: 56px 48px; }
 .left h1 { font-size: 64px; line-height: .92; margin: 16px 0; }
 .left .kicker { letter-spacing: .32em; text-transform: uppercase; color: var(--gold); font-size: 11px; }
+.left .tag { font-family: var(--serif); font-style: italic; font-size: 22px; color: #D5D0C6; margin: 0 0 18px; }
 .right { background: var(--ivory); color: var(--ink); padding: 48px 40px; }
 .card { max-width: 420px; }
 label { display: block; font-size: 12px; color: var(--ink-2); margin-top: 12px; }

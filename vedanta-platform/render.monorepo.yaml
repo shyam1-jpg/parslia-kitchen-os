@@ -54,7 +54,7 @@ services:
       - key: SMTP_URL
         sync: false
       - key: MAIL_FROM
-        value: Vedanta Oway Retreat <bookings@thevedanta.org>
+        value: The Vedanta Way Retreat Center <bookings@thevedanta.org>
 
   - type: web
     name: vedanta-admin
