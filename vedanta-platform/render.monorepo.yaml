@@ -40,10 +40,12 @@ services:
           type: web
           envVarKey: RENDER_EXTERNAL_URL
       - key: BOOTSTRAP_OWNER_EMAIL
-        value: shyam_1@hotmail.co.uk
+        sync: false
       - key: BOOTSTRAP_OWNER_NAME
-        value: Shyam Prasad
+        sync: false
       - key: ALLOW_EMAIL_LOGIN
+        value: "false"
+      - key: GUEST_PORTAL_ENABLED
         value: "true"
       - key: MS_TENANT_ID
         sync: false
@@ -76,6 +78,9 @@ services:
       - path: /*
         name: Referrer-Policy
         value: strict-origin-when-cross-origin
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()
     envVars:
       - key: NODE_VERSION
         value: "22"
