@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { fmt } from "@/lib/format";
+import OpsBoard from "@/components/OpsBoard";
 
 type Estate = {
   today: string;
@@ -63,6 +64,7 @@ export default function HouseToday() {
           )}
           {e.next && <div className="next-stay">Next: {e.next.name} · {fmt(e.next.arrival, { weekday: "short", day: "numeric", month: "short" })} {e.next.arrival_slot}{e.next.expected_guests ? ` · ${e.next.expected_guests} guests` : ""}</div>}
         </section>
+        <OpsBoard compact />
       </div>
     </>
   );

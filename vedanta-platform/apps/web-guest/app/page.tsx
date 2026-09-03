@@ -19,6 +19,7 @@ type Prog = { id: string; name: string; kind: string; basis: string | null; arri
 type Room = { number: string; section: string | null };
 type Mine = { id: string; people: number; arrival: string; departure: string; status: string; programme_name: string | null; notes: string | null; rooms: Room[] };
 type Me = { name: string; email: string };
+type GuestAsk = { id: string; room_label: string | null; department_label: string; request_text: string; status: string };
 
 const fmt = (d: string) => {
   const x = new Date(d + "T12:00:00");
@@ -37,17 +38,21 @@ export default function Book() {
   const [ok, setOk] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [asks, setAsks] = useState<GuestAsk[]>([]);
+  const [ask, setAsk] = useState({ request_text: "", room_label: "" });
 
   const loadSigned = async () => {
     const u = await api<Me>("/guest/me");
     setMe(u);
     setForm(f => ({ ...f, name: u.name, email: u.email }));
-    const [enqs, progs] = await Promise.all([
+    const [enqs, progs, reqs] = await Promise.all([
       api<{ items: Mine[] }>("/guest/enquiries"),
       api<{ items: Prog[] }>("/guest/programmes"),
+      api<{ items: GuestAsk[] }>("/guest/requests").catch(() => ({ items: [] as GuestAsk[] })),
     ]);
     setMine(enqs.items);
     setProgrammes(progs.items);
+    setAsks(reqs.items);
   };
 
   useEffect(() => {
@@ -220,6 +225,28 @@ export default function Book() {
                         {x.rooms?.length
                           ? <div className="rooms">{x.rooms.map(r => <span key={r.number} className="room">{r.number}{r.section ? ` · ${r.section}` : ""}</span>)}</div>
                           : <p className="m" style={{ margin: "8px 0 0" }}>Rooms will appear here when the house assigns them to you.</p>}
+                      </div>
+                    ))}
+                    <h2 style={{ fontSize: 20, marginTop: 18 }}>Need something from the house?</h2>
+                    <p className="m">Towels, a taxi, a meal note — it goes to the right team. Only the house sees this, not other guests.</p>
+                    <label>Your request</label>
+                    <textarea rows={3} value={ask.request_text} onChange={e => setAsk({ ...ask, request_text: e.target.value })} placeholder="e.g. Extra towels in my room" />
+                    <label>Room (optional)</label>
+                    <input value={ask.room_label} onChange={e => setAsk({ ...ask, room_label: e.target.value })} placeholder={mine.flatMap(x => x.rooms ?? []).map(r => r.number).join(", ") || "e.g. 110"} />
+                    <button className="btn" disabled={busy} onClick={async () => {
+                      setBusy(true); setErr(null); setOk(null);
+                      try {
+                        await api("/guest/requests", { method: "POST", body: JSON.stringify(ask) });
+                        setAsk({ request_text: "", room_label: ask.room_label });
+                        setAsks((await api<{ items: GuestAsk[] }>("/guest/requests")).items);
+                        setOk("The house has your request.");
+                      } catch (e) { setErr((e as Error).message); }
+                      finally { setBusy(false); }
+                    }}>{busy ? "…" : "Send to the house"}</button>
+                    {asks.map(a => (
+                      <div className="row" key={a.id} style={{ display: "block" }}>
+                        <span>{a.request_text}</span>
+                        <div className="m">{a.department_label}{a.room_label ? ` · ${a.room_label}` : ""} · {a.status}</div>
                       </div>
                     ))}
                   </div>

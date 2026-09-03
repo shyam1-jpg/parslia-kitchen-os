@@ -12,11 +12,12 @@ button, input, select, textarea { font: inherit; }
 .card { background: #fff; border: 1px solid var(--line); padding: 18px; margin: 14px 0; }
 label { display: block; font-size: 12px; color: var(--ink-2); margin-top: 10px; }
 input, select, textarea { width: 100%; margin-top: 4px; padding: 10px; border: 1px solid var(--line); background: #fff; }
+input[type=checkbox] { width: auto; flex: none; margin: 0 10px 0 0; }
 .btn { display: inline-block; border: 0; background: var(--forest); color: var(--ivory); padding: 12px 16px; margin-top: 14px; width: 100%; font-weight: 500; cursor: pointer; }
 .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); }
 .note { background: #F4EBD8; padding: 10px 12px; margin: 12px 0; font-size: 14px; }
 .m { color: var(--ink-2); font-size: 14px; }
 .row { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-.tabs { display: flex; gap: 6px; margin: 16px 0; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
 .tabs button { flex: 1; border: 1px solid var(--line); background: #fff; padding: 10px; cursor: pointer; }
 .tabs button.on { background: var(--forest); color: var(--ivory); border-color: var(--forest); }

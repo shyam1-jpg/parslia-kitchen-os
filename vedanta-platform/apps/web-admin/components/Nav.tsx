@@ -5,7 +5,7 @@ import { useStore } from "@/lib/store";
 
 const sections: { label: string; items: [string, string, string | null][] }[] = [
   { label: "The house", items: [["/house/", "Today", "group.read"], ["/groups/", "Bookings", "group.read"], ["/rooms/", "Room board", "group.read"]] },
-  { label: "In service", items: [["/housekeeping/", "Housekeeping", "group.read"], ["/maintenance/", "Maintenance", "maintenance.read"], ["/kitchen/", "Kitchen", "covers.read"]] },
+  { label: "In service", items: [["/ops/", "House log", "group.read"], ["/housekeeping/", "Housekeeping", "group.read"], ["/maintenance/", "Maintenance", "maintenance.read"], ["/kitchen/", "Kitchen", "covers.read"]] },
   { label: "People", items: [["/guests/", "Guests", "guest.read"], ["/staff-corner/", "Staff corner", "cover.read"], ["/users/", "Names & positions", "user.manage"]] },
   { label: "The estate", items: [["/review/", "Imported bookings", "group.update"], ["/reports/", "Reports", "report.read"], ["/settings/", "Settings", "package.manage"]] },
 ];

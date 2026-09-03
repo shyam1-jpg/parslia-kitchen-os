@@ -20,7 +20,15 @@ export default function Pocket() {
   const [me, setMe] = useState<Me | null>(null);
   const [email, setEmail] = useState("");
   const [err, setErr] = useState<string | null>(null);
-  const [tab, setTab] = useState<"clock" | "leave" | "duty" | "sop">("clock");
+  const [tab, setTab] = useState<"clock" | "leave" | "duty" | "sop" | "log">("clock");
+  const [ops, setOps] = useState<{
+    progress: { done: number; total: number };
+    handover: { id: string; department_label: string; shift_label: string; body: string; author_name: string | null }[];
+    checklists: { id: string; department_label: string; title: string; done: boolean }[];
+    guest_requests: { id: string; guest_name: string | null; room_label: string | null; department_label: string; request_text: string; status: string }[];
+    notices: { id: string; title: string; body: string }[];
+  } | null>(null);
+  const [note, setNote] = useState("");
   const [clock, setClock] = useState<{ last: string | null; hours_this_week: number } | null>(null);
   const [leave, setLeave] = useState<{ items: { id: string; kind: string; starts_on: string; ends_on: string; status: string }[] } | null>(null);
   const [form, setForm] = useState({ kind: "HOLIDAY", starts_on: "", ends_on: "", note: "" });
@@ -33,6 +41,7 @@ export default function Pocket() {
     setLeave(await api("/staff/leave"));
     setSops((await api<{ items: typeof sops }>("/staff/sop")).items);
     setDuty((await api<{ items: typeof duty }>("/staff/duty")).items);
+    try { setOps(await api("/v1/ops/board")); } catch { setOps(null); }
   };
   useEffect(() => { if (tok.get()) load().catch(() => tok.set(null)); }, []);
 
@@ -67,6 +76,7 @@ export default function Pocket() {
           <button className={tab === "clock" ? "on" : ""} onClick={() => setTab("clock")}>Clock</button>
           <button className={tab === "leave" ? "on" : ""} onClick={() => setTab("leave")}>Holiday</button>
           <button className={tab === "duty" ? "on" : ""} onClick={() => setTab("duty")}>Duty</button>
+          <button className={tab === "log" ? "on" : ""} onClick={() => setTab("log")}>House log</button>
           <button className={tab === "sop" ? "on" : ""} onClick={() => setTab("sop")}>SOP</button>
         </div>
         {tab === "clock" && (
@@ -95,6 +105,34 @@ export default function Pocket() {
             <p className="m">The house places you here. Tips, pay and the rota stay in the house.</p>
             {duty.length === 0 && <p className="m">No shifts on the board yet.</p>}
             {duty.map(d => <div className="row" key={d.id}><span>{d.on_date} · {d.slot}</span><span className="m">{d.kind.toLowerCase()}{d.note ? ` · ${d.note}` : ""}</span></div>)}
+          </div>
+        )}
+        {tab === "log" && (
+          <div>
+            <div className="card">
+              <h2>Today · {ops?.progress.done ?? 0}/{ops?.progress.total ?? 0} checks</h2>
+              <p className="m">Tick the round. Leave a note for the next shift. Guest asks land here instead of WhatsApp.</p>
+              {(ops?.guest_requests ?? []).map(r => (
+                <div className="row" key={r.id} style={{ display: "block" }}>
+                  <b>{r.department_label}</b>
+                  <div>{r.guest_name ? `${r.guest_name}${r.room_label ? ` · ${r.room_label}` : ""} — ` : ""}{r.request_text}</div>
+                  {r.status !== "done" && <button className="btn" onClick={async () => { await api(`/v1/ops/guest-requests/${r.id}`, { method: "PATCH", body: JSON.stringify({ status: r.status === "open" ? "doing" : "done" }) }); setOps(await api("/v1/ops/board")); }}>{r.status === "open" ? "Take it" : "Mark done"}</button>}
+                </div>
+              ))}
+            </div>
+            {(ops?.checklists ?? []).map(c => (
+              <label key={c.id} className="row" style={{ alignItems: "center" }}>
+                <input type="checkbox" checked={c.done} onChange={async e => { await api(`/v1/ops/checklists/${c.id}/tick`, { method: "POST", body: JSON.stringify({ done: e.target.checked }) }); setOps(await api("/v1/ops/board")); }} />
+                <span>{c.title}<div className="m">{c.department_label}</div></span>
+              </label>
+            ))}
+            <div className="card">
+              <h2>Handover</h2>
+              {(ops?.handover ?? []).slice(0, 5).map(h => <div className="row" key={h.id} style={{ display: "block" }}><b>{h.department_label} · {h.shift_label}</b><div>{h.body}</div></div>)}
+              <textarea rows={3} value={note} onChange={e => setNote(e.target.value)} placeholder="What the next shift needs to know" />
+              <button className="btn" onClick={async () => { setErr(null); try { await api("/v1/ops/handover", { method: "POST", body: JSON.stringify({ department: "HOUSE", shift: "am", body: note }) }); setNote(""); setOps(await api("/v1/ops/board")); } catch (e) { setErr((e as Error).message); } }}>Leave the note</button>
+            </div>
+            {(ops?.notices ?? []).map(n => <div className="card" key={n.id}><h2>{n.title}</h2><p>{n.body}</p></div>)}
           </div>
         )}
         {tab === "sop" && (

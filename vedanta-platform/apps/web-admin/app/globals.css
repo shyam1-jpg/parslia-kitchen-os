@@ -266,6 +266,7 @@ button { font: inherit; cursor: pointer; }
 .pulse .s { color: var(--ink-2); font-size: 12.5px; margin-top: 8px; }
 .house-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .house-panel { background: var(--paper); border: 1px solid var(--line); padding: 22px 24px; }
+.house-panel.span2 { grid-column: 1 / -1; }
 .house-panel h2 { font-size: 22px; margin-bottom: 4px; }
 .house-panel .k { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
 .house-list { list-style: none; padding: 0; margin: 0; }
@@ -274,7 +275,18 @@ button { font: inherit; cursor: pointer; }
 .house-list .t { font-weight: 500; }
 .house-list .m { color: var(--ink-2); font-size: 12.5px; }
 .next-stay { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); font-family: var(--serif); font-size: 20px; }
-@media (max-width: 900px) { .pulse { grid-template-columns: 1fr 1fr; } .house-grid { grid-template-columns: 1fr; } .org-grid { grid-template-columns: 1fr; } }
+.ops-grid { grid-template-columns: 1fr 1fr; }
+.ops-card { border-top: 1px solid var(--line); padding: 12px 0; }
+.ops-card:first-of-type { border-top: 0; }
+.ops-card p { margin: 6px 0 0; }
+.ops-card-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.ops-form { margin-top: 16px; display: grid; gap: 8px; }
+.ops-form input, .ops-form select, .ops-form textarea { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: var(--paper); }
+.ops-form .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ops-line { display: grid; gap: 2px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.ops-line b { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); font-weight: 500; }
+.check button.box { background: transparent; padding: 0; cursor: pointer; flex: none; }
+@media (max-width: 900px) { .pulse { grid-template-columns: 1fr 1fr; } .house-grid { grid-template-columns: 1fr; } .ops-grid { grid-template-columns: 1fr; } .org-grid { grid-template-columns: 1fr; } }
 .org { margin-top: 8px; }
 .org-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .house-list .open { color: var(--ink-2); font-weight: 400; font-style: italic; }
