@@ -145,13 +145,16 @@ export default async function guestPortal(f: FastifyInstance) {
     };
   });
 
-  f.get("/guest/programmes", async () => {
+  // Programmes require a valid guest session — no public browsing of house dates.
+  f.get("/guest/programmes", async (req, reply) => {
+    const g = await requireGuest(req, reply); if (!g) return;
     const prop = await propertyRow();
     const r = await pool.query(`${PROGRAMME_SQL} order by g.arrival_date, g.arrival_slot`, [prop.id]);
     return { items: r.rows.filter(x => isPublicProgrammeName(x.name)).map(shapeProgramme) };
   });
 
   f.get("/guest/programmes/:id", async (req: any, reply) => {
+    const g = await requireGuest(req, reply); if (!g) return;
     const prop = await propertyRow();
     const r = (await pool.query(`${PROGRAMME_SQL} and g.id=$2`, [prop.id, req.params.id])).rows[0];
     if (!r || !isPublicProgrammeName(r.name)) return reply.code(404).send(problem(404, "not_found", "That programme is not open"));
