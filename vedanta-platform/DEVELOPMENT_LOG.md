@@ -2,6 +2,25 @@
 
 Handover record for work added on `cursor/vedanta-render-deploy-f604`. Existing pages, routes, schemas and Kiteline/Parslia behaviour are preserved unless a row below says otherwise.
 
+## Increment — Phase A consolidate + Phase B data quality (2026-09-03)
+
+**What.** Repository reconciliation against the master OS command. Documentation corrected to the working stack. Data Quality screen. Compatible guest-book publish flag from PR #98’s idea only.
+
+| | |
+| --- | --- |
+| Files changed | `docs/MASTER_ARCHITECTURE_2026.md`, `README.md`, `PROGRESS.md`, `domains/quality/*`, `db/migrations/0021_guest_open_programmes.sql`, `db/migrations/0022_data_quality.sql`, `services/platform-api/src/quality.ts`, `server.ts` (register only), `groups.ts` (`open_for_guests` column + PATCH), `guestPortal.ts` (SQL filter), `apps/web-admin` quality page + Edit booking checkbox + nav, `packages/contracts/openapi.yaml` (additive `/quality`) |
+| Database | **Additive.** `booking_group.open_for_guests boolean NOT NULL DEFAULT false`. New overlay table `data_quality_finding`. No import row, room, package or occupancy rewritten. |
+| New routes | House `/quality/`. Existing URLs unchanged. |
+| New APIs | `GET /v1/quality` (`group.read`), `PATCH /v1/quality/:code` (`group.update`) |
+| Permissions | Existing `group.read` / `group.update` only. No new permission rows. |
+| Migration required | `0021_guest_open_programmes.sql` then `0022_data_quality.sql`. Never reuse 0013/0019/0020. |
+| Testing completed | Domain quality tests; migrate on live Neon; API live counts; house rebuild; existing `/ops/`, `/review/`, `/rooms/`, `/tasks/` still respond. |
+| Known limitations | Publishing a booking now requires the staff tick **and** the existing public-name heuristic. All current programmes are hidden from `/book/` until staff publish them. Folio, payments, calendar rewrite, POS, AI, CMMS and purchasing were **not** started. PR #98 and unrelated PRs were **not** merged. |
+
+**Why not merge #98.** Draft on `main`. Collision: its `0013_guest_open_programmes.sql` vs this branch’s `0013_ops_board.sql`. Would drop night porter, house log, manuals, tasks, service boards, front desk, payroll.
+
+**Data we did not invent.** Rooms 301–307 stay missing. Package prices stay “confirm the list”. Skipped-row count stays a source conflict (65 vs 6).
+
 ## Increment — shared task engine (2026-09-03)
 
 **Feature.** One house task list every department can use. Guest requests, daily checklists, house log, manuals and maintenance tickets are unchanged. This list sits beside them.

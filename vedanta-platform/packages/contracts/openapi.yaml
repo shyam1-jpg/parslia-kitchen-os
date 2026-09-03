@@ -176,6 +176,40 @@ paths:
       responses:
         '200': { description: Audit events, newest first }
 
+  /quality:
+    get:
+      summary: Live data-quality findings (inventory vs import vs config)
+      description: |
+        Implemented on Fastify as GET /v1/quality. Permission group.read.
+        Returns live counts plus optional house overlay. Never invents rooms, dates or prices.
+        Statuses: VERIFIED, NEEDS_REVIEW, SOURCE_CONFLICT, MISSING.
+      responses:
+        '200':
+          description: Findings with evidence and links to /review/ and /rooms/
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+
+  /quality/{code}:
+    patch:
+      summary: Record a house decision on a finding without changing import rows
+      description: Implemented on Fastify as PATCH /v1/quality/:code. Permission group.update.
+      parameters:
+        - { name: code, in: path, required: true, schema: { type: string, enum: [ROOM_COUNT, ROOMS_301_307, UNLINKED_PLACEMENTS, ASSUMED_DEPARTURES, SKIPPED_IMPORT_ROWS, PACKAGE_PRICES] } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [VERIFIED, NEEDS_REVIEW, SOURCE_CONFLICT, MISSING] }
+                note: { type: string, maxLength: 2000 }
+      responses:
+        '200': { description: Overlay saved }
+        '404': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+
 components:
   securitySchemes:
     bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }

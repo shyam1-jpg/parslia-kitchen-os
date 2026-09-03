@@ -1,19 +1,23 @@
-# Vedanta Oway Retreat — Unified Retreat & Hotel Management Platform
+# Vedanta Retreat Operating System
 
-Working repository for the platform described in the Master Specification (v1.0, 2 Sept 2026).
+Working house OS for **The Vedanta Way**. Authoritative architecture: [docs/MASTER_ARCHITECTURE_2026.md](docs/MASTER_ARCHITECTURE_2026.md). Progress: [PROGRESS.md](PROGRESS.md).
+
+The older “NestJS / 45-room seed” description is stale. The stack was **not** rewritten to match that text — the documentation is corrected to match the code.
 
 ## What is here
 
 ```
-apps/web-admin        Next.js admin (receptionist, housekeeping, manager screens) — Week 1–2
-services/platform-api TypeScript API (NestJS) — Week 1–2
-packages/contracts    OpenAPI 3.1 contract — source of truth for every endpoint
+apps/web-admin        House UI — Next.js static export (not a live App Router server)
+apps/web-guest        Guest book at /book/
+apps/web-staff        Pocket at /pocket/
+services/platform-api Fastify API on port 4000 (not NestJS)
+packages/contracts    OpenAPI 3.1 — keep as the contract; live routes are /v1/*
 domains/*             Pure domain logic: state machines, rules, no framework code
 db/migrations         PostgreSQL schema, one numbered file per change
-db/seed               Property facts: 45 rooms, restaurant, roles, staff
-config/               Property configuration (the spec's [CONFIGURE] values)
+db/seed               Property seed. Live inventory is 42 imported rooms; config still states 45
+config/               Property configuration (rooms_total: 45 is a claim, not invented inventory)
 infra/                docker-compose for local Postgres + Redis
-docs/adr              Architecture decision records
+docs/                 Architecture, import notes, ADRs
 PROGRESS.md           What is done, what is next — read this first every session
 ```
 

@@ -3,7 +3,7 @@
 Company: The Vedanta Way Ltd · https://www.thevedanta.org/
 Current booking system: a Google Sheet (to be imported, see docs/migration.md)
 
-Property facts: 45 rooms · restaurant 150 seats / 130 max covers · 25 staff · UK/GBP.
+Property facts: config states 45 rooms; live imported inventory is 42 (see Data quality). Restaurant 150 seats / 130 max covers · 25 staff · UK/GBP.
 
 ## Done
 - 2026-09-02 · Session 1 (Week 1, day 1)
@@ -177,9 +177,9 @@ Property facts: 45 rooms · restaurant 150 seats / 130 max covers · 25 staff ·
     housekeeping card. Permissions maintenance.read/report/work.
 
 ## Not yet done from the import
-- ~11,000 grey half-days remain unlinked (dates where several groups share the house); staff link
-  them from the board as they go, or we add name-matching against booking forms later.
-- 126 bookings have an assumed departure; 65 sheet rows were skipped (see docs/import-dry-run).
+- Unlinked room-sheet placements remain (live count on `/quality/`). Staff link them from the board.
+- Assumed-departure bookings remain on `/review/`. Do not invent dates on Data quality.
+- Skipped import rows: PROGRESS historically said 65; dry-run doc lists 6 attention rows. **SOURCE CONFLICT** — do not pick a number. Both figures are shown on `/quality/`.
 
 - 2026-09-02 · Session 12 — Render trial path
   - `render.yaml` Blueprint: vedanta-db (Postgres 16), vedanta-api (Node 22), vedanta-admin
@@ -201,11 +201,18 @@ Property facts: 45 rooms · restaurant 150 seats / 130 max covers · 25 staff ·
   - Backend: `GET /v1/estate` — London-dated pulse (in residence, arrivals, rooms tonight, dinner)
     plus property facts. New booking colours use the house palette.
 
+- 2026-09-03 · Phase A + B — consolidate and data quality
+  - Repository reconciliation: PR #97 is the Vedanta OS baseline. `main` is older. PR #98 is **not** merged (would collide and drop house OS screens). Compatible idea only: `open_for_guests`.
+  - `docs/MASTER_ARCHITECTURE_2026.md` — actual Fastify stack, one-source-of-truth map, phase plan.
+  - README corrected to Fastify + 42 imported rooms vs 45 stated. Stack not rewritten.
+  - Data quality `/quality/` — live counts, statuses VERIFIED / NEEDS_REVIEW / SOURCE_CONFLICT / MISSING. Overlay table `data_quality_finding` does not change import rows. Rooms 301–307 and package prices are not invented.
+  - Guest-book publish flag `booking_group.open_for_guests` (default false). Existing name privacy still applies.
+
 ## Next (in order)
-1. Shyam: Apply `vedanta-platform/render.monorepo.yaml` from this branch on Render, open vedanta-admin, sign in as `shyam_1@hotmail.co.uk`; paste the API migrate log. Entra later.
-2. Confirm the live price list (Settings, or reply with the eight package prices).
-3. Purchasing & stock (spec §9) or programmes/itineraries (§8) — next domains after the trial feedback.
-4. Edit an existing booking (dates, guests, price) with availability re-check.
+1. Phase C — upgrade the **existing** room board (preserve drag). Server-side move validation, conflict copy, groups/spaces/Guest 360. Do not replace the calendar.
+2. Confirm the live price list and rooms 301–307 with the house (Data quality). Do not invent values.
+3. Phase D — folio and hospitality payment domain (feature-flagged). Not Kiteline billing.
+4. Later phases E–J as in `docs/MASTER_ARCHITECTURE_2026.md`.
 
 ## Open questions for Shyam
 - Rooms 301–307 appear in 2024/25 sheets but not 2026: still in use? (42 vs 45 stated)
