@@ -30,6 +30,7 @@ export type QualityFinding = {
   decided_by: string | null;
   decided_at: string | null;
   evidence: Record<string, unknown>;
+  lines: string[];
   links: { href: string; label: string }[];
 };
 
@@ -124,6 +125,7 @@ export function buildQualityItems(input: {
       decided_by: overlay?.decided_by ?? null,
       decided_at: overlay?.decided_at ?? null,
       evidence: r.evidence,
+      lines: evidenceLines(r.code, r.evidence),
       links: r.links,
     };
   });
@@ -168,4 +170,33 @@ export function qualityLabel(status: string): string {
   if (status === "SOURCE_CONFLICT") return "Source conflict";
   if (status === "MISSING") return "Missing";
   return status;
+}
+
+export function evidenceLines(code: QualityCode, evidence: Record<string, unknown>): string[] {
+  if (code === "ROOM_COUNT") {
+    return [
+      `Configured: ${evidence.configured ?? "—"}`,
+      `Imported: ${evidence.actual ?? "—"} (${evidence.guest ?? "—"} guest, ${evidence.staff ?? "—"} staff)`,
+    ];
+  }
+  if (code === "ROOMS_301_307") {
+    const missing = Array.isArray(evidence.missing) ? evidence.missing.map(String) : [];
+    const present = Array.isArray(evidence.present) ? evidence.present.map(String) : [];
+    return [
+      `On 2024/25 sheets, not invented here: ${(Array.isArray(evidence.sheet_only) ? evidence.sheet_only : SHEET_ONLY_ROOM_NUMBERS).join(", ")}`,
+      missing.length ? `Still missing from inventory: ${missing.join(", ")}` : "All sheet rooms are now in inventory",
+      present.length ? `Now in inventory: ${present.join(", ")}` : "None of 301–307 are in the 2026 inventory",
+    ];
+  }
+  if (code === "UNLINKED_PLACEMENTS") return [`Unlinked half-days: ${evidence.unlinked ?? 0}`];
+  if (code === "ASSUMED_DEPARTURES") return [`Bookings still on Imported bookings: ${evidence.assumed_departures ?? 0}`];
+  if (code === "SKIPPED_IMPORT_ROWS") {
+    return [
+      `PROGRESS.md recorded: ${evidence.progress_md ?? "—"} skipped rows`,
+      `Dry-run note recorded: ${evidence.dry_run_doc ?? "—"} attention rows`,
+      "Both figures stay until the original import log is re-run. This screen will not pick one.",
+    ];
+  }
+  if (code === "PACKAGE_PRICES") return [`Packages on file: ${evidence.package_count ?? 0}. Prices stay example until the house confirms the list.`];
+  return Object.entries(evidence).map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : String(v)}`);
 }

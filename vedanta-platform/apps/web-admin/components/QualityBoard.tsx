@@ -4,6 +4,32 @@ import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { useStore } from "@/lib/store";
 
+const HOUSE_LINKS: { href: string; label: string }[] = [
+  { href: "/house/", label: "Today" },
+  { href: "/groups/", label: "Bookings" },
+  { href: "/rooms/", label: "Room board" },
+  { href: "/ops/", label: "House log" },
+  { href: "/tasks/", label: "Tasks" },
+  { href: "/front/", label: "Front desk" },
+  { href: "/night/", label: "Night porter" },
+  { href: "/service/", label: "Department boards" },
+  { href: "/manual/", label: "Manual" },
+  { href: "/housekeeping/", label: "Housekeeping" },
+  { href: "/maintenance/", label: "Maintenance" },
+  { href: "/kitchen/", label: "Kitchen" },
+  { href: "/guests/", label: "Guests" },
+  { href: "/staff-corner/", label: "Staff corner" },
+  { href: "/payroll/", label: "Payroll" },
+  { href: "/users/", label: "Names & positions" },
+  { href: "/review/", label: "Imported bookings" },
+  { href: "/quality/", label: "Data quality" },
+  { href: "/reports/", label: "Reports" },
+  { href: "/settings/", label: "Settings" },
+  { href: "/book/", label: "Guest book" },
+  { href: "/pocket/", label: "Pocket" },
+  { href: "/sign-in/", label: "House sign-in" },
+];
+
 type Finding = {
   code: string;
   title: string;
@@ -15,6 +41,7 @@ type Finding = {
   decided_by: string | null;
   decided_at: string | null;
   evidence: Record<string, unknown>;
+  lines?: string[];
   links: { href: string; label: string }[];
 };
 type Report = {
@@ -85,6 +112,18 @@ export default function QualityBoard() {
       </div>
 
       <section className="house-panel" style={{ marginBottom: 16 }}>
+        <div className="k">House pages</div>
+        <h2>Every working link</h2>
+        <p className="m" style={{ color: "var(--ink-2)", marginBottom: 10 }}>
+          Guest book at /book/ stays empty of programmes until a member of staff ticks Show on guest book.
+          Pocket is /pocket/. The public root / opens the guest book, not the house.
+        </p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {HOUSE_LINKS.map(l => <Link key={l.href} className="btn" href={l.href}>{l.label}</Link>)}
+        </div>
+      </section>
+
+      <section className="house-panel" style={{ marginBottom: 16 }}>
         <div className="k">Live inventory</div>
         <h2>What is in the database now</h2>
         <p>
@@ -104,16 +143,18 @@ export default function QualityBoard() {
                 <div className="k">{item.code.replace(/_/g, " ")}</div>
                 <h2>{item.title}</h2>
               </div>
-              <span className={"chip " + (CHIP[item.status] ?? "PROVISIONAL")}>{label(item.status)}</span>
+              <span className={"chip " + (CHIP[item.computed_status] ?? "PROVISIONAL")}>{label(item.computed_status)}</span>
             </div>
             <p>{item.detail}</p>
             <p className="m" style={{ color: "var(--ink-2)" }}>
-              Computed from live data: {label(item.computed_status)}
-              {item.house_status ? ` · house marked ${label(item.house_status)}` : " · house has not marked this yet"}
-              {item.decided_by ? ` · ${item.decided_by}` : ""}
-              {item.note ? ` — ${item.note}` : ""}
+              Live data: {label(item.computed_status)}.
+              {item.house_status
+                ? ` House note: ${label(item.house_status)}${item.decided_by ? ` · ${item.decided_by}` : ""}${item.note ? ` — ${item.note}` : ""}.`
+                : " House has not marked this yet."}
             </p>
-            <pre className="m" style={{ whiteSpace: "pre-wrap", color: "var(--ink-2)", marginTop: 8 }}>{JSON.stringify(item.evidence, null, 2)}</pre>
+            <ul className="m" style={{ color: "var(--ink-2)", marginTop: 8, paddingLeft: 18 }}>
+              {(item.lines ?? []).map(line => <li key={line}>{line}</li>)}
+            </ul>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
               {item.links.map(l => <Link key={l.href} className="btn" href={l.href}>{l.label}</Link>)}
             </div>

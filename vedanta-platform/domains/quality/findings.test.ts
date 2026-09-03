@@ -10,6 +10,7 @@ import {
   classifyDocumentedCounts,
   classifyMissingRooms,
   classifyRoomCount,
+  evidenceLines,
   parseQualityStatus,
 } from "./findings.ts";
 
@@ -53,6 +54,7 @@ describe("data quality classifications", () => {
     assert.equal(items.find(i => i.code === "ROOMS_301_307")?.computed_status, "MISSING");
     assert.deepEqual(items.find(i => i.code === "ROOMS_301_307")?.evidence.missing, [...SHEET_ONLY_ROOM_NUMBERS]);
     assert.equal(items.find(i => i.code === "SKIPPED_IMPORT_ROWS")?.computed_status, "SOURCE_CONFLICT");
+    assert.ok(items.find(i => i.code === "ROOM_COUNT")?.lines.some(l => l.includes("Imported: 42")));
     const overlay = buildQualityItems({
       configured: 45, actual: 42, guest: 41, staff: 1, numbers: ["101"],
       assumedDepartures: 1, unlinkedPlacements: 1,
@@ -62,5 +64,11 @@ describe("data quality classifications", () => {
     assert.equal(overlay[0].house_status, "VERIFIED");
     assert.equal(overlay[0].status, "VERIFIED");
     assert.equal(overlay[0].computed_status, "SOURCE_CONFLICT");
+  });
+  it("writes house-readable evidence, not a JSON dump", () => {
+    const lines = evidenceLines("ROOMS_301_307", { sheet_only: [...SHEET_ONLY_ROOM_NUMBERS], missing: [...SHEET_ONLY_ROOM_NUMBERS], present: [] });
+    assert.ok(lines.some(l => l.includes("301, 302, 303, 304, 305, 306, 307")));
+    assert.ok(!lines.some(l => l.includes("{")));
+    assert.deepEqual(evidenceLines("SKIPPED_IMPORT_ROWS", { progress_md: 65, dry_run_doc: 6 })[0], "PROGRESS.md recorded: 65 skipped rows");
   });
 });
