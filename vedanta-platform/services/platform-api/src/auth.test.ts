@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { emailLoginEnabled, staffEmailLoginEnabled } from "./auth.ts";
+import { emailLoginEnabled, staffEmailLoginEnabled, productionOwnerAllowed } from "./auth.ts";
 
 function restore(name: string, value: string | undefined) {
   if (value === undefined) delete process.env[name];
@@ -49,5 +49,41 @@ describe("emailLoginEnabled guest portal flag", () => {
     process.env.GUEST_PORTAL_ENABLED = "false";
     try { assert.equal(emailLoginEnabled(), false); }
     finally { restore("GUEST_PORTAL_ENABLED", prev); }
+  });
+});
+
+describe("productionOwnerAllowed", () => {
+  it("allows local development owners without an allowlist", () => {
+    const prevEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "development";
+    try { assert.equal(productionOwnerAllowed("owner@example.com"), true); }
+    finally { restore("NODE_ENV", prevEnv); }
+  });
+
+  it("rejects a production system owner not explicitly configured", () => {
+    const prevEnv = process.env.NODE_ENV;
+    const prevOwner = process.env.BOOTSTRAP_OWNER_EMAIL;
+    const prevAdmins = process.env.BOOTSTRAP_ADMIN_EMAILS;
+    const prevAllow = process.env.SYSTEM_OWNER_ALLOWLIST;
+    process.env.NODE_ENV = "production";
+    delete process.env.BOOTSTRAP_OWNER_EMAIL;
+    delete process.env.BOOTSTRAP_ADMIN_EMAILS;
+    delete process.env.SYSTEM_OWNER_ALLOWLIST;
+    try { assert.equal(productionOwnerAllowed("owner@example.com"), false); }
+    finally {
+      restore("NODE_ENV", prevEnv);
+      restore("BOOTSTRAP_OWNER_EMAIL", prevOwner);
+      restore("BOOTSTRAP_ADMIN_EMAILS", prevAdmins);
+      restore("SYSTEM_OWNER_ALLOWLIST", prevAllow);
+    }
+  });
+
+  it("allows production owners explicitly configured by deployment secret", () => {
+    const prevEnv = process.env.NODE_ENV;
+    const prevOwner = process.env.BOOTSTRAP_OWNER_EMAIL;
+    process.env.NODE_ENV = "production";
+    process.env.BOOTSTRAP_OWNER_EMAIL = "Owner@Example.com";
+    try { assert.equal(productionOwnerAllowed("owner@example.com"), true); }
+    finally { restore("NODE_ENV", prevEnv); restore("BOOTSTRAP_OWNER_EMAIL", prevOwner); }
   });
 });
