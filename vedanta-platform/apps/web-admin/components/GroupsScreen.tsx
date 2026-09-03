@@ -29,7 +29,7 @@ export default function GroupsScreen() {
   const [email, setEmail] = useState<"form_link" | "confirmation" | null>(null);
   const [attendees, setAttendees] = useState<{ given_name: string; family_name: string; diet: string[] | null; allergens: string[] | null; severity: string | null; room_preference: string | null; arrives_early: boolean }[] | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [enquiries, setEnquiries] = useState<{ id: string; name: string; email: string; people: number; arrival: string; departure: string; notes: string | null }[]>([]);
+  const [enquiries, setEnquiries] = useState<{ id: string; name: string; email: string; people: number; arrival: string; departure: string; notes: string | null; programme_name?: string | null }[]>([]);
   const today = new Date().toISOString().slice(0, 10);
   const sel = groups.find(g => g.id === selId) ?? groups.filter(g => g.status !== "CANCELLED" && g.status !== "COMPLETED" && g.departure >= today).sort((a, b) => a.arrival.localeCompare(b.arrival))[0];
   useEffect(() => { setAttendees(null); setFormUrl(null); if (sel?.attendees) api<{ items: typeof attendees }>(`/v1/groups/${sel.id}/attendees`).then(r => setAttendees(r.items)).catch(() => {}); }, [sel?.id, sel?.attendees]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -81,7 +81,7 @@ export default function GroupsScreen() {
           <p className="m" style={{ color: "var(--ink-2)" }}>Guests sent these from /book. Take one into the house book to hold rooms.</p>
           {enquiries.map(e => (
             <div className="urow" key={e.id}>
-              <div><div className="t">{e.name}</div><div className="m">{e.email} · {e.arrival} → {e.departure} · {e.people} people{e.notes ? ` · ${e.notes}` : ""}</div></div>
+              <div><div className="t">{e.name}{e.programme_name ? ` · ${e.programme_name}` : ""}</div><div className="m">{e.email} · {e.arrival} → {e.departure} · {e.people} people{e.notes ? ` · ${e.notes}` : ""}</div></div>
               {can("group.create") && <button className="btn primary" onClick={() => run(async () => { await api(`/v1/guest-enquiries/${e.id}/take`, { method: "POST" }); setEnquiries(s => s.filter(x => x.id !== e.id)); await reload(); say("In the book"); })}>Take into the book</button>}
             </div>
           ))}

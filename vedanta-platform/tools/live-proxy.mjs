@@ -22,15 +22,16 @@ const MIME = {
   ".woff2": "font/woff2",
 };
 
-function isApi(urlPath) {
+function apiPath(urlPath) {
+  const p = urlPath.split("?")[0];
   return (
-    urlPath.startsWith("/health") ||
-    urlPath.startsWith("/auth") ||
-    urlPath.startsWith("/me") ||
-    urlPath.startsWith("/v1") ||
-    urlPath.startsWith("/integrations") ||
-    urlPath.startsWith("/staff") ||
-    urlPath.startsWith("/guest")
+    p === "/health" || p.startsWith("/health/") ||
+    p === "/auth" || p.startsWith("/auth/") ||
+    p === "/me" || p.startsWith("/me/") ||
+    p === "/v1" || p.startsWith("/v1/") ||
+    p === "/integrations" || p.startsWith("/integrations/") ||
+    p === "/staff" || p.startsWith("/staff/") ||
+    p === "/guest" || p.startsWith("/guest/")
   );
 }
 
@@ -61,7 +62,7 @@ const server = http.createServer((req, res) => {
     res.end();
     return;
   }
-  if (isApi(urlPath)) {
+  if (apiPath(urlPath)) {
     const proxy = http.request(
       { hostname: API_HOST, port: API_PORT, path: urlPath, method: req.method, headers: { ...req.headers, host: `${API_HOST}:${API_PORT}` } },
       (up) => {
