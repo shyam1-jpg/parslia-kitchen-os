@@ -1,23 +1,25 @@
--- Development users: one per role, sign in by email with no password (dev only).
+-- Development-only identities must never be real staff accounts.
+-- Production staff are provisioned explicitly through BOOTSTRAP_OWNER_EMAIL /
+-- BOOTSTRAP_ADMIN_EMAILS and authenticate with Microsoft 365.
+--
+-- These placeholder accounts are harmless in production because email-only staff
+-- sign-in is hard-disabled when NODE_ENV=production. They exist only so a fresh
+-- local database has role examples for UI/permission testing.
 DO $$
 DECLARE t uuid; p uuid; u uuid; r record;
 BEGIN
   SELECT id INTO t FROM tenant LIMIT 1; SELECT id INTO p FROM property WHERE tenant_id=t LIMIT 1;
   FOR r IN SELECT * FROM (VALUES
-    ('shyam@thevedanta.org','Shyam','SYSTEM_OWNER','MGMT'),
-    ('shyam_1@hotmail.co.uk','Shyam Prasad','SYSTEM_OWNER','MGMT'),
-    ('dan@thevedanta.org','Dan','GENERAL_MANAGER','MGMT'),
-    ('shannon@thevedanta.org','Shannon','SYSTEM_OWNER','MGMT'),
-    ('losi@thevedanta.org','Losi','SYSTEM_OWNER','MGMT'),
-    ('gram@thevedanta.org','Graham','GROUNDS','GROUNDS'),
-    ('manager@thevedanta.org','Nitesh','GENERAL_MANAGER','MGMT'),
-    ('sara@thevedanta.org','Sara','FRONT_OFFICE_MANAGER','FRONT'),
-    ('reception@thevedanta.org','Reception desk','RECEPTIONIST','FRONT'),
-    ('housekeeping@thevedanta.org','Housekeeping lead','HK_SUPERVISOR','HK'),
-    ('chef@thevedanta.org','Head chef','HEAD_CHEF','KITCHEN'),
-    ('kitchen@thevedanta.org','Kitchen team','KITCHEN','KITCHEN'),
-    ('programmes@thevedanta.org','Programme team','PROGRAMME','PROGRAMME'),
-    ('maintenance@thevedanta.org','Maintenance','MAINTENANCE','MAINT')
+    ('dev.owner@example.invalid','Development Owner','SYSTEM_OWNER','MGMT'),
+    ('dev.gm@example.invalid','Development GM','GENERAL_MANAGER','MGMT'),
+    ('dev.front@example.invalid','Development Front Office','FRONT_OFFICE_MANAGER','FRONT'),
+    ('dev.reception@example.invalid','Development Reception','RECEPTIONIST','FRONT'),
+    ('dev.housekeeping@example.invalid','Development Housekeeping','HK_SUPERVISOR','HK'),
+    ('dev.chef@example.invalid','Development Head Chef','HEAD_CHEF','KITCHEN'),
+    ('dev.kitchen@example.invalid','Development Kitchen','KITCHEN','KITCHEN'),
+    ('dev.programmes@example.invalid','Development Programme Team','PROGRAMME','PROGRAMME'),
+    ('dev.maintenance@example.invalid','Development Maintenance','MAINTENANCE','MAINT'),
+    ('dev.grounds@example.invalid','Development Grounds','GROUNDS','GROUNDS')
   ) v(email,name,role,dept) LOOP
     INSERT INTO app_user (tenant_id,email,display_name) VALUES (t,r.email,r.name) RETURNING id INTO u;
     INSERT INTO membership (tenant_id,user_id,property_id,role_id,department_id)
