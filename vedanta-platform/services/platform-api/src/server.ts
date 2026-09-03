@@ -21,6 +21,7 @@ import guestPortal from "./guestPortal.ts";
 import ops from "./ops.ts";
 import service from "./service.ts";
 import manuals from "./manuals.ts";
+import tasks from "./tasks.ts";
 
 const app = Fastify({ logger: process.env.NODE_ENV !== "test" });
 
@@ -39,5 +40,5 @@ app.setErrorHandler((err: any, req, reply) => {
 });
 
 app.get("/health", async () => { await pool.query("select 1"); return { ok: true }; });
-await app.register(authRoutes); await app.register(microsoft); await app.register(groups, { prefix: "/v1" }); await app.register(occupancy, { prefix: "/v1" }); await app.register(users, { prefix: "/v1" }); await app.register(guests, { prefix: "/v1" }); await app.register(housekeeping, { prefix: "/v1" }); await app.register(reports, { prefix: "/v1" }); await app.register(packages, { prefix: "/v1" }); await app.register(forms); await app.register(integrations); await app.register(email); await app.register(maintenance, { prefix: "/v1" }); await app.register(autoplace, { prefix: "/v1" }); await app.register(estate, { prefix: "/v1" }); await app.register(workforce); await app.register(guestPortal); await app.register(ops); await app.register(service); await app.register(manuals);
+await app.register(authRoutes); await app.register(microsoft); await app.register(groups, { prefix: "/v1" }); await app.register(occupancy, { prefix: "/v1" }); await app.register(users, { prefix: "/v1" }); await app.register(guests, { prefix: "/v1" }); await app.register(housekeeping, { prefix: "/v1" }); await app.register(reports, { prefix: "/v1" }); await app.register(packages, { prefix: "/v1" }); await app.register(forms); await app.register(integrations); await app.register(email); await app.register(maintenance, { prefix: "/v1" }); await app.register(autoplace, { prefix: "/v1" }); await app.register(estate, { prefix: "/v1" }); await app.register(workforce); await app.register(guestPortal); await app.register(ops); await app.register(service); await app.register(manuals); await app.register(tasks);
 app.listen({ port: Number(process.env.PORT ?? 4000), host: "0.0.0.0" }).catch(e => { console.error(e); process.exit(1); });
