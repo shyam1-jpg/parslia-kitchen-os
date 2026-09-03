@@ -27,7 +27,7 @@ const fromApiRoom = (r: ApiRoom): Room => ({
 });
 
 type Store = {
-  user: User | null; ready: boolean; signIn: (email: string) => Promise<void>; signInWithToken: (t: string) => Promise<void>; signOut: () => void; can: (p: string) => boolean;
+  user: User | null; ready: boolean; signIn: (email: string) => Promise<void>; signInWithToken: (t: string) => Promise<void>; signOut: () => Promise<void>; can: (p: string) => boolean;
   rooms: Room[]; groups: Group[]; occupancy: Occupancy[]; loading: boolean; error: string | null;
   reload: () => Promise<void>; loadOccupancy: (from: string, to: string) => Promise<void>;
   addGroup: (g: Record<string, unknown>) => Promise<Group>;
@@ -80,7 +80,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     can: (p) => !!user?.permissions.includes(p),
     signIn: async (email) => { const r = await api<{ token: string; user: User }>("/auth/login", { method: "POST", body: JSON.stringify({ email }) }); token.set(r.token); setUser(r.user); },
     signInWithToken: async (t) => { token.set(t); const u = await api<User>("/me"); setUser(u); },
-    signOut: () => { token.set(null); setUser(null); setGroups([]); setOcc([]); },
+    signOut: async () => {
+      try { if (token.get()) await api("/auth/logout", { method: "POST" }); } catch { /* local cleanup still happens */ }
+      token.set(null); setUser(null); setGroups([]); setOcc([]);
+    },
     addGroup: async (g) => { const r = await api<ApiGroup>("/v1/groups", { method: "POST", body: JSON.stringify(g) }); await reload(); return fromApiGroup(r); },
     updateGroup: async (id, patch) => { const cur = groups.find(x => x.id === id)!; await api(`/v1/groups/${id}`, { method: "PATCH", body: JSON.stringify(patch), version: cur.version }); await reload(); },
     command: async (id, cmd, reason) => { const cur = groups.find(x => x.id === id)!; await api(`/v1/groups/${id}/commands/${cmd}`, { method: "POST", body: JSON.stringify({ reason }), version: cur.version }); await reload(); },
