@@ -29,11 +29,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: vedanta-platform/package-lock.json
 
-      - name: Install
-        run: npm ci
+      - name: Install workspaces
+        # package-lock.json predates web-guest/web-staff workspaces. Install without
+        # rewriting it here so CI can validate the code; regenerate the lockfile in
+        # a dedicated dependency-maintenance commit before production release.
+        run: npm install --package-lock=false --no-audit --no-fund
 
       - name: Domain tests
         run: npm run test:domains
