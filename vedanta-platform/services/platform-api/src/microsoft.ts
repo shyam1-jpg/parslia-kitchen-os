@@ -7,14 +7,14 @@ import { createHash, randomBytes } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { pool } from "./db.ts";
-import { problem } from "./auth.ts";
+import { emailLoginEnabled, problem } from "./auth.ts";
 
 const cfg = () => ({ tenant: process.env.MS_TENANT_ID, client: process.env.MS_CLIENT_ID, secret: process.env.MS_CLIENT_SECRET, api: process.env.PUBLIC_URL, web: process.env.WEB_URL ?? "http://localhost:3000" });
 export const microsoftEnabled = () => !!(cfg().tenant && cfg().client && cfg().secret && cfg().api);
 const pending = new Map<string, { verifier: string; at: number }>();  // state → PKCE verifier, 10 minutes
 
 export default async function microsoft(f: FastifyInstance) {
-  f.get("/auth/providers", async () => ({ microsoft: microsoftEnabled(), dev: process.env.NODE_ENV !== "production" }));
+  f.get("/auth/providers", async () => ({ microsoft: microsoftEnabled(), dev: process.env.NODE_ENV !== "production", email: emailLoginEnabled() }));
 
   f.get("/auth/microsoft", async (req, reply) => {
     if (!microsoftEnabled()) return reply.code(404).send(problem(404, "not_configured", "Microsoft sign-in is not configured"));

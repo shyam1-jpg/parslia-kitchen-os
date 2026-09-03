@@ -40,6 +40,8 @@ services:
         value: shyam_1@hotmail.co.uk
       - key: BOOTSTRAP_OWNER_NAME
         value: Shyam Prasad
+      - key: ALLOW_EMAIL_LOGIN
+        value: "true"
       - key: MS_TENANT_ID
         sync: false
       - key: MS_CLIENT_ID

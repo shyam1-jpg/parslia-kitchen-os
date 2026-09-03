@@ -1,11 +1,18 @@
 /**
- * Development sign-in: POST /auth/login {email} → session token (table `session`, 12h).
- * Production replaces only this file's login step with the OIDC provider; permissions,
- * memberships and audit actors are already real.
+ * Sign-in: POST /auth/login {email} → session token (table `session`, 12h).
+ * Always on outside production. In production it is on only when ALLOW_EMAIL_LOGIN=true
+ * so the first trial can start before Microsoft 365 is wired. Microsoft (microsoft.ts)
+ * is the long-term path; permissions still come from app_user + membership.
  */
 import { randomBytes } from "node:crypto";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { pool } from "./db.ts";
+
+export function emailLoginEnabled(): boolean {
+  if (process.env.NODE_ENV !== "production") return true;
+  const v = (process.env.ALLOW_EMAIL_LOGIN ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}
 
 export type Actor = { userId: string; tenantId: string; propertyId: string; email: string; name: string; role: string; perms: Set<string> };
 
@@ -48,13 +55,14 @@ export function allow(a: Actor, perm: string, reply: FastifyReply): boolean {
 
 export default async function authRoutes(f: FastifyInstance) {
   const devOnly = (reply: FastifyReply) => { if (process.env.NODE_ENV === "production") { reply.code(404).send(problem(404, "not_found", "Development sign-in is disabled in production")); return false; } return true; };
+  const emailLoginOk = (reply: FastifyReply) => { if (emailLoginEnabled()) return true; reply.code(404).send(problem(404, "not_found", "Email sign-in is disabled. Use Microsoft 365, or set ALLOW_EMAIL_LOGIN=true for the trial.")); return false; };
   f.get("/auth/users", async (_req, reply) => {
     if (!devOnly(reply)) return;
     const { rows } = await pool.query(`select u.email, u.display_name name, r.name role from app_user u join membership m on m.user_id=u.id join role r on r.id=m.role_id where u.status='ACTIVE' order by r.code, u.display_name`);
     return { items: rows };
   });
   f.post("/auth/login", async (req: FastifyRequest<{ Body: { email?: string } }>, reply) => {
-    if (!devOnly(reply)) return;
+    if (!emailLoginOk(reply)) return;
     const email = req.body?.email?.toLowerCase();
     const a = email ? await loadActor("where lower(u.email) = $1", email) : null;
     if (!a) return reply.code(401).send(problem(401, "unknown_user", "No active user with that email"));

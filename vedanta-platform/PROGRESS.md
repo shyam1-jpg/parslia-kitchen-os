@@ -192,9 +192,11 @@ Property facts: 45 rooms · restaurant 150 seats / 130 max covers · 25 staff ·
   - Seed includes `shyam_1@hotmail.co.uk` as SYSTEM_OWNER alongside `shyam@thevedanta.org`.
   - Staff admins: Dan, Shannon, Losi, Gram (`dan@` / `shannon@` / `losi@` / `gram@thevedanta.org`).
   - `docs/deploy.md` leads with the Render + Entra steps; example price list included.
+  - Trial email sign-in: `ALLOW_EMAIL_LOGIN=true` on the Blueprint so production can sign in as
+    `shyam_1@hotmail.co.uk` before Microsoft 365 is configured. `/auth/providers` reports `email`.
 
 ## Next (in order)
-1. Shyam: create the private GitHub repo, Apply the Render Blueprint, paste the API migrate log; add Entra secrets.
+1. Shyam: Apply `vedanta-platform/render.monorepo.yaml` from this branch on Render, open vedanta-admin, sign in as `shyam_1@hotmail.co.uk`; paste the API migrate log. Entra later.
 2. Confirm the live price list (Settings, or reply with the eight package prices).
 3. Purchasing & stock (spec §9) or programmes/itineraries (§8) — next domains after the trial feedback.
 4. Edit an existing booking (dates, guests, price) with availability re-check.

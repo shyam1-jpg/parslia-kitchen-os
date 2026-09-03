@@ -1,10 +1,24 @@
 # Deploying the staff trial
 
-The simplest path is **Render** (about 20 minutes). A VPS with Docker is still documented at the end if you would rather run it yourself.
+The simplest path is **Render**. First sign-in is **`shyam_1@hotmail.co.uk`** (no password for this trial). A VPS with Docker is still documented at the end if you would rather run it yourself.
 
-## 0. Get the code onto GitHub
+## 0. Fastest path — existing GitHub repo
 
-Render deploys from a Git repository. Create a **private** repo named `vedanta-platform` on github.com, then push **this folder** (the one that contains `render.yaml`) as the repo root — not the parent Parslia repo.
+The Vedanta code is already on the `cursor/vedanta-render-deploy-f604` branch of `parslia-kitchen-os`. You do **not** need a new repo to try it live.
+
+1. Open [dashboard.render.com](https://dashboard.render.com) and sign in with GitHub.
+2. **New → Blueprint**.
+3. Repository: `parslia-kitchen-os`. Branch: `cursor/vedanta-render-deploy-f604`.
+4. Blueprint file / path: **`vedanta-platform/render.monorepo.yaml`** (not the default `render.yaml` at the repo root — that one is Libraix).
+5. Apply. Leave Microsoft / SMTP blank. Save.
+6. Wait until **vedanta-api** and **vedanta-admin** are Live (first migrate takes a few minutes).
+7. Open the **vedanta-admin** URL → type `shyam_1@hotmail.co.uk` → **Sign in**.
+
+Do not merge that branch into Parslia `main`. A dedicated private `vedanta-platform` repo is still the cleaner long-term home (section 0b).
+
+## 0b. Dedicated GitHub repo (optional, cleaner later)
+
+Create a **private** repo named `vedanta-platform` on github.com, then push **this folder** (the one that contains `render.yaml`) as the repo root — not the parent Parslia repo.
 
 ```
 # from the vedanta-platform folder
@@ -16,13 +30,13 @@ git remote add origin https://github.com/<your-username>/vedanta-platform.git
 git push -u origin main
 ```
 
-If this folder already lives on a branch of `parslia-kitchen-os`, you can still create that private repo by copying the folder, or apply the Blueprint using `vedanta-platform/render.monorepo.yaml` from that repo.
+Then **New → Blueprint** → choose `vedanta-platform` → Apply (uses `render.yaml` at the repo root).
 
 ## 1. Deploy on Render (10 min)
 
 1. [render.com](https://render.com) → sign in with GitHub so it can see the repo.
-2. **New → Blueprint** → choose `vedanta-platform` → Apply.
-3. Render reads `render.yaml` and creates three things: `vedanta-db`, `vedanta-api`, `vedanta-admin`.
+2. **New → Blueprint** → choose the repo from section 0 or 0b.
+3. Render creates three things: `vedanta-db`, `vedanta-api`, `vedanta-admin`.
 4. Leave the Microsoft / SMTP fields blank when prompted. Save.
 5. Watch **vedanta-api → Logs**. You should see:
 
@@ -38,7 +52,9 @@ If this folder already lives on a branch of `parslia-kitchen-os`, you can still 
 
 then the server starting. The first migrate loads the schema, seed users, packages, and the sheet import (a few minutes). Later deploys skip files already in `schema_applied`.
 
-6. Open the `vedanta-admin` URL (something like `https://vedanta-admin.onrender.com`). You will see the sign-in page **with no Microsoft button yet** — expected.
+6. Open the `vedanta-admin` URL (something like `https://vedanta-admin.onrender.com`). Type **`shyam_1@hotmail.co.uk`** and click **Sign in**. There is no password on this trial. The Microsoft button appears later, after step 2.
+
+`ALLOW_EMAIL_LOGIN=true` is set on the Blueprint so this works before Entra is configured. Anyone who knows a seeded staff email can open admin while that flag is on — turn it off after Microsoft sign-in works.
 
 Free / starter web services on Render sleep after idle time. The first request after a sleep can take a minute.
 
@@ -60,7 +76,9 @@ If staff use `@thevedanta.org` addresses, the seed already has system owners for
 
 ## 3. First sign-in
 
-Sign-in proves who someone is; access still comes from `app_user` + `membership`. After you are in as system owner, use **Staff access** to add everyone else by their Microsoft email.
+Open **vedanta-admin** and sign in as **`shyam_1@hotmail.co.uk`**. Access still comes from `app_user` + `membership`. After you are in as system owner, use **Staff access** to add everyone else.
+
+Dan, Shannon, Losi and Gram can also type their `@thevedanta.org` emails on the same trial form.
 
 To change the first owner without editing SQL, set on `vedanta-api`:
 

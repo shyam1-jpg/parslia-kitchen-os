@@ -1,5 +1,9 @@
 # Push this folder as its own private GitHub repo
 
+**To go live from the existing `parslia-kitchen-os` repo instead:** Render → **New → Blueprint** → repo `parslia-kitchen-os` → branch `cursor/vedanta-render-deploy-f604` → Blueprint path `vedanta-platform/render.monorepo.yaml` → Apply. First sign-in: `shyam_1@hotmail.co.uk` (no password).
+
+---
+
 Render’s Blueprint expects `render.yaml` at the **repository root**. This folder is that root.
 
 ```

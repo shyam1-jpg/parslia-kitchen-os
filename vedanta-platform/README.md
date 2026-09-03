@@ -26,11 +26,11 @@ cd services/platform-api && npm install && npm run migrate && npm run dev
 cd apps/web-admin && npm install && npm run dev
 ```
 
-Open http://localhost:3000 and pick a user (development sign-in). Production uses Microsoft 365.
+Open http://localhost:3000 and pick a user (development sign-in). The live trial also accepts **`shyam_1@hotmail.co.uk`** with no password until Microsoft 365 is connected.
 
 ## Deploy the trial
 
-Render is the simplest path — `render.yaml` creates `vedanta-db`, `vedanta-api` and `vedanta-admin`. Step-by-step: [docs/deploy.md](docs/deploy.md). Push **this folder** as its own private GitHub repo (see `GET-ON-GITHUB.md`).
+Fastest: Apply `vedanta-platform/render.monorepo.yaml` from this branch on Render (see [docs/deploy.md](docs/deploy.md)). First sign-in: `shyam_1@hotmail.co.uk`. Longer term, push **this folder** as its own private GitHub repo (`GET-ON-GITHUB.md`).
 
 ## Rules of the repo
 
