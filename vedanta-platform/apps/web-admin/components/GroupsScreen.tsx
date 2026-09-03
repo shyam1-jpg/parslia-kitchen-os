@@ -30,10 +30,16 @@ export default function GroupsScreen() {
   const [attendees, setAttendees] = useState<{ given_name: string; family_name: string; diet: string[] | null; allergens: string[] | null; severity: string | null; room_preference: string | null; arrives_early: boolean }[] | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [enquiries, setEnquiries] = useState<{ id: string; name: string; email: string; people: number; arrival: string; departure: string; notes: string | null; programme_name?: string | null }[]>([]);
+  const [stays, setStays] = useState<{ id: string; name: string; email: string; people: number; arrival: string; departure: string; status: string; programme_name: string | null; rooms: { number: string; section: string | null }[]; booking_id: string | null }[]>([]);
+  const [roomDraft, setRoomDraft] = useState<Record<string, string>>({});
   const today = new Date().toISOString().slice(0, 10);
   const sel = groups.find(g => g.id === selId) ?? groups.filter(g => g.status !== "CANCELLED" && g.status !== "COMPLETED" && g.departure >= today).sort((a, b) => a.arrival.localeCompare(b.arrival))[0];
   useEffect(() => { setAttendees(null); setFormUrl(null); if (sel?.attendees) api<{ items: typeof attendees }>(`/v1/groups/${sel.id}/attendees`).then(r => setAttendees(r.items)).catch(() => {}); }, [sel?.id, sel?.attendees]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { api<{ items: typeof enquiries }>("/v1/guest-enquiries").then(r => setEnquiries(r.items)).catch(() => {}); }, []);
+  const loadGuestBook = () => {
+    api<{ items: typeof enquiries }>("/v1/guest-enquiries").then(r => setEnquiries(r.items)).catch(() => {});
+    api<{ items: typeof stays }>("/v1/guest-stays").then(r => setStays(r.items)).catch(() => {});
+  };
+  useEffect(loadGuestBook, []);
 
   const shown = useMemo(() => {
     const live = groups.filter(g => g.status !== "CANCELLED" && g.status !== "COMPLETED" && g.departure >= TODAY);
@@ -82,7 +88,34 @@ export default function GroupsScreen() {
           {enquiries.map(e => (
             <div className="urow" key={e.id}>
               <div><div className="t">{e.name}{e.programme_name ? ` · ${e.programme_name}` : ""}</div><div className="m">{e.email} · {e.arrival} → {e.departure} · {e.people} people{e.notes ? ` · ${e.notes}` : ""}</div></div>
-              {can("group.create") && <button className="btn primary" onClick={() => run(async () => { await api(`/v1/guest-enquiries/${e.id}/take`, { method: "POST" }); setEnquiries(s => s.filter(x => x.id !== e.id)); await reload(); say("In the book"); })}>Take into the book</button>}
+              {can("group.create") && <button className="btn primary" onClick={() => run(async () => { await api(`/v1/guest-enquiries/${e.id}/take`, { method: "POST" }); await reload(); loadGuestBook(); say("Private stay opened — assign rooms below"); })}>Take into the book</button>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {stays.length > 0 && (
+        <div className="panel" style={{ marginBottom: 18 }}>
+          <h3>Guest stays — rooms per client</h3>
+          <p className="m" style={{ color: "var(--ink-2)" }}>Each client has a private book. Assign rooms here. Guests only see their own rooms — never another client&apos;s details.</p>
+          {stays.map(s => (
+            <div className="urow" key={s.id}>
+              <div>
+                <div className="t">{s.name}{s.programme_name ? ` · ${s.programme_name}` : ""}</div>
+                <div className="m">{s.email} · {s.arrival} → {s.departure} · {s.people} people · {s.rooms.length ? s.rooms.map(r => r.number).join(", ") : "no rooms yet"}</div>
+              </div>
+              {can("occupancy.write") && (
+                <span style={{ display: "flex", gap: 6 }}>
+                  <input placeholder="Room e.g. 110" value={roomDraft[s.id] ?? ""} onChange={e => setRoomDraft(d => ({ ...d, [s.id]: e.target.value }))} style={{ width: 110 }} />
+                  <button className="btn primary" onClick={() => run(async () => {
+                    await api(`/v1/guest-stays/${s.id}/rooms`, { method: "POST", body: JSON.stringify({ room: roomDraft[s.id] }) });
+                    setRoomDraft(d => ({ ...d, [s.id]: "" }));
+                    loadGuestBook();
+                    await reload();
+                    say(`Room assigned to ${s.name} only`);
+                  })}>Assign room</button>
+                </span>
+              )}
             </div>
           ))}
         </div>

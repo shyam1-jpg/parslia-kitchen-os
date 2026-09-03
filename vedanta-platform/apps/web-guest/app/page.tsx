@@ -16,7 +16,8 @@ async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 
 type Prop = { name: string; kicker: string; tagline: string; about: string; website: string; company: string; address: string; check_in_from: string; check_out_by: string; rooms: number };
 type Prog = { id: string; name: string; kind: string; basis: string | null; arrival: string; arrival_time: string | null; departure: string; departure_time: string | null; nights: number; places: number | null; spa: boolean; meals: boolean; package: string | null; price: string | null; about: string | null };
-type Mine = { id: string; people: number; arrival: string; departure: string; status: string; programme_name: string | null; notes: string | null };
+type Room = { number: string; section: string | null };
+type Mine = { id: string; people: number; arrival: string; departure: string; status: string; programme_name: string | null; notes: string | null; rooms: Room[] };
 type Me = { name: string; email: string };
 
 const fmt = (d: string) => {
@@ -126,7 +127,7 @@ export default function Book() {
             <div className="split" style={{ maxWidth: 760 }}>
               <div>
                 <h2>Sign in to your guest book</h2>
-                <p className="lead">Register to see open programmes, register your place, or ask about dates. Your booking is private to you.</p>
+                <p className="lead">Register to see open programmes and your own rooms. Your stay is private — no other guest can open it.</p>
                 <p className="m">Check-in from {prop?.check_in_from ?? "15:00"} · Check-out by {prop?.check_out_by ?? "11:00"} · {prop?.rooms ?? 41} guest rooms.</p>
               </div>
               <div className="card">
@@ -208,11 +209,17 @@ export default function Book() {
                 </div>
                 {mine && mine.length > 0 && (
                   <div className="card" style={{ marginTop: 18 }}>
-                    <h2 style={{ fontSize: 22 }}>Your enquiries</h2>
+                    <h2 style={{ fontSize: 22 }}>Your stay</h2>
+                    <p className="m">Only you can see this. Other guests cannot open your rooms or details.</p>
                     {mine.map(x => (
-                      <div className="row" key={x.id}>
-                        <span>{x.programme_name ?? "Own dates"} · {x.arrival} → {x.departure} · {x.people} {Number(x.people) === 1 ? "person" : "people"}</span>
-                        <span className="m">{x.status.toLowerCase()}</span>
+                      <div className="row" key={x.id} style={{ display: "block" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                          <span>{x.programme_name ?? "Your dates"} · {fmt(x.arrival)} → {fmt(x.departure)} · {x.people} {Number(x.people) === 1 ? "person" : "people"}</span>
+                          <span className="m">{x.status === "CONVERTED" ? "in the house book" : x.status.toLowerCase()}</span>
+                        </div>
+                        {x.rooms?.length
+                          ? <div className="rooms">{x.rooms.map(r => <span key={r.number} className="room">{r.number}{r.section ? ` · ${r.section}` : ""}</span>)}</div>
+                          : <p className="m" style={{ margin: "8px 0 0" }}>Rooms will appear here when the house assigns them to you.</p>}
                       </div>
                     ))}
                   </div>

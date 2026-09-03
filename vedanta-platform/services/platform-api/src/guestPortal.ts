@@ -9,6 +9,7 @@ import { pool, tx } from "./db.ts";
 import { emailLoginEnabled, problem, requireActor, allow } from "./auth.ts";
 import { audit } from "./groups.ts";
 import { cleanName, guestCopy, isPublicProgrammeName, nightsBetween, programmeBasis, programmeKind, publicProgrammeName } from "../../../domains/guest/programmes.ts";
+import { roomsForStay } from "../../../domains/guest/stay.ts";
 import { backupGuestEvent } from "./kiteline.ts";
 
 const hits = new Map<string, { n: number; t: number }>();
@@ -223,24 +224,125 @@ export default async function guestPortal(f: FastifyInstance) {
     return { email: g.email, name: g.name, surface: "GUEST" };
   });
 
+  async function roomsByBooking(bookingIds: string[]) {
+    if (!bookingIds.length) return [];
+    const r = await pool.query(`select o.group_id as booking_id, r.number, r.section
+      from room_occupancy o join room r on r.id=o.room_id
+      where o.group_id = any($1::uuid[])
+      group by o.group_id, r.number, r.section`, [bookingIds]);
+    return r.rows as { booking_id: string; number: string; section: string | null }[];
+  }
+
+  function shapeStay(x: any, rooms: { booking_id: string; number: string; section: string | null }[]) {
+    return {
+      id: x.id,
+      people: x.people,
+      arrival: x.arrival,
+      departure: x.departure,
+      notes: x.notes,
+      status: x.status,
+      programme_name: x.programme_name ? cleanName(x.programme_name) : null,
+      rooms: roomsForStay(x.booking_id, rooms),
+    };
+  }
+
   f.get("/guest/enquiries", async (req, reply) => {
     const g = await requireGuest(req, reply); if (!g) return;
-    const r = await pool.query(`select e.id, e.name, e.people, e.arrival_date::text arrival, e.departure_date::text departure, e.notes, e.status, e.created_at,
-        e.programme_id, bg.name programme_name
+    const r = await pool.query(`select e.id, e.people, e.arrival_date::text arrival, e.departure_date::text departure, e.notes, e.status,
+        e.programme_id, e.booking_id, bg.name programme_name
       from guest_enquiry e
       left join booking_group bg on bg.id = e.programme_id
       where e.guest_id=$1 order by e.created_at desc`, [g.id]);
-    return { items: r.rows.map(x => ({ ...x, programme_name: x.programme_name ? cleanName(x.programme_name) : null })) };
+    const rooms = await roomsByBooking(r.rows.map((x: { booking_id: string | null }) => x.booking_id).filter(Boolean) as string[]);
+    return { items: r.rows.map((x: any) => shapeStay(x, rooms)) };
+  });
+
+  f.get("/guest/stay", async (req, reply) => {
+    const g = await requireGuest(req, reply); if (!g) return;
+    const r = await pool.query(`select e.id, e.people, e.arrival_date::text arrival, e.departure_date::text departure, e.notes, e.status,
+        e.programme_id, e.booking_id, bg.name programme_name
+      from guest_enquiry e
+      left join booking_group bg on bg.id = e.programme_id
+      where e.guest_id=$1 order by e.arrival_date desc, e.created_at desc`, [g.id]);
+    const rooms = await roomsByBooking(r.rows.map((x: { booking_id: string | null }) => x.booking_id).filter(Boolean) as string[]);
+    return { name: g.name, email: g.email, items: r.rows.map((x: any) => shapeStay(x, rooms)) };
   });
 
   f.get("/v1/guest-enquiries", async (req, reply) => {
     const a = await requireActor(req, reply, "ADMIN"); if (!a || !allow(a, "group.read", reply)) return;
     const r = await pool.query(`select e.id, e.name, e.email, e.people, e.arrival_date::text arrival, e.departure_date::text departure, e.notes, e.status, e.created_at,
-        e.programme_id, bg.name programme_name
+        e.programme_id, e.booking_id, bg.name programme_name
       from guest_enquiry e
       left join booking_group bg on bg.id = e.programme_id
       where e.property_id=$1 and e.status='ENQUIRY' order by e.created_at desc limit 50`, [a.propertyId]);
     return { items: r.rows.map(x => ({ ...x, programme_name: x.programme_name ? cleanName(x.programme_name) : null })) };
+  });
+
+  f.get("/v1/guest-stays", async (req, reply) => {
+    const a = await requireActor(req, reply, "ADMIN"); if (!a || !allow(a, "group.read", reply)) return;
+    const r = await pool.query(`select e.id, e.name, e.email, e.people, e.arrival_date::text arrival, e.departure_date::text departure, e.notes, e.status,
+        e.programme_id, e.booking_id, bg.name programme_name
+      from guest_enquiry e
+      left join booking_group bg on bg.id = e.programme_id
+      where e.property_id=$1 order by e.created_at desc limit 80`, [a.propertyId]);
+    const rooms = await roomsByBooking(r.rows.map((x: { booking_id: string | null }) => x.booking_id).filter(Boolean) as string[]);
+    return {
+      items: r.rows.map((x: any) => ({
+        id: x.id,
+        name: x.name,
+        email: x.email,
+        people: x.people,
+        arrival: x.arrival,
+        departure: x.departure,
+        notes: x.notes,
+        status: x.status,
+        booking_id: x.booking_id,
+        programme_name: x.programme_name ? cleanName(x.programme_name) : null,
+        rooms: roomsForStay(x.booking_id, rooms),
+      })),
+    };
+  });
+
+  f.post("/v1/guest-stays/:id/rooms", async (req: any, reply) => {
+    const a = await requireActor(req, reply, "ADMIN"); if (!a || !allow(a, "occupancy.write", reply)) return;
+    const numbers: string[] = Array.isArray(req.body?.rooms) ? req.body.rooms.map((n: unknown) => String(n).trim()).filter(Boolean) : [];
+    const one = String(req.body?.room ?? "").trim();
+    if (one) numbers.push(one);
+    if (!numbers.length) return reply.code(422).send(problem(422, "validation", "Give at least one room number"));
+    return tx(async c => {
+      const e = (await c.query(`select * from guest_enquiry where id=$1 and property_id=$2 for update`, [req.params.id, a.propertyId])).rows[0];
+      if (!e) { reply.code(404); return problem(404, "not_found", "No such guest stay"); }
+      let bookingId = e.booking_id as string | null;
+      if (!bookingId) {
+        const n = await c.query(`select count(*) from booking_group where property_id=$1`, [a.propertyId]);
+        const created = (await c.query(`insert into booking_group(tenant_id,property_id,name,organisation,contact_email,arrival_date,arrival_slot,departure_date,departure_slot,
+            expected_guests,expected_rooms,status,booking_form_status,notes,colour,source)
+          values($1,$2,$3,$4,$5,$6,'PM',$7,'AM',$8,$9,'ENQUIRY','NOT_SENT',$10,$11,'GUEST_BOOK') returning id`,
+          [a.tenantId, a.propertyId, e.name, e.name, e.email, e.arrival_date, e.departure_date, e.people, numbers.length, e.notes,
+           ["#1F3A32", "#8A6A3B", "#4F6758", "#6B3A32"][Number(n.rows[0].count) % 4]])).rows[0];
+        bookingId = created.id;
+        await c.query(`update guest_enquiry set booking_id=$2 where id=$1`, [e.id, bookingId]);
+      }
+      const placed: string[] = [];
+      for (const number of numbers) {
+        const room = (await c.query(`select id, max_capacity, staff_only, status from room where property_id=$1 and number=$2`, [a.propertyId, number])).rows[0];
+        if (!room) { reply.code(404); return problem(404, "not_found", `No room ${number}`); }
+        if (room.staff_only) { reply.code(409); return problem(409, "staff_room", `${number} is a staff room`); }
+        if (["OUT_OF_SERVICE", "OUT_OF_ORDER"].includes(room.status)) { reply.code(409); return problem(409, "out_of_use", `Room ${number} is out of use`); }
+        const clash = (await c.query(`select occupant_label from room_occupancy where room_id=$1 and group_id is distinct from $2 and on_date >= $3 and on_date < greatest($4::date, $3::date + 1) limit 1`,
+          [room.id, bookingId, e.arrival_date, e.departure_date])).rows[0];
+        if (clash) { reply.code(409); return problem(409, "room_taken", `Room ${number} is already held for another stay`); }
+        await c.query(`insert into room_occupancy(tenant_id,room_id,group_id,occupant_label,on_date,slot)
+          select $1,$2,$3,$4,d::date,s
+          from generate_series($5::date, greatest($6::date - 1, $5::date), interval '1 day') d
+          cross join (values ('AM'),('PM')) v(s)
+          on conflict do nothing`,
+          [a.tenantId, room.id, bookingId, e.name, e.arrival_date, e.departure_date]);
+        placed.push(number);
+      }
+      await audit(c, a, "guest_enquiry", e.id, "guest.rooms.assign", { payload: { rooms: placed, booking_id: bookingId } });
+      return { id: e.id, booking_id: bookingId, rooms: placed };
+    });
   });
 
   f.post("/v1/guest-enquiries/:id/take", async (req: any, reply) => {
@@ -248,44 +350,32 @@ export default async function guestPortal(f: FastifyInstance) {
     return tx(async c => {
       const e = (await c.query(`select * from guest_enquiry where id=$1 and property_id=$2 for update`, [req.params.id, a.propertyId])).rows[0];
       if (!e) { reply.code(404); return problem(404, "not_found", "No such enquiry"); }
-      if (e.status !== "ENQUIRY") { reply.code(409); return problem(409, "enquiry", "This enquiry is already in the book"); }
-      if (e.programme_id) {
-        const line = `Guest book: ${e.name} · ${e.email} · ${e.people} people${e.notes ? ` · ${e.notes}` : ""}`;
-        await c.query(`update booking_group set notes = trim(both E'\\n' from coalesce(notes,'') || E'\\n' || $2) where id=$1 and property_id=$3`, [e.programme_id, line, a.propertyId]);
-        await c.query(`update guest_enquiry set status='CONVERTED' where id=$1`, [e.id]);
-        await audit(c, a, "booking_group", e.programme_id, "group.update", { payload: { from_enquiry: e.id } });
-        void backupGuestEvent({
-          id: `guest_take_${e.id}`,
-          kind: "converted_programme",
-          name: e.name,
-          email: e.email,
-          people: e.people,
-          programme_id: e.programme_id,
-          booking_group_id: e.programme_id,
-          notes: e.notes ?? null,
-        });
-        return { id: e.programme_id, name: e.name, attached: true };
+      if (e.status !== "ENQUIRY" && e.booking_id) return { id: e.booking_id, name: e.name, already: true };
+      let bookingId = e.booking_id as string | null;
+      if (!bookingId) {
+        const n = await c.query(`select count(*) from booking_group where property_id=$1`, [a.propertyId]);
+        const g = (await c.query(`insert into booking_group(tenant_id,property_id,name,organisation,contact_email,arrival_date,arrival_slot,departure_date,departure_slot,
+            expected_guests,status,booking_form_status,notes,colour,source)
+          values($1,$2,$3,$4,$5,$6,'PM',$7,'AM',$8,'ENQUIRY','NOT_SENT',$9,$10,'GUEST_BOOK') returning id, name`,
+          [a.tenantId, a.propertyId, e.name, e.name, e.email, e.arrival_date, e.departure_date, e.people, e.notes,
+           ["#1F3A32", "#8A6A3B", "#4F6758", "#6B3A32"][Number(n.rows[0].count) % 4]])).rows[0];
+        bookingId = g.id;
       }
-      const n = await c.query(`select count(*) from booking_group where property_id=$1`, [a.propertyId]);
-      const g = (await c.query(`insert into booking_group(tenant_id,property_id,name,organisation,contact_email,arrival_date,arrival_slot,departure_date,departure_slot,
-          expected_guests,status,booking_form_status,notes,colour,source)
-        values($1,$2,$3,$4,$5,$6,'PM',$7,'AM',$8,'ENQUIRY','NOT_SENT',$9,$10,'GUEST_BOOK') returning id, name`,
-        [a.tenantId, a.propertyId, e.name, e.name, e.email, e.arrival_date, e.departure_date, e.people, e.notes,
-         ["#1F3A32", "#8A6A3B", "#4F6758", "#6B3A32"][Number(n.rows[0].count) % 4]])).rows[0];
-      await c.query(`update guest_enquiry set status='CONVERTED' where id=$1`, [e.id]);
-      await audit(c, a, "booking_group", g.id, "group.create", { to: "ENQUIRY", payload: { from_enquiry: e.id } });
+      await c.query(`update guest_enquiry set status='CONVERTED', booking_id=$2 where id=$1`, [e.id, bookingId]);
+      await audit(c, a, "booking_group", bookingId, "group.create", { to: "ENQUIRY", payload: { from_enquiry: e.id, private: true } });
       void backupGuestEvent({
         id: `guest_take_${e.id}`,
-        kind: "converted_dates",
+        kind: e.programme_id ? "converted_programme" : "converted_dates",
         name: e.name,
         email: e.email,
         people: e.people,
-        booking_group_id: g.id,
+        booking_group_id: bookingId,
+        programme_id: e.programme_id ?? null,
         arrival: e.arrival_date,
         departure: e.departure_date,
         notes: e.notes ?? null,
       });
-      return { id: g.id, name: g.name };
+      return { id: bookingId, name: e.name, private: true };
     });
   });
 }
