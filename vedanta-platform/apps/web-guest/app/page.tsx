@@ -106,7 +106,7 @@ export default function Book() {
   return (
     <>
       <header className="top">
-        <div className="mark">The Vedanta Way</div>
+        <div className="mark">Guest book</div>
         <div className="who">
           {me
             ? <>{me.name} · <button onClick={signOut}>Sign out</button></>
@@ -116,7 +116,7 @@ export default function Book() {
 
       <section className="hero">
         <h1>The Vedanta Way</h1>
-        <p className="tag">Retreat Center · Luxury Holistic</p>
+        <p className="tag">Luxury Holistic Retreat Center</p>
         <p>{prop?.about}</p>
       </section>
 

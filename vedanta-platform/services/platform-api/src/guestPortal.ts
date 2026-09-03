@@ -116,8 +116,8 @@ export default async function guestPortal(f: FastifyInstance) {
     const r = await propertyRow();
     return {
       name: "The Vedanta Way",
-      kicker: "Retreat Center",
-      tagline: "Luxury Holistic",
+      kicker: "",
+      tagline: "Luxury Holistic Retreat Center",
       about: "Nestled amongst 75 acres of woodlands, meadows and lakes in Lincolnshire — a Grade II listed Elizabethan estate.",
       welcome: "Host your retreats and events with us for an unforgettably meaningful experience. When you arrive, the house is ready. We take care of the rest.",
       address: "Lincoln Rd, Branston, Lincolnshire, LN4 1PD",
