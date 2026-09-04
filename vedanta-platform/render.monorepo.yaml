@@ -1,7 +1,7 @@
-# Use this file only when the Vedanta platform lives in a subdirectory of
-# another repo (e.g. parslia-kitchen-os). On Render: New → Blueprint →
-# specify this file as the Blueprint path.
-# For a dedicated vedanta-platform repo, use render.yaml instead.
+# Vedanta Oway Retreat OS — Render Blueprint (monorepo path)
+# New → Blueprint → connect shyam1-jpg/parslia-kitchen-os
+# Blueprint path: vedanta-platform/render.monorepo.yaml
+# Serves all four doors: /book/ /sign-in/ /house/ /pocket/
 
 databases:
   - name: vedanta-db
@@ -11,6 +11,8 @@ databases:
     postgresMajorVersion: "16"
 
 services:
+
+  # ── API ────────────────────────────────────────────────────────────────
   - type: web
     name: vedanta-api
     runtime: node
@@ -39,6 +41,7 @@ services:
           name: vedanta-admin
           type: web
           envVarKey: RENDER_EXTERNAL_URL
+      # Set these in Render dashboard → Environment after first deploy
       - key: BOOTSTRAP_OWNER_EMAIL
         sync: false
       - key: BOOTSTRAP_OWNER_NAME
@@ -49,17 +52,28 @@ services:
         value: "true"
       - key: ALLOW_UNVERIFIED_GUEST_BOOTSTRAP
         value: "false"
+      # Microsoft 365 sign-in — add after Entra app registration
       - key: MS_TENANT_ID
         sync: false
       - key: MS_CLIENT_ID
         sync: false
       - key: MS_CLIENT_SECRET
         sync: false
+      # Email — add when ready for access codes and confirmations
       - key: SMTP_URL
         sync: false
       - key: MAIL_FROM
         value: The Vedanta <bookings@thevedanta.org>
+      # AI Duty Manager — add ANTHROPIC_API_KEY when ready
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # Stripe payments — add when ready
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
 
+  # ── STAFF APP — /sign-in/ /house/ /groups/ /housekeeping/ etc ──────────
   - type: web
     name: vedanta-admin
     runtime: static
@@ -83,6 +97,53 @@ services:
       - path: /*
         name: Permissions-Policy
         value: camera=(), microphone=(), geolocation=()
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          name: vedanta-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+
+  # ── GUEST BOOK — /book/ ────────────────────────────────────────────────
+  - type: web
+    name: vedanta-guest
+    runtime: static
+    rootDir: vedanta-platform/apps/web-guest
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./out
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          name: vedanta-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+
+  # ── STAFF POCKET — /pocket/ ────────────────────────────────────────────
+  - type: web
+    name: vedanta-pocket
+    runtime: static
+    rootDir: vedanta-platform/apps/web-staff
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./out
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     envVars:
       - key: NODE_VERSION
         value: "22"
