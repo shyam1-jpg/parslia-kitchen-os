@@ -281,9 +281,10 @@ export default async function guestPortal(f: FastifyInstance) {
     let programmeId: string | null = b.programme_id || null;
     if (programmeId) {
       const p = (await pool.query(`${PROGRAMME_SQL} and g.id=$2`, [prop.id, programmeId])).rows[0];
-      if (!p || !isPublicProgrammeName(p.name)) return reply.code(404).send(problem(404, "not_found", "That programme is not open"));
-      arrival = p.arrival;
-      departure = p.departure;
+      const shaped = p ? shapeProgramme(p) : null;
+      if (!shaped) return reply.code(404).send(problem(404, "not_found", "That programme is not open"));
+      arrival = shaped.arrival;
+      departure = shaped.departure;
     }
     if (!arrival || !departure) return reply.code(422).send(problem(422, "validation", "Choose a programme, or give arrival and departure dates"));
     if (departure < arrival) return reply.code(422).send(problem(422, "validation", "Departure must be on or after arrival"));

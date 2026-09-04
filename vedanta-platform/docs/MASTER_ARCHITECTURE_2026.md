@@ -199,7 +199,9 @@ A module is not done because a page exists. Done means domain, permissions, API,
 
 ## 11. Next safe step after this increment
 
-Phase C starts with **preserving** the existing room board (`/rooms/`, occupancy PATCH + version) and adding server-side move validation coverage + conflict copy. Do not replace the calendar.
+Finish and hold PR #97 before adding new layers. Then permanent hosting + Microsoft/verified staff auth. Then guest OTP and folio. Do not start a sixth app.
+
+Phase C after that still **preserves** the existing room board (`/rooms/`, occupancy PATCH + version) and adds server-side move validation + conflict copy. Do not replace the calendar.
 
 ---
 
@@ -227,4 +229,18 @@ Research (Mews, Cloudbeds, Bookinglayer, Retreat Guru, Event Temple, OPERA, GSTC
 
 **Rules engine (later):** IF diet=Jain THEN kitchen +1 Jain. IF checkout today AND next arrival &lt;16:00 THEN HK priority HIGH. Domain functions first; no new microservice.
 
+**Event engine (later, not a new app):** one confirmed stay emits work on the five OS — reserve room, notify HK, kitchen forecast, dietary counts, staffing, programme attendance, revenue forecast, guest messages, purchasing. Commands already write `audit_event`. Do not add a second event bus until those commands are complete.
+
 Modules from the 2026 research (GM command centre extras, digital twin, seva, shop, sustainability certification, IoT, emergency mode) **map onto these five OS**. They are not thirty new routes.
+
+### Controlled build order
+
+1. Finish/fix PR #97 (this branch). Hold production email-only staff login.
+2. Permanent hosting for `/book/`, `/sign-in/`, `/house/`, `/pocket/` + Microsoft 365 / passkeys / session control.
+3. Guest email OTP or magic-link + folio/payments (tokenised; no PAN/CVV).
+4. Housekeeping + room control on the existing board.
+5. Programme Operating Sheet + Kiteline/Parslia kitchen forecast (covers + diet only).
+6. Maintenance/assets + the existing task engine.
+7. Purchasing + finance dashboard (attach to Business OS).
+8. HR/labour on the house clock; Kiteline stays the published rota.
+9. Intelligence OS last: briefings, then an AI Duty Manager that only reads operational facts.
