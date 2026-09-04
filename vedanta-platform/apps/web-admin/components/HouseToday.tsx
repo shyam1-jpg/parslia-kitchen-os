@@ -52,6 +52,7 @@ export default function HouseToday() {
       <button className="btn" style={{ marginTop: 12 }} onClick={load}>Try again</button>
     </div>
   );
+  if (!e) return <div className="empty">Opening the house…</div>;
   const d = fmt(e.today, { weekday: "long", day: "numeric", month: "long" });
   const p = e.pulse;
   const nowHm = new Date().toLocaleTimeString("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit", hour12: false });
