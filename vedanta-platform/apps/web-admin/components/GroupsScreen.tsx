@@ -21,7 +21,8 @@ const NEXT: Partial<Record<GroupStatus, { cmd: string; api: string; to: GroupSta
 
 export default function GroupsScreen() {
   const { groups, updateGroup, command, can, loading, reload } = useStore();
-  const [filter, setFilter] = useState<"upcoming" | "attention" | "all">("upcoming");
+  const [filter, setFilter] = useState<"upcoming" | "attention" | "published" | "all">("upcoming");
+  const [publicTitle, setPublicTitle] = useState("");
   const [selId, setSelId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -39,7 +40,8 @@ export default function GroupsScreen() {
     setAttendees(null); setFormUrl(null); setSheet(null);
     if (sel?.attendees) api<{ items: typeof attendees }>(`/v1/groups/${sel.id}/attendees`).then(r => setAttendees(r.items)).catch(() => {});
     if (sel?.id) api<NonNullable<typeof sheet>>(`/v1/groups/${sel.id}/sheet`).then(setSheet).catch(() => setSheet(null));
-  }, [sel?.id, sel?.attendees]); // eslint-disable-line react-hooks/exhaustive-deps
+    setPublicTitle(sel?.publicTitle ?? "");
+  }, [sel?.id, sel?.attendees, sel?.publicTitle]); // eslint-disable-line react-hooks/exhaustive-deps
   const loadGuestBook = () => {
     api<{ items: typeof enquiries }>("/v1/guest-enquiries").then(r => setEnquiries(r.items)).catch(() => {});
     api<{ items: typeof stays }>("/v1/guest-stays").then(r => setStays(r.items)).catch(() => {});
@@ -49,6 +51,7 @@ export default function GroupsScreen() {
   const shown = useMemo(() => {
     const live = groups.filter(g => g.status !== "CANCELLED" && g.status !== "COMPLETED" && g.departure >= TODAY);
     if (filter === "attention") return live.filter(g => g.bookingForm !== "COMPLETE" || !g.termsSigned || g.status === "ENQUIRY");
+    if (filter === "published") return groups.filter(g => g.openOnGuestBook);
     if (filter === "all") return groups;
     return live;
   }, [groups, filter]);
@@ -77,9 +80,9 @@ export default function GroupsScreen() {
         <div><h1>The book</h1><p>{shown.length} shown · {groups.filter(g => g.status === "CONFIRMED" && g.departure >= TODAY).length} confirmed ahead{loading ? " · refreshing…" : ""}</p></div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <div className="seg" role="tablist">
-            {(["upcoming", "attention", "all"] as const).map(f => (
+            {(["upcoming", "attention", "published", "all"] as const).map(f => (
               <button key={f} role="tab" aria-selected={filter === f} className={filter === f ? "on" : ""} onClick={() => setFilter(f)}>
-                {f === "upcoming" ? "Upcoming" : f === "attention" ? "Needs attention" : "All"}
+                {f === "upcoming" ? "Upcoming" : f === "attention" ? "Needs attention" : f === "published" ? "On /book" : "All"}
               </button>))}
           </div>
           {can("group.create") && <button className="btn primary" onClick={() => setCreating(true)}>New group booking</button>}
@@ -225,25 +228,47 @@ export default function GroupsScreen() {
                 <span className="m" style={{ fontSize: 12, color: "var(--ink-2)" }}>{[a.room_preference?.replace("share_with:", "share with "), a.arrives_early ? "arrives early" : null, a.diet?.join(", ").replace(/_/g, " "), a.allergens?.length ? `${a.allergens.join(", ")} (${a.severity?.toLowerCase()})` : null].filter(Boolean).join(" · ")}</span></li>)}</ul>
             </>)}
             <h3>Guest book</h3>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: can("group.update") ? "pointer" : "default" }}>
-                <input
-                  type="checkbox"
-                  checked={!!sel.openOnGuestBook}
-                  disabled={!can("group.update") || sel.status === "CANCELLED" || sel.status === "COMPLETED"}
-                  onChange={e => apply(sel.id, { open_for_guests: e.target.checked })}
-                />
-                <span>Publish on the public guest book (<code>/book</code>)</span>
-              </label>
-              {sel.openOnGuestBook
-                ? <span className="chip CONFIRMED" style={{ fontSize: 11 }}>Visible to guests</span>
-                : <span className="chip ENQUIRY" style={{ fontSize: 11 }}>Private</span>}
-            </div>
-            {sel.openOnGuestBook && (
-              <p className="m" style={{ color: "var(--ink-2)", marginBottom: 14 }}>
-                This retreat appears on /book. Guests can browse, choose a room type, and send an enquiry. Uncheck to remove it from public view at any time.
-              </p>
-            )}
+            <p className="m" style={{ color: "var(--ink-2)", marginBottom: 10 }}>
+              Guests only see what you publish. The house booking name stays as it is. Set a public title when the book name is a person or a private hold.
+            </p>
+            <label style={{ display: "block", marginBottom: 10 }}>
+              Public title on /book
+              <input value={publicTitle} onChange={e => setPublicTitle(e.target.value)} placeholder={sel.name} disabled={!can("group.update") || sel.status === "CANCELLED"} />
+            </label>
+            {(() => {
+              const title = publicTitle.trim();
+              const typeOk = sel.retreatType === "residential" || sel.retreatType === "day_retreat";
+              const statusOk = sel.status === "PROVISIONAL" || sel.status === "CONFIRMED" || sel.status === "IN_HOUSE";
+              const source = title || sel.name;
+              const looksPublic = /\b(retreat|yoga|immersion|conference|programme|workshop|seminar|festival|summit|hackathon|leadership|residential|camp|mentorship|circle|sangha|meditation|institute|school|academy|centre|center)\b/i.test(source);
+              const blockers = [
+                (sel.status === "CANCELLED" || sel.status === "COMPLETED") && "Finished or cancelled bookings stay off /book.",
+                !typeOk && "Only residential and day retreats can appear on /book.",
+                sel.status === "ENQUIRY" && "Hold or confirm the dates first — enquiries stay private.",
+                !looksPublic && "Set a public title. The house name looks like a private booking.",
+              ].filter(Boolean) as string[];
+              const live = !!sel.openOnGuestBook && blockers.length === 0;
+              return (
+                <>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10, flexWrap: "wrap" }}>
+                    {live
+                      ? <span className="chip CONFIRMED" style={{ fontSize: 11 }}>Live on /book as {title || sel.name}</span>
+                      : sel.openOnGuestBook
+                        ? <span className="chip ENQUIRY" style={{ fontSize: 11 }}>Marked to publish — not live yet</span>
+                        : <span className="chip ENQUIRY" style={{ fontSize: 11 }}>Private</span>}
+                    {can("group.update") && sel.status !== "CANCELLED" && sel.status !== "COMPLETED" && (
+                      live
+                        ? <button className="btn" onClick={() => apply(sel.id, { open_for_guests: false, public_title: title || null })}>Take off /book</button>
+                        : <button className="btn primary" disabled={!typeOk || !looksPublic} onClick={() => apply(sel.id, { open_for_guests: true, public_title: title || null })}>
+                            {sel.status === "ENQUIRY" ? "Ready for /book after hold" : "Publish on /book"}
+                          </button>
+                    )}
+                  </div>
+                  {blockers.map(b => <div key={b} className="note" style={{ marginBottom: 8 }}>{b}</div>)}
+                  {live && <p className="m" style={{ color: "var(--ink-2)", marginBottom: 14 }}>Guests can browse this retreat, choose a room type, and send an enquiry. Take it off at any time — the house booking does not change.</p>}
+                </>
+              );
+            })()}
             <div className="actions">
               {(NEXT[sel.status] ?? []).map(n => (
                 <button key={n.cmd} className="btn primary" disabled={!can("group.confirm") || (n.to === "CONFIRMED" && paperworkTodo > 0)}

@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { cleanName, guestCopy, isPublicProgrammeName, nightsBetween, programmeKind, publicProgrammeName } from "./programmes.ts";
+import { cleanName, guestCopy, guestFacingProgrammeName, isPublicProgrammeName, nightsBetween, programmeKind, programmePublishState, publicProgrammeName } from "./programmes.ts";
 
 describe("public programmes", () => {
   it("hides private booking holds and HOLDs", () => {
@@ -49,5 +49,28 @@ describe("public programmes", () => {
     assert.equal(programmeKind("day_retreat"), "Day retreat");
     assert.equal(programmeKind("residential"), "Residential retreat");
     assert.equal(nightsBetween("2026-10-23", "2026-10-25"), 2);
+  });
+
+  it("uses a staff public title when the house name is private", () => {
+    assert.equal(guestFacingProgrammeName("Pete Blackaby", null, "Residential retreat"), null);
+    assert.equal(guestFacingProgrammeName("Pete Blackaby", "Autumn Yoga Retreat", "Residential retreat"), "Autumn Yoga Retreat");
+    assert.equal(guestFacingProgrammeName("Hoffman - Graduate Programme", null, "Residential retreat"), "Hoffman - Graduate Programme");
+  });
+
+  it("does not go live until held and given a public name", () => {
+    const enquiry = programmePublishState({ name: "Pete Blackaby", publicTitle: "Autumn Yoga Retreat", status: "ENQUIRY", retreatType: "residential", openForGuests: true });
+    assert.equal(enquiry.live, false);
+    assert.ok(enquiry.blockers.some(b => /hold or confirm/i.test(b)));
+
+    const privateName = programmePublishState({ name: "Pete Blackaby", publicTitle: "", status: "CONFIRMED", retreatType: "residential", openForGuests: true });
+    assert.equal(privateName.live, false);
+    assert.ok(privateName.blockers.some(b => /public title/i.test(b)));
+
+    const live = programmePublishState({ name: "Hoffman - Graduate Programme", publicTitle: "", status: "CONFIRMED", retreatType: "residential", openForGuests: true });
+    assert.equal(live.live, true);
+    assert.equal(live.publicName, "Hoffman - Graduate Programme");
+
+    const wedding = programmePublishState({ name: "House wedding", publicTitle: "Summer Wedding", status: "CONFIRMED", retreatType: "wedding", openForGuests: true });
+    assert.equal(wedding.live, false);
   });
 });

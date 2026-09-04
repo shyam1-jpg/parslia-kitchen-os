@@ -12,6 +12,7 @@ export type Group = {
   bookingForm: "NOT_SENT" | "SENT" | "COMPLETE"; termsSigned: boolean; feedback: "NOT_SENT" | "SENT" | "RECEIVED";
   notes?: string; dietaryNotes?: string; mealsFrom?: string; mealsTo?: string; colour: string; version: number; source?: string;
   openOnGuestBook?: boolean;
+  publicTitle?: string;
 };
 export type Occupancy = { room: string; date: string; slot: Slot; label: string; groupId: string; colour: string };
 export const sections = ["Ground Floor", "Pink Corridor", "First Floor", "Green Corridor", "Second Floor"];

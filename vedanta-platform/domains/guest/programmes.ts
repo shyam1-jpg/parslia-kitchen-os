@@ -68,3 +68,31 @@ export function nightsBetween(arrival: string, departure: string): number {
   if (!Number.isFinite(a) || !Number.isFinite(d) || d < a) return 0;
   return Math.round((d - a) / 86_400_000);
 }
+
+/** Name guests see. A staff public title wins over the house booking name. */
+export function guestFacingProgrammeName(name: string, publicTitle: string | null | undefined, kind: string): string | null {
+  const titled = cleanName(publicTitle ?? "");
+  const source = titled || cleanName(name);
+  if (!isPublicProgrammeName(source)) return null;
+  return publicProgrammeName(source, kind);
+}
+
+export type ProgrammePublishInput = {
+  name: string;
+  publicTitle?: string | null;
+  status: string;
+  retreatType: string;
+  openForGuests: boolean;
+};
+
+/** Why a booking is or is not live on /book. House names stay private unless staff publish. */
+export function programmePublishState(g: ProgrammePublishInput) {
+  const kind = programmeKind(g.retreatType);
+  const publicName = guestFacingProgrammeName(g.name, g.publicTitle, kind);
+  const blockers: string[] = [];
+  if (g.status === "CANCELLED" || g.status === "COMPLETED") blockers.push("Finished or cancelled bookings stay off /book.");
+  if (!["residential", "day_retreat"].includes(g.retreatType)) blockers.push("Only residential and day retreats can appear on /book.");
+  if (g.status === "ENQUIRY") blockers.push("Hold or confirm the dates first — enquiries stay private.");
+  if (!publicName) blockers.push("Set a public title. The house name looks like a private booking.");
+  return { live: !!g.openForGuests && blockers.length === 0, blockers, publicName, kind };
+}

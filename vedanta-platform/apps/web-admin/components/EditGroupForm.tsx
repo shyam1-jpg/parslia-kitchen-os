@@ -18,6 +18,7 @@ export default function EditGroupForm({ g, onClose, onSaved }: { g: Group; onClo
     mealsFrom: g.mealsFrom ?? "", mealsTo: g.mealsTo ?? "",
     packageId: g.packageId ?? "", agreedTwin: g.agreedTwin ?? "", agreedSingle: g.agreedSingle ?? "", singles: g.singles ?? 0, agreedTotal: g.agreedTotal ?? "",
     openOnGuestBook: !!g.openOnGuestBook,
+    publicTitle: g.publicTitle ?? "",
   });
   const [pkgs, setPkgs] = useState<Pkg[]>([]);
   useEffect(() => { api<{ items: Pkg[] }>("/v1/packages").then(r => setPkgs(r.items.filter(x => x.active || x.id === g.packageId))).catch(() => {}); }, [g.packageId]);
@@ -46,8 +47,8 @@ export default function EditGroupForm({ g, onClose, onSaved }: { g: Group; onClo
     setBusy(true); setErr(null);
     const patch: Record<string, unknown> = {};
     const map: [keyof typeof f, string][] = [["name", "name"], ["organisation", "organisation"], ["retreatType", "retreat_type"], ["useBasis", "use_basis"], ["arrival", "arrival_date"], ["arrivalSlot", "arrival_slot"], ["arrivalTime", "arrival_time"],
-      ["departure", "departure_date"], ["departureSlot", "departure_slot"], ["departureTime", "departure_time"], ["guests", "expected_guests"], ["roomsWanted", "expected_rooms"], ["packageName", "package_name"], ["priceNotes", "price_notes"], ["packageId", "package_id"], ["agreedTwin", "agreed_price_twin"], ["agreedSingle", "agreed_price_single"], ["singles", "singles_count"], ["agreedTotal", "agreed_total"], ["notes", "notes"], ["dietaryNotes", "dietary_notes"], ["mealsFrom", "meals_from"], ["mealsTo", "meals_to"], ["openOnGuestBook", "open_for_guests"]];
-    const orig: Record<string, unknown> = { name: g.name, organisation: g.organisation, retreatType: g.retreatType, useBasis: g.useBasis, arrival: g.arrival, arrivalSlot: g.arrivalSlot, arrivalTime: g.arrivalTime ?? "", departure: g.departure, departureSlot: g.departureSlot, departureTime: g.departureTime ?? "", guests: g.guests ?? 0, roomsWanted: g.roomsWanted ?? 0, packageName: g.packageName ?? "", priceNotes: g.priceNotes ?? "", notes: g.notes ?? "", dietaryNotes: g.dietaryNotes ?? "", mealsFrom: g.mealsFrom ?? "", mealsTo: g.mealsTo ?? "", packageId: g.packageId ?? "", agreedTwin: g.agreedTwin ?? "", agreedSingle: g.agreedSingle ?? "", singles: g.singles ?? 0, agreedTotal: g.agreedTotal ?? "", openOnGuestBook: !!g.openOnGuestBook };
+      ["departure", "departure_date"], ["departureSlot", "departure_slot"], ["departureTime", "departure_time"], ["guests", "expected_guests"], ["roomsWanted", "expected_rooms"], ["packageName", "package_name"], ["priceNotes", "price_notes"], ["packageId", "package_id"], ["agreedTwin", "agreed_price_twin"], ["agreedSingle", "agreed_price_single"], ["singles", "singles_count"], ["agreedTotal", "agreed_total"], ["notes", "notes"], ["dietaryNotes", "dietary_notes"], ["mealsFrom", "meals_from"], ["mealsTo", "meals_to"], ["openOnGuestBook", "open_for_guests"], ["publicTitle", "public_title"]];
+    const orig: Record<string, unknown> = { name: g.name, organisation: g.organisation, retreatType: g.retreatType, useBasis: g.useBasis, arrival: g.arrival, arrivalSlot: g.arrivalSlot, arrivalTime: g.arrivalTime ?? "", departure: g.departure, departureSlot: g.departureSlot, departureTime: g.departureTime ?? "", guests: g.guests ?? 0, roomsWanted: g.roomsWanted ?? 0, packageName: g.packageName ?? "", priceNotes: g.priceNotes ?? "", notes: g.notes ?? "", dietaryNotes: g.dietaryNotes ?? "", mealsFrom: g.mealsFrom ?? "", mealsTo: g.mealsTo ?? "", packageId: g.packageId ?? "", agreedTwin: g.agreedTwin ?? "", agreedSingle: g.agreedSingle ?? "", singles: g.singles ?? 0, agreedTotal: g.agreedTotal ?? "", openOnGuestBook: !!g.openOnGuestBook, publicTitle: g.publicTitle ?? "" };
     for (const [k, col] of map) if (f[k] !== orig[k]) patch[col] = f[k] === "" ? null : f[k];
     if (f.packageId !== (g.packageId ?? "")) { patch.package_name = pkg?.name ?? null; patch.spa_access = !!pkg && /spa/i.test(pkg.name); }
     if (!Object.keys(patch).length) { onClose(); return; }
@@ -98,6 +99,7 @@ export default function EditGroupForm({ g, onClose, onSaved }: { g: Group; onClo
           <label>Last meal on departure day<select value={f.mealsTo} onChange={e => set("mealsTo", e.target.value)}>{MEALS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
           <label className="span2">Dietary notes for the kitchen<input value={f.dietaryNotes} onChange={e => set("dietaryNotes", e.target.value)} placeholder="e.g. 3 gluten-free, 1 nut allergy (severe)" /></label>
           <label className="span2">Notes<textarea rows={2} value={f.notes} onChange={e => set("notes", e.target.value)} /></label>
+          <label className="span2">Public title on /book<input value={f.publicTitle} onChange={e => set("publicTitle", e.target.value)} placeholder="Leave blank to use the house name when it is already a public retreat" /></label>
           <label className="span2" style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <input type="checkbox" checked={f.openOnGuestBook} onChange={e => set("openOnGuestBook", e.target.checked)} />
             Show on guest book — off by default so guests never see another booking unless staff publish it

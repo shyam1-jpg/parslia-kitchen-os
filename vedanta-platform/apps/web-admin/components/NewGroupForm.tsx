@@ -14,6 +14,7 @@ export default function NewGroupForm({ onClose, onCreated }: { onClose: () => vo
     name: "", organisation: "", contact: "", contactEmail: "", retreatType: TYPES[0], useBasis: "SHARED" as "SHARED" | "EXCLUSIVE",
     arrival: "2026-05-01", arrivalSlot: "PM" as Slot, arrivalTime: "4pm", departure: "2026-05-03", departureSlot: "PM" as Slot, departureTime: "2pm",
     guests: 20, roomsWanted: 10, packageName: PACKAGES[0], priceNotes: "", notes: "", dietaryNotes: "",
+    publicTitle: "", openOnGuestBook: false,
   });
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF(s => ({ ...s, [k]: v }));
   const [err, setErr] = useState<string | null>(null);
@@ -39,7 +40,8 @@ export default function NewGroupForm({ onClose, onCreated }: { onClose: () => vo
     try {
       const g = await addGroup({ name: f.name, organisation: f.organisation, contact_email: f.contactEmail || null, retreat_type: f.retreatType, use_basis: f.useBasis,
         arrival: f.arrival, arrival_slot: f.arrivalSlot, arrival_time: f.arrivalTime, departure: f.departure, departure_slot: f.departureSlot, departure_time: f.departureTime,
-        expected_guests: f.guests, expected_rooms: isDay ? 0 : f.roomsWanted, package_name: f.packageName, price_notes: f.priceNotes, spa_access: f.packageName.includes("spa"), notes: f.notes, dietary_notes: f.dietaryNotes });
+        expected_guests: f.guests, expected_rooms: isDay ? 0 : f.roomsWanted, package_name: f.packageName, price_notes: f.priceNotes, spa_access: f.packageName.includes("spa"), notes: f.notes, dietary_notes: f.dietaryNotes,
+        public_title: f.publicTitle || null, open_for_guests: f.openOnGuestBook });
       onCreated(g);
     } catch (e) { setErr(e instanceof ApiError ? e.problem.detail : "Could not create the booking"); }
     finally { setBusy(false); }
@@ -86,6 +88,11 @@ export default function NewGroupForm({ onClose, onCreated }: { onClose: () => vo
           <label>Price as agreed<input value={f.priceNotes} onChange={e => set("priceNotes", e.target.value)} placeholder="Twin £249 pp · Single £339 pp" /></label>
           <label className="span2">Dietary and allergen notes for the kitchen<input value={f.dietaryNotes} onChange={e => set("dietaryNotes", e.target.value)} placeholder="e.g. 4 vegan, 1 severe nut allergy, all vegetarian" /></label>
           <label className="span2">Notes<textarea rows={2} value={f.notes} onChange={e => set("notes", e.target.value)} placeholder="Early arrivals, meals, anything the team needs to know" /></label>
+          <label className="span2">Public title on /book (optional)<input value={f.publicTitle} onChange={e => set("publicTitle", e.target.value)} placeholder="e.g. Autumn Yoga Retreat — shown to guests instead of the house name" /></label>
+          <label className="span2" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <input type="checkbox" checked={f.openOnGuestBook} onChange={e => set("openOnGuestBook", e.target.checked)} />
+            Offer on the guest book after dates are held or confirmed — enquiries stay private
+          </label>
         </div>
 
         {(err || problems.length > 0) && <div className="note">{err ?? problems[0]}</div>}

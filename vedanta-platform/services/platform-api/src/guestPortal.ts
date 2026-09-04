@@ -8,7 +8,7 @@ import type { FastifyInstance } from "fastify";
 import { pool, tx } from "./db.ts";
 import { emailLoginEnabled, problem, requireActor, allow } from "./auth.ts";
 import { audit } from "./groups.ts";
-import { cleanName, guestCopy, isPublicProgrammeName, nightsBetween, programmeBasis, programmeKind, publicProgrammeName } from "../../../domains/guest/programmes.ts";
+import { cleanName, guestCopy, guestFacingProgrammeName, nightsBetween, programmeBasis, programmeKind } from "../../../domains/guest/programmes.ts";
 import { roomsForStay } from "../../../domains/guest/stay.ts";
 import { accessOutcome, issueExpiry, nextFailedAttempts, publicLoginDetail, RECOVERY_OK } from "../../../domains/guest/access.ts";
 import { groupPublicTypes, shapePublicRoom } from "../../../domains/guest/availability.ts";
@@ -33,7 +33,7 @@ type GuestRow = {
   access_code_locked_until?: Date | string | null;
 };
 
-const PROGRAMME_SQL = `select g.id, g.name, g.organisation, g.retreat_type, g.use_basis,
+const PROGRAMME_SQL = `select g.id, g.name, g.public_title, g.organisation, g.retreat_type, g.use_basis,
   g.arrival_date::text arrival, g.arrival_slot, to_char(g.arrival_time,'HH24:MI') arrival_time,
   g.departure_date::text departure, g.departure_slot, to_char(g.departure_time,'HH24:MI') departure_time,
   g.expected_guests, g.package_name, g.price_notes, g.sheet_text, g.spa_access,
@@ -44,13 +44,16 @@ where g.property_id=$1
   and g.departure_date >= current_date
   and g.status in ('PROVISIONAL','CONFIRMED','IN_HOUSE')
   and g.retreat_type in ('residential','day_retreat')
-  and g.name not ilike 'HOLD%'
-  and g.name not ilike '%booking%'
-  and coalesce(g.open_for_guests, false) = true`;
+  and coalesce(g.open_for_guests, false) = true
+  and (
+    nullif(trim(coalesce(g.public_title, '')), '') is not null
+    or (g.name not ilike 'HOLD%' and g.name not ilike '%booking%')
+  )`;
 
 function shapeProgramme(r: any) {
   const kind = programmeKind(r.retreat_type);
-  const name = publicProgrammeName(cleanName(r.name), kind);
+  const name = guestFacingProgrammeName(r.name, r.public_title, kind);
+  if (!name) return null;
   const about = guestCopy(r.sheet_text);
   const price = guestCopy(r.price_notes);
   return {
@@ -171,14 +174,15 @@ export default async function guestPortal(f: FastifyInstance) {
   f.get("/guest/programmes", async () => {
     const prop = await propertyRow();
     const r = await pool.query(`${PROGRAMME_SQL} order by g.arrival_date, g.arrival_slot`, [prop.id]);
-    return { items: r.rows.filter(x => isPublicProgrammeName(x.name)).map(shapeProgramme) };
+    return { items: r.rows.map(shapeProgramme).filter(Boolean) };
   });
 
   f.get("/guest/programmes/:id", async (req: any, reply) => {
     const prop = await propertyRow();
     const r = (await pool.query(`${PROGRAMME_SQL} and g.id=$2`, [prop.id, req.params.id])).rows[0];
-    if (!r || !isPublicProgrammeName(r.name)) return reply.code(404).send(problem(404, "not_found", "That programme is not open"));
-    return shapeProgramme(r);
+    const shaped = r ? shapeProgramme(r) : null;
+    if (!shaped) return reply.code(404).send(problem(404, "not_found", "That programme is not open"));
+    return shaped;
   });
 
   f.get("/guest/rooms", async () => {

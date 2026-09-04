@@ -38,7 +38,7 @@ export async function audit(c: Q, a: Actor, entity: string, id: string, action: 
 const GROUP_COLS = `id, name, organisation, contact_email, contact_phone, arrival_date::text arrival, arrival_slot, arrival_time::text, departure_date::text departure, departure_slot, departure_time::text,
   retreat_type, use_basis, expected_guests, expected_rooms, package_name, price_basis, price_notes, spa_access, status, booking_form_status, terms_signed, terms_document, feedback_form_status,
   meals_from, meals_to, dietary_notes, notes, colour, version, source, external_ref, updated_at, review_reason, sheet_text,
-  package_id, agreed_price_twin, agreed_price_single, singles_count, agreed_total, form_token, form_sent_at, form_submitted_at, open_for_guests,
+  package_id, agreed_price_twin, agreed_price_single, singles_count, agreed_total, form_token, form_sent_at, form_submitted_at, open_for_guests, public_title,
   (select json_build_object('code', pk.code, 'name', pk.name, 'price_basis', pk.price_basis, 'price_twin', pk.price_twin, 'price_single', pk.price_single) from package pk where pk.id=booking_group.package_id) package,
   (select count(*) from group_attendee ga where ga.group_id=booking_group.id)::int attendees`;
 
@@ -78,10 +78,10 @@ export default async function routes(f: FastifyInstance) {
     return tx(async c => {
       const n = await c.query(`select count(*) from booking_group where property_id=$1`, [a.propertyId]);
       const r = await c.query(`insert into booking_group(tenant_id,property_id,name,organisation,contact_email,contact_phone,arrival_date,arrival_slot,arrival_time,departure_date,departure_slot,departure_time,
-          retreat_type,use_basis,expected_guests,expected_rooms,package_name,price_notes,spa_access,status,booking_form_status,notes,meals_from,meals_to,dietary_notes,colour,source)
-        values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,'ENQUIRY','NOT_SENT',$20,$21,$22,$23,$24,'ADMIN') returning ${GROUP_COLS}`,
+          retreat_type,use_basis,expected_guests,expected_rooms,package_name,price_notes,spa_access,status,booking_form_status,notes,meals_from,meals_to,dietary_notes,colour,source,open_for_guests,public_title)
+        values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,'ENQUIRY','NOT_SENT',$20,$21,$22,$23,$24,'ADMIN',$25,$26) returning ${GROUP_COLS}`,
         [a.tenantId, a.propertyId, b.name, b.organisation, b.contact_email ?? null, b.contact_phone ?? null, b.arrival, b.arrival_slot, parseTime(b.arrival_time), b.departure, b.departure_slot, parseTime(b.departure_time),
-         b.retreat_type ?? "residential", b.use_basis ?? "SHARED", b.expected_guests ?? null, wanted, b.package_name ?? null, b.price_notes ?? null, !!b.spa_access, b.notes ?? null, b.meals_from ?? null, b.meals_to ?? null, b.dietary_notes ?? null, PALETTE[Number(n.rows[0].count) % PALETTE.length]]);
+         b.retreat_type ?? "residential", b.use_basis ?? "SHARED", b.expected_guests ?? null, wanted, b.package_name ?? null, b.price_notes ?? null, !!b.spa_access, b.notes ?? null, b.meals_from ?? null, b.meals_to ?? null, b.dietary_notes ?? null, PALETTE[Number(n.rows[0].count) % PALETTE.length], !!b.open_for_guests, (typeof b.public_title === "string" && b.public_title.trim()) ? b.public_title.trim() : null]);
       await audit(c, a, "booking_group", r.rows[0].id, "group.create", { to: "ENQUIRY", version: 1 });
       reply.code(201); return { ...r.rows[0], rooms_allocated: 0 };
     });
@@ -120,11 +120,11 @@ export default async function routes(f: FastifyInstance) {
   f.patch<{ Params: { id: string }; Body: Record<string, unknown>; Headers: { "if-match"?: string } }>("/groups/:id", async (req, reply) => {
     const a = await requireActor(req, reply); if (!a || !allow(a, "group.update", reply)) return;
     const allowed = ["name", "organisation", "contact_email", "contact_phone", "expected_guests", "expected_rooms", "package_name", "price_notes", "spa_access", "booking_form_status", "terms_signed", "terms_document", "feedback_form_status", "notes", "meals_from", "meals_to", "dietary_notes", "retreat_type", "use_basis", "arrival_time", "departure_time",
-      "arrival_date", "arrival_slot", "departure_date", "departure_slot", "review_reason", "package_id", "agreed_price_twin", "agreed_price_single", "singles_count", "agreed_total", "open_for_guests"];
+      "arrival_date", "arrival_slot", "departure_date", "departure_slot", "review_reason", "package_id", "agreed_price_twin", "agreed_price_single", "singles_count", "agreed_total", "open_for_guests", "public_title"];
     const sets: string[] = []; const vals: unknown[] = [];
     for (const k of allowed) if (k in req.body) {
       const raw = req.body[k];
-      const v = k === "open_for_guests" ? !!raw : k.endsWith("_time") ? parseTime(raw) : raw;
+      const v = k === "open_for_guests" ? !!raw : k === "public_title" ? (typeof raw === "string" && raw.trim() ? raw.trim() : null) : k.endsWith("_time") ? parseTime(raw) : raw;
       vals.push(v); sets.push(`${k}=$${vals.length}`);
     }
     if (!sets.length) return reply.code(422).send(problem(422, "validation", "Nothing to change"));

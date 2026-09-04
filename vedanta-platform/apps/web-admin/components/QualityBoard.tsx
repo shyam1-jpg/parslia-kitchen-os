@@ -115,7 +115,7 @@ export default function QualityBoard() {
         <div className="k">House pages</div>
         <h2>Every working link</h2>
         <p className="m" style={{ color: "var(--ink-2)", marginBottom: 10 }}>
-          My Stay / Guest Portal at /book/ lists published programmes only — tick Show on guest book.
+          My Stay / Guest Portal at /book/ lists published programmes only — open a booking and use Publish on /book.
           Guests can still search dates and rooms without an account. Pocket is /pocket/. The public root / opens the guest portal, not the house.
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
