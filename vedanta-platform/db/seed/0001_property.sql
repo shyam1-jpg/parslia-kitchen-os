@@ -11,7 +11,7 @@ BEGIN
 
   INSERT INTO property (id, tenant_id, code, name, settings)
   VALUES ('0e663f34-d4ce-4f40-899c-11f1866047fd', t, 'VOR', 'Vedanta Oway Retreat',
-    '{"rooms_total":45,"staff_headcount":25,"legal_entity":"The Vedanta Way Ltd","website":"https://www.thevedanta.org/"}') RETURNING id INTO p;
+    '{"rooms_total":42,"guest_rooms":41,"staff_headcount":25,"legal_entity":"The Vedanta Way Ltd","website":"https://www.thevedanta.org/","kicker":"Retreat Center","tagline":"Luxury retreat centre","about":"A beautiful grade II-listed luxury retreat centre. Nestled amongst 75 acres of woodlands, meadows and lakes in Lincolnshire — a Grade II listed Elizabethan estate.","address":"Lincoln Rd, Branston, Lincolnshire, LN4 1PD"}') RETURNING id INTO p;
 
   -- Departments
   INSERT INTO department (tenant_id, property_id, code, name) VALUES

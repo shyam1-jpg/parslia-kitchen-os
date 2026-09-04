@@ -45,7 +45,7 @@ export function productionOwnerAllowed(email: string): boolean {
 }
 
 export type Audience = "ADMIN" | "STAFF";
-export type Actor = { userId: string; tenantId: string; propertyId: string; email: string; name: string; role: string; roleName: string; department: string | null; perms: Set<string>; audience: Audience };
+export type Actor = { userId: string; tenantId: string; propertyId: string; email: string; name: string; role: string; roleName: string; department: string | null; perms: Set<string>; audience: Audience; propertyName?: string | null; propertyKicker?: string | null };
 
 const loginHits = new Map<string, { n: number; t: number }>();
 function rateOk(key: string, max = 8, windowMs = 60_000): boolean {
@@ -63,15 +63,18 @@ export function problem(status: number, code: string, detail: string, extra: obj
 async function loadActor(where: string, param: string): Promise<Actor | null> {
   const { rows } = await pool.query(`
     select u.id user_id, u.tenant_id, u.email, u.display_name, m.property_id, r.code role, r.name role_name, d.code department,
+           p.name property_name,
+           coalesce(p.settings->>'kicker', 'Retreat Center') property_kicker,
            coalesce(array_agg(rp.permission_code) filter (where rp.permission_code is not null), '{}') perms
     from app_user u join membership m on m.user_id = u.id join role r on r.id = m.role_id
     left join department d on d.id = m.department_id
     left join role_permission rp on rp.role_id = r.id
+    left join property p on p.id = m.property_id
     ${where} and u.status = 'ACTIVE'
-    group by u.id, m.property_id, r.code, r.name, d.code limit 1`, [param]);
+    group by u.id, m.property_id, r.code, r.name, d.code, p.name, p.settings limit 1`, [param]);
   const r = rows[0]; if (!r) return null;
   if (r.role === "SYSTEM_OWNER" && !productionOwnerAllowed(r.email)) return null;
-  return { userId: r.user_id, tenantId: r.tenant_id, propertyId: r.property_id, email: r.email, name: r.display_name, role: r.role, roleName: r.role_name, department: r.department ?? null, perms: new Set(r.perms), audience: "ADMIN" };
+  return { userId: r.user_id, tenantId: r.tenant_id, propertyId: r.property_id, email: r.email, name: r.display_name, role: r.role, roleName: r.role_name, department: r.department ?? null, perms: new Set(r.perms), audience: "ADMIN", propertyName: r.property_name ?? null, propertyKicker: r.property_kicker ?? null };
 }
 
 export async function requireActor(req: FastifyRequest, reply: FastifyReply, audience: Audience | Audience[] = "ADMIN"): Promise<Actor | null> {
@@ -128,5 +131,5 @@ export default async function authRoutes(f: FastifyInstance) {
     const auth = req.headers.authorization; if (auth?.startsWith("Bearer ")) await pool.query(`delete from session where token=$1`, [auth.slice(7)]);
     return reply.code(204).send();
   });
-  f.get("/me", async (req, reply) => { const a = await requireActor(req, reply, ["ADMIN", "STAFF"]); if (!a) return; return { email: a.email, name: a.name, role: a.role, role_name: a.roleName, department: a.department, permissions: [...a.perms], surface: a.audience }; });
+  f.get("/me", async (req, reply) => { const a = await requireActor(req, reply, ["ADMIN", "STAFF"]); if (!a) return; return { email: a.email, name: a.name, role: a.role, role_name: a.roleName, department: a.department, permissions: [...a.perms], surface: a.audience, property_name: a.propertyName ?? null, property_kicker: a.propertyKicker ?? null }; });
 }

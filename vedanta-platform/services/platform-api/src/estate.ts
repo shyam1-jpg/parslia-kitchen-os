@@ -96,7 +96,7 @@ export default async function estate(f: FastifyInstance) {
         out_of_service: hk.out_of_service,
         open_tasks: openTasks,
         critical_issues: critical,
-        payments_due: null,
+        payments_due: null, // folio module not yet built — always null; UI shows — via money() helper
       },
       arriving,
       departing,

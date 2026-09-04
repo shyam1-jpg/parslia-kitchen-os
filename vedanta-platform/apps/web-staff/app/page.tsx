@@ -15,9 +15,12 @@ async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   return body as T;
 }
 
-type Me = { name: string; email: string; role: string; role_name?: string };
+type Me = { name: string; email: string; role: string; role_name?: string; property_name?: string | null; property_kicker?: string | null };
+type Prop = { name: string; kicker: string };
+
 export default function Pocket() {
   const [me, setMe] = useState<Me | null>(null);
+  const [prop, setProp] = useState<Prop>({ name: "The Vedanta Way", kicker: "Retreat Center" });
   const [email, setEmail] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [tab, setTab] = useState<"clock" | "leave" | "duty" | "sop" | "log" | "desk" | "night" | "manual" | "tasks">("clock");
@@ -61,7 +64,10 @@ export default function Pocket() {
     try { setManuals((await api<{ items: typeof manuals }>("/v1/manuals")).items); } catch { setManuals([]); }
     try { setTasks(await api("/v1/ops/tasks")); } catch { setTasks(null); }
   };
-  useEffect(() => { if (tok.get()) load().catch(() => tok.set(null)); }, []);
+  useEffect(() => {
+    api<Prop>("/guest/property").then(p => setProp({ name: p.name, kicker: p.kicker })).catch(() => {});
+    if (tok.get()) load().catch(() => tok.set(null));
+  }, []);
 
   const enter = async () => {
     setErr(null);
@@ -89,7 +95,7 @@ export default function Pocket() {
 
   if (!me) return (
     <>
-      <div className="hero"><div className="kicker">Retreat Center</div><h1>The Vedanta Way</h1><p>Luxury retreat centre</p></div>
+      <div className="hero"><div className="kicker">{prop.kicker}</div><h1>{prop.name}</h1><p>Luxury retreat centre</p></div>
       <div className="wrap">
         <div className="card">
           <label>Staff email</label>

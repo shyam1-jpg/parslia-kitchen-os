@@ -10,6 +10,7 @@ export default function Settings() {
   const { can } = useStore();
   const [pkgs, setPkgs] = useState<Pkg[]>([]); const [keys, setKeys] = useState<Key[]>([]); const [newKey, setNewKey] = useState<string | null>(null);
   const [draft, setDraft] = useState<Record<string, Partial<Pkg>>>({}); const [add, setAdd] = useState({ code: "", name: "", price_basis: "PER_PERSON", price_twin: "", price_single: "" });
+  const [newKeyName, setNewKeyName] = useState("");
   const [toast, setToast] = useState<string | null>(null); const say = (t: string) => { setToast(t); setTimeout(() => setToast(null), 3500); };
   const load = () => { api<{ items: Pkg[] }>("/v1/packages").then(r => setPkgs(r.items)); if (can("config.manage")) api<{ items: Key[] }>("/v1/integrations/keys").then(r => setKeys(r.items)).catch(() => {}); };
   useEffect(load, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -51,7 +52,7 @@ export default function Settings() {
           <p className="m" style={{ color: "var(--ink-2)" }}>Keys let another system (the kitchen's Parslia) read covers and dietary needs. A key is shown once when created.</p>
           {newKey && <div className="note" style={{ wordBreak: "break-all" }}><b>New key — copy it now, it will not be shown again:</b><br /><code>{newKey}</code></div>}
           <table className="rpt"><tbody>{keys.map(k => <tr key={k.id} style={{ opacity: k.revoked_at ? .5 : 1 }}><td>{k.name}</td><td className="m">{k.scopes.join(", ")}</td><td className="m">{k.revoked_at ? "revoked" : k.last_used_at ? `last used ${new Date(k.last_used_at).toLocaleString("en-GB")}` : "never used"}</td><td>{!k.revoked_at && <button className="btn danger" onClick={() => { if (confirm(`Revoke ${k.name}? The other system will stop working immediately.`)) run(() => api(`/v1/integrations/keys/${k.id}`, { method: "DELETE" }), "Key revoked"); }}>Revoke</button>}</td></tr>)}</tbody></table>
-          <div className="frow" style={{ marginTop: 10, maxWidth: 480 }}><input id="keyname" placeholder="Name, e.g. Parslia Kitchen OS" /><button className="btn primary" onClick={() => { const n = (document.getElementById("keyname") as HTMLInputElement).value; if (n) run(() => api<{ key: string }>("/v1/integrations/keys", { method: "POST", body: JSON.stringify({ name: n, scopes: ["kitchen.read"] }) }).then(r => setNewKey(r.key)), "Key created"); }}>Create key</button></div>
+          <div className="frow" style={{ marginTop: 10, maxWidth: 480 }}><input placeholder="Name, e.g. Parslia Kitchen OS" value={newKeyName} onChange={e => setNewKeyName(e.target.value)} /><button className="btn primary" disabled={!newKeyName.trim()} onClick={() => { if (newKeyName.trim()) run(() => api<{ key: string }>("/v1/integrations/keys", { method: "POST", body: JSON.stringify({ name: newKeyName.trim(), scopes: ["kitchen.read"] }) }).then(r => { setNewKey(r.key); setNewKeyName(""); }), "Key created"); }}>Create key</button></div>
         </div>)}
       {toast && <div className="toast">{toast}</div>}
     </>

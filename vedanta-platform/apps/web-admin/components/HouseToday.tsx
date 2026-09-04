@@ -4,6 +4,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { fmt } from "@/lib/format";
 import OpsBoard from "@/components/OpsBoard";
+import { useStore } from "@/lib/store";
 
 type Estate = {
   today: string;
@@ -26,15 +27,31 @@ function money(n: number | null | undefined, currency = "GBP") {
 }
 
 export default function HouseToday() {
+  const { user, ready } = useStore();
   const [e, setE] = useState<Estate | null>(null);
   const [book, setBook] = useState(0);
   const [err, setErr] = useState<string | null>(null);
-  useEffect(() => {
-    api<Estate>("/v1/estate").then(setE).catch(() => setErr("The house ledger could not be opened."));
+
+  const load = () => {
+    setErr(null);
+    api<Estate>("/v1/estate").then(setE).catch(() => setErr("The house ledger could not be opened. Check the API is running."));
     api<{ items: unknown[] }>("/v1/guest-enquiries").then(r => setBook(r.items.length)).catch(() => {});
-  }, []);
-  if (err) return <div className="note">{err}</div>;
-  if (!e) return <div className="empty">Opening the house…</div>;
+  };
+
+  // Wait until the store has resolved the user session before calling the API.
+  // Without this, HouseToday fires immediately on mount — before the auth token
+  // is in place — which causes a 401 and a blank screen.
+  useEffect(() => {
+    if (ready && user) load();
+  }, [ready, user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!ready || (!e && !err)) return <div className="empty">Opening the house…</div>;
+  if (err) return (
+    <div style={{ padding: 32 }}>
+      <div className="note">{err}</div>
+      <button className="btn" style={{ marginTop: 12 }} onClick={load}>Try again</button>
+    </div>
+  );
   const d = fmt(e.today, { weekday: "long", day: "numeric", month: "long" });
   const p = e.pulse;
   const nowHm = new Date().toLocaleTimeString("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit", hour12: false });
@@ -62,7 +79,7 @@ export default function HouseToday() {
         <article><div className="k">Rooms dirty</div><b>{p.rooms_dirty ?? "—"}</b><div className="s">need a turn</div></article>
         <article><div className="k">Inspected</div><b>{p.rooms_inspected ?? "—"}</b><div className="s">passed today</div></article>
         <article><div className="k">Out of order</div><b>{p.out_of_order ?? 0}</b><div className="s">not sellable</div></article>
-        <article><div className="k">Payments due</div><b>{money(p.payments_due)}</b><div className="s">folio not live yet</div></article>
+        <article style={{ opacity: 0.5 }}><div className="k">Payments due</div><b>—</b><div className="s">folio coming soon</div></article>
         <article><div className="k">Open tasks</div><b>{p.open_tasks ?? 0}</b><div className="s">across the house</div></article>
         <article className={(p.critical_issues ?? 0) > 0 ? "crit" : ""}><div className="k">Critical issues</div><b>{p.critical_issues ?? 0}</b><div className="s">need a manager now</div></article>
       </div>

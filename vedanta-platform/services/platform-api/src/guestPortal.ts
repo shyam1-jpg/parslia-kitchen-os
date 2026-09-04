@@ -15,6 +15,7 @@ import { groupPublicTypes, shapePublicRoom } from "../../../domains/guest/availa
 import { backupGuestEvent } from "./kiteline.ts";
 import { departmentLabel, ownGuestRequests, routeGuestRequest } from "../../../domains/ops/board.ts";
 import { freeRooms } from "./groups.ts";
+import { sendEmail, emailConfigured } from "./email.ts";
 
 const hits = new Map<string, { n: number; t: number }>();
 function rateOk(key: string): boolean {
@@ -120,6 +121,12 @@ async function upsertGuestWithCode(prop: any, email: string, name: string): Prom
 async function propertyRow() {
   return (await pool.query(`select p.id, p.tenant_id, p.name, p.check_in_from::text, p.check_out_by::text, t.currency,
       coalesce(p.settings->>'website','https://www.thevedanta.org/') as website,
+      coalesce(p.settings->>'kicker','Retreat Center') as kicker,
+      coalesce(p.settings->>'tagline','Luxury retreat centre') as tagline,
+      p.settings->>'about' as about,
+      p.settings->>'welcome' as welcome,
+      p.settings->>'address' as address,
+      coalesce(p.settings->>'legal_entity','The Vedanta Way Ltd') as legal_entity,
       (select count(*) from room r where r.property_id=p.id and not r.staff_only)::int as rooms
     from property p join tenant t on t.id=p.tenant_id order by p.created_at limit 1`)).rows[0];
 }
@@ -129,17 +136,17 @@ export default async function guestPortal(f: FastifyInstance) {
     const r = await propertyRow();
     return {
       name: r?.name ?? "The Vedanta Way",
-      kicker: "Retreat Center",
-      tagline: "Luxury retreat centre",
-      about: "A beautiful grade II-listed luxury retreat centre. Nestled amongst 75 acres of woodlands, meadows and lakes in Lincolnshire — a Grade II listed Elizabethan estate.",
-      welcome: "Host your retreats and events with us for an unforgettably meaningful experience. When you arrive, the house is ready. We take care of the rest.",
-      address: "Lincoln Rd, Branston, Lincolnshire, LN4 1PD",
+      kicker: r?.kicker ?? "Retreat Center",
+      tagline: r?.tagline ?? "Luxury retreat centre",
+      about: r?.about ?? "A beautiful grade II-listed luxury retreat centre. Nestled amongst 75 acres of woodlands, meadows and lakes in Lincolnshire — a Grade II listed Elizabethan estate.",
+      welcome: r?.welcome ?? "Host your retreats and events with us for an unforgettably meaningful experience. When you arrive, the house is ready. We take care of the rest.",
+      address: r?.address ?? "Lincoln Rd, Branston, Lincolnshire, LN4 1PD",
       website: r?.website ?? "https://www.thevedanta.org/",
-      company: "The Vedanta Way Ltd",
+      company: r?.legal_entity ?? "The Vedanta Way Ltd",
       check_in_from: (r?.check_in_from ?? "15:00").slice(0, 5),
       check_out_by: (r?.check_out_by ?? "11:00").slice(0, 5),
       currency: r?.currency ?? "GBP",
-      rooms: r?.rooms ?? 41,
+      rooms: r?.rooms ?? 0,
     };
   });
 
@@ -237,6 +244,22 @@ export default async function guestPortal(f: FastifyInstance) {
     const prop = await propertyRow();
     const r = await upsertGuestWithCode(prop, email, name);
     void backupGuestEvent({ id: `guest_reg_${r.guest.id}`, kind: "register", name: r.guest.display_name, email: r.guest.email });
+    // Send access code by email so the guest doesn't lose it on page close
+    if (r.access_code && emailConfigured()) {
+      const houseName = prop?.name ?? "The Vedanta Way";
+      void pool.query(
+        `insert into outbound_email (tenant_id, property_id, to_email, subject, body, kind, status)
+         values ($1,$2,$3,$4,$5,'guest_access_code','QUEUED')`,
+        [prop.tenant_id, prop.id, email,
+          `Your access code for ${houseName} My Stay`,
+          `Dear ${name},\n\nThank you for registering with ${houseName}.\n\nYour My Stay access code is: ${r.access_code}\n\nThis code expires in 14 days. Keep it somewhere safe — you will need it each time you sign in to My Stay.\n\nIf you did not request this, please ignore this email.\n\nWith warm regards,\n${houseName}\nhttps://www.thevedanta.org/`],
+      ).then(async () => {
+        const { default: nodemailer } = await import("nodemailer");
+        const transport = nodemailer.createTransport(process.env.SMTP_URL!);
+        const FROM = process.env.MAIL_FROM ?? `${houseName} <bookings@thevedanta.org>`;
+        await transport.sendMail({ from: FROM, to: email, subject: `Your access code for ${houseName} My Stay`, text: `Dear ${name},\n\nYour My Stay access code is: ${r.access_code}\n\nThis code expires in 14 days.\n\n${houseName}` });
+      }).catch(() => { /* email failure is non-fatal; code still shown in response */ });
+    }
     const session = await issueGuest(r.guest.id, r.guest.email, r.guest.display_name);
     return { ...session, access_code: r.access_code ?? null };
   });

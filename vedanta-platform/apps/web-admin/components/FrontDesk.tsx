@@ -9,7 +9,8 @@ type Supplier = { code: string; name: string; supplies: string; note: string | n
 type Order = { id: string; for_date: string; needed_for: string; items: { name: string; qty: string }[]; notes: string | null; status: string; raised_by_name: string | null };
 type Desk = { date: string; today: Recipe; tomorrow: Recipe; week: Recipe[]; suppliers: Supplier[]; stock: Stock[]; orders: Order[] };
 
-const FROM: Record<string, string> = { kitchen: "Kitchen", foh: "Front of house", suma: "Suma", organic_wholesale: "Organic wholesale", walkers: "Walkers", nairns: "Nairn's" };
+// Static fallback only — real labels come from desk.suppliers at runtime
+const FROM_FALLBACK: Record<string, string> = { kitchen: "Kitchen", foh: "Front of house", suma: "Suma", organic_wholesale: "Organic wholesale", walkers: "Walkers", nairns: "Nairn's" };
 
 export default function FrontDesk() {
   const [desk, setDesk] = useState<Desk | null>(null);
@@ -21,6 +22,9 @@ export default function FrontDesk() {
   const load = () => api<Desk>("/v1/service/front-desk").then(r => { setDesk(r); if (!forDate) setForDate(r.date); }).catch(e => say(e instanceof ApiError ? e.problem.detail : "Could not open the front desk"));
   useEffect(() => { load(); }, []); // eslint-disable-line
   if (!desk) return <div className="empty">Opening the front desk…</div>;
+  // Build supplier label map from live data, fall back to static list for unknown codes
+  const FROM: Record<string, string> = Object.fromEntries(desk.suppliers.map(s => [s.code, s.name]));
+  const supLabel = (code: string) => FROM[code] ?? FROM_FALLBACK[code] ?? code;
 
   const sendOrder = async (extra: { name: string; qty: string }[]) => {
     const items = [
@@ -48,7 +52,7 @@ export default function FrontDesk() {
           <p>{desk.today.method}</p>
           <ul className="house-list">
             {desk.today.ingredients.map(i => (
-              <li key={i.name}><span><div className="t">{i.name}</div><div className="m">{i.qty} · {FROM[i.from] ?? i.from}</div></span></li>
+              <li key={i.name}><span><div className="t">{i.name}</div><div className="m">{i.qty} · {supLabel(i.from)}</div></span></li>
             ))}
           </ul>
           <button className="btn primary" style={{ marginTop: 12 }} onClick={() => sendOrder(desk.today.ingredients.map(i => ({ name: i.name, qty: i.qty })))}>Order today&apos;s fruit from the kitchen</button>
@@ -59,7 +63,7 @@ export default function FrontDesk() {
           <p>{desk.tomorrow.method}</p>
           <ul className="house-list">
             {desk.tomorrow.ingredients.map(i => (
-              <li key={i.name}><span><div className="t">{i.name}</div><div className="m">{i.qty} · {FROM[i.from] ?? i.from}</div></span></li>
+              <li key={i.name}><span><div className="t">{i.name}</div><div className="m">{i.qty} · {supLabel(i.from)}</div></span></li>
             ))}
           </ul>
           <button className="btn" style={{ marginTop: 12 }} onClick={() => sendOrder(desk.tomorrow.ingredients.map(i => ({ name: `${i.name} (for ${desk.tomorrow.weekday})`, qty: i.qty })))}>Order tomorrow&apos;s fruit now</button>

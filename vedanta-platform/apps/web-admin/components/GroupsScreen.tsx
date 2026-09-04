@@ -224,6 +224,26 @@ export default function GroupsScreen() {
               <ul className="who" style={{ marginBottom: 14 }}>{attendees.map(a => <li key={a.given_name + a.family_name}><i style={{ background: a.allergens?.length ? "var(--brick)" : a.diet?.length ? "var(--moss)" : "var(--line)" }} />{a.given_name} {a.family_name}
                 <span className="m" style={{ fontSize: 12, color: "var(--ink-2)" }}>{[a.room_preference?.replace("share_with:", "share with "), a.arrives_early ? "arrives early" : null, a.diet?.join(", ").replace(/_/g, " "), a.allergens?.length ? `${a.allergens.join(", ")} (${a.severity?.toLowerCase()})` : null].filter(Boolean).join(" · ")}</span></li>)}</ul>
             </>)}
+            <h3>Guest book</h3>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: can("group.update") ? "pointer" : "default" }}>
+                <input
+                  type="checkbox"
+                  checked={!!sel.openOnGuestBook}
+                  disabled={!can("group.update") || sel.status === "CANCELLED" || sel.status === "COMPLETED"}
+                  onChange={e => apply(sel.id, { open_for_guests: e.target.checked })}
+                />
+                <span>Publish on the public guest book (<code>/book</code>)</span>
+              </label>
+              {sel.openOnGuestBook
+                ? <span className="chip CONFIRMED" style={{ fontSize: 11 }}>Visible to guests</span>
+                : <span className="chip ENQUIRY" style={{ fontSize: 11 }}>Private</span>}
+            </div>
+            {sel.openOnGuestBook && (
+              <p className="m" style={{ color: "var(--ink-2)", marginBottom: 14 }}>
+                This retreat appears on /book. Guests can browse, choose a room type, and send an enquiry. Uncheck to remove it from public view at any time.
+              </p>
+            )}
             <div className="actions">
               {(NEXT[sel.status] ?? []).map(n => (
                 <button key={n.cmd} className="btn primary" disabled={!can("group.confirm") || (n.to === "CONFIRMED" && paperworkTodo > 0)}

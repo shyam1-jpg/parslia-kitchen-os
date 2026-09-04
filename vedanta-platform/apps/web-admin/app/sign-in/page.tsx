@@ -4,11 +4,14 @@ import { useRouter } from "next/navigation";
 import { api, API } from "@/lib/api";
 import { useStore } from "@/lib/store";
 type U = { email: string; name: string; role: string };
+type Prop = { name: string; kicker: string; tagline: string; website: string; company: string };
 export default function SignIn() {
   const { signIn, signInWithToken, user } = useStore(); const router = useRouter();
   const [users, setUsers] = useState<U[]>([]); const [email, setEmail] = useState("shyam_1@hotmail.co.uk"); const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
   const [providers, setProviders] = useState<{ microsoft: boolean; dev: boolean; email: boolean } | null>(null);
+  const [prop, setProp] = useState<Prop>({ name: "The Vedanta Way", kicker: "Retreat Center", tagline: "A beautiful grade II-listed luxury retreat centre.", website: "https://www.thevedanta.org/", company: "The Vedanta Way Ltd" });
   useEffect(() => {
+    api<Prop>("/guest/property").then(p => setProp({ name: p.name, kicker: p.kicker, tagline: p.tagline ?? prop.tagline, website: p.website, company: p.company })).catch(() => {});
     const m = window.location.hash.match(/token=([^&]+)/);
     if (m) { history.replaceState(null, "", window.location.pathname); signInWithToken(m[1]).catch(() => setErr("Sign-in did not complete. Try again.")); return; }
     const e = new URLSearchParams(window.location.search).get("error"); if (e) setErr(e);
@@ -24,11 +27,11 @@ export default function SignIn() {
     <div className="arrive">
       <section className="arrive-hero">
         <div>
-          <div className="arrive-kicker">Retreat Center</div>
-          <h1>The Vedanta Way</h1>
-          <p className="lede">A beautiful grade II-listed luxury retreat centre.</p>
+          <div className="arrive-kicker">{prop.kicker}</div>
+          <h1>{prop.name}</h1>
+          <p className="lede">{prop.tagline}</p>
         </div>
-        <div className="foot"><a href="https://www.thevedanta.org/">www.thevedanta.org</a><br />The Vedanta Way Ltd</div>
+        <div className="foot"><a href={prop.website}>{prop.website.replace(/^https?:\/\//, "")}</a><br />{prop.company}</div>
       </section>
       <section className="arrive-panel">
         <div className="arrive-card">
