@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subscription confirmed — Kiteline</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>body{font-family:Inter,system-ui,sans-serif}.gradient{background:linear-gradient(135deg,#0f766e 0%,#0b1220 100%)}</style>
+</head>
+<body class="text-ink-900 antialiased">
+  <section class="gradient min-h-screen flex items-center justify-center px-5 py-16 text-white text-center">
+    <div class="max-w-lg">
+      <img src="/kiteline-logo.png?v=mark3" alt="" class="w-14 h-14 mx-auto mb-6" width="56" height="56">
+      <h1 id="title" class="text-3xl font-black">Thank you — you're subscribed!</h1>
+      <p id="msg" class="mt-4 text-white/75">Your Kiteline subscription is active. Sign in with the <b>same email</b> you used at checkout.</p>
+      <p id="sessionLine" class="mt-2 text-sm text-white/50"></p>
+      <a href="/app#settings" id="cta" class="inline-block mt-8 px-6 py-3 rounded-xl bg-white text-brand-800 font-bold">Open Kiteline app</a>
+      <p id="hint" class="mt-6 text-sm text-white/50">Manage or cancel anytime in the app → Settings → Billing.</p>
+      <p class="mt-4 text-sm"><a href="pricing.html" class="text-brand-300 underline">Back to pricing</a></p>
+      <p class="mt-8 text-xs text-white/40">© 2026 Kiteline · <a href="terms.html" class="underline">Terms</a> · <a href="privacy.html" class="underline">Privacy</a></p>
+    </div>
+  </section>
+  <script>
+    (function () {
+      var addon = (location.search.match(/[?&]addon=([^&]+)/) || [])[1];
+      if (addon === 'recipe_ai') {
+        document.getElementById('title').textContent = 'Recipe AI is active!';
+        document.getElementById('msg').innerHTML = 'Your company\'s <b>Recipe AI</b> subscription is live (Option A). Sign in with the <b>same email</b> you used at checkout, then go to <b>Recipes → Add recipe</b>.';
+        document.getElementById('cta').href = '/app#recipes';
+        document.getElementById('cta').textContent = 'Open Recipes';
+        document.getElementById('hint').textContent = 'Manage in app → Settings → Recipe AI. OpenAI usage is included within your monthly limits.';
+      }
+      var sessionId = (location.search.match(/[?&]session_id=([^&]+)/) || [])[1];
+      if (sessionId) {
+        fetch('/api/billing/session?session_id=' + encodeURIComponent(sessionId))
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var el = document.getElementById('sessionLine');
+            if (!el) return;
+            if (data.payment_status === 'paid' || data.status === 'complete') {
+              el.textContent = 'Payment confirmed' + (data.plan ? ' · ' + data.plan : '') + '.';
+            } else if (data.error) {
+              el.textContent = 'We could not verify the session yet — sign in and check Settings → Billing.';
+            } else {
+              el.textContent = 'Checkout status: ' + (data.status || 'pending') + '.';
+            }
+          }).catch(function () {});
+      }
+    })();
+  </script>
+</body>
+</html>
