@@ -1,0 +1,105 @@
+folder,domains,from_contains
+GitHub,github.com;githubapp.com;githubstatus.com;githubcopilot.com,GitHub
+Cursor,cursor.com;cursor.sh;anysphere.co;anysphere.com,Cursor;Anysphere
+Cloud,render.com;netlify.com;vercel.com;heroku.com;herokuapp.com;amazonaws.com;aws.amazon.com;azure.com;windowsazure.com;cloud.google.com;digitalocean.com;cloudflare.com;fly.io;railway.app,Cloud;Render;Netlify;Vercel;Heroku;Cloudflare
+Apple,apple.com;email.apple.com;insideapple.apple.com;id.apple.com,Apple
+Google,google.com;googleplay.com;android.com;googleapis.com;youtube.com;yt.be,Google;YouTube
+Microsoft,microsoft.com;microsoftonline.com;office.com;office365.com;onmicrosoft.com;xbox.com;skype.com;live.net,Microsoft;Xbox
+OpenAI,openai.com;chatgpt.com,OpenAI;ChatGPT
+Anthropic,anthropic.com;claude.ai,Anthropic;Claude
+Stripe,stripe.com,Stripe
+GoDaddy,godaddy.com;secureserver.net,GoDaddy
+Amazon,amazon.co.uk;amazon.com;amazon.in;amazon.co.in,Amazon
+PayPal,paypal.com;paypal.co.uk,PayPal
+LinkedIn,linkedin.com;linkedinmail.com,LinkedIn
+Dropbox,dropbox.com,Dropbox
+Adobe,adobe.com,Adobe
+Zoom,zoom.us;zoom.com,Zoom
+Slack,slack.com,Slack
+Notion,notion.so;notion.com,Notion
+Meta,facebook.com;facebookmail.com;instagram.com;meta.com;whatsapp.com,Facebook;Instagram;Meta;WhatsApp
+Netflix,netflix.com,Netflix
+Spotify,spotify.com,Spotify
+X-Twitter,x.com;twitter.com;xmail.twitter.com,Twitter;X.com
+TikTok,tiktok.com;tiktokv.com,TikTok
+Vedanta,vedanta.co.in;vedanta.com;vedantalimited.com,Vedanta
+Brakes,brakes.co.uk;brake.co.uk;brakebros.co.uk,Brakes
+Bidfood,bidfood.co.uk;bidfood.com,Bidfood
+Booker,booker.co.uk,Booker
+Sysco,sysco.com;sysco.co.uk,Sysco
+Nisbets,nisbets.co.uk;nisbets.com,Nisbets
+Cypad,cypad.com,Cypad
+Kiteline,kiteline.uk;kiteline.com,Kiteline
+Parslia,parslia.app;parslia.com,Parslia
+Libraix,libraix.ai;libraix.com,Libraix
+Hercules,hercules.app;hercules.com,Hercules
+HMRC,hmrc.gov.uk;tax.service.gov.uk;mail.hmrc.gov.uk,HMRC
+GovUK,gov.uk;notifications.service.gov.uk,GOV.UK
+NHS,nhs.uk;nhs.net,NHS
+CompaniesHouse,companieshouse.gov.uk,Companies House
+DVLA,dvla.gov.uk,DVLA
+Barclays,barclays.co.uk;barclays.com,Barclays
+HSBC,hsbc.co.uk;hsbc.com,HSBC
+Lloyds,lloydsbank.com;lloydsbank.co.uk;halifax.co.uk,Lloyds;Halifax
+NatWest,natwest.com;natwest.co.uk;rbs.co.uk,NatWest
+Santander,santander.co.uk;santander.com,Santander
+Nationwide,nationwide.co.uk,Nationwide
+EE,ee.co.uk,EE
+Vodafone,vodafone.co.uk;vodafone.com,Vodafone
+O2,o2.co.uk;telefonica.com,O2
+Three,three.co.uk,Three
+BT,bt.com,BT
+Sky,sky.com;skydigital.co.uk,Sky
+Virgin,virginmedia.com;virgin.com,Virgin
+BritishGas,britishgas.co.uk,British Gas
+OctopusEnergy,octopus.energy;email.octopus.energy,Octopus
+EDF,edfenergy.com,EDF
+Xero,xero.com;post.xero.com,Xero
+TradeDirect365,tradedirect365.com.au;tradenation.com,Trade Direct
+Sage,sage.com;sagesoftware.com,Sage
+Intuit,intuit.com;quickbooks.com,QuickBooks;Intuit
+Indeed,indeed.com;indeedmail.com,Indeed
+Reed,reed.co.uk,Reed
+RoyalMail,royalmail.com;emails.royalmail.com,Royal Mail
+DPD,dpd.co.uk;dpd.com,DPD
+Evri,evri.com;hermes-europe.co.uk,Evri;Hermes
+DHL,dhl.com;dhl.co.uk,DHL
+UPS,ups.com,UPS
+FedEx,fedex.com,FedEx
+JustEat,just-eat.co.uk;justeat.com,Just Eat
+Deliveroo,deliveroo.co.uk;deliveroo.com,Deliveroo
+Uber,uber.com;uber.co.uk,Uber
+Icicibank,icicibank.com,ICICI
+LiveAuctioneers,liveauctioneers.com,LiveAuctioneers
+Tanishq,tanishq.co.in;transact-tcl.co.in;td.transact-tcl.co.in,Tanishq
+Airindiaexpress,airindiaexpress.com;booking.airindiaexpress.com,Air India
+Westernunion,westernunion.com;westernunion.co.uk,Western Union
+Booking,booking.com,Booking.com
+Airbnb,airbnb.com;airbnb.co.uk,Airbnb
+Trainline,thetrainline.com;trainline.com,Trainline
+EasyJet,easyjet.com,easyJet
+Ryanair,ryanair.com,Ryanair
+BritishAirways,ba.com;britishairways.com,British Airways
+Tesco,tesco.com;tesco.co.uk,Tesco
+Sainsburys,sainsburys.co.uk,Sainsbury
+Asda,asda.com,ASDA
+Waitrose,waitrose.com,Waitrose
+Ocado,ocado.com,Ocado
+Argos,argos.co.uk,Argos
+JohnLewis,johnlewis.com,John Lewis
+Ikea,ikea.com;ikea.co.uk,IKEA
+Currys,currys.co.uk,Currys
+Ebay,ebay.co.uk;ebay.com,eBay
+Atlassian,atlassian.com;bitbucket.org;jira.com;trello.com,Atlassian;Jira;Trello;Bitbucket
+GitLab,gitlab.com,GitLab
+Figma,figma.com,Figma
+Canva,canva.com,Canva
+HubSpot,hubspot.com,HubSpot
+Mailchimp,mailchimp.com;mandrillapp.com,Mailchimp
+Shopify,shopify.com;shopifyemail.com,Shopify
+Discord,discord.com;discordapp.com,Discord
+ZoomInfo,zoominfo.com,ZoomInfo
+Twilio,twilio.com;sendgrid.net;sendgrid.com,Twilio;SendGrid
+Nest,nestpensions.org.uk,Nest
+TVLicensing,tvlicensing.co.uk,TV Licensing
+BBC,bbc.co.uk;bbc.com,BBC
