@@ -38,7 +38,11 @@ final class SubscriptionStore: ObservableObject {
                 }
             }
             introEligibleProductIDs = eligible
-        } catch { message = "Plans are temporarily unavailable. Please try again." }
+        } catch {
+            products = []
+            introEligibleProductIDs = []
+            message = "Subscriptions could not be loaded from the App Store. Check your connection and try again."
+        }
     }
 
     func isIntroEligible(_ product: Product) -> Bool {

@@ -48,9 +48,26 @@ struct ParsliaWebView: UIViewRepresentable {
         let purchaseBridge = WKUserScript(
             source: """
             if (window.location.hostname === "\(Self.appHost)") {
+                window.ParsliaNativeStorefront = 'apple';
                 window.parsliaNativePurchase = function() {
                     window.webkit.messageHandlers.parsliaPurchase.postMessage({});
                 };
+
+                // The iOS storefront must only show digital offers available through StoreKit.
+                const blockedOffer = /(?:contact\\s+sales|enterprise\\s+plans?|business\\s+annual)/i;
+                const removeWebOnlyOffers = function() {
+                    document.querySelectorAll('a, button, [role="button"]').forEach(function(element) {
+                        if (blockedOffer.test((element.textContent || '').trim())) {
+                            element.hidden = true;
+                            element.setAttribute('aria-hidden', 'true');
+                        }
+                    });
+                };
+                new MutationObserver(removeWebOnlyOffers).observe(document.documentElement, {
+                    childList: true,
+                    subtree: true
+                });
+                document.addEventListener('DOMContentLoaded', removeWebOnlyOffers);
             }
             """,
             injectionTime: .atDocumentStart,
@@ -185,22 +202,21 @@ struct PaywallView: View {
                 Task { await store.purchase(product) }
             }
         }
-        if store.products.isEmpty && !store.isLoading {
-            Text("Plans are temporarily unavailable.")
-                .foregroundStyle(.secondary)
+        if store.coreProducts.isEmpty && !store.isLoading {
+            unavailableProductsMessage("Plans are currently unavailable from the App Store.")
         }
     }
 
     @ViewBuilder private var addOns: some View {
+        Divider()
+        Text("Add-ons")
+            .font(.title2.bold())
+            .frame(maxWidth: .infinity, alignment: .leading)
+        Text("AI Image Booster adds 50 AI recipe images to an active paid plan each month.")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
         if !store.addOnProducts.isEmpty {
-            Divider()
-            Text("Add-ons")
-                .font(.title2.bold())
-                .frame(maxWidth: .infinity, alignment: .leading)
-            Text("AI Image Booster adds 50 AI recipe images to an active paid plan each month.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
             ForEach(store.addOnProducts) { product in
                 PlanCard(product: product, introEligible: false, isEnabled: store.tier != .free) {
                     Task { await store.purchase(product) }
@@ -211,12 +227,27 @@ struct PaywallView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+        } else if !store.isLoading {
+            unavailableProductsMessage("AI Image Booster is currently unavailable from the App Store.")
         }
+    }
+
+    private func unavailableProductsMessage(_ text: String) -> some View {
+        VStack(spacing: 10) {
+            Text(text)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button("Try Again") { Task { await store.loadProducts() } }
+                .buttonStyle(.bordered)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
     }
 
     private var accountActions: some View {
         VStack(spacing: 14) {
-            Link("Enterprise — Contact Sales", destination: URL(string: "https://parslia.app/support.html")!)
             Button("Restore Purchases") { Task { await store.restore() } }
             Link("Manage Subscription", destination: URL(string: "https://apps.apple.com/account/subscriptions")!)
         }
