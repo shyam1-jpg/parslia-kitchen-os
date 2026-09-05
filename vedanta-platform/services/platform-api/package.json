@@ -1,0 +1,24 @@
+{
+  "name": "platform-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "start:prod": "tsx src/migrate.ts && tsx src/server.ts",
+    "migrate": "tsx src/migrate.ts",
+    "test": "node --test --experimental-strip-types src/**/*.test.ts src/migrate.test.ts"
+  },
+  "dependencies": {
+    "fastify": "5.5.0",
+    "jose": "^6.2.10",
+    "nodemailer": "^7.0.13",
+    "pg": "8.16.3",
+    "tsx": "4.20.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.17.2",
+    "@types/pg": "8.15.5",
+    "typescript": "5.9.2"
+  }
+}

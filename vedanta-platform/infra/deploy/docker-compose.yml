@@ -1,0 +1,66 @@
+# Production / trial stack: Postgres + API + admin app behind Caddy (automatic HTTPS).
+# Copy .env.example to .env, fill it in, then:  docker compose up -d --build
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vedanta
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: vedanta
+    volumes: [dbdata:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U vedanta"], interval: 5s, retries: 20 }
+
+  migrate:
+    image: postgres:16
+    depends_on: { db: { condition: service_healthy } }
+    environment: { PGPASSWORD: ${DB_PASSWORD} }
+    volumes: ["../../db:/db:ro"]
+    entrypoint: ["/bin/sh", "-c"]
+    # Applies every migration, seed and import file once, in order; each is skipped if already applied.
+    command: |
+      "psql -h db -U vedanta -d vedanta -c 'create table if not exists schema_applied (file text primary key, at timestamptz default now())' &&
+       for f in /db/migrations/*.sql /db/seed/*.sql /db/import/*.sql; do
+         n=$$(basename $$f);
+         if ! psql -h db -U vedanta -d vedanta -tAc \"select 1 from schema_applied where file='$$n'\" | grep -q 1; then
+           echo applying $$n; psql -h db -U vedanta -d vedanta -v ON_ERROR_STOP=1 -q -f $$f && psql -h db -U vedanta -d vedanta -c \"insert into schema_applied(file) values('$$n')\";
+         fi; done"
+
+  api:
+    build: { context: ../.., dockerfile: services/platform-api/Dockerfile }
+    restart: unless-stopped
+    depends_on: { migrate: { condition: service_completed_successfully } }
+    environment:
+      DATABASE_URL: postgres://vedanta:${DB_PASSWORD}@db:5432/vedanta
+      NODE_ENV: production
+      PUBLIC_URL: https://${DOMAIN}/api
+      WEB_URL: https://${DOMAIN}
+      MS_TENANT_ID: ${MS_TENANT_ID}
+      MS_CLIENT_ID: ${MS_CLIENT_ID}
+      MS_CLIENT_SECRET: ${MS_CLIENT_SECRET}
+      SMTP_URL: ${SMTP_URL}
+      MAIL_FROM: ${MAIL_FROM}
+
+  web:
+    build: { context: ../.., dockerfile: apps/web-admin/Dockerfile, args: { NEXT_PUBLIC_API_URL: /api } }
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment: { DOMAIN: ${DOMAIN} }
+    volumes: ["./Caddyfile:/etc/caddy/Caddyfile:ro", caddydata:/data]
+    depends_on: [api, web]
+
+  backup:
+    image: postgres:16
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment: { PGPASSWORD: ${DB_PASSWORD} }
+    volumes: [backups:/backups]
+    entrypoint: ["/bin/sh", "-c"]
+    # Nightly dump, keep 30 days. Copy /backups off the server too.
+    command: "while true; do pg_dump -h db -U vedanta vedanta | gzip > /backups/vedanta-$$(date +%F).sql.gz; find /backups -mtime +30 -delete; sleep 86400; done"
+
+volumes: { dbdata: {}, caddydata: {}, backups: {} }
