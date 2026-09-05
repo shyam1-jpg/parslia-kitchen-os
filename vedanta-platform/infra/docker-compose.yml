@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: vedanta-db
+    environment:
+      POSTGRES_USER: vedanta
+      POSTGRES_PASSWORD: vedanta
+      POSTGRES_DB: vedanta
+    ports: ["5432:5432"]
+    volumes: [dbdata:/var/lib/postgresql/data]
+  redis:
+    image: redis:7
+    container_name: vedanta-redis
+    ports: ["6379:6379"]
+volumes:
+  dbdata:

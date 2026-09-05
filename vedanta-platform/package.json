@@ -1,0 +1,15 @@
+{
+  "name": "vedanta-platform",
+  "private": true,
+  "type": "module",
+  "workspaces": ["apps/*", "services/*", "packages/*"],
+  "scripts": {
+    "test:domains": "node --test --experimental-strip-types domains/**/*.test.ts",
+    "db:up": "docker compose -f infra/docker-compose.yml up -d",
+    "api": "npm --workspace services/platform-api run dev",
+    "web": "npm --workspace apps/web-admin run dev",
+    "db:migrate": "npm --workspace services/platform-api run migrate",
+    "test:api": "npm --workspace services/platform-api test"
+  },
+  "engines": { "node": ">=22" }
+}
