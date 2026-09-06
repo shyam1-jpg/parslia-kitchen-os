@@ -42,7 +42,7 @@ textarea{min-height:220px;resize:vertical}
 .page.tpl-vedanta .menu-title{font-family:"EB Garamond",Georgia,serif;font-size:12.5px;letter-spacing:.34em;color:#b98720;font-weight:400;border:none;padding:0}
 .page.tpl-vedanta .menu-brand{font-family:"EB Garamond",Georgia,serif;font-size:32px;color:#315b41;text-align:center;margin:0 0 8px}
 .page.tpl-vedanta .menu-diamond{width:6px;height:6px;background:#b98720;transform:rotate(45deg);margin:8px auto 10px}
-.page.tpl-vedanta .course-heading,.page.tpl-vedanta .diet-heading{font-family:"EB Garamond",Georgia,serif;font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:#b98720;font-weight:400}
+.page.tpl-vedanta .course-heading,.page.tpl-vedanta .diet-heading{font-family:"EB Garamond",Georgia,serif;font-size:10.5px;letter-spacing:.32em;text-transform:uppercase;color:#b98720;font-weight:400;text-align:center;width:100%;display:block}
 .page.tpl-vedanta .dish-name{font-family:"EB Garamond",Georgia,serif;font-size:16px;color:#315b41}
 .page.tpl-vedanta .dish-desc{font-family:"EB Garamond",Georgia,serif;color:#b98720}
 .page.tpl-vedanta .dish-contains{font-family:"EB Garamond",Georgia,serif;color:#161616;text-transform:none}
@@ -220,7 +220,7 @@ function containsLine(a){
   const raw=a.filter(x=>x && x.toLowerCase()!=="none");
   if(printTemplate==="vedanta"){
     const list=raw.map(x=>/sulphur dioxide/i.test(x)&&!/sulphites/i.test(x)?"Sulphur Dioxide/Sulphites":x);
-    if(!list.length) return "(Contains: None)";
+    if(!list.length) return "";
     return "(Contains: "+list.join(", ")+")";
   }
   const list=raw.map(x=>String(x).toUpperCase());
@@ -236,7 +236,7 @@ function render(dishes, title){
   const vedanta=printTemplate==="vedanta";
   $("page").classList.toggle("tpl-vedanta", vedanta);
   const body = dishes.length ? dishes.map(d=> isDietHeadingDish(d) ? `
-    <div class="${d.course||isCourseHeading(d.name)?"course-heading":"diet-heading"}">${esc(vedanta?spacedCaps(d.name):d.name)}</div>` : `
+    <div class="${d.course||isCourseHeading(d.name)?"course-heading":"diet-heading"}">${esc(d.name)}</div>` : `
     <div class="dish">
       <div class="dish-name">${esc(d.name)}</div>
       ${d.desc?`<div class="dish-desc">${esc(d.desc)}</div>`:""}

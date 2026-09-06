@@ -101,8 +101,9 @@ textarea{min-height:120px;resize:vertical}
 }
 .page.tpl-vedanta .menu-sub{display:none}
 .page.tpl-vedanta .course-heading,.page.tpl-vedanta .diet-heading{
-  font-family:"EB Garamond",Georgia,serif;font-size:10.5px;letter-spacing:.34em;
-  text-transform:uppercase;color:#b98720;font-weight:400;margin:18px 0 10px
+  font-family:"EB Garamond",Georgia,serif;font-size:10.5px;letter-spacing:.32em;
+  text-transform:uppercase;color:#b98720;font-weight:400;margin:18px 0 10px;
+  text-align:center;width:100%;display:block
 }
 .page.tpl-vedanta .dish{margin:0 0 14px}
 .page.tpl-vedanta .dish-name{
@@ -648,7 +649,7 @@ function containsLine(a, template){
   const raw=a.filter(x=>x&&x.toLowerCase()!=="none");
   if(template==="vedanta"){
     const list=raw.map(x=>displayAllergen(x,"vedanta"));
-    if(!list.length) return "(Contains: None)";
+    if(!list.length) return "";
     return "(Contains: "+list.join(", ")+")";
   }
   const list=raw.map(x=>String(x).toUpperCase());
@@ -726,11 +727,11 @@ function render(){
 
   const vedanta=data.template==="vedanta";
   const dishes=data.dishes.length? data.dishes.map(d=> isDietHeadingDish(d) ? `
-    <div class="${d.course||isCourseHeading(d.name)?"course-heading":"diet-heading"}">${esc(vedanta?spacedCaps(d.name):d.name)}</div>` : `
+    <div class="${d.course||isCourseHeading(d.name)?"course-heading":"diet-heading"}">${esc(d.name)}</div>` : `
     <div class="dish">
       <div class="dish-name">${esc(d.name)}</div>
       ${d.desc?`<div class="dish-desc">${esc(d.desc)}</div>`:""}
-      ${d.allergens&&d.allergens.length?`<div class="dish-contains">${esc(containsLine(d.allergens, data.template))}</div>`:""}
+      ${containsLine(d.allergens, data.template)?`<div class="dish-contains">${esc(containsLine(d.allergens, data.template))}</div>`:""}
       ${d.diet&&d.diet.length?`<div class="dish-diet">${esc(dietLine(d.diet))}</div>`:""}
     </div>`).join("") : `<div class="empty">No dishes yet — paste a menu or add a dish.</div>`;
   const info=DEFAULT_INFO.split(/\n{2,}/).map(p=>`<p>${esc(p)}</p>`).join("");
@@ -751,12 +752,12 @@ function render(){
       </div>
       ${dishes}
       <div class="info">
-        <h2>${vedanta?spacedCaps("Allergen Information"):"Allergen Information"}</h2>
+        <h2>Allergen Information</h2>
         <div class="sub">Allergen &amp; Dietary Information</div>
         ${info}
         ${qrHTML()}
       </div>
-      ${vedanta?`<div class="menu-foot"><div class="menu-slogan">${esc(spacedCaps(slogan))}</div><div class="menu-mark">${esc(mark)}</div></div>`:""}
+      ${vedanta?`<div class="menu-foot"><div class="menu-slogan">${esc(slogan)}</div><div class="menu-mark">${esc(mark)}</div></div>`:""}
     </section>`;
 }
 function syncInputs(){
