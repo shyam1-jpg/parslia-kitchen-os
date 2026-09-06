@@ -5,8 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="theme-color" content="#2f6b4f"/>
 <title>Menu Creator</title>
-<link rel="manifest" href="/menu-creator/manifest.json"/>
+<link rel="manifest" href="manifest.json"/>
 <style>
+@font-face{font-family:"EB Garamond";src:url("assets/fonts/eb-garamond-400.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"EB Garamond";src:url("assets/fonts/eb-garamond-400-italic.woff2") format("woff2");font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:"EB Garamond";src:url("assets/fonts/eb-garamond-700.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap}
 :root{
   --bg:#f3efe6; --panel:#fffdf8; --ink:#1f2a24; --muted:#6b7770;
   --accent:#2f6b4f; --accent-soft:#e7f1eb; --gold:#b08a3e; --line:#ddd4c4;
@@ -47,37 +50,92 @@ textarea{min-height:120px;resize:vertical}
 .dish-card .meta{font-size:11.5px;color:var(--muted)}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;position:sticky;top:0;background:var(--bg);padding-bottom:10px;z-index:2}
 .toolbar strong{flex:1}
+.tpl-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tpl-card{border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px 8px;cursor:pointer;text-align:center}
+.tpl-card:hover{background:#f7f3ea}
+.tpl-card.on{border-color:var(--accent);background:var(--accent-soft)}
+.tpl-card b{display:block;font-size:13px;margin-bottom:4px}
+.tpl-card span{display:block;font-size:11px;color:var(--muted);line-height:1.35}
+.tpl-card.on b{color:var(--accent)}
+.tpl-mini{display:flex;gap:6px}
 .page{
-  width:min(794px,100%);min-height:1123px;margin:0 auto;background:#fff;
-  border:3px double var(--gold);padding:42px 48px 56px;box-shadow:0 10px 28px rgba(31,42,36,.08)
+  width:min(794px,100%);min-height:1123px;margin:0 auto;background:#fbf8ef;
+  border:none;padding:36px 58px 56px;position:relative;text-align:center;
+  box-shadow:0 10px 28px rgba(49,91,65,.08);
+  -webkit-print-color-adjust:exact;print-color-adjust:exact
 }
-.menu-head{text-align:center;border-bottom:2px solid var(--gold);padding-bottom:12px;margin-bottom:18px}
-.menu-logo{max-height:72px;max-width:220px;display:block;margin:0 auto 8px}
-.menu-logo-text{font-family:var(--serif);font-size:20px;color:var(--accent);margin-bottom:4px}
-.menu-title{font-family:var(--serif);font-size:28px;letter-spacing:.14em;text-transform:uppercase;margin:0}
-.menu-sub{color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-top:4px}
-.dish{text-align:center;margin:0 0 20px;page-break-inside:avoid;break-inside:avoid}
-.dish-name{font-family:var(--serif);font-size:22px;font-weight:700;line-height:1.25;letter-spacing:.02em;margin:0 0 6px;color:var(--ink)}
-.dish-desc{font-family:"Segoe UI",system-ui,sans-serif;font-size:12px;font-weight:400;font-style:italic;line-height:1.45;color:var(--muted);max-width:520px;margin:0 auto 6px}
-.dish-contains{font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase}
-.dish-diet{font-size:7px;color:var(--accent);font-weight:500;letter-spacing:.02em;text-transform:none;margin-top:2px;line-height:1.2}
-.diet-heading{font-family:var(--serif);font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:none;color:var(--accent);text-align:center;margin:14px 0 8px}
-.page.compact .menu-head{margin-bottom:12px;padding-bottom:8px}
-.page.compact .menu-title{font-size:24px}
-.page.compact .dish{margin:0 0 12px}
-.page.compact .dish-name{font-size:18px;margin:0 0 3px}
-.page.compact .dish-desc{font-size:11px;margin:0 auto 3px}
+.page:before,.page:after{
+  content:"";position:absolute;left:0;right:0;height:7px;background:#b68108
+}
+.page:before{top:0}
+.page:after{bottom:0}
+.page-frame{
+  position:absolute;inset:16px 18px 16px 18px;border:1.5px double #c9a24a;pointer-events:none
+}
+.menu-head{text-align:center;border-bottom:none;padding-bottom:4px;margin-bottom:8px}
+.menu-logo{max-height:50px;max-width:220px;display:block;margin:0 auto 12px}
+.menu-logo-text{font-family:"EB Garamond",Georgia,serif;font-size:20px;color:#315b41;margin-bottom:4px}
+.menu-date{
+  font-family:"EB Garamond",Georgia,serif;font-size:10.5px;letter-spacing:.28em;
+  text-transform:uppercase;color:#b98720;margin:0 0 12px
+}
+.menu-brand{
+  font-family:"EB Garamond",Georgia,serif;font-weight:400;font-size:38px;line-height:1.1;
+  color:#315b41;letter-spacing:.01em;margin:0;text-transform:none
+}
+.menu-diamond{
+  width:6px;height:6px;background:#b98720;transform:rotate(45deg);margin:10px auto 12px
+}
+.menu-title{
+  font-family:"EB Garamond",Georgia,serif;font-size:12.5px;letter-spacing:.34em;
+  color:#b98720;font-weight:400;text-transform:uppercase;margin:0
+}
+.menu-sub{display:none}
+.dish{text-align:center;margin:0 0 14px;page-break-inside:avoid;break-inside:avoid}
+.dish-name{
+  font-family:"EB Garamond",Georgia,serif;font-size:16px;font-weight:700;line-height:1.25;
+  letter-spacing:0;margin:0 0 4px;color:#315b41
+}
+.dish-desc{
+  font-family:"EB Garamond",Georgia,serif;font-size:11px;font-weight:400;font-style:italic;
+  line-height:1.45;color:#b98720;max-width:460px;margin:0 auto 3px
+}
+.dish-contains{
+  font-family:"EB Garamond",Georgia,serif;font-size:10px;font-weight:700;color:#161616;text-transform:none
+}
+.dish-diet{font-size:7px;color:#315b41;font-weight:500;letter-spacing:.02em;text-transform:none;margin-top:2px;line-height:1.2}
+.course-heading,.diet-heading{
+  font-family:"EB Garamond",Georgia,serif;font-size:10.5px;letter-spacing:.32em;
+  text-transform:uppercase;color:#b98720;font-weight:400;margin:18px 0 10px;
+  text-align:center;width:100%;display:block
+}
+.page.compact .menu-brand{font-size:30px}
+.page.compact .dish{margin:0 0 8px}
+.page.compact .dish-name{font-size:14px;margin:0 0 3px}
+.page.compact .dish-desc{font-size:10px;margin:0 auto 3px}
 .page.compact .dish-diet{font-size:6.5px;margin-top:1px}
-.page.compact .diet-heading{font-size:8px;margin:10px 0 6px}
-.page.compact .info{margin-top:18px;padding-top:10px}
-.info{margin-top:28px;padding-top:14px;border-top:2px solid var(--gold);text-align:center;page-break-inside:avoid;break-inside:avoid}
-.info h2{font-family:var(--serif);color:var(--accent);letter-spacing:.1em;text-transform:uppercase;font-size:18px;margin:0 0 6px}
-.info .sub{font-size:10.5px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin:0 0 10px}
-.info p{font-size:11px;line-height:1.55;max-width:480px;margin:0 auto 8px;color:#3c463f}
+.page.compact .course-heading,.page.compact .diet-heading{margin:12px 0 6px}
+.page.compact .info{margin-top:14px;padding-top:4px}
+.info{margin-top:20px;padding-top:4px;border-top:none;text-align:center;page-break-inside:avoid;break-inside:avoid}
+.info h2{
+  font-family:"EB Garamond",Georgia,serif;font-size:10.5px;letter-spacing:.28em;
+  text-transform:uppercase;color:#b98720;font-weight:400;margin:0 0 8px
+}
+.info .sub{display:none}
+.info p{font-family:"EB Garamond",Georgia,serif;font-size:8px;line-height:1.45;max-width:520px;margin:0 auto 8px;color:#2d2b28}
+.qr{position:absolute;left:28px;bottom:22px;margin:0;text-align:left}
+.qr img{width:42px;height:42px;display:block;background:#fff}
+.qr p{display:none}
+.menu-foot{text-align:center;margin-top:18px;padding-bottom:4px}
+.menu-slogan{
+  font-family:"EB Garamond",Georgia,serif;font-size:7.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:#b98720
+}
+.menu-mark{
+  font-family:"EB Garamond",Georgia,serif;font-size:7.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:#b98720;margin-top:4px
+}
 .empty{color:var(--muted);font-style:italic;text-align:center;padding:24px}
-.qr{margin-top:12px;text-align:center}
-.qr img{display:block;margin:0 auto;background:#fff}
-.qr p{font-size:9px;color:var(--muted);font-style:italic;margin:6px 0 0}
 .info-locked{background:#f7f3ea;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;line-height:1.45;color:#3c463f;white-space:pre-wrap}
 .recent{display:flex;flex-direction:column;gap:6px;margin-top:8px}
 .recent button{text-align:left;width:100%;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 10px;cursor:pointer;font:inherit}
@@ -87,7 +145,7 @@ textarea{min-height:120px;resize:vertical}
 @media print{
   .side,.toolbar,.banner,.tag{display:none!important}
   .preview{padding:0;max-height:none;overflow:visible}
-  .page{box-shadow:none;width:100%;min-height:auto}
+  .page{box-shadow:none;width:100%;min-height:auto;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
 </head>
@@ -96,11 +154,11 @@ textarea{min-height:120px;resize:vertical}
   <aside class="side">
     <div class="brand">
       <h1>Menu Creator</h1>
-      <span class="tag">Build simple-v1.5</span>
+      <span class="tag">Build simple-v1.9</span>
     </div>
     <div class="banner">
-      <b>Ready to print</b><br>
-      Paste → Generate → Print. Dish names stay large; Vegan / Vegetarian labels stay small. Allergen footer stays locked.
+      <b>This is the current print template</b> — works offline, no refresh from the internet.<br>
+      Cream page, gold bars, house mark, The Vedanta Way. If a firewall blocks the browser, close this tab and double-click <b>PRINT-NOW.html</b> in the menu-creator folder.
     </div>
 
     <div class="group">
@@ -131,10 +189,15 @@ textarea{min-height:120px;resize:vertical}
       <label>Paste menu → dishes</label>
       <textarea id="bulk" placeholder="DINNER MENU
 
-HOMEMADE CHOCOLATE FRIDGE CAKE
-A rich chocolate fridge cake...
-Contains: Gluten, Dairy
-Vegetarian"></textarea>
+SOUP
+Cream of Tomato & Basil Soup
+A smooth tomato and fresh basil soup, finished with cream.
+(Contains: Dairy)
+
+SALADS
+Tuscany Salad
+A fresh Tuscan-style salad with seasonal vegetables.
+(Contains: Sulphur Dioxide)"></textarea>
       <div class="row" style="margin-top:8px">
         <button class="btn btn-primary" id="genBtn" type="button">Generate menu</button>
         <button class="btn btn-line" id="appendBtn" type="button">Add to existing</button>
@@ -146,6 +209,7 @@ Vegetarian"></textarea>
       <label>Logo / title</label>
       <input type="file" id="logoFile" accept="image/*"/>
       <input type="text" id="logoText" placeholder="Logo text (optional)" style="margin-top:8px"/>
+      <input type="text" id="brandTitle" placeholder="The Vedanta Way" style="margin-top:8px"/>
       <input type="text" id="menuTitle" placeholder="DINNER MENU" style="margin-top:8px"/>
       <input type="text" id="menuSub" placeholder="Subtitle / day" style="margin-top:8px"/>
       <label style="margin-top:12px">Print spacing</label>
@@ -194,7 +258,7 @@ Vegetarian"></textarea>
 
   <main class="preview">
     <div class="toolbar">
-      <strong>Live preview</strong>
+      <strong>Live preview — Vedanta Way</strong>
       <button class="btn btn-line" id="loadSample" type="button">Load sample</button>
       <button class="btn btn-line" id="copyTextBtn" type="button">Copy text</button>
       <button class="btn btn-line" id="wordBtn" type="button">Word</button>
@@ -210,6 +274,11 @@ const DIETS=["Vegan","Vegetarian","Gluten-Free","Dairy-Free","Halal","Nut-Free"]
 const MENU_QR_URL="https://pureprasadkitchen.com";
 const MENU_QR_CAPTION="Scan the QR code — Recipe by Shyam Prasad, Head Chef";
 const DEFAULT_INFO="We carefully select our ingredients and prepare all dishes with attention to allergens. However, please be aware that all food is prepared in a shared kitchen where cross-contamination may occur. While we take every precaution to minimize risk, we cannot guarantee the complete absence of allergens.\n\nIf you have a severe allergy or specific dietary requirement, please speak to a member of our team before serving yourself.\n\nYou can request more information on the allergens listed below.";
+const DEFAULT_BRAND="The Vedanta Way";
+const DEFAULT_SLOGAN="All dishes prepared with pure intent · Offered with love";
+const DEFAULT_FOOTER_BRAND="PARSLIA KITCHEN OS";
+const VEDANTA_HOUSE="assets/vedanta-house.png";
+const COURSE_HEADERS=new Set(["soup","soups","salad","salads","side","sides","side dish","side dishes","main","mains","main course","main courses","dessert","desserts","starter","starters","appetizer","appetizers","breakfast","lunch","dinner","accompaniment","accompaniments","bread","breads","drink","drinks","beverage","beverages","pudding","puddings"]);
 const $=id=>document.getElementById(id);
 const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const clean=s=>(s||"").replace(/\*+/g,"").replace(/\s+/g," ").trim();
@@ -223,9 +292,10 @@ function dayName(dateStr){return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new
 let data={
   logoText:"", logoImg:null,
   title:"DINNER MENU", sub:"",
+  brandTitle:"", slogan:"", footerBrand:"",
   dishes:[],
   infoText:DEFAULT_INFO,
-  template:"classic", textAlign:"center",
+  template:"vedanta", textAlign:"center",
   spacing:"normal"
 };
 let archiveCtx={date:todayISO(), meal:"dinner"};
@@ -246,12 +316,18 @@ function loadEditor(){
       data.dishes=Array.isArray(cur.dishes)?cur.dishes:[];
       data.infoText=DEFAULT_INFO; // always clean on migrate
       data.spacing=raw.spacing==="compact"?"compact":"normal";
+      data.template="vedanta";
+      data.brandTitle=raw.brandTitle||cur.brandTitle||"";
+      data.slogan=raw.slogan||""; data.footerBrand=raw.footerBrand||"";
     } else {
       data.logoText=raw.logoText||""; data.logoImg=raw.logoImg||null;
       data.title=raw.title||"DINNER MENU"; data.sub=raw.sub||"";
       data.dishes=Array.isArray(raw.dishes)?raw.dishes:[];
       data.infoText=DEFAULT_INFO;
       data.spacing=raw.spacing==="compact"?"compact":"normal";
+      data.template="vedanta";
+      data.brandTitle=raw.brandTitle||"";
+      data.slogan=raw.slogan||""; data.footerBrand=raw.footerBrand||"";
     }
   }catch(e){}
 }
@@ -260,8 +336,9 @@ function saveEditor(){
   const payload={
     logoText:data.logoText, logoImg:data.logoImg,
     infoText:DEFAULT_INFO, infoAllergens:"",
-    template:"classic", textAlign:"center",
+    template:"vedanta", textAlign:"center",
     spacing:data.spacing||"normal",
+    brandTitle:data.brandTitle||"", slogan:data.slogan||"", footerBrand:data.footerBrand||"",
     title:data.title, sub:data.sub, dishes:data.dishes,
     menus:[{id:"m1", label:"Menu", title:data.title, sub:data.sub, dishes:data.dishes}],
     currentId:"m1"
@@ -284,7 +361,7 @@ function menuPlainText(){
   data.dishes.forEach(d=>{
     lines.push(d.name||"");
     if(d.desc) lines.push(d.desc);
-    const c=containsLine(d.allergens); if(c) lines.push(c);
+    const c=containsLine(d.allergens, data.template); if(c) lines.push(c);
     const diet=dietLine(d.diet); if(diet) lines.push(diet);
     lines.push("");
   });
@@ -368,8 +445,9 @@ function snapshot(){
   return {
     logoText:data.logoText||"", logoImg:data.logoImg||null,
     infoText:DEFAULT_INFO, infoAllergens:"",
-    template:"classic", textAlign:"center",
+    template:"vedanta", textAlign:"center",
     spacing:data.spacing||"normal",
+    brandTitle:data.brandTitle||"", slogan:data.slogan||"", footerBrand:data.footerBrand||"",
     title:data.title||"DINNER MENU", sub:data.sub||"", dishes:data.dishes||[]
   };
 }
@@ -379,6 +457,9 @@ function applySnap(snap){
   data.title=snap.title||"DINNER MENU"; data.sub=snap.sub||"";
   data.dishes=Array.isArray(snap.dishes)?snap.dishes:[];
   data.spacing=snap.spacing==="compact"?"compact":(data.spacing||"normal");
+  data.template="vedanta";
+  data.brandTitle=snap.brandTitle||"";
+  data.slogan=snap.slogan||""; data.footerBrand=snap.footerBrand||"";
   data.infoText=DEFAULT_INFO;
   saveEditor(); syncInputs(); render(); renderRecent();
 }
@@ -461,12 +542,29 @@ function applyDiet(dish, diets){
   if(!dish || !diets || !diets.length) return;
   dish.diet=[...new Set([...(dish.diet||[]),...diets])];
 }
+/* MENU_LOGIC_START */
+function collapseSpacedCaps(s){
+  const t=(s||"").replace(/\s+/g," ").trim();
+  if(/^(?:[A-Za-z] )+[A-Za-z]$/.test(t)) return t.replace(/ /g,"");
+  return t;
+}
+function isCourseHeading(raw){
+  const collapsed=collapseSpacedCaps(raw||"");
+  const key=collapsed.toLowerCase().replace(/[.:]+$/,"").replace(/\s+/g," ").trim();
+  return COURSE_HEADERS.has(key);
+}
 function isDietHeadingDish(d){
   if(!d) return false;
-  if(d.section) return true;
+  if(d.section || d.course) return true;
+  if(isCourseHeading(d.name||"")) return true;
   const extra=(d.desc&&d.desc.trim()) || (d.allergens&&d.allergens.length);
   return isDietOnlyLine(d.name||"") && !extra;
 }
+function spacedCaps(s){
+  return collapseSpacedCaps(s||"").replace(/[^A-Za-z0-9]+/g," ").trim().toUpperCase()
+    .split(" ").filter(Boolean).map(w=>w.split("").join(" ")).join("   ");
+}
+/* MENU_LOGIC_END */
 function parseInline(raw){
   const m=raw.match(/^(.+?)\s*[:\-–—]\s*(Contains\s*:?\s*.+)$/i);
   if(!m) return null;
@@ -487,8 +585,15 @@ function parseBulk(text){
     // Skip allergen section headers / disclaimer prose completely
     if(/(allergen|dietary)\s*(&|and|information|info)/i.test(raw) || /^allergen\b/i.test(raw)) continue;
     if(/cross-contamination|shared kitchen|severe allergy|carefully select our ingredients|request more information on the allergens listed below/i.test(raw)) continue;
+    if(/pure intent|offered with love|parslia kitchen/i.test(raw)) continue;
+    if(/^the vedanta way$/i.test(raw)) continue;
+    if(/^\(?contains\s*:/i.test(raw)===false && isCourseHeading(raw)){
+      push();
+      dishes.push({name:toTitle(collapseSpacedCaps(raw)), desc:"", allergens:[], diet:[], section:true, course:true});
+      continue;
+    }
     const inline=parseInline(raw); if(inline){ push(); dishes.push(inline); continue; }
-    if(low.startsWith("contains")){ if(!cur) cur={name:"",desc:"",allergens:[],diet:[]}; cur.allergens=parseAllergens(raw.replace(/^contains\s*:?\s*/i,"")); expect=false; continue; }
+    if(low.startsWith("contains") || /^\(contains/i.test(raw)){ if(!cur) cur={name:"",desc:"",allergens:[],diet:[]}; cur.allergens=parseAllergens(raw.replace(/^\(?contains\s*:?\s*/i,"").replace(/\)\s*$/,"")); expect=false; continue; }
     if(low.startsWith("suitable") || isDietOnlyLine(raw)){
       const diets=parseDiets(raw.replace(/[()|/]/g,","));
       if(cur&&cur.name&&!cur.section&&!expect){
@@ -513,12 +618,17 @@ function parseBulk(text){
   }
   push(); return {title, dishes};
 }
-function containsLine(a){
+function displayAllergen(name, template){
+  const n=String(name||"");
+  if(/sulphur dioxide/i.test(n) && !/sulphites/i.test(n)) return "Sulphur Dioxide/Sulphites";
+  return n;
+}
+function containsLine(a, template){
   if(!a||!a.length) return "";
-  const list=a.filter(x=>x&&x.toLowerCase()!=="none").map(x=>String(x).toUpperCase());
-  if(!list.length) return "Contains: NONE";
-  if(list.length===1) return "Contains: "+list[0];
-  return "Contains: "+list.slice(0,-1).join(", ")+" and "+list[list.length-1];
+  const raw=a.filter(x=>x&&x.toLowerCase()!=="none");
+  const list=raw.map(x=>displayAllergen(x,"vedanta"));
+  if(!list.length) return "";
+  return "(Contains: "+list.join(", ")+")";
 }
 function dietLine(d){
   if(!d||!d.length) return "";
@@ -562,7 +672,7 @@ function render(){
     <div class="dish-card">
       <h4${isDietHeadingDish(d)?' style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)"':""}>${esc(d.name)}</h4>
       ${d.desc?`<div class="desc">${esc(d.desc)}</div>`:""}
-      <div class="meta">${esc(containsLine(d.allergens)||"No allergens set")}${d.diet&&d.diet.length?" · "+esc(dietLine(d.diet)):""}</div>
+      <div class="meta">${esc(isDietHeadingDish(d)?"Course / section heading":(containsLine(d.allergens, data.template)||"No allergens set"))}${d.diet&&d.diet.length?" · "+esc(dietLine(d.diet)):""}</div>
       <div class="row" style="margin-top:8px">
         <button class="btn btn-line btn-sm" data-edit="${i}" type="button">Edit</button>
         <button class="btn btn-line btn-sm" data-dup="${i}" type="button">Duplicate</button>
@@ -581,30 +691,41 @@ function render(){
   });
   $("dishList").querySelectorAll("[data-dup]").forEach(b=>b.onclick=()=>{
     const i=+b.dataset.dup; const src=data.dishes[i]; if(!src) return;
-    data.dishes.splice(i+1,0,{name:src.name, desc:src.desc||"", allergens:[...(src.allergens||[])], diet:[...(src.diet||[])]});
+    data.dishes.splice(i+1,0,{name:src.name, desc:src.desc||"", allergens:[...(src.allergens||[])], diet:[...(src.diet||[])], section:!!src.section, course:!!src.course});
     saveEditor(); render(); $("status").textContent="Duplicated dish.";
   });
   $("dishList").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ data.dishes.splice(+b.dataset.del,1); saveEditor(); render(); });
   $("dishList").querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.up; if(i>0){ [data.dishes[i-1],data.dishes[i]]=[data.dishes[i],data.dishes[i-1]]; saveEditor(); render(); }});
   $("dishList").querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.down; if(i<data.dishes.length-1){ [data.dishes[i+1],data.dishes[i]]=[data.dishes[i],data.dishes[i+1]]; saveEditor(); render(); }});
 
+  data.template="vedanta";
+  if(!data.brandTitle) data.brandTitle=DEFAULT_BRAND;
+  if(!data.slogan) data.slogan=DEFAULT_SLOGAN;
+  if(!data.footerBrand) data.footerBrand=DEFAULT_FOOTER_BRAND;
   const dishes=data.dishes.length? data.dishes.map(d=> isDietHeadingDish(d) ? `
-    <div class="diet-heading">${esc(d.name)}</div>` : `
+    <div class="${d.course||isCourseHeading(d.name)?"course-heading":"diet-heading"}">${esc(d.name)}</div>` : `
     <div class="dish">
       <div class="dish-name">${esc(d.name)}</div>
       ${d.desc?`<div class="dish-desc">${esc(d.desc)}</div>`:""}
-      ${d.allergens&&d.allergens.length?`<div class="dish-contains">${esc(containsLine(d.allergens))}</div>`:""}
+      ${containsLine(d.allergens)?`<div class="dish-contains">${esc(containsLine(d.allergens))}</div>`:""}
       ${d.diet&&d.diet.length?`<div class="dish-diet">${esc(dietLine(d.diet))}</div>`:""}
     </div>`).join("") : `<div class="empty">No dishes yet — paste a menu or add a dish.</div>`;
   const info=DEFAULT_INFO.split(/\n{2,}/).map(p=>`<p>${esc(p)}</p>`).join("");
-  const logo=data.logoImg?`<img class="menu-logo" src="${data.logoImg}" alt="logo"/>`:(data.logoText?`<div class="menu-logo-text">${esc(data.logoText)}</div>`:"");
+  const logo=data.logoImg?`<img class="menu-logo" src="${data.logoImg}" alt="logo"/>`:(data.logoText?`<div class="menu-logo-text">${esc(data.logoText)}</div>`:`<img class="menu-logo" src="${VEDANTA_HOUSE}" alt="house mark"/>`);
   const spaceClass=data.spacing==="compact"?" compact":"";
+  const dateLine=data.sub||formatMenuDate(archiveCtx.date);
+  const brand=data.brandTitle||DEFAULT_BRAND;
+  const slogan=data.slogan||DEFAULT_SLOGAN;
+  const mark=data.footerBrand||DEFAULT_FOOTER_BRAND;
   $("pageOut").innerHTML=`
-    <section class="page${spaceClass}">
+    <section class="page tpl-vedanta${spaceClass}">
+      <div class="page-frame" aria-hidden="true"></div>
       <div class="menu-head">
         ${logo}
+        <div class="menu-date">${esc(dateLine)}</div>
+        <div class="menu-brand">${esc(brand)}</div>
+        <div class="menu-diamond" aria-hidden="true"></div>
         <h1 class="menu-title">${esc(data.title||"DINNER MENU")}</h1>
-        ${data.sub?`<div class="menu-sub">${esc(data.sub)}</div>`:""}
       </div>
       ${dishes}
       <div class="info">
@@ -613,16 +734,41 @@ function render(){
         ${info}
         ${qrHTML()}
       </div>
+      <div class="menu-foot"><div class="menu-slogan">${esc(slogan)}</div><div class="menu-mark">${esc(mark)}</div></div>
     </section>`;
 }
 function syncInputs(){
   $("menuTitle").value=data.title||"";
   $("menuSub").value=data.sub||"";
   $("logoText").value=data.logoText||"";
+  if($("brandTitle")) $("brandTitle").value=data.brandTitle||"";
   $("archiveDate").value=archiveCtx.date;
   document.querySelectorAll(".meal-tab[data-meal]").forEach(t=>t.classList.toggle("on", t.dataset.meal===archiveCtx.meal));
   document.querySelectorAll("[data-space]").forEach(t=>t.classList.toggle("on", t.dataset.space===(data.spacing||"normal")));
   $("infoLocked").textContent=DEFAULT_INFO;
+}
+function loadVedantaSample(silent){
+  data.template="vedanta";
+  data.title="DINNER MENU"; data.sub=formatMenuDate(archiveCtx.date);
+  data.brandTitle=DEFAULT_BRAND; data.slogan=DEFAULT_SLOGAN; data.footerBrand=DEFAULT_FOOTER_BRAND;
+  data.logoText=""; data.logoImg=null; data.infoText=DEFAULT_INFO;
+  data.dishes=[
+    {name:"Soup",desc:"",allergens:[],diet:[],section:true,course:true},
+    {name:"Cream of Tomato & Basil Soup",desc:"A smooth tomato and fresh basil soup, finished with cream.",allergens:["Dairy"],diet:[]},
+    {name:"Salads",desc:"",allergens:[],diet:[],section:true,course:true},
+    {name:"Tuscany Salad",desc:"A fresh Tuscan-style salad with seasonal vegetables and house dressing.",allergens:["Sulphur Dioxide"],diet:[]},
+    {name:"Maple-Roasted Butternut Squash Salad",desc:"Maple-roasted butternut squash on a bed of Greek yoghurt and feta, finished with rocket leaves and toasted pumpkin seeds.",allergens:["Dairy","Sulphur Dioxide"],diet:[]},
+    {name:"Side Dish",desc:"",allergens:[],diet:[],section:true,course:true},
+    {name:"Roasted Home-Grown Seasonal Vegetables",desc:"A colourful selection of home-grown seasonal vegetables, oven-roasted with herbs.",allergens:[],diet:[]},
+    {name:"Main Course",desc:"",allergens:[],diet:[],section:true,course:true},
+    {name:"High-Protein Lasagne",desc:"Layers of pasta with high-protein plant-based mince, seasonal vegetables, rich tomato sauce and creamy bechamel, finished with grated cheese.",allergens:["Gluten","Dairy"],diet:[]},
+    {name:"Dessert",desc:"",allergens:[],diet:[],section:true,course:true},
+    {name:"Vedanta Way-Style Tiramisu",desc:"An indulgent egg-free tiramisu layered with coffee-soaked sponge and creamy mascarpone.",allergens:["Gluten","Dairy"],diet:[]}
+  ];
+  if(!silent){
+    saveEditor(); syncInputs(); render();
+    $("status").textContent="Loaded Vedanta Way dinner sample.";
+  }
 }
 function setMeal(meal){
   archiveCtx.meal=meal;
@@ -656,7 +802,7 @@ $("saveDish").onclick=()=>{
   const custom=$("dCustom").value.split(",").map(s=>s.trim()).filter(Boolean);
   const all=[...allergens.filter(a=>a!=="None"), ...custom];
   const finalAllergens=all.length?all:(selectedAllergens.has("None")?["None"]:[]);
-  const dish={name, desc:clean($("dDesc").value), allergens:finalAllergens, diet:[...selectedDiets]};
+  const dish={name, desc:clean($("dDesc").value), allergens:finalAllergens, diet:[...selectedDiets], section:isCourseHeading(name)||isDietOnlyLine(name), course:isCourseHeading(name)};
   if(editIndex>=0) data.dishes[editIndex]=dish; else data.dishes.push(dish);
   resetForm(); saveEditor(); render();
 };
@@ -664,6 +810,7 @@ $("cancelEdit").onclick=resetForm;
 $("menuTitle").oninput=e=>{ data.title=e.target.value; saveEditor(); render(); };
 $("menuSub").oninput=e=>{ data.sub=e.target.value; saveEditor(); render(); };
 $("logoText").oninput=e=>{ data.logoText=e.target.value; saveEditor(); render(); };
+if($("brandTitle")) $("brandTitle").oninput=e=>{ data.brandTitle=e.target.value; saveEditor(); render(); };
 $("logoFile").onchange=e=>{
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader(); r.onload=()=>{ data.logoImg=r.result; saveEditor(); render(); }; r.readAsDataURL(f);
@@ -673,7 +820,7 @@ $("resetInfo").onclick=()=>{ data.infoText=DEFAULT_INFO; saveEditor(); render();
 $("resetAll").onclick=()=>{
   if(!confirm("Clear this menu? Library saves are kept. You can Undo once.")) return;
   undoSnap=snapshot();
-  data={logoText:"",logoImg:null,title:mealLabel(archiveCtx.meal).toUpperCase()+" MENU",sub:"",dishes:[],infoText:DEFAULT_INFO,template:"classic",textAlign:"center",spacing:data.spacing||"normal"};
+  data={logoText:"",logoImg:null,title:mealLabel(archiveCtx.meal).toUpperCase()+" MENU",sub:"",brandTitle:DEFAULT_BRAND,slogan:DEFAULT_SLOGAN,footerBrand:DEFAULT_FOOTER_BRAND,dishes:[],infoText:DEFAULT_INFO,template:"vedanta",textAlign:"center",spacing:data.spacing||"normal"};
   resetForm(); saveEditor(); syncInputs(); render();
   $("status").textContent="Menu cleared. Click Undo clear to restore.";
   $("undoClear").style.display="inline-block";
@@ -683,15 +830,7 @@ $("undoClear").onclick=()=>{
   applySnap(undoSnap); undoSnap=null; $("undoClear").style.display="none";
   $("status").textContent="Cleared menu restored.";
 };
-$("loadSample").onclick=()=>{
-  data.title="DINNER MENU"; data.sub=formatMenuDate(archiveCtx.date); data.logoText="vedanta.org"; data.infoText=DEFAULT_INFO;
-  data.dishes=[
-    {name:"High Protein Lasagne with Beluga Lentil",desc:"Layered pasta with tomato ragu and plant-based cheese",allergens:["Gluten","Dairy","Celery"],diet:["Vegetarian"]},
-    {name:"Tuscany Salad",desc:"Mixed greens, cherry tomatoes, olives and balsamic",allergens:["None"],diet:["Vegan","Gluten-Free"]},
-    {name:"Homemade Chocolate Fridge Cake",desc:"Rich chocolate fridge cake with biscuits",allergens:["Gluten","Dairy"],diet:["Vegetarian"]}
-  ];
-  saveEditor(); syncInputs(); render();
-};
+$("loadSample").onclick=()=>loadVedantaSample(false);
 $("printBtn").onclick=()=>window.print();
 $("copyTextBtn").onclick=async()=>{
   const text=menuPlainText();
@@ -737,26 +876,32 @@ $("fillSubDate").onclick=()=>{
 };
 $("wordBtn").onclick=()=>{
   const compact=data.spacing==="compact";
-  const nameSize=compact?"13pt":"16pt";
+  const nameSize=compact?"13pt":"12pt";
   const descSize=compact?"8.5pt":"9pt";
   const nameMargin=compact?"7pt 0 2pt":"11pt 0 3pt";
   const dishes=data.dishes.map(d=> isDietHeadingDish(d) ? `
-    <p style="text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:8pt;font-weight:600;color:#2f6b4f;margin:8pt 0 5pt;">${esc(d.name)}</p>` : `
-    <p style="text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:${nameSize};font-weight:bold;margin:${nameMargin};line-height:1.25;">${esc(d.name)}</p>
-    ${d.desc?`<p style="text-align:center;font-family:'Segoe UI',Arial,sans-serif;font-style:italic;font-size:${descSize};font-weight:normal;color:#6b7770;margin:0 0 3pt;line-height:1.4;">${esc(d.desc)}</p>`:""}
-    ${d.allergens&&d.allergens.length?`<p style="text-align:center;font-size:8pt;color:#b08a3e;font-weight:bold;margin:0;">${esc(containsLine(d.allergens))}</p>`:""}
-    ${d.diet&&d.diet.length?`<p style="text-align:center;font-size:6.5pt;color:#2f6b4f;font-weight:500;margin:1pt 0 0;">${esc(dietLine(d.diet))}</p>`:""}
+    <p style="text-align:center;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-size:8pt;font-weight:400;letter-spacing:3px;text-transform:uppercase;color:#b98720;margin:10pt 0 6pt;">${esc(spacedCaps(d.name))}</p>` : `
+    <p style="text-align:center;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-size:${nameSize};font-weight:bold;color:#315b41;margin:${nameMargin};line-height:1.25;">${esc(d.name)}</p>
+    ${d.desc?`<p style="text-align:center;font-family:'EB Garamond',Georgia,serif;font-style:italic;font-size:${descSize};font-weight:normal;color:#b98720;margin:0 0 3pt;line-height:1.4;">${esc(d.desc)}</p>`:""}
+    ${d.allergens&&d.allergens.length?`<p style="text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:8pt;color:#161616;font-weight:bold;margin:0;">${esc(containsLine(d.allergens))}</p>`:""}
+    ${d.diet&&d.diet.length?`<p style="text-align:center;font-size:6.5pt;color:#315b41;font-weight:500;margin:1pt 0 0;">${esc(dietLine(d.diet))}</p>`:""}
   `).join("");
-  const info=DEFAULT_INFO.split(/\n{2,}/).map(p=>`<p style="font-size:8.5pt;text-align:center;margin:0 0 4pt;">${esc(p)}</p>`).join("");
+  const info=DEFAULT_INFO.split(/\n{2,}/).map(p=>`<p style="font-size:7.5pt;text-align:center;margin:0 0 4pt;color:#2d2b28;">${esc(p)}</p>`).join("");
+  const brand=data.brandTitle||DEFAULT_BRAND;
+  const wrap=`background:#fbf8ef;border-top:7px solid #b68108;border-bottom:7px solid #b68108;padding:20pt 18pt;`;
+  const head=`${data.logoImg||!data.logoText?`<p style="text-align:center"><img src="${data.logoImg||VEDANTA_HOUSE}" style="max-height:48px"/></p>`:(data.logoText?`<p style="text-align:center;font-family:Georgia;color:#315b41;font-size:15pt;">${esc(data.logoText)}</p>`:"")}
+      <p style="text-align:center;font-family:'EB Garamond',Georgia,serif;letter-spacing:3px;text-transform:uppercase;color:#b98720;font-size:9pt;">${esc(data.sub||formatMenuDate(archiveCtx.date))}</p>
+      <p style="text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:22pt;color:#315b41;margin:6pt 0 4pt;">${esc(brand)}</p>
+      <p style="text-align:center;color:#b98720;font-size:14pt;margin:0 0 6pt;">◆</p>
+      <h1 style="text-align:center;font-family:'EB Garamond',Georgia,serif;letter-spacing:4px;text-transform:uppercase;color:#b98720;font-size:11pt;font-weight:400;">${esc(data.title||"DINNER MENU")}</h1>`;
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Menu</title></head><body>
-    <div style="border:3px double #b08a3e;padding:20pt 18pt;">
-      ${data.logoImg?`<p style="text-align:center"><img src="${data.logoImg}" style="max-height:78px"/></p>`:(data.logoText?`<p style="text-align:center;font-family:Georgia;color:#2f6b4f;font-size:15pt;">${esc(data.logoText)}</p>`:"")}
-      <h1 style="text-align:center;font-family:Georgia;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;">${esc(data.title||"DINNER MENU")}</h1>
-      ${data.sub?`<p style="text-align:center;font-size:10pt;color:#6b7770;letter-spacing:1px;text-transform:uppercase;">${esc(data.sub)}</p>`:""}
+    <div style="${wrap}">
+      ${head}
       ${dishes}
-      <div style="border-top:2px solid #b08a3e;margin-top:14pt;padding-top:8pt;"></div>
-      <h2 style="text-align:center;font-family:Georgia;color:#2f6b4f;">Allergen Information</h2>
+      <div></div>
+      <h2 style="text-align:center;font-family:'EB Garamond',Georgia,serif;color:#b98720;font-size:10pt;letter-spacing:3px;text-transform:uppercase;font-weight:400;">${spacedCaps("Allergen Information")}</h2>
       ${info}
+      <p style="text-align:center;font-size:7pt;letter-spacing:2px;text-transform:uppercase;color:#b98720;margin-top:12pt;">${esc(spacedCaps(data.slogan||DEFAULT_SLOGAN))}</p><p style="text-align:center;font-size:7pt;letter-spacing:1px;color:#b98720;">${esc(data.footerBrand||DEFAULT_FOOTER_BRAND)}</p>
     </div></body></html>`;
   const blob=new Blob(["\ufeff"+html],{type:"application/msword"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
@@ -788,15 +933,23 @@ document.querySelectorAll(".meal-tab[data-meal]").forEach(t=>t.onclick=async()=>
 });
 
 loadEditor();
+data.template="vedanta";
+if(localStorage.getItem("menuCreatorBuild")!=="v1.9"){
+  localStorage.setItem("menuCreatorBuild","v1.9");
+  if(!data.dishes||!data.dishes.length) loadVedantaSample(true);
+}
 buildChips(); syncInputs(); render();
 detectStorage().then(async()=>{
   const rec=await dbGet(archiveKey(archiveCtx.date, archiveCtx.meal));
-  if(rec&&rec.snap && (!data.dishes||!data.dishes.length)) applySnap(rec.snap);
+  if(rec&&rec.snap && rec.snap.dishes && rec.snap.dishes.length) applySnap(rec.snap);
+  if(!data.dishes||!data.dishes.length){ data.template="vedanta"; loadVedantaSample(true); saveEditor(); }
+  syncInputs(); render();
   await renderRecent();
-  $("status").textContent="Menu Creator ready · Build simple-v1.5";
+  $("status").textContent="Menu Creator ready · offline Vedanta Way template · Build simple-v1.9";
 }).catch(()=>renderRecent());
-if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
-  window.addEventListener("load", ()=>navigator.serviceWorker.register("/menu-creator/service-worker.js",{scope:"/menu-creator/"}).catch(()=>{}));
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister().catch(()=>{})));
+  if(window.caches) caches.keys().then(keys=>keys.filter(k=>/menu-creator/i.test(k)).forEach(k=>caches.delete(k)));
 }
 </script>
 </body>

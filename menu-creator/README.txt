@@ -1,4 +1,4 @@
-Menu Creator — standalone printable menus (Build simple-v1.5)
+Menu Creator — standalone printable menus (Build simple-v1.9)
 ============================================================
 
 THIS IS NOT PARSLIA.
@@ -18,14 +18,16 @@ What you get
 - Save/load by date: Breakfast / Lunch / Dinner
 - Print / Save PDF and Word
 - Vegan / Vegetarian labels stay small (not dish-name size)
+- Current print template: Vedanta Way (cream page, gold bars, Garamond, course headings)
 
 Open it
 -------
 Open menu-creator/index.html
-or PRINT-NOW.html for urgent print
+or double-click PRINT-NOW.html if a firewall blocks refresh
+Works offline. Fonts are local. No Google Fonts.
 
 Kiteline install (optional patch)
 ---------------------------------
 Run patches\APPLY-MENU-TEXT-ALIGN.bat
 Restart Kiteline → Ctrl+Shift+R
-Confirm: Build simple-v1.5
+Confirm: Build simple-v1.9

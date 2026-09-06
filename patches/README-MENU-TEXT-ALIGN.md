@@ -13,4 +13,6 @@ Run `patches/OPEN-PRINT-MENU-NOW.bat` or open `menu-creator/PRINT-NOW.html`.
 ## Fix Kiteline
 1. Run `APPLY-MENU-TEXT-ALIGN.bat`
 2. Restart Kiteline → Ctrl+Shift+R
-3. Confirm **Build simple-v1.5**
+3. If refresh is blocked, double-click `menu-creator/PRINT-NOW.html`
+4. Confirm **Build simple-v1.9**
+5. The current print template is Vedanta Way (offline, no Google Fonts)
