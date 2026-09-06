@@ -6,9 +6,8 @@ const assert = require("assert");
 const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
-assert.match(html, /Build simple-v1\.7/);
-assert.match(html, /Print template — pick one/);
-assert.match(html, /data-template="vedanta"/);
+assert.match(html, /Build simple-v1\.8/);
+assert.match(html, /This is the current print template/);
 assert.match(html, /tpl-vedanta/);
 assert.match(html, /The Vedanta Way/);
 assert.match(html, /Cream of Tomato & Basil Soup/);
@@ -87,6 +86,6 @@ assert.deepStrictEqual(parsed.dishes[3].allergens, ["Sulphur Dioxide"]);
 assert.ok(!parsed.dishes.some(d => /allergen/i.test(d.name)));
 assert.strictEqual(parseCtx.containsLine(["Dairy"], "vedanta"), "(Contains: Dairy)");
 assert.strictEqual(parseCtx.containsLine(["Sulphur Dioxide"], "vedanta"), "(Contains: Sulphur Dioxide/Sulphites)");
-assert.strictEqual(parseCtx.containsLine(["Gluten","Dairy"], "classic"), "Contains: GLUTEN and DAIRY");
+assert.strictEqual(parseCtx.containsLine(["Gluten","Dairy"], "classic"), "(Contains: Gluten, Dairy)");
 
 console.log("vedanta-template.test.js: all assertions passed");

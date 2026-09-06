@@ -15,10 +15,10 @@ OR FIX KITELINE
 2. Restart Kiteline
 3. Open Menu Creator
 4. Press Ctrl+Shift+R
-5. Confirm left panel shows: Build simple-v1.7
+5. Confirm left panel shows: Build simple-v1.8
 
 Then:
-- Choose Classic or Vedanta Way template
+- The current print template is Vedanta Way (cream dinner menu)
 - Paste into "Paste menu → dishes"
 - Click Generate menu
 - Dishes appear in Dishes / preview

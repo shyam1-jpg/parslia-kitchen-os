@@ -59,102 +59,83 @@ textarea{min-height:120px;resize:vertical}
 .tpl-card.on b{color:var(--accent)}
 .tpl-mini{display:flex;gap:6px}
 .page{
-  width:min(794px,100%);min-height:1123px;margin:0 auto;background:#fff;
-  border:3px double var(--gold);padding:42px 48px 56px;box-shadow:0 10px 28px rgba(31,42,36,.08)
+  width:min(794px,100%);min-height:1123px;margin:0 auto;background:#fbf8ef;
+  border:none;padding:36px 58px 56px;position:relative;text-align:center;
+  box-shadow:0 10px 28px rgba(49,91,65,.08);
+  -webkit-print-color-adjust:exact;print-color-adjust:exact
 }
-.menu-head{text-align:center;border-bottom:2px solid var(--gold);padding-bottom:12px;margin-bottom:18px}
-.menu-logo{max-height:72px;max-width:220px;display:block;margin:0 auto 8px}
-.menu-logo-text{font-family:var(--serif);font-size:20px;color:var(--accent);margin-bottom:4px}
-.menu-title{font-family:var(--serif);font-size:28px;letter-spacing:.14em;text-transform:uppercase;margin:0}
-.menu-sub{color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-top:4px}
-.dish{text-align:center;margin:0 0 20px;page-break-inside:avoid;break-inside:avoid}
-.dish-name{font-family:var(--serif);font-size:22px;font-weight:700;line-height:1.25;letter-spacing:.02em;margin:0 0 6px;color:var(--ink)}
-.dish-desc{font-family:"Segoe UI",system-ui,sans-serif;font-size:12px;font-weight:400;font-style:italic;line-height:1.45;color:var(--muted);max-width:520px;margin:0 auto 6px}
-.dish-contains{font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase}
-.dish-diet{font-size:7px;color:var(--accent);font-weight:500;letter-spacing:.02em;text-transform:none;margin-top:2px;line-height:1.2}
-.diet-heading{font-family:var(--serif);font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:none;color:var(--accent);text-align:center;margin:14px 0 8px}
-.page.compact .menu-head{margin-bottom:12px;padding-bottom:8px}
-.page.compact .menu-title{font-size:24px}
-.page.compact .dish{margin:0 0 12px}
-.page.compact .dish-name{font-size:18px;margin:0 0 3px}
-.page.compact .dish-desc{font-size:11px;margin:0 auto 3px}
-.page.compact .dish-diet{font-size:6.5px;margin-top:1px}
-.page.compact .diet-heading{font-size:8px;margin:10px 0 6px}
-.page.compact .info{margin-top:18px;padding-top:10px}
-.page.tpl-vedanta{
-  background:#fbf8ef;border:none;padding:32px 54px 52px;position:relative;text-align:center;
-  box-shadow:0 10px 28px rgba(49,91,65,.08);-webkit-print-color-adjust:exact;print-color-adjust:exact
-}
-.page.tpl-vedanta:before,.page.tpl-vedanta:after{
+.page:before,.page:after{
   content:"";position:absolute;left:0;right:0;height:7px;background:#b68108
 }
-.page.tpl-vedanta:before{top:0}
-.page.tpl-vedanta:after{bottom:0}
-.page.tpl-vedanta .menu-head{border-bottom:none;padding-bottom:4px;margin-bottom:8px}
-.page.tpl-vedanta .menu-logo{max-height:50px;margin-bottom:12px}
-.page.tpl-vedanta .menu-date{
+.page:before{top:0}
+.page:after{bottom:0}
+.page-frame{
+  position:absolute;inset:16px 18px 16px 18px;border:1.5px double #c9a24a;pointer-events:none
+}
+.menu-head{text-align:center;border-bottom:none;padding-bottom:4px;margin-bottom:8px}
+.menu-logo{max-height:50px;max-width:220px;display:block;margin:0 auto 12px}
+.menu-logo-text{font-family:"EB Garamond",Georgia,serif;font-size:20px;color:#315b41;margin-bottom:4px}
+.menu-date{
   font-family:"EB Garamond",Georgia,serif;font-size:10.5px;letter-spacing:.28em;
   text-transform:uppercase;color:#b98720;margin:0 0 12px
 }
-.page.tpl-vedanta .menu-brand{
+.menu-brand{
   font-family:"EB Garamond",Georgia,serif;font-weight:400;font-size:38px;line-height:1.1;
   color:#315b41;letter-spacing:.01em;margin:0;text-transform:none
 }
-.page.tpl-vedanta .menu-diamond{
+.menu-diamond{
   width:6px;height:6px;background:#b98720;transform:rotate(45deg);margin:10px auto 12px
 }
-.page.tpl-vedanta .menu-title{
+.menu-title{
   font-family:"EB Garamond",Georgia,serif;font-size:12.5px;letter-spacing:.34em;
   color:#b98720;font-weight:400;text-transform:uppercase;margin:0
 }
-.page.tpl-vedanta .menu-sub{display:none}
-.page.tpl-vedanta .course-heading,.page.tpl-vedanta .diet-heading{
+.menu-sub{display:none}
+.dish{text-align:center;margin:0 0 14px;page-break-inside:avoid;break-inside:avoid}
+.dish-name{
+  font-family:"EB Garamond",Georgia,serif;font-size:16px;font-weight:700;line-height:1.25;
+  letter-spacing:0;margin:0 0 4px;color:#315b41
+}
+.dish-desc{
+  font-family:"EB Garamond",Georgia,serif;font-size:11px;font-weight:400;font-style:italic;
+  line-height:1.45;color:#b98720;max-width:460px;margin:0 auto 3px
+}
+.dish-contains{
+  font-family:"EB Garamond",Georgia,serif;font-size:10px;font-weight:700;color:#161616;text-transform:none
+}
+.dish-diet{font-size:7px;color:#315b41;font-weight:500;letter-spacing:.02em;text-transform:none;margin-top:2px;line-height:1.2}
+.course-heading,.diet-heading{
   font-family:"EB Garamond",Georgia,serif;font-size:10.5px;letter-spacing:.32em;
   text-transform:uppercase;color:#b98720;font-weight:400;margin:18px 0 10px;
   text-align:center;width:100%;display:block
 }
-.page.tpl-vedanta .dish{margin:0 0 14px}
-.page.tpl-vedanta .dish-name{
-  font-family:"EB Garamond",Georgia,serif;font-size:16px;font-weight:700;color:#315b41;letter-spacing:0;margin:0 0 4px
-}
-.page.tpl-vedanta .dish-desc{
-  font-family:"EB Garamond",Georgia,serif;font-size:11px;font-style:italic;color:#b98720;max-width:460px;margin:0 auto 3px
-}
-.page.tpl-vedanta .dish-contains{
-  font-family:"EB Garamond",Georgia,serif;font-size:10px;font-weight:700;color:#161616;text-transform:none
-}
-.page.tpl-vedanta .dish-diet{color:#315b41}
-.page.tpl-vedanta .info{border-top:none;margin-top:20px;padding-top:4px}
-.page.tpl-vedanta .info h2{
+.page.compact .menu-brand{font-size:30px}
+.page.compact .dish{margin:0 0 8px}
+.page.compact .dish-name{font-size:14px;margin:0 0 3px}
+.page.compact .dish-desc{font-size:10px;margin:0 auto 3px}
+.page.compact .dish-diet{font-size:6.5px;margin-top:1px}
+.page.compact .course-heading,.page.compact .diet-heading{margin:12px 0 6px}
+.page.compact .info{margin-top:14px;padding-top:4px}
+.info{margin-top:20px;padding-top:4px;border-top:none;text-align:center;page-break-inside:avoid;break-inside:avoid}
+.info h2{
   font-family:"EB Garamond",Georgia,serif;font-size:10.5px;letter-spacing:.28em;
-  color:#b98720;font-weight:400;margin:0 0 8px
+  text-transform:uppercase;color:#b98720;font-weight:400;margin:0 0 8px
 }
-.page.tpl-vedanta .info .sub{display:none}
-.page.tpl-vedanta .info p{font-family:"EB Garamond",Georgia,serif;font-size:8px;line-height:1.45;max-width:520px;color:#2d2b28}
-.page.tpl-vedanta .qr{position:absolute;left:28px;bottom:22px;margin:0;text-align:left}
-.page.tpl-vedanta .qr img{width:42px;height:42px}
-.page.tpl-vedanta .qr p{display:none}
-.page.tpl-vedanta .menu-foot{text-align:center;margin-top:18px;padding-bottom:4px}
-.page.tpl-vedanta .menu-slogan{
+.info .sub{display:none}
+.info p{font-family:"EB Garamond",Georgia,serif;font-size:8px;line-height:1.45;max-width:520px;margin:0 auto 8px;color:#2d2b28}
+.qr{position:absolute;left:28px;bottom:22px;margin:0;text-align:left}
+.qr img{width:42px;height:42px;display:block;background:#fff}
+.qr p{display:none}
+.menu-foot{text-align:center;margin-top:18px;padding-bottom:4px}
+.menu-slogan{
   font-family:"EB Garamond",Georgia,serif;font-size:7.5px;letter-spacing:.2em;
   text-transform:uppercase;color:#b98720
 }
-.page.tpl-vedanta .menu-mark{
+.menu-mark{
   font-family:"EB Garamond",Georgia,serif;font-size:7.5px;letter-spacing:.12em;
   text-transform:uppercase;color:#b98720;margin-top:4px
 }
-.page.tpl-vedanta.compact .menu-brand{font-size:30px}
-.page.tpl-vedanta.compact .dish{margin:0 0 8px}
-.page.tpl-vedanta.compact .dish-name{font-size:14px}
-.page.tpl-vedanta.compact .course-heading,.page.tpl-vedanta.compact .diet-heading{margin:12px 0 6px}
-.info{margin-top:28px;padding-top:14px;border-top:2px solid var(--gold);text-align:center;page-break-inside:avoid;break-inside:avoid}
-.info h2{font-family:var(--serif);color:var(--accent);letter-spacing:.1em;text-transform:uppercase;font-size:18px;margin:0 0 6px}
-.info .sub{font-size:10.5px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin:0 0 10px}
-.info p{font-size:11px;line-height:1.55;max-width:480px;margin:0 auto 8px;color:#3c463f}
 .empty{color:var(--muted);font-style:italic;text-align:center;padding:24px}
-.qr{margin-top:12px;text-align:center}
-.qr img{display:block;margin:0 auto;background:#fff}
-.qr p{font-size:9px;color:var(--muted);font-style:italic;margin:6px 0 0}
 .info-locked{background:#f7f3ea;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;line-height:1.45;color:#3c463f;white-space:pre-wrap}
 .recent{display:flex;flex-direction:column;gap:6px;margin-top:8px}
 .recent button{text-align:left;width:100%;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 10px;cursor:pointer;font:inherit}
@@ -164,8 +145,7 @@ textarea{min-height:120px;resize:vertical}
 @media print{
   .side,.toolbar,.banner,.tag{display:none!important}
   .preview{padding:0;max-height:none;overflow:visible}
-  .page{box-shadow:none;width:100%;min-height:auto}
-  .page.tpl-vedanta{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page{box-shadow:none;width:100%;min-height:auto;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
 </head>
@@ -174,25 +154,11 @@ textarea{min-height:120px;resize:vertical}
   <aside class="side">
     <div class="brand">
       <h1>Menu Creator</h1>
-      <span class="tag">Build simple-v1.7</span>
+      <span class="tag">Build simple-v1.8</span>
     </div>
     <div class="banner">
-      <b>Vedanta Way is on this screen</b><br>
-      The cream dinner-menu style is selected below. Click <b>Load Vedanta sample</b> in the preview toolbar if the page is empty.
-    </div>
-
-    <div class="group">
-      <label>Print template — pick one</label>
-      <div class="tpl-pick">
-        <button type="button" class="tpl-card on" data-template="vedanta">
-          <b>Vedanta Way</b>
-          <span>Cream page, gold bars, house mark — the dinner menu PDF style</span>
-        </button>
-        <button type="button" class="tpl-card" data-template="classic">
-          <b>Classic</b>
-          <span>Gold border, large dish names</span>
-        </button>
-      </div>
+      <b>This is the current print template</b><br>
+      Cream page, gold bars, house mark, The Vedanta Way — the 4 September dinner-menu style. Click <b>Load sample</b> if the preview is empty.
     </div>
 
     <div class="group">
@@ -292,12 +258,8 @@ A fresh Tuscan-style salad with seasonal vegetables.
 
   <main class="preview">
     <div class="toolbar">
-      <strong>Live preview</strong>
-      <div class="tpl-mini">
-        <button type="button" class="meal-tab on" data-template="vedanta">Vedanta Way</button>
-        <button type="button" class="meal-tab" data-template="classic">Classic</button>
-      </div>
-      <button class="btn btn-line" id="loadSample" type="button">Load Vedanta sample</button>
+      <strong>Live preview — Vedanta Way</strong>
+      <button class="btn btn-line" id="loadSample" type="button">Load sample</button>
       <button class="btn btn-line" id="copyTextBtn" type="button">Copy text</button>
       <button class="btn btn-line" id="wordBtn" type="button">Word</button>
       <button class="btn btn-primary" id="printBtn" type="button">Print / Save PDF</button>
@@ -354,7 +316,7 @@ function loadEditor(){
       data.dishes=Array.isArray(cur.dishes)?cur.dishes:[];
       data.infoText=DEFAULT_INFO; // always clean on migrate
       data.spacing=raw.spacing==="compact"?"compact":"normal";
-      data.template=raw.template==="classic"?"classic":"vedanta";
+      data.template="vedanta";
       data.brandTitle=raw.brandTitle||cur.brandTitle||"";
       data.slogan=raw.slogan||""; data.footerBrand=raw.footerBrand||"";
     } else {
@@ -363,7 +325,7 @@ function loadEditor(){
       data.dishes=Array.isArray(raw.dishes)?raw.dishes:[];
       data.infoText=DEFAULT_INFO;
       data.spacing=raw.spacing==="compact"?"compact":"normal";
-      data.template=raw.template==="classic"?"classic":"vedanta";
+      data.template="vedanta";
       data.brandTitle=raw.brandTitle||"";
       data.slogan=raw.slogan||""; data.footerBrand=raw.footerBrand||"";
     }
@@ -374,7 +336,7 @@ function saveEditor(){
   const payload={
     logoText:data.logoText, logoImg:data.logoImg,
     infoText:DEFAULT_INFO, infoAllergens:"",
-    template:data.template==="classic"?"classic":"vedanta", textAlign:"center",
+    template:"vedanta", textAlign:"center",
     spacing:data.spacing||"normal",
     brandTitle:data.brandTitle||"", slogan:data.slogan||"", footerBrand:data.footerBrand||"",
     title:data.title, sub:data.sub, dishes:data.dishes,
@@ -483,7 +445,7 @@ function snapshot(){
   return {
     logoText:data.logoText||"", logoImg:data.logoImg||null,
     infoText:DEFAULT_INFO, infoAllergens:"",
-    template:data.template==="classic"?"classic":"vedanta", textAlign:"center",
+    template:"vedanta", textAlign:"center",
     spacing:data.spacing||"normal",
     brandTitle:data.brandTitle||"", slogan:data.slogan||"", footerBrand:data.footerBrand||"",
     title:data.title||"DINNER MENU", sub:data.sub||"", dishes:data.dishes||[]
@@ -495,7 +457,7 @@ function applySnap(snap){
   data.title=snap.title||"DINNER MENU"; data.sub=snap.sub||"";
   data.dishes=Array.isArray(snap.dishes)?snap.dishes:[];
   data.spacing=snap.spacing==="compact"?"compact":(data.spacing||"normal");
-  data.template=snap.template==="classic"?"classic":"vedanta";
+  data.template="vedanta";
   data.brandTitle=snap.brandTitle||"";
   data.slogan=snap.slogan||""; data.footerBrand=snap.footerBrand||"";
   data.infoText=DEFAULT_INFO;
@@ -658,21 +620,15 @@ function parseBulk(text){
 }
 function displayAllergen(name, template){
   const n=String(name||"");
-  if(template==="vedanta" && /sulphur dioxide/i.test(n) && !/sulphites/i.test(n)) return "Sulphur Dioxide/Sulphites";
+  if(/sulphur dioxide/i.test(n) && !/sulphites/i.test(n)) return "Sulphur Dioxide/Sulphites";
   return n;
 }
 function containsLine(a, template){
   if(!a||!a.length) return "";
   const raw=a.filter(x=>x&&x.toLowerCase()!=="none");
-  if(template==="vedanta"){
-    const list=raw.map(x=>displayAllergen(x,"vedanta"));
-    if(!list.length) return "";
-    return "(Contains: "+list.join(", ")+")";
-  }
-  const list=raw.map(x=>String(x).toUpperCase());
-  if(!list.length) return "Contains: NONE";
-  if(list.length===1) return "Contains: "+list[0];
-  return "Contains: "+list.slice(0,-1).join(", ")+" and "+list[list.length-1];
+  const list=raw.map(x=>displayAllergen(x,"vedanta"));
+  if(!list.length) return "";
+  return "(Contains: "+list.join(", ")+")";
 }
 function dietLine(d){
   if(!d||!d.length) return "";
@@ -742,30 +698,34 @@ function render(){
   $("dishList").querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.up; if(i>0){ [data.dishes[i-1],data.dishes[i]]=[data.dishes[i],data.dishes[i-1]]; saveEditor(); render(); }});
   $("dishList").querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.down; if(i<data.dishes.length-1){ [data.dishes[i+1],data.dishes[i]]=[data.dishes[i],data.dishes[i+1]]; saveEditor(); render(); }});
 
-  const vedanta=data.template==="vedanta";
+  data.template="vedanta";
+  if(!data.brandTitle) data.brandTitle=DEFAULT_BRAND;
+  if(!data.slogan) data.slogan=DEFAULT_SLOGAN;
+  if(!data.footerBrand) data.footerBrand=DEFAULT_FOOTER_BRAND;
   const dishes=data.dishes.length? data.dishes.map(d=> isDietHeadingDish(d) ? `
     <div class="${d.course||isCourseHeading(d.name)?"course-heading":"diet-heading"}">${esc(d.name)}</div>` : `
     <div class="dish">
       <div class="dish-name">${esc(d.name)}</div>
       ${d.desc?`<div class="dish-desc">${esc(d.desc)}</div>`:""}
-      ${containsLine(d.allergens, data.template)?`<div class="dish-contains">${esc(containsLine(d.allergens, data.template))}</div>`:""}
+      ${containsLine(d.allergens)?`<div class="dish-contains">${esc(containsLine(d.allergens))}</div>`:""}
       ${d.diet&&d.diet.length?`<div class="dish-diet">${esc(dietLine(d.diet))}</div>`:""}
     </div>`).join("") : `<div class="empty">No dishes yet — paste a menu or add a dish.</div>`;
   const info=DEFAULT_INFO.split(/\n{2,}/).map(p=>`<p>${esc(p)}</p>`).join("");
-  const logo=data.logoImg?`<img class="menu-logo" src="${data.logoImg}" alt="logo"/>`:(data.logoText?`<div class="menu-logo-text">${esc(data.logoText)}</div>`:(vedanta?`<img class="menu-logo" src="${VEDANTA_HOUSE}" alt="house mark"/>`:""));
-  const spaceClass=(data.spacing==="compact"?" compact":"")+(vedanta?" tpl-vedanta":"");
+  const logo=data.logoImg?`<img class="menu-logo" src="${data.logoImg}" alt="logo"/>`:(data.logoText?`<div class="menu-logo-text">${esc(data.logoText)}</div>`:`<img class="menu-logo" src="${VEDANTA_HOUSE}" alt="house mark"/>`);
+  const spaceClass=data.spacing==="compact"?" compact":"";
   const dateLine=data.sub||formatMenuDate(archiveCtx.date);
-  const brand=data.brandTitle||(vedanta?DEFAULT_BRAND:"");
-  const slogan=data.slogan||(vedanta?DEFAULT_SLOGAN:"");
-  const mark=data.footerBrand||(vedanta?DEFAULT_FOOTER_BRAND:"");
+  const brand=data.brandTitle||DEFAULT_BRAND;
+  const slogan=data.slogan||DEFAULT_SLOGAN;
+  const mark=data.footerBrand||DEFAULT_FOOTER_BRAND;
   $("pageOut").innerHTML=`
-    <section class="page${spaceClass}">
+    <section class="page tpl-vedanta${spaceClass}">
+      <div class="page-frame" aria-hidden="true"></div>
       <div class="menu-head">
         ${logo}
-        ${vedanta?`<div class="menu-date">${esc(dateLine)}</div>`:""}
-        ${vedanta&&brand?`<div class="menu-brand">${esc(brand)}</div><div class="menu-diamond" aria-hidden="true"></div>`:""}
+        <div class="menu-date">${esc(dateLine)}</div>
+        <div class="menu-brand">${esc(brand)}</div>
+        <div class="menu-diamond" aria-hidden="true"></div>
         <h1 class="menu-title">${esc(data.title||"DINNER MENU")}</h1>
-        ${!vedanta&&data.sub?`<div class="menu-sub">${esc(data.sub)}</div>`:""}
       </div>
       ${dishes}
       <div class="info">
@@ -774,7 +734,7 @@ function render(){
         ${info}
         ${qrHTML()}
       </div>
-      ${vedanta?`<div class="menu-foot"><div class="menu-slogan">${esc(slogan)}</div><div class="menu-mark">${esc(mark)}</div></div>`:""}
+      <div class="menu-foot"><div class="menu-slogan">${esc(slogan)}</div><div class="menu-mark">${esc(mark)}</div></div>
     </section>`;
 }
 function syncInputs(){
@@ -785,20 +745,7 @@ function syncInputs(){
   $("archiveDate").value=archiveCtx.date;
   document.querySelectorAll(".meal-tab[data-meal]").forEach(t=>t.classList.toggle("on", t.dataset.meal===archiveCtx.meal));
   document.querySelectorAll("[data-space]").forEach(t=>t.classList.toggle("on", t.dataset.space===(data.spacing||"normal")));
-  document.querySelectorAll("[data-template]").forEach(t=>t.classList.toggle("on", t.dataset.template===(data.template||"vedanta")));
   $("infoLocked").textContent=DEFAULT_INFO;
-}
-function applyTemplate(name){
-  data.template=name==="vedanta"?"vedanta":"classic";
-  if(data.template==="vedanta"){
-    if(!data.brandTitle) data.brandTitle=DEFAULT_BRAND;
-    if(!data.slogan) data.slogan=DEFAULT_SLOGAN;
-    if(!data.footerBrand) data.footerBrand=DEFAULT_FOOTER_BRAND;
-    if(!data.sub) data.sub=formatMenuDate(archiveCtx.date);
-    if(!data.dishes.length) loadVedantaSample(true);
-  }
-  saveEditor(); syncInputs(); render();
-  $("status").textContent=data.template==="vedanta"?"Template: Vedanta Way — cream dinner menu":"Template: Classic";
 }
 function loadVedantaSample(silent){
   data.template="vedanta";
@@ -864,7 +811,6 @@ $("menuTitle").oninput=e=>{ data.title=e.target.value; saveEditor(); render(); }
 $("menuSub").oninput=e=>{ data.sub=e.target.value; saveEditor(); render(); };
 $("logoText").oninput=e=>{ data.logoText=e.target.value; saveEditor(); render(); };
 if($("brandTitle")) $("brandTitle").oninput=e=>{ data.brandTitle=e.target.value; saveEditor(); render(); };
-document.querySelectorAll("[data-template]").forEach(b=>b.onclick=()=>applyTemplate(b.dataset.template));
 $("logoFile").onchange=e=>{
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader(); r.onload=()=>{ data.logoImg=r.result; saveEditor(); render(); }; r.readAsDataURL(f);
@@ -874,7 +820,7 @@ $("resetInfo").onclick=()=>{ data.infoText=DEFAULT_INFO; saveEditor(); render();
 $("resetAll").onclick=()=>{
   if(!confirm("Clear this menu? Library saves are kept. You can Undo once.")) return;
   undoSnap=snapshot();
-  data={logoText:"",logoImg:null,title:mealLabel(archiveCtx.meal).toUpperCase()+" MENU",sub:"",brandTitle:data.template==="vedanta"?DEFAULT_BRAND:"",slogan:"",footerBrand:"",dishes:[],infoText:DEFAULT_INFO,template:data.template==="vedanta"?"vedanta":"classic",textAlign:"center",spacing:data.spacing||"normal"};
+  data={logoText:"",logoImg:null,title:mealLabel(archiveCtx.meal).toUpperCase()+" MENU",sub:"",brandTitle:DEFAULT_BRAND,slogan:DEFAULT_SLOGAN,footerBrand:DEFAULT_FOOTER_BRAND,dishes:[],infoText:DEFAULT_INFO,template:"vedanta",textAlign:"center",spacing:data.spacing||"normal"};
   resetForm(); saveEditor(); syncInputs(); render();
   $("status").textContent="Menu cleared. Click Undo clear to restore.";
   $("undoClear").style.display="inline-block";
@@ -884,17 +830,7 @@ $("undoClear").onclick=()=>{
   applySnap(undoSnap); undoSnap=null; $("undoClear").style.display="none";
   $("status").textContent="Cleared menu restored.";
 };
-$("loadSample").onclick=()=>{
-  if(data.template!=="classic"){ loadVedantaSample(false); return; }
-  data.title="DINNER MENU"; data.sub=formatMenuDate(archiveCtx.date); data.logoText="vedanta.org"; data.infoText=DEFAULT_INFO;
-  data.dishes=[
-    {name:"High Protein Lasagne with Beluga Lentil",desc:"Layered pasta with tomato ragu and plant-based cheese",allergens:["Gluten","Dairy","Celery"],diet:["Vegetarian"]},
-    {name:"Tuscany Salad",desc:"Mixed greens, cherry tomatoes, olives and balsamic",allergens:["None"],diet:["Vegan","Gluten-Free"]},
-    {name:"Homemade Chocolate Fridge Cake",desc:"Rich chocolate fridge cake with biscuits",allergens:["Gluten","Dairy"],diet:["Vegetarian"]}
-  ];
-  saveEditor(); syncInputs(); render();
-  $("status").textContent="Loaded classic sample.";
-};
+$("loadSample").onclick=()=>loadVedantaSample(false);
 $("printBtn").onclick=()=>window.print();
 $("copyTextBtn").onclick=async()=>{
   const text=menuPlainText();
@@ -940,39 +876,32 @@ $("fillSubDate").onclick=()=>{
 };
 $("wordBtn").onclick=()=>{
   const compact=data.spacing==="compact";
-  const vedanta=data.template==="vedanta";
-  const nameSize=compact?"13pt":(vedanta?"12pt":"16pt");
-  const descSize=compact?"8.5pt":(vedanta?"9pt":"9pt");
+  const nameSize=compact?"13pt":"12pt";
+  const descSize=compact?"8.5pt":"9pt";
   const nameMargin=compact?"7pt 0 2pt":"11pt 0 3pt";
   const dishes=data.dishes.map(d=> isDietHeadingDish(d) ? `
-    <p style="text-align:center;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-size:8pt;font-weight:400;letter-spacing:3px;text-transform:uppercase;color:#b98720;margin:10pt 0 6pt;">${esc(vedanta?spacedCaps(d.name):d.name)}</p>` : `
-    <p style="text-align:center;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-size:${nameSize};font-weight:bold;color:${vedanta?"#315b41":"#1f2a24"};margin:${nameMargin};line-height:1.25;">${esc(d.name)}</p>
-    ${d.desc?`<p style="text-align:center;font-family:${vedanta?"'EB Garamond',Georgia,serif":"'Segoe UI',Arial,sans-serif"};font-style:italic;font-size:${descSize};font-weight:normal;color:${vedanta?"#b98720":"#6b7770"};margin:0 0 3pt;line-height:1.4;">${esc(d.desc)}</p>`:""}
-    ${d.allergens&&d.allergens.length?`<p style="text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:8pt;color:${vedanta?"#161616":"#b08a3e"};font-weight:bold;margin:0;">${esc(containsLine(d.allergens, data.template))}</p>`:""}
-    ${d.diet&&d.diet.length?`<p style="text-align:center;font-size:6.5pt;color:#2f6b4f;font-weight:500;margin:1pt 0 0;">${esc(dietLine(d.diet))}</p>`:""}
+    <p style="text-align:center;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-size:8pt;font-weight:400;letter-spacing:3px;text-transform:uppercase;color:#b98720;margin:10pt 0 6pt;">${esc(spacedCaps(d.name))}</p>` : `
+    <p style="text-align:center;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-size:${nameSize};font-weight:bold;color:#315b41;margin:${nameMargin};line-height:1.25;">${esc(d.name)}</p>
+    ${d.desc?`<p style="text-align:center;font-family:'EB Garamond',Georgia,serif;font-style:italic;font-size:${descSize};font-weight:normal;color:#b98720;margin:0 0 3pt;line-height:1.4;">${esc(d.desc)}</p>`:""}
+    ${d.allergens&&d.allergens.length?`<p style="text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:8pt;color:#161616;font-weight:bold;margin:0;">${esc(containsLine(d.allergens))}</p>`:""}
+    ${d.diet&&d.diet.length?`<p style="text-align:center;font-size:6.5pt;color:#315b41;font-weight:500;margin:1pt 0 0;">${esc(dietLine(d.diet))}</p>`:""}
   `).join("");
-  const info=DEFAULT_INFO.split(/\n{2,}/).map(p=>`<p style="font-size:${vedanta?"7.5pt":"8.5pt"};text-align:center;margin:0 0 4pt;color:${vedanta?"#2d2b28":"#3c463f"};">${esc(p)}</p>`).join("");
+  const info=DEFAULT_INFO.split(/\n{2,}/).map(p=>`<p style="font-size:7.5pt;text-align:center;margin:0 0 4pt;color:#2d2b28;">${esc(p)}</p>`).join("");
   const brand=data.brandTitle||DEFAULT_BRAND;
-  const wrap=vedanta
-    ? `background:#fbf8ef;border-top:7px solid #b68108;border-bottom:7px solid #b68108;padding:20pt 18pt;`
-    : `border:3px double #b08a3e;padding:20pt 18pt;`;
-  const head=vedanta
-    ? `${data.logoImg||!data.logoText?`<p style="text-align:center"><img src="${data.logoImg||VEDANTA_HOUSE}" style="max-height:48px"/></p>`:(data.logoText?`<p style="text-align:center;font-family:Georgia;color:#315b41;font-size:15pt;">${esc(data.logoText)}</p>`:"")}
+  const wrap=`background:#fbf8ef;border-top:7px solid #b68108;border-bottom:7px solid #b68108;padding:20pt 18pt;`;
+  const head=`${data.logoImg||!data.logoText?`<p style="text-align:center"><img src="${data.logoImg||VEDANTA_HOUSE}" style="max-height:48px"/></p>`:(data.logoText?`<p style="text-align:center;font-family:Georgia;color:#315b41;font-size:15pt;">${esc(data.logoText)}</p>`:"")}
       <p style="text-align:center;font-family:'EB Garamond',Georgia,serif;letter-spacing:3px;text-transform:uppercase;color:#b98720;font-size:9pt;">${esc(data.sub||formatMenuDate(archiveCtx.date))}</p>
       <p style="text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:22pt;color:#315b41;margin:6pt 0 4pt;">${esc(brand)}</p>
       <p style="text-align:center;color:#b98720;font-size:14pt;margin:0 0 6pt;">◆</p>
-      <h1 style="text-align:center;font-family:'EB Garamond',Georgia,serif;letter-spacing:4px;text-transform:uppercase;color:#b98720;font-size:11pt;font-weight:400;">${esc(data.title||"DINNER MENU")}</h1>`
-    : `${data.logoImg?`<p style="text-align:center"><img src="${data.logoImg}" style="max-height:78px"/></p>`:(data.logoText?`<p style="text-align:center;font-family:Georgia;color:#2f6b4f;font-size:15pt;">${esc(data.logoText)}</p>`:"")}
-      <h1 style="text-align:center;font-family:Georgia;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;">${esc(data.title||"DINNER MENU")}</h1>
-      ${data.sub?`<p style="text-align:center;font-size:10pt;color:#6b7770;letter-spacing:1px;text-transform:uppercase;">${esc(data.sub)}</p>`:""}`;
+      <h1 style="text-align:center;font-family:'EB Garamond',Georgia,serif;letter-spacing:4px;text-transform:uppercase;color:#b98720;font-size:11pt;font-weight:400;">${esc(data.title||"DINNER MENU")}</h1>`;
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Menu</title></head><body>
     <div style="${wrap}">
       ${head}
       ${dishes}
-      <div style="${vedanta?"":"border-top:2px solid #b08a3e;margin-top:14pt;padding-top:8pt;"}"></div>
-      <h2 style="text-align:center;font-family:'EB Garamond',Georgia,serif;color:${vedanta?"#b98720":"#2f6b4f"};${vedanta?"font-size:10pt;letter-spacing:3px;text-transform:uppercase;font-weight:400;":""}">${vedanta?spacedCaps("Allergen Information"):"Allergen Information"}</h2>
+      <div></div>
+      <h2 style="text-align:center;font-family:'EB Garamond',Georgia,serif;color:#b98720;font-size:10pt;letter-spacing:3px;text-transform:uppercase;font-weight:400;">${spacedCaps("Allergen Information")}</h2>
       ${info}
-      ${vedanta?`<p style="text-align:center;font-size:7pt;letter-spacing:2px;text-transform:uppercase;color:#b98720;margin-top:12pt;">${esc(spacedCaps(data.slogan||DEFAULT_SLOGAN))}</p><p style="text-align:center;font-size:7pt;letter-spacing:1px;color:#b98720;">${esc(data.footerBrand||DEFAULT_FOOTER_BRAND)}</p>`:""}
+      <p style="text-align:center;font-size:7pt;letter-spacing:2px;text-transform:uppercase;color:#b98720;margin-top:12pt;">${esc(spacedCaps(data.slogan||DEFAULT_SLOGAN))}</p><p style="text-align:center;font-size:7pt;letter-spacing:1px;color:#b98720;">${esc(data.footerBrand||DEFAULT_FOOTER_BRAND)}</p>
     </div></body></html>`;
   const blob=new Blob(["\ufeff"+html],{type:"application/msword"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
@@ -1004,21 +933,19 @@ document.querySelectorAll(".meal-tab[data-meal]").forEach(t=>t.onclick=async()=>
 });
 
 loadEditor();
-if(localStorage.getItem("menuCreatorBuild")!=="v1.7"){
-  localStorage.setItem("menuCreatorBuild","v1.7");
-  data.template="vedanta";
+data.template="vedanta";
+if(localStorage.getItem("menuCreatorBuild")!=="v1.8"){
+  localStorage.setItem("menuCreatorBuild","v1.8");
   if(!data.dishes||!data.dishes.length) loadVedantaSample(true);
 }
 buildChips(); syncInputs(); render();
 detectStorage().then(async()=>{
   const rec=await dbGet(archiveKey(archiveCtx.date, archiveCtx.meal));
-  if(rec&&rec.snap && (!data.dishes||!data.dishes.length) && rec.snap.template==="classic"){
-    /* keep vedanta first-run sample instead of an empty classic archive */
-  } else if(rec&&rec.snap && (!data.dishes||!data.dishes.length)) applySnap(rec.snap);
+  if(rec&&rec.snap && rec.snap.dishes && rec.snap.dishes.length) applySnap(rec.snap);
   if(!data.dishes||!data.dishes.length){ data.template="vedanta"; loadVedantaSample(true); saveEditor(); }
   syncInputs(); render();
   await renderRecent();
-  $("status").textContent="Menu Creator ready · Vedanta Way template is at the top · Build simple-v1.7";
+  $("status").textContent="Menu Creator ready · current template is Vedanta Way · Build simple-v1.8";
 }).catch(()=>renderRecent());
 if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
   window.addEventListener("load", ()=>navigator.serviceWorker.register("/menu-creator/service-worker.js",{scope:"/menu-creator/"}).catch(()=>{}));

@@ -39,6 +39,7 @@ textarea{min-height:220px;resize:vertical}
 .page.tpl-vedanta{background:#fbf8ef;border:none;position:relative;padding:32px 40px 48px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .page.tpl-vedanta:before,.page.tpl-vedanta:after{content:"";position:absolute;left:0;right:0;height:7px;background:#b68108}
 .page.tpl-vedanta:before{top:0}.page.tpl-vedanta:after{bottom:0}
+.page.tpl-vedanta .menu-logo{max-height:50px;display:block;margin:0 auto 12px}
 .page.tpl-vedanta .menu-title{font-family:"EB Garamond",Georgia,serif;font-size:12.5px;letter-spacing:.34em;color:#b98720;font-weight:400;border:none;padding:0}
 .page.tpl-vedanta .menu-brand{font-family:"EB Garamond",Georgia,serif;font-size:32px;color:#315b41;text-align:center;margin:0 0 8px}
 .page.tpl-vedanta .menu-diamond{width:6px;height:6px;background:#b98720;transform:rotate(45deg);margin:8px auto 10px}
@@ -59,12 +60,9 @@ textarea{min-height:220px;resize:vertical}
   </div>
   <div class="card no-print">
     <h1>1. Paste menu</h1>
-    <label>Template</label>
-    <div class="row" style="margin-top:0">
-      <button type="button" class="chip on" data-template="vedanta">Vedanta Way</button>
-      <button type="button" class="chip" data-template="classic">Classic</button>
-    </div>
-    <label style="margin-top:10px">Menu title</label>
+    <label>Current template</label>
+    <div class="hint" style="margin:0 0 8px">Vedanta Way — cream dinner-menu style</div>
+    <label>Menu title</label>
     <input id="title" value="DINNER MENU"/>
     <label style="margin-top:10px">Paste dishes here</label>
     <textarea id="bulk" placeholder="HOMEMADE CHOCOLATE FRIDGE CAKE
@@ -93,6 +91,7 @@ Vegan"></textarea>
 const DEFAULT_INFO = "We carefully select our ingredients and prepare all dishes with attention to allergens. However, please be aware that all food is prepared in a shared kitchen where cross-contamination may occur. While we take every precaution to minimize risk, we cannot guarantee the complete absence of allergens.\n\nIf you have a severe allergy or specific dietary requirement, please speak to a member of our team before serving yourself.\n\nYou can request more information on the allergens listed below.";
 const COURSE_HEADERS=new Set(["soup","soups","salad","salads","side","sides","side dish","side dishes","main","mains","main course","main courses","dessert","desserts","starter","starters","breakfast","lunch","dinner"]);
 let printTemplate="vedanta";
+document.getElementById("page").classList.add("tpl-vedanta");
 const $ = id => document.getElementById(id);
 const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function toTitle(s){ return s.toLowerCase().replace(/(^|[^A-Za-zÀ-ÿ])([a-zà-ÿ])/g,(m,pre,c)=>pre+c.toUpperCase()); }
@@ -218,23 +217,16 @@ function parseBulk(text){
 function containsLine(a){
   if(!a||!a.length) return "";
   const raw=a.filter(x=>x && x.toLowerCase()!=="none");
-  if(printTemplate==="vedanta"){
-    const list=raw.map(x=>/sulphur dioxide/i.test(x)&&!/sulphites/i.test(x)?"Sulphur Dioxide/Sulphites":x);
-    if(!list.length) return "";
-    return "(Contains: "+list.join(", ")+")";
-  }
-  const list=raw.map(x=>String(x).toUpperCase());
-  if(!list.length) return "Contains: NONE";
-  if(list.length===1) return "Contains: "+list[0];
-  return "Contains: "+list.slice(0,-1).join(", ")+" and "+list[list.length-1];
+  const list=raw.map(x=>/sulphur dioxide/i.test(x)&&!/sulphites/i.test(x)?"Sulphur Dioxide/Sulphites":x);
+  if(!list.length) return "";
+  return "(Contains: "+list.join(", ")+")";
 }
 function dietLine(d){
   if(!d||!d.length) return "";
   return d.join(" | ");
 }
 function render(dishes, title){
-  const vedanta=printTemplate==="vedanta";
-  $("page").classList.toggle("tpl-vedanta", vedanta);
+  $("page").classList.add("tpl-vedanta");
   const body = dishes.length ? dishes.map(d=> isDietHeadingDish(d) ? `
     <div class="${d.course||isCourseHeading(d.name)?"course-heading":"diet-heading"}">${esc(d.name)}</div>` : `
     <div class="dish">
@@ -244,17 +236,9 @@ function render(dishes, title){
       ${d.diet&&d.diet.length?`<div class="dish-diet">${esc(dietLine(d.diet))}</div>`:""}
     </div>`).join("") : `<p style="text-align:center;color:#6b7770;font-style:italic">No dishes yet.</p>`;
   const info = DEFAULT_INFO.split(/\n{2,}/).map(p=>`<p>${esc(p)}</p>`).join("");
-  const head=vedanta
-    ? `<div class="menu-brand">The Vedanta Way</div><div class="menu-diamond"></div><h1 class="menu-title">${esc(title||"DINNER MENU")}</h1>`
-    : `<h1 class="menu-title">${esc(title||"DINNER MENU")}</h1>`;
+  const head=`<img class="menu-logo" src="assets/vedanta-house.png" alt="house mark"/><div class="menu-brand">The Vedanta Way</div><div class="menu-diamond"></div><h1 class="menu-title">${esc(title||"DINNER MENU")}</h1>`;
   $("page").innerHTML = `${head}${body}<div class="info"><h2>Allergen Information</h2>${info}</div>`;
 }
-document.querySelectorAll("[data-template]").forEach(b=>b.onclick=()=>{
-  printTemplate=b.dataset.template==="vedanta"?"vedanta":"classic";
-  document.querySelectorAll("[data-template]").forEach(x=>x.classList.toggle("on", x.dataset.template===printTemplate));
-  const hasDishes=!!$("page").querySelector(".dish,.course-heading,.diet-heading");
-  if(hasDishes) $("make").click();
-});
 $("make").onclick = () => {
   const r = parseBulk($("bulk").value||"");
   if(!r.dishes.length){ $("status").textContent="No dishes found. Check the format."; return; }

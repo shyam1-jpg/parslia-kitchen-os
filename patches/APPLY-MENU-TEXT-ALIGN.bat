@@ -1,8 +1,8 @@
 @echo off
 setlocal
-title Apply Menu Creator simple-v1.7
+title Apply Menu Creator simple-v1.8
 echo.
-echo  Menu Creator — simple-v1.7 (Vedanta Way template)
+echo  Menu Creator — simple-v1.8 (Vedanta Way is the current template)
 echo  ================================================
 echo.
 echo  Updates Kiteline Menu Creator on this PC.
@@ -46,8 +46,8 @@ echo  Next:
 echo   1. Restart Kiteline
 echo   2. Open Menu Creator
 echo   3. Ctrl+Shift+R
-echo   4. Confirm: Build simple-v1.7
-echo   5. Vedanta Way is at the top of the left panel
+echo   4. Confirm: Build simple-v1.8
+echo   5. Preview is the cream Vedanta Way dinner menu
 echo   6. Paste menu - Generate - Print
 echo.
 echo  Or open PRINT-NOW.html in the menu-creator folder to print now.

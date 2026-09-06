@@ -13,5 +13,5 @@ Run `patches/OPEN-PRINT-MENU-NOW.bat` or open `menu-creator/PRINT-NOW.html`.
 ## Fix Kiteline
 1. Run `APPLY-MENU-TEXT-ALIGN.bat`
 2. Restart Kiteline → Ctrl+Shift+R
-3. Confirm **Build simple-v1.7**
-4. Vedanta Way is the first print template (cream dinner-menu style)
+3. Confirm **Build simple-v1.8**
+4. The current print template is Vedanta Way (cream dinner-menu style)
