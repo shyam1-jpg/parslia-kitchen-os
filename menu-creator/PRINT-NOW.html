@@ -61,8 +61,8 @@ textarea{min-height:220px;resize:vertical}
     <h1>1. Paste menu</h1>
     <label>Template</label>
     <div class="row" style="margin-top:0">
-      <button type="button" class="chip on" data-template="classic">Classic</button>
-      <button type="button" class="chip" data-template="vedanta">Vedanta Way</button>
+      <button type="button" class="chip on" data-template="vedanta">Vedanta Way</button>
+      <button type="button" class="chip" data-template="classic">Classic</button>
     </div>
     <label style="margin-top:10px">Menu title</label>
     <input id="title" value="DINNER MENU"/>
@@ -92,7 +92,7 @@ Vegan"></textarea>
 <script>
 const DEFAULT_INFO = "We carefully select our ingredients and prepare all dishes with attention to allergens. However, please be aware that all food is prepared in a shared kitchen where cross-contamination may occur. While we take every precaution to minimize risk, we cannot guarantee the complete absence of allergens.\n\nIf you have a severe allergy or specific dietary requirement, please speak to a member of our team before serving yourself.\n\nYou can request more information on the allergens listed below.";
 const COURSE_HEADERS=new Set(["soup","soups","salad","salads","side","sides","side dish","side dishes","main","mains","main course","main courses","dessert","desserts","starter","starters","breakfast","lunch","dinner"]);
-let printTemplate="classic";
+let printTemplate="vedanta";
 const $ = id => document.getElementById(id);
 const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function toTitle(s){ return s.toLowerCase().replace(/(^|[^A-Za-zÀ-ÿ])([a-zà-ÿ])/g,(m,pre,c)=>pre+c.toUpperCase()); }
@@ -247,7 +247,7 @@ function render(dishes, title){
   const head=vedanta
     ? `<div class="menu-brand">The Vedanta Way</div><div class="menu-diamond"></div><h1 class="menu-title">${esc(title||"DINNER MENU")}</h1>`
     : `<h1 class="menu-title">${esc(title||"DINNER MENU")}</h1>`;
-  $("page").innerHTML = `${head}${body}<div class="info"><h2>${vedanta?spacedCaps("Allergen Information"):"Allergen Information"}</h2>${info}</div>`;
+  $("page").innerHTML = `${head}${body}<div class="info"><h2>Allergen Information</h2>${info}</div>`;
 }
 document.querySelectorAll("[data-template]").forEach(b=>b.onclick=()=>{
   printTemplate=b.dataset.template==="vedanta"?"vedanta":"classic";

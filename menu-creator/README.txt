@@ -1,4 +1,4 @@
-Menu Creator — standalone printable menus (Build simple-v1.6)
+Menu Creator — standalone printable menus (Build simple-v1.7)
 ============================================================
 
 THIS IS NOT PARSLIA.
@@ -29,4 +29,4 @@ Kiteline install (optional patch)
 ---------------------------------
 Run patches\APPLY-MENU-TEXT-ALIGN.bat
 Restart Kiteline → Ctrl+Shift+R
-Confirm: Build simple-v1.6
+Confirm: Build simple-v1.7

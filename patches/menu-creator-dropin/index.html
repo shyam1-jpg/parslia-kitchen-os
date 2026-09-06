@@ -50,6 +50,14 @@ textarea{min-height:120px;resize:vertical}
 .dish-card .meta{font-size:11.5px;color:var(--muted)}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;position:sticky;top:0;background:var(--bg);padding-bottom:10px;z-index:2}
 .toolbar strong{flex:1}
+.tpl-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tpl-card{border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px 8px;cursor:pointer;text-align:center}
+.tpl-card:hover{background:#f7f3ea}
+.tpl-card.on{border-color:var(--accent);background:var(--accent-soft)}
+.tpl-card b{display:block;font-size:13px;margin-bottom:4px}
+.tpl-card span{display:block;font-size:11px;color:var(--muted);line-height:1.35}
+.tpl-card.on b{color:var(--accent)}
+.tpl-mini{display:flex;gap:6px}
 .page{
   width:min(794px,100%);min-height:1123px;margin:0 auto;background:#fff;
   border:3px double var(--gold);padding:42px 48px 56px;box-shadow:0 10px 28px rgba(31,42,36,.08)
@@ -74,7 +82,7 @@ textarea{min-height:120px;resize:vertical}
 .page.compact .diet-heading{font-size:8px;margin:10px 0 6px}
 .page.compact .info{margin-top:18px;padding-top:10px}
 .page.tpl-vedanta{
-  background:#fbf8ef;border:none;padding:32px 54px 52px;position:relative;
+  background:#fbf8ef;border:none;padding:32px 54px 52px;position:relative;text-align:center;
   box-shadow:0 10px 28px rgba(49,91,65,.08);-webkit-print-color-adjust:exact;print-color-adjust:exact
 }
 .page.tpl-vedanta:before,.page.tpl-vedanta:after{
@@ -166,11 +174,25 @@ textarea{min-height:120px;resize:vertical}
   <aside class="side">
     <div class="brand">
       <h1>Menu Creator</h1>
-      <span class="tag">Build simple-v1.6</span>
+      <span class="tag">Build simple-v1.7</span>
     </div>
     <div class="banner">
-      <b>Ready to print</b><br>
-      Choose a template, then paste → Generate → Print. <b>Vedanta Way</b> matches the cream dinner-menu style (gold bars, Garamond, course headings).
+      <b>Vedanta Way is on this screen</b><br>
+      The cream dinner-menu style is selected below. Click <b>Load Vedanta sample</b> in the preview toolbar if the page is empty.
+    </div>
+
+    <div class="group">
+      <label>Print template — pick one</label>
+      <div class="tpl-pick">
+        <button type="button" class="tpl-card on" data-template="vedanta">
+          <b>Vedanta Way</b>
+          <span>Cream page, gold bars, house mark — the dinner menu PDF style</span>
+        </button>
+        <button type="button" class="tpl-card" data-template="classic">
+          <b>Classic</b>
+          <span>Gold border, large dish names</span>
+        </button>
+      </div>
     </div>
 
     <div class="group">
@@ -215,15 +237,6 @@ A fresh Tuscan-style salad with seasonal vegetables.
         <button class="btn btn-line" id="appendBtn" type="button">Add to existing</button>
       </div>
       <div class="hint">This fills <b>Dishes</b> only. It never writes into Allergen Information.</div>
-    </div>
-
-    <div class="group">
-      <label>Print template</label>
-      <div class="meal-tabs">
-        <button type="button" class="meal-tab on" data-template="classic">Classic</button>
-        <button type="button" class="meal-tab" data-template="vedanta">Vedanta Way</button>
-      </div>
-      <div class="hint">Vedanta Way uses the 4 September 2026 dinner-menu look: cream page, gold bars, house mark, course headings.</div>
     </div>
 
     <div class="group">
@@ -280,7 +293,11 @@ A fresh Tuscan-style salad with seasonal vegetables.
   <main class="preview">
     <div class="toolbar">
       <strong>Live preview</strong>
-      <button class="btn btn-line" id="loadSample" type="button">Load sample</button>
+      <div class="tpl-mini">
+        <button type="button" class="meal-tab on" data-template="vedanta">Vedanta Way</button>
+        <button type="button" class="meal-tab" data-template="classic">Classic</button>
+      </div>
+      <button class="btn btn-line" id="loadSample" type="button">Load Vedanta sample</button>
       <button class="btn btn-line" id="copyTextBtn" type="button">Copy text</button>
       <button class="btn btn-line" id="wordBtn" type="button">Word</button>
       <button class="btn btn-primary" id="printBtn" type="button">Print / Save PDF</button>
@@ -316,7 +333,7 @@ let data={
   brandTitle:"", slogan:"", footerBrand:"",
   dishes:[],
   infoText:DEFAULT_INFO,
-  template:"classic", textAlign:"center",
+  template:"vedanta", textAlign:"center",
   spacing:"normal"
 };
 let archiveCtx={date:todayISO(), meal:"dinner"};
@@ -337,7 +354,7 @@ function loadEditor(){
       data.dishes=Array.isArray(cur.dishes)?cur.dishes:[];
       data.infoText=DEFAULT_INFO; // always clean on migrate
       data.spacing=raw.spacing==="compact"?"compact":"normal";
-      data.template=raw.template==="vedanta"?"vedanta":"classic";
+      data.template=raw.template==="classic"?"classic":"vedanta";
       data.brandTitle=raw.brandTitle||cur.brandTitle||"";
       data.slogan=raw.slogan||""; data.footerBrand=raw.footerBrand||"";
     } else {
@@ -346,7 +363,7 @@ function loadEditor(){
       data.dishes=Array.isArray(raw.dishes)?raw.dishes:[];
       data.infoText=DEFAULT_INFO;
       data.spacing=raw.spacing==="compact"?"compact":"normal";
-      data.template=raw.template==="vedanta"?"vedanta":"classic";
+      data.template=raw.template==="classic"?"classic":"vedanta";
       data.brandTitle=raw.brandTitle||"";
       data.slogan=raw.slogan||""; data.footerBrand=raw.footerBrand||"";
     }
@@ -357,7 +374,7 @@ function saveEditor(){
   const payload={
     logoText:data.logoText, logoImg:data.logoImg,
     infoText:DEFAULT_INFO, infoAllergens:"",
-    template:data.template==="vedanta"?"vedanta":"classic", textAlign:"center",
+    template:data.template==="classic"?"classic":"vedanta", textAlign:"center",
     spacing:data.spacing||"normal",
     brandTitle:data.brandTitle||"", slogan:data.slogan||"", footerBrand:data.footerBrand||"",
     title:data.title, sub:data.sub, dishes:data.dishes,
@@ -466,7 +483,7 @@ function snapshot(){
   return {
     logoText:data.logoText||"", logoImg:data.logoImg||null,
     infoText:DEFAULT_INFO, infoAllergens:"",
-    template:data.template==="vedanta"?"vedanta":"classic", textAlign:"center",
+    template:data.template==="classic"?"classic":"vedanta", textAlign:"center",
     spacing:data.spacing||"normal",
     brandTitle:data.brandTitle||"", slogan:data.slogan||"", footerBrand:data.footerBrand||"",
     title:data.title||"DINNER MENU", sub:data.sub||"", dishes:data.dishes||[]
@@ -478,7 +495,7 @@ function applySnap(snap){
   data.title=snap.title||"DINNER MENU"; data.sub=snap.sub||"";
   data.dishes=Array.isArray(snap.dishes)?snap.dishes:[];
   data.spacing=snap.spacing==="compact"?"compact":(data.spacing||"normal");
-  data.template=snap.template==="vedanta"?"vedanta":"classic";
+  data.template=snap.template==="classic"?"classic":"vedanta";
   data.brandTitle=snap.brandTitle||"";
   data.slogan=snap.slogan||""; data.footerBrand=snap.footerBrand||"";
   data.infoText=DEFAULT_INFO;
@@ -768,7 +785,7 @@ function syncInputs(){
   $("archiveDate").value=archiveCtx.date;
   document.querySelectorAll(".meal-tab[data-meal]").forEach(t=>t.classList.toggle("on", t.dataset.meal===archiveCtx.meal));
   document.querySelectorAll("[data-space]").forEach(t=>t.classList.toggle("on", t.dataset.space===(data.spacing||"normal")));
-  document.querySelectorAll("[data-template]").forEach(t=>t.classList.toggle("on", t.dataset.template===(data.template||"classic")));
+  document.querySelectorAll("[data-template]").forEach(t=>t.classList.toggle("on", t.dataset.template===(data.template||"vedanta")));
   $("infoLocked").textContent=DEFAULT_INFO;
 }
 function applyTemplate(name){
@@ -778,9 +795,33 @@ function applyTemplate(name){
     if(!data.slogan) data.slogan=DEFAULT_SLOGAN;
     if(!data.footerBrand) data.footerBrand=DEFAULT_FOOTER_BRAND;
     if(!data.sub) data.sub=formatMenuDate(archiveCtx.date);
+    if(!data.dishes.length) loadVedantaSample(true);
   }
   saveEditor(); syncInputs(); render();
-  $("status").textContent=data.template==="vedanta"?"Template: Vedanta Way":"Template: Classic";
+  $("status").textContent=data.template==="vedanta"?"Template: Vedanta Way — cream dinner menu":"Template: Classic";
+}
+function loadVedantaSample(silent){
+  data.template="vedanta";
+  data.title="DINNER MENU"; data.sub=formatMenuDate(archiveCtx.date);
+  data.brandTitle=DEFAULT_BRAND; data.slogan=DEFAULT_SLOGAN; data.footerBrand=DEFAULT_FOOTER_BRAND;
+  data.logoText=""; data.logoImg=null; data.infoText=DEFAULT_INFO;
+  data.dishes=[
+    {name:"Soup",desc:"",allergens:[],diet:[],section:true,course:true},
+    {name:"Cream of Tomato & Basil Soup",desc:"A smooth tomato and fresh basil soup, finished with cream.",allergens:["Dairy"],diet:[]},
+    {name:"Salads",desc:"",allergens:[],diet:[],section:true,course:true},
+    {name:"Tuscany Salad",desc:"A fresh Tuscan-style salad with seasonal vegetables and house dressing.",allergens:["Sulphur Dioxide"],diet:[]},
+    {name:"Maple-Roasted Butternut Squash Salad",desc:"Maple-roasted butternut squash on a bed of Greek yoghurt and feta, finished with rocket leaves and toasted pumpkin seeds.",allergens:["Dairy","Sulphur Dioxide"],diet:[]},
+    {name:"Side Dish",desc:"",allergens:[],diet:[],section:true,course:true},
+    {name:"Roasted Home-Grown Seasonal Vegetables",desc:"A colourful selection of home-grown seasonal vegetables, oven-roasted with herbs.",allergens:[],diet:[]},
+    {name:"Main Course",desc:"",allergens:[],diet:[],section:true,course:true},
+    {name:"High-Protein Lasagne",desc:"Layers of pasta with high-protein plant-based mince, seasonal vegetables, rich tomato sauce and creamy bechamel, finished with grated cheese.",allergens:["Gluten","Dairy"],diet:[]},
+    {name:"Dessert",desc:"",allergens:[],diet:[],section:true,course:true},
+    {name:"Vedanta Way-Style Tiramisu",desc:"An indulgent egg-free tiramisu layered with coffee-soaked sponge and creamy mascarpone.",allergens:["Gluten","Dairy"],diet:[]}
+  ];
+  if(!silent){
+    saveEditor(); syncInputs(); render();
+    $("status").textContent="Loaded Vedanta Way dinner sample.";
+  }
 }
 function setMeal(meal){
   archiveCtx.meal=meal;
@@ -844,33 +885,15 @@ $("undoClear").onclick=()=>{
   $("status").textContent="Cleared menu restored.";
 };
 $("loadSample").onclick=()=>{
-  if(data.template==="vedanta"){
-    data.title="DINNER MENU"; data.sub=formatMenuDate(archiveCtx.date);
-    data.brandTitle=DEFAULT_BRAND; data.slogan=DEFAULT_SLOGAN; data.footerBrand=DEFAULT_FOOTER_BRAND;
-    data.logoText=""; data.logoImg=null; data.infoText=DEFAULT_INFO;
-    data.dishes=[
-      {name:"Soup",desc:"",allergens:[],diet:[],section:true,course:true},
-      {name:"Cream of Tomato & Basil Soup",desc:"A smooth tomato and fresh basil soup, finished with cream.",allergens:["Dairy"],diet:[]},
-      {name:"Salads",desc:"",allergens:[],diet:[],section:true,course:true},
-      {name:"Tuscany Salad",desc:"A fresh Tuscan-style salad with seasonal vegetables and house dressing.",allergens:["Sulphur Dioxide"],diet:[]},
-      {name:"Maple-Roasted Butternut Squash Salad",desc:"Maple-roasted butternut squash on a bed of Greek yoghurt and feta, finished with rocket leaves and toasted pumpkin seeds.",allergens:["Dairy","Sulphur Dioxide"],diet:[]},
-      {name:"Side Dish",desc:"",allergens:[],diet:[],section:true,course:true},
-      {name:"Roasted Home-Grown Seasonal Vegetables",desc:"A colourful selection of home-grown seasonal vegetables, oven-roasted with herbs.",allergens:[],diet:[]},
-      {name:"Main Course",desc:"",allergens:[],diet:[],section:true,course:true},
-      {name:"High-Protein Lasagne",desc:"Layers of pasta with high-protein plant-based mince, seasonal vegetables, rich tomato sauce and creamy bechamel, finished with grated cheese.",allergens:["Gluten","Dairy"],diet:[]},
-      {name:"Dessert",desc:"",allergens:[],diet:[],section:true,course:true},
-      {name:"Vedanta Way-Style Tiramisu",desc:"An indulgent egg-free tiramisu layered with coffee-soaked sponge and creamy mascarpone.",allergens:["Gluten","Dairy"],diet:[]}
-    ];
-  } else {
-    data.title="DINNER MENU"; data.sub=formatMenuDate(archiveCtx.date); data.logoText="vedanta.org"; data.infoText=DEFAULT_INFO;
-    data.dishes=[
-      {name:"High Protein Lasagne with Beluga Lentil",desc:"Layered pasta with tomato ragu and plant-based cheese",allergens:["Gluten","Dairy","Celery"],diet:["Vegetarian"]},
-      {name:"Tuscany Salad",desc:"Mixed greens, cherry tomatoes, olives and balsamic",allergens:["None"],diet:["Vegan","Gluten-Free"]},
-      {name:"Homemade Chocolate Fridge Cake",desc:"Rich chocolate fridge cake with biscuits",allergens:["Gluten","Dairy"],diet:["Vegetarian"]}
-    ];
-  }
+  if(data.template!=="classic"){ loadVedantaSample(false); return; }
+  data.title="DINNER MENU"; data.sub=formatMenuDate(archiveCtx.date); data.logoText="vedanta.org"; data.infoText=DEFAULT_INFO;
+  data.dishes=[
+    {name:"High Protein Lasagne with Beluga Lentil",desc:"Layered pasta with tomato ragu and plant-based cheese",allergens:["Gluten","Dairy","Celery"],diet:["Vegetarian"]},
+    {name:"Tuscany Salad",desc:"Mixed greens, cherry tomatoes, olives and balsamic",allergens:["None"],diet:["Vegan","Gluten-Free"]},
+    {name:"Homemade Chocolate Fridge Cake",desc:"Rich chocolate fridge cake with biscuits",allergens:["Gluten","Dairy"],diet:["Vegetarian"]}
+  ];
   saveEditor(); syncInputs(); render();
-  $("status").textContent=data.template==="vedanta"?"Loaded Vedanta Way dinner sample.":"Loaded classic sample.";
+  $("status").textContent="Loaded classic sample.";
 };
 $("printBtn").onclick=()=>window.print();
 $("copyTextBtn").onclick=async()=>{
@@ -981,12 +1004,21 @@ document.querySelectorAll(".meal-tab[data-meal]").forEach(t=>t.onclick=async()=>
 });
 
 loadEditor();
+if(localStorage.getItem("menuCreatorBuild")!=="v1.7"){
+  localStorage.setItem("menuCreatorBuild","v1.7");
+  data.template="vedanta";
+  if(!data.dishes||!data.dishes.length) loadVedantaSample(true);
+}
 buildChips(); syncInputs(); render();
 detectStorage().then(async()=>{
   const rec=await dbGet(archiveKey(archiveCtx.date, archiveCtx.meal));
-  if(rec&&rec.snap && (!data.dishes||!data.dishes.length)) applySnap(rec.snap);
+  if(rec&&rec.snap && (!data.dishes||!data.dishes.length) && rec.snap.template==="classic"){
+    /* keep vedanta first-run sample instead of an empty classic archive */
+  } else if(rec&&rec.snap && (!data.dishes||!data.dishes.length)) applySnap(rec.snap);
+  if(!data.dishes||!data.dishes.length){ data.template="vedanta"; loadVedantaSample(true); saveEditor(); }
+  syncInputs(); render();
   await renderRecent();
-  $("status").textContent="Menu Creator ready · Build simple-v1.6";
+  $("status").textContent="Menu Creator ready · Vedanta Way template is at the top · Build simple-v1.7";
 }).catch(()=>renderRecent());
 if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
   window.addEventListener("load", ()=>navigator.serviceWorker.register("/menu-creator/service-worker.js",{scope:"/menu-creator/"}).catch(()=>{}));

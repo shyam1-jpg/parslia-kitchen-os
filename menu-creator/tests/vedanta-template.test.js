@@ -6,7 +6,8 @@ const assert = require("assert");
 const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
-assert.match(html, /Build simple-v1\.6/);
+assert.match(html, /Build simple-v1\.7/);
+assert.match(html, /Print template — pick one/);
 assert.match(html, /data-template="vedanta"/);
 assert.match(html, /tpl-vedanta/);
 assert.match(html, /The Vedanta Way/);
