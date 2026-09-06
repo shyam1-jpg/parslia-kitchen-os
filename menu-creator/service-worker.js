@@ -1,4 +1,4 @@
-const CACHE_NAME = "menu-creator-simple-v1.5";
+const CACHE_NAME = "menu-creator-simple-v1.6";
 const ASSETS = [
   "/menu-creator/",
   "/menu-creator/index.html",
@@ -7,7 +7,8 @@ const ASSETS = [
   "/menu-creator/manifest.json",
   "/menu-creator/icons/icon-192.png",
   "/menu-creator/icons/icon-512.png",
-  "/menu-creator/icons/apple-touch-icon.png"
+  "/menu-creator/icons/apple-touch-icon.png",
+  "/menu-creator/assets/vedanta-house.png"
 ];
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));

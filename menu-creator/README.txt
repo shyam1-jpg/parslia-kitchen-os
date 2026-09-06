@@ -1,4 +1,4 @@
-Menu Creator — standalone printable menus (Build simple-v1.5)
+Menu Creator — standalone printable menus (Build simple-v1.6)
 ============================================================
 
 THIS IS NOT PARSLIA.
@@ -18,6 +18,7 @@ What you get
 - Save/load by date: Breakfast / Lunch / Dinner
 - Print / Save PDF and Word
 - Vegan / Vegetarian labels stay small (not dish-name size)
+- Print templates: Classic or Vedanta Way (cream page, gold bars, Garamond, course headings)
 
 Open it
 -------
@@ -28,4 +29,4 @@ Kiteline install (optional patch)
 ---------------------------------
 Run patches\APPLY-MENU-TEXT-ALIGN.bat
 Restart Kiteline → Ctrl+Shift+R
-Confirm: Build simple-v1.5
+Confirm: Build simple-v1.6

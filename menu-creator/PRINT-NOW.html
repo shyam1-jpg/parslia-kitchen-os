@@ -4,6 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Print Menu Now</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
 <style>
 :root{--ink:#1f2a24;--muted:#6b7770;--accent:#2f6b4f;--gold:#b08a3e;--bg:#f3efe6;--line:#ddd4c4}
 *{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
@@ -33,6 +34,20 @@ textarea{min-height:220px;resize:vertical}
 .info h2{font-family:Georgia,serif;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;font-size:18px;margin:0 0 8px}
 .info p{font-size:11px;line-height:1.55;max-width:480px;margin:0 auto 8px;color:#3c463f}
 .status{margin-top:8px;font-weight:700;color:var(--accent)}
+.chip{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;font-size:12.5px;cursor:pointer}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.page.tpl-vedanta{background:#fbf8ef;border:none;position:relative;padding:32px 40px 48px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page.tpl-vedanta:before,.page.tpl-vedanta:after{content:"";position:absolute;left:0;right:0;height:7px;background:#b68108}
+.page.tpl-vedanta:before{top:0}.page.tpl-vedanta:after{bottom:0}
+.page.tpl-vedanta .menu-title{font-family:"EB Garamond",Georgia,serif;font-size:12.5px;letter-spacing:.34em;color:#b98720;font-weight:400;border:none;padding:0}
+.page.tpl-vedanta .menu-brand{font-family:"EB Garamond",Georgia,serif;font-size:32px;color:#315b41;text-align:center;margin:0 0 8px}
+.page.tpl-vedanta .menu-diamond{width:6px;height:6px;background:#b98720;transform:rotate(45deg);margin:8px auto 10px}
+.page.tpl-vedanta .course-heading,.page.tpl-vedanta .diet-heading{font-family:"EB Garamond",Georgia,serif;font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:#b98720;font-weight:400}
+.page.tpl-vedanta .dish-name{font-family:"EB Garamond",Georgia,serif;font-size:16px;color:#315b41}
+.page.tpl-vedanta .dish-desc{font-family:"EB Garamond",Georgia,serif;color:#b98720}
+.page.tpl-vedanta .dish-contains{font-family:"EB Garamond",Georgia,serif;color:#161616;text-transform:none}
+.page.tpl-vedanta .info{border:none}
+.page.tpl-vedanta .info h2{font-family:"EB Garamond",Georgia,serif;font-size:10.5px;letter-spacing:.28em;color:#b98720;font-weight:400}
 @media print{body{background:#fff}.no-print{display:none!important}.wrap{display:block;padding:0;max-width:none}.page{box-shadow:none}}
 </style>
 </head>
@@ -44,7 +59,12 @@ textarea{min-height:220px;resize:vertical}
   </div>
   <div class="card no-print">
     <h1>1. Paste menu</h1>
-    <label>Menu title</label>
+    <label>Template</label>
+    <div class="row" style="margin-top:0">
+      <button type="button" class="chip on" data-template="classic">Classic</button>
+      <button type="button" class="chip" data-template="vedanta">Vedanta Way</button>
+    </div>
+    <label style="margin-top:10px">Menu title</label>
     <input id="title" value="DINNER MENU"/>
     <label style="margin-top:10px">Paste dishes here</label>
     <textarea id="bulk" placeholder="HOMEMADE CHOCOLATE FRIDGE CAKE
@@ -71,6 +91,8 @@ Vegan"></textarea>
 </div>
 <script>
 const DEFAULT_INFO = "We carefully select our ingredients and prepare all dishes with attention to allergens. However, please be aware that all food is prepared in a shared kitchen where cross-contamination may occur. While we take every precaution to minimize risk, we cannot guarantee the complete absence of allergens.\n\nIf you have a severe allergy or specific dietary requirement, please speak to a member of our team before serving yourself.\n\nYou can request more information on the allergens listed below.";
+const COURSE_HEADERS=new Set(["soup","soups","salad","salads","side","sides","side dish","side dishes","main","mains","main course","main courses","dessert","desserts","starter","starters","breakfast","lunch","dinner"]);
+let printTemplate="classic";
 const $ = id => document.getElementById(id);
 const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function toTitle(s){ return s.toLowerCase().replace(/(^|[^A-Za-zÀ-ÿ])([a-zà-ÿ])/g,(m,pre,c)=>pre+c.toUpperCase()); }
@@ -123,9 +145,23 @@ function applyDiet(dish, diets){
   if(!dish || !diets || !diets.length) return;
   dish.diet=[...new Set([...(dish.diet||[]),...diets])];
 }
+function collapseSpacedCaps(s){
+  const t=(s||"").replace(/\s+/g," ").trim();
+  if(/^(?:[A-Za-z] )+[A-Za-z]$/.test(t)) return t.replace(/ /g,"");
+  return t;
+}
+function isCourseHeading(raw){
+  const key=collapseSpacedCaps(raw||"").toLowerCase().replace(/[.:]+$/,"").replace(/\s+/g," ").trim();
+  return COURSE_HEADERS.has(key);
+}
+function spacedCaps(s){
+  return collapseSpacedCaps(s||"").replace(/[^A-Za-z0-9]+/g," ").trim().toUpperCase()
+    .split(" ").filter(Boolean).map(w=>w.split("").join(" ")).join("   ");
+}
 function isDietHeadingDish(d){
   if(!d) return false;
-  if(d.section) return true;
+  if(d.section || d.course) return true;
+  if(isCourseHeading(d.name||"")) return true;
   const extra=(d.desc&&d.desc.trim()) || (d.allergens&&d.allergens.length);
   return isDietOnlyLine(d.name||"") && !extra;
 }
@@ -148,6 +184,11 @@ function parseBulk(text){
     if(!raw){ expect=true; continue; }
     if(/(allergen|dietary)\s*(&|and|information|info)/i.test(raw) || /^allergen\b/i.test(raw)) continue;
     if(/cross-contamination|shared kitchen|severe allergy|carefully select our ingredients|request more information on the allergens listed below/i.test(raw)) continue;
+    if(isCourseHeading(raw)){
+      push();
+      dishes.push({name:toTitle(collapseSpacedCaps(raw)), desc:"", allergens:[], diet:[], section:true, course:true});
+      continue;
+    }
     const inline=parseInline(raw); if(inline){ push(); dishes.push(inline); continue; }
     if(low.startsWith("contains")){ if(!cur) cur={name:"",desc:"",allergens:[],diet:[]}; cur.allergens=parseAllergens(raw.replace(/^contains\s*:?\s*/i,"")); expect=false; continue; }
     if(low.startsWith("suitable") || isDietOnlyLine(raw)){
@@ -176,7 +217,13 @@ function parseBulk(text){
 }
 function containsLine(a){
   if(!a||!a.length) return "";
-  const list=a.filter(x=>x && x.toLowerCase()!=="none").map(x=>String(x).toUpperCase());
+  const raw=a.filter(x=>x && x.toLowerCase()!=="none");
+  if(printTemplate==="vedanta"){
+    const list=raw.map(x=>/sulphur dioxide/i.test(x)&&!/sulphites/i.test(x)?"Sulphur Dioxide/Sulphites":x);
+    if(!list.length) return "(Contains: None)";
+    return "(Contains: "+list.join(", ")+")";
+  }
+  const list=raw.map(x=>String(x).toUpperCase());
   if(!list.length) return "Contains: NONE";
   if(list.length===1) return "Contains: "+list[0];
   return "Contains: "+list.slice(0,-1).join(", ")+" and "+list[list.length-1];
@@ -186,8 +233,10 @@ function dietLine(d){
   return d.join(" | ");
 }
 function render(dishes, title){
+  const vedanta=printTemplate==="vedanta";
+  $("page").classList.toggle("tpl-vedanta", vedanta);
   const body = dishes.length ? dishes.map(d=> isDietHeadingDish(d) ? `
-    <div class="diet-heading">${esc(d.name)}</div>` : `
+    <div class="${d.course||isCourseHeading(d.name)?"course-heading":"diet-heading"}">${esc(vedanta?spacedCaps(d.name):d.name)}</div>` : `
     <div class="dish">
       <div class="dish-name">${esc(d.name)}</div>
       ${d.desc?`<div class="dish-desc">${esc(d.desc)}</div>`:""}
@@ -195,8 +244,17 @@ function render(dishes, title){
       ${d.diet&&d.diet.length?`<div class="dish-diet">${esc(dietLine(d.diet))}</div>`:""}
     </div>`).join("") : `<p style="text-align:center;color:#6b7770;font-style:italic">No dishes yet.</p>`;
   const info = DEFAULT_INFO.split(/\n{2,}/).map(p=>`<p>${esc(p)}</p>`).join("");
-  $("page").innerHTML = `<h1 class="menu-title">${esc(title||"DINNER MENU")}</h1>${body}<div class="info"><h2>Allergen Information</h2>${info}</div>`;
+  const head=vedanta
+    ? `<div class="menu-brand">The Vedanta Way</div><div class="menu-diamond"></div><h1 class="menu-title">${esc(title||"DINNER MENU")}</h1>`
+    : `<h1 class="menu-title">${esc(title||"DINNER MENU")}</h1>`;
+  $("page").innerHTML = `${head}${body}<div class="info"><h2>${vedanta?spacedCaps("Allergen Information"):"Allergen Information"}</h2>${info}</div>`;
 }
+document.querySelectorAll("[data-template]").forEach(b=>b.onclick=()=>{
+  printTemplate=b.dataset.template==="vedanta"?"vedanta":"classic";
+  document.querySelectorAll("[data-template]").forEach(x=>x.classList.toggle("on", x.dataset.template===printTemplate));
+  const hasDishes=!!$("page").querySelector(".dish,.course-heading,.diet-heading");
+  if(hasDishes) $("make").click();
+});
 $("make").onclick = () => {
   const r = parseBulk($("bulk").value||"");
   if(!r.dishes.length){ $("status").textContent="No dishes found. Check the format."; return; }

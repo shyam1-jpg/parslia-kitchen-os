@@ -15,9 +15,10 @@ OR FIX KITELINE
 2. Restart Kiteline
 3. Open Menu Creator
 4. Press Ctrl+Shift+R
-5. Confirm left panel shows: Build simple-v1.5
+5. Confirm left panel shows: Build simple-v1.6
 
 Then:
+- Choose Classic or Vedanta Way template
 - Paste into "Paste menu → dishes"
 - Click Generate menu
 - Dishes appear in Dishes / preview
