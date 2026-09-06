@@ -1,0 +1,4 @@
+@echo off
+copy /Y "%~dp0CODEX-FINISH-MICROSOFT-STORE.md" "%USERPROFILE%\Desktop\CODEX-FINISH-MICROSOFT-STORE.md"
+echo Copied CODEX-FINISH-MICROSOFT-STORE.md to your Desktop.
+pause
