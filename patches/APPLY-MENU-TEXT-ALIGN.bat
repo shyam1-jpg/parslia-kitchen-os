@@ -1,8 +1,8 @@
 @echo off
 setlocal
-title Apply Menu Creator simple-v1.8
+title Apply Menu Creator simple-v1.9
 echo.
-echo  Menu Creator — simple-v1.8 (Vedanta Way is the current template)
+echo  Menu Creator — simple-v1.9 (offline Vedanta Way template)
 echo  ================================================
 echo.
 echo  Updates Kiteline Menu Creator on this PC.
@@ -33,7 +33,9 @@ copy /Y "%~dp0menu-creator-dropin\index.html" "%KITELINE%\site\menu-creator\inde
 copy /Y "%~dp0menu-creator-dropin\service-worker.js" "%KITELINE%\site\menu-creator\service-worker.js" >nul
 if exist "%~dp0..\menu-creator\PRINT-NOW.html" copy /Y "%~dp0..\menu-creator\PRINT-NOW.html" "%KITELINE%\site\menu-creator\PRINT-NOW.html" >nul
 if not exist "%KITELINE%\site\menu-creator\assets" mkdir "%KITELINE%\site\menu-creator\assets"
+if not exist "%KITELINE%\site\menu-creator\assets\fonts" mkdir "%KITELINE%\site\menu-creator\assets\fonts"
 if exist "%~dp0..\menu-creator\assets\vedanta-house.png" copy /Y "%~dp0..\menu-creator\assets\vedanta-house.png" "%KITELINE%\site\menu-creator\assets\vedanta-house.png" >nul
+if exist "%~dp0..\menu-creator\assets\fonts\eb-garamond-400.woff2" copy /Y "%~dp0..\menu-creator\assets\fonts\*.woff2" "%KITELINE%\site\menu-creator\assets\fonts\" >nul
 if errorlevel 1 (
   echo  Copy failed.
   pause
@@ -45,11 +47,11 @@ echo.
 echo  Next:
 echo   1. Restart Kiteline
 echo   2. Open Menu Creator
-echo   3. Ctrl+Shift+R
-echo   4. Confirm: Build simple-v1.8
+echo   3. If refresh is blocked, close the browser and double-click PRINT-NOW.html
+echo   4. Confirm: Build simple-v1.9
 echo   5. Preview is the cream Vedanta Way dinner menu
 echo   6. Paste menu - Generate - Print
 echo.
-echo  Or open PRINT-NOW.html in the menu-creator folder to print now.
+echo  Firewall-safe: double-click PRINT-NOW.html — no internet, no refresh.
 echo.
 pause

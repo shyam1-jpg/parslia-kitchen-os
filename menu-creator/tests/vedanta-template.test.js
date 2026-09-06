@@ -6,14 +6,16 @@ const assert = require("assert");
 const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
-assert.match(html, /Build simple-v1\.8/);
+assert.match(html, /Build simple-v1\.9/);
 assert.match(html, /This is the current print template/);
 assert.match(html, /tpl-vedanta/);
 assert.match(html, /The Vedanta Way/);
 assert.match(html, /Cream of Tomato & Basil Soup/);
 assert.match(html, /vedanta-house\.png/);
-assert.match(html, /family=EB\+Garamond/);
+assert.match(html, /eb-garamond-400\.woff2/);
+assert.doesNotMatch(html, /fonts\.googleapis\.com/);
 assert.ok(fs.existsSync(path.join(root, "assets", "vedanta-house.png")), "house mark missing");
+assert.ok(fs.existsSync(path.join(root, "assets", "fonts", "eb-garamond-400.woff2")), "offline font missing");
 
 const start = html.indexOf("/* MENU_LOGIC_START */");
 const end = html.indexOf("/* MENU_LOGIC_END */");

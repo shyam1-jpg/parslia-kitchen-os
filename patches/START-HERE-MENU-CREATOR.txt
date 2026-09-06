@@ -15,10 +15,12 @@ OR FIX KITELINE
 2. Restart Kiteline
 3. Open Menu Creator
 4. Press Ctrl+Shift+R
-5. Confirm left panel shows: Build simple-v1.8
+5. If a firewall blocks refresh, close the browser and double-click PRINT-NOW.html
+6. Confirm left panel shows: Build simple-v1.9
 
 Then:
 - The current print template is Vedanta Way (cream dinner menu)
+- No internet needed
 - Paste into "Paste menu → dishes"
 - Click Generate menu
 - Dishes appear in Dishes / preview

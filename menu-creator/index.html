@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="theme-color" content="#2f6b4f"/>
 <title>Menu Creator</title>
-<link rel="manifest" href="/menu-creator/manifest.json"/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet"/>
+<link rel="manifest" href="manifest.json"/>
 <style>
+@font-face{font-family:"EB Garamond";src:url("assets/fonts/eb-garamond-400.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"EB Garamond";src:url("assets/fonts/eb-garamond-400-italic.woff2") format("woff2");font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:"EB Garamond";src:url("assets/fonts/eb-garamond-700.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap}
 :root{
   --bg:#f3efe6; --panel:#fffdf8; --ink:#1f2a24; --muted:#6b7770;
   --accent:#2f6b4f; --accent-soft:#e7f1eb; --gold:#b08a3e; --line:#ddd4c4;
@@ -154,11 +154,11 @@ textarea{min-height:120px;resize:vertical}
   <aside class="side">
     <div class="brand">
       <h1>Menu Creator</h1>
-      <span class="tag">Build simple-v1.8</span>
+      <span class="tag">Build simple-v1.9</span>
     </div>
     <div class="banner">
-      <b>This is the current print template</b><br>
-      Cream page, gold bars, house mark, The Vedanta Way — the 4 September dinner-menu style. Click <b>Load sample</b> if the preview is empty.
+      <b>This is the current print template</b> — works offline, no refresh from the internet.<br>
+      Cream page, gold bars, house mark, The Vedanta Way. If a firewall blocks the browser, close this tab and double-click <b>PRINT-NOW.html</b> in the menu-creator folder.
     </div>
 
     <div class="group">
@@ -934,8 +934,8 @@ document.querySelectorAll(".meal-tab[data-meal]").forEach(t=>t.onclick=async()=>
 
 loadEditor();
 data.template="vedanta";
-if(localStorage.getItem("menuCreatorBuild")!=="v1.8"){
-  localStorage.setItem("menuCreatorBuild","v1.8");
+if(localStorage.getItem("menuCreatorBuild")!=="v1.9"){
+  localStorage.setItem("menuCreatorBuild","v1.9");
   if(!data.dishes||!data.dishes.length) loadVedantaSample(true);
 }
 buildChips(); syncInputs(); render();
@@ -945,10 +945,11 @@ detectStorage().then(async()=>{
   if(!data.dishes||!data.dishes.length){ data.template="vedanta"; loadVedantaSample(true); saveEditor(); }
   syncInputs(); render();
   await renderRecent();
-  $("status").textContent="Menu Creator ready · current template is Vedanta Way · Build simple-v1.8";
+  $("status").textContent="Menu Creator ready · offline Vedanta Way template · Build simple-v1.9";
 }).catch(()=>renderRecent());
-if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
-  window.addEventListener("load", ()=>navigator.serviceWorker.register("/menu-creator/service-worker.js",{scope:"/menu-creator/"}).catch(()=>{}));
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister().catch(()=>{})));
+  if(window.caches) caches.keys().then(keys=>keys.filter(k=>/menu-creator/i.test(k)).forEach(k=>caches.delete(k)));
 }
 </script>
 </body>

@@ -1,4 +1,4 @@
-Menu Creator — standalone printable menus (Build simple-v1.8)
+Menu Creator — standalone printable menus (Build simple-v1.9)
 ============================================================
 
 THIS IS NOT PARSLIA.
@@ -23,10 +23,11 @@ What you get
 Open it
 -------
 Open menu-creator/index.html
-or PRINT-NOW.html for urgent print
+or double-click PRINT-NOW.html if a firewall blocks refresh
+Works offline. Fonts are local. No Google Fonts.
 
 Kiteline install (optional patch)
 ---------------------------------
 Run patches\APPLY-MENU-TEXT-ALIGN.bat
 Restart Kiteline → Ctrl+Shift+R
-Confirm: Build simple-v1.8
+Confirm: Build simple-v1.9
