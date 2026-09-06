@@ -7,6 +7,13 @@
     } catch (err) {
       /* Hosted Store apps expose window.Windows; browsers throw if it is blocked. */
     }
+    try {
+      if (new URLSearchParams(window.location.search).get("storefront") === "microsoft") {
+        return true;
+      }
+    } catch (err) {
+      /* Ignore invalid query strings. */
+    }
     var referrer = document.referrer || "";
     return /microsoft-store|app-info:\/\/platform\/microsoft-store/i.test(referrer);
   }

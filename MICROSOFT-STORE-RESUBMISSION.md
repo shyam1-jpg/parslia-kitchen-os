@@ -142,6 +142,8 @@ Partner Center needs at least one desktop PNG. Provide four or more.
 3. Run PWABuilder, upload packages, complete age ratings, and click **Submit for certification**.
 4. After approval, replace the Microsoft Store badge `href` in `index.html` with the live Store URL.
 
+Preview Store-mode CTAs before packaging: `https://parslia.app/index.html?storefront=microsoft#get-app`. Apple and Google badges hide and the hero button becomes **Open kitchen**.
+
 ## Policy map for this update
 
 | Policy | What we changed |
