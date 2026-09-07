@@ -12,6 +12,7 @@ final class SubscriptionStore: ObservableObject {
     @Published private(set) var isLoading = false
     @Published var message: String?
     private var updates: Task<Void, Never>?
+    private var entitlementRefreshID = UUID()
 
     func start() async {
         guard updates == nil else { return }
@@ -25,6 +26,10 @@ final class SubscriptionStore: ObservableObject {
     func setAccountToken(_ token: UUID?) {
         guard accountToken != token else { return }
         accountToken = token
+        entitlementRefreshID = UUID()
+        tier = .free
+        hasAIImageBooster = false
+        signedTransactions = []
         Task { await refreshEntitlements() }
     }
 
@@ -96,12 +101,15 @@ final class SubscriptionStore: ObservableObject {
     }
 
     func refreshEntitlements() async {
+        let refreshID = UUID()
+        entitlementRefreshID = refreshID
+        let currentAccountToken = accountToken
         var best: EntitlementTier = .free
         var booster = false
         var signed: [String] = []
         for await result in Transaction.currentEntitlements {
             guard let transaction = try? verified(result),
-                  let accountToken,
+                  let accountToken = currentAccountToken,
                   transaction.appAccountToken == accountToken,
                   transaction.revocationDate == nil,
                   transaction.expirationDate.map({ $0 > Date() }) ?? true,
@@ -113,6 +121,7 @@ final class SubscriptionStore: ObservableObject {
                 booster = true
             }
         }
+        guard entitlementRefreshID == refreshID, accountToken == currentAccountToken else { return }
         tier = best
         hasAIImageBooster = booster && best != .free
         signedTransactions = signed.sorted()

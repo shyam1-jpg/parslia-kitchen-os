@@ -9,6 +9,7 @@ final class StoreKitWorkspaceTests: XCTestCase {
         let configuration = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "Parslia", withExtension: "storekit"))
         let session = try SKTestSession(contentsOf: configuration)
         session.resetToDefaultState()
+        session.timeRate = .realTime
         session.disableDialogs = true
         session.clearTransactions()
         defer { session.clearTransactions() }
@@ -35,7 +36,13 @@ final class StoreKitWorkspaceTests: XCTestCase {
 
         store.setAccountToken(token)
         try session.refundTransaction(identifier: UInt(purchase.id))
-        await store.refreshEntitlements()
+        // StoreKit publishes the refund asynchronously after accepting the request.
+        let deadline = Date().addingTimeInterval(30)
+        repeat {
+            await store.refreshEntitlements()
+            if store.tier == .free { break }
+            try await Task.sleep(for: .milliseconds(250))
+        } while Date() < deadline
         XCTAssertEqual(store.tier, .free)
         XCTAssertFalse(store.hasAIImageBooster)
     }
