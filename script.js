@@ -1,6 +1,33 @@
 (function () {
   "use strict";
 
+  function isMicrosoftStorefront() {
+    try {
+      if (window.Windows) return true;
+    } catch (err) {
+      /* Hosted Store apps expose window.Windows; browsers throw if it is blocked. */
+    }
+    try {
+      if (new URLSearchParams(window.location.search).get("storefront") === "microsoft") {
+        return true;
+      }
+    } catch (err) {
+      /* Ignore invalid query strings. */
+    }
+    var referrer = document.referrer || "";
+    return /microsoft-store|app-info:\/\/platform\/microsoft-store/i.test(referrer);
+  }
+
+  if (isMicrosoftStorefront()) {
+    document.documentElement.classList.add("storefront-microsoft");
+    document.querySelectorAll(".store-microsoft-cta").forEach(function (el) {
+      el.hidden = false;
+    });
+    document.querySelectorAll(".store-other-cta").forEach(function (el) {
+      el.hidden = true;
+    });
+  }
+
   // Mobile menu toggle
   var toggle = document.querySelector(".nav-toggle");
   var mobileNav = document.getElementById("mobileNav");

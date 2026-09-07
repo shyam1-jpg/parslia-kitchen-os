@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parslia Kitchen OS</title>
+  <meta name="description" content="Parslia Kitchen OS — recipes, menus, allergens, stock, rota, AI Image and AI Voice Finder." />
+  <meta name="theme-color" content="#063F32" />
+  <meta name="robots" content="noindex" />
+  <link rel="canonical" href="https://parslia.app/app.html" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/pwa-icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/pwa-icon-512.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="app-shell">
+  <a class="skip-link" href="#kitchen">Skip to kitchen</a>
+
+  <header class="app-chrome">
+    <div class="app-chrome-brand">
+      <img src="assets/USE_THIS_parslia_header_logo_clean.png" alt="Parslia Kitchen OS" class="app-chrome-logo" />
+      <div>
+        <p class="app-chrome-name">Parslia Kitchen OS</p>
+        <p class="app-chrome-status" id="kitchenStatus">Loading kitchen workspace…</p>
+      </div>
+    </div>
+    <nav class="app-chrome-links" aria-label="Legal and support">
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="support.html">Support</a>
+      <a href="mailto:hello@parslia.app?subject=Report%20AI%20content">Report AI content</a>
+    </nav>
+  </header>
+
+  <main id="kitchen" class="app-stage">
+    <section class="app-intro" id="firstRun">
+      <span class="eyebrow">Kitchen workspace</span>
+      <h1>Smarter kitchens. Calmer chefs.</h1>
+      <p>
+        Parslia Kitchen OS is professional kitchen software for chefs, caterers, retreats and hospitality teams.
+        Use recipes, menus, allergen control, stock, suppliers, rota and food-safety logs in one place.
+        <strong>AI Image</strong> and <strong>AI Voice Finder</strong> are live generative AI tools and need a network connection.
+      </p>
+      <ul class="get-app-list">
+        <li>Recipe library, menu planner and allergen control</li>
+        <li>Stock, suppliers, rota and compliance logs</li>
+        <li>AI Image for dish photos and AI Voice Finder for hands-free search</li>
+      </ul>
+      <div class="app-intro-actions">
+        <button type="button" class="btn btn-primary" data-enter-kitchen>Enter kitchen</button>
+        <a class="btn btn-outline" href="support.html">Support and demo help</a>
+      </div>
+    </section>
+
+    <iframe
+      id="kitchenFrame"
+      class="app-frame"
+      title="Parslia Kitchen OS workspace"
+      allow="microphone; camera; clipboard-read; clipboard-write"
+      referrerpolicy="strict-origin-when-cross-origin"
+    ></iframe>
+
+    <section class="app-fallback" id="kitchenFallback" hidden>
+      <h2>Continue into the kitchen</h2>
+      <p>
+        The live Parslia Kitchen OS workspace is ready. Open it to use recipes, menus, allergens, stock, rota,
+        AI Image and AI Voice Finder. This is the same kitchen product used on other Parslia storefronts.
+      </p>
+      <div class="app-intro-actions">
+        <button type="button" class="btn btn-primary" data-open-kitchen>Open kitchen workspace</button>
+        <button type="button" class="btn btn-outline" id="retryEmbed">Try again here</button>
+      </div>
+      <p class="app-fallback-links">
+        <a href="privacy.html">Privacy Policy</a> ·
+        <a href="terms.html">Terms of Use</a> ·
+        <a href="support.html">Support</a> ·
+        <a href="mailto:hello@parslia.app?subject=Report%20AI%20content">Report AI content</a>
+      </p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
