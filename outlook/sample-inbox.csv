@@ -1,0 +1,32 @@
+from_name,from_email,subject
+GitHub,notifications@github.com,[shyam1-jpg/parslia-kitchen-os] New pull request
+GitHub,noreply@github.com,A new public key was added to your account
+GitHub,support@github.com,Your GitHub Copilot invoice
+Cursor,noreply@cursor.com,Your cloud agent finished: Outlook email folders
+Cursor Cloud,notifications@cursor.sh,Cloud agent needs your review
+Apple,appleid@id.apple.com,Your Apple ID code
+Apple,no_reply@email.apple.com,Your App Store invoice
+Google,no-reply@accounts.google.com,Security alert for your Google Account
+Google,googleplay-noreply@google.com,Your Google Play order
+Microsoft,account-security-noreply@accountprotection.microsoft.com,New sign-in
+Render,noreply@render.com,libraix-api deploy succeeded
+Netlify,hello@netlify.com,Deploy published for libraix.ai
+Amazon,auto-confirm@amazon.co.uk,Your Amazon.co.uk order
+PayPal,service@paypal.co.uk,You sent a payment
+Brakes,noreply@brakes.co.uk,Your Brakes delivery note
+Bidfood,orders@bidfood.co.uk,Your Bidfood invoice
+Nisbets,sales@nisbets.co.uk,Your Nisbets order
+Vedanta,hr@vedanta.co.in,Roster update
+HMRC,noreply@mail.hmrc.gov.uk,Your Self Assessment
+Barclays,alerts@barclays.co.uk,Your Barclays alert
+NHS,no-reply@nhs.uk,Your NHS appointment
+Stripe,receipts@stripe.com,Receipt from Libraix
+GoDaddy,donotreply@secureserver.net,parslia.app domain reminder
+OpenAI,noreply@openai.com,Receipt for ChatGPT
+Cypad,noreply@cypad.com,Your timesheet is ready
+Royal Mail,noreply@emails.royalmail.com,Your parcel is on its way
+Mum,family.member@gmail.com,Are you coming Sunday?
+Friend,mate@hotmail.co.uk,See you after shift
+Unknown shop,hello@freshbeans.example,Thanks for your order
+Unknown shop,orders@freshbeans.example,Your beans are on the way
+Spam once,deals@oneoffspam.example,You won a prize

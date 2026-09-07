@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OPEN ME — file every company into an Outlook folder</title>
+  <style>
+    body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background: #0b1f36; color: #1b1b1b; }
+    .page { max-width: 980px; margin: 0 auto; padding: 28px 16px 64px; }
+    h1 { color: #fff; font-size: 34px; margin: 0 0 10px; }
+    .lead { color: #d5e4f3; font-size: 20px; margin: 0 0 22px; line-height: 1.4; }
+    .card { background: #fff; border-radius: 12px; padding: 22px 24px; margin: 0 0 18px; }
+    .warn { background: #fff4cc; border: 2px solid #e0b400; font-size: 20px; line-height: 1.45; }
+    .ok { background: #e7f6ec; border: 2px solid #2e7d32; font-size: 18px; line-height: 1.45; }
+    h2 { margin: 0 0 12px; font-size: 22px; color: #0f2744; }
+    ol.big { margin: 0; padding-left: 28px; font-size: 18px; line-height: 1.55; }
+    ol.big li { margin: 0 0 10px; }
+    .mock { display: grid; grid-template-columns: 280px 1fr; min-height: 300px; border: 1px solid #d8e1ea; border-radius: 10px; overflow: hidden; font-size: 15px; }
+    .left { background: #f3f6f9; padding: 14px 12px; overflow: auto; }
+    .left strong { display: block; margin-bottom: 8px; }
+    .left div { padding: 4px 8px; }
+    .left .in { padding-left: 22px; }
+    .right { padding: 16px 18px; }
+    .right p { margin: 0 0 8px; color: #5c6b7a; }
+    code, .key { background: #e7f2fb; padding: 1px 7px; border-radius: 4px; font-family: Consolas, monospace; }
+    a.btn { display: inline-block; background: #0f6cbd; color: #fff; text-decoration: none; padding: 12px 18px; border-radius: 8px; font-weight: 700; margin: 8px 8px 0 0; }
+    .muted { color: #5c6b7a; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>File every company into its own Outlook folder</h1>
+    <p class="lead">They are <b>not</b> on the Windows desktop. They live <b>inside Outlook</b>, on the <b>left</b>: numbered company folders at the top, then Companies, then People.</p>
+
+    <div class="card warn">
+      Last time this was only a picture in GitHub. Your real Hotmail
+      (<b>shyam_1@hotmail.co.uk</b>) was <b>not</b> organised.
+      Double-click <span class="key">FILE-ALL-EMAIL-FOLDERS.bat</span> on this PC to file the live mailbox.
+    </div>
+
+    <div class="card ok">
+      That one click signs you into Outlook on the web, creates a folder for each company
+      (GitHub, Cursor, Apple, Google, Brakes, Bidfood, HMRC, and every other firm in the mailbox)
+      and a folder for each person, moves the old mail, and adds rules so new company mail drops in by itself.
+    </div>
+
+    <div class="card">
+      <h2>1. File the live mailbox (do this)</h2>
+      <ol class="big">
+        <li>On this Windows PC, double-click <span class="key">FILE-ALL-EMAIL-FOLDERS.bat</span>
+            (same folder as this page, or inside Desktop → Outlook-Company-Folders).</li>
+        <li>A code appears. Open <b>https://microsoft.com/devicelogin</b> and enter the code.</li>
+        <li>Sign in as <span class="key">shyam_1@hotmail.co.uk</span> and allow mail access.</li>
+        <li>Back in the black window, press <b>Y</b>.</li>
+        <li>Wait until it says <b>Done</b> (large inboxes take a few minutes).</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>2. See the folders in Outlook</h2>
+      <ol class="big">
+        <li>Open <a href="https://outlook.live.com/mail/0/inbox">outlook.live.com/mail</a> and refresh.</li>
+        <li>Look at the <b>left</b> list — not the Windows desktop.</li>
+        <li>If one email fills the page: <b>View → Folder Pane → Normal</b>
+          <div class="muted">On the web, click the folder icon on the far left.</div>
+        </li>
+        <li>Open <b>Inbox</b>. Apple, Google, GitHub and Cursor are numbered at the top.
+            Other firms are under <b>Companies</b>. Friends are under <b>People</b>.</li>
+      </ol>
+      <p>
+        <a class="btn" href="https://outlook.live.com/mail/0/inbox">Open Outlook on the web</a>
+        <a class="btn" href="outlook/preview.html">See a sample of the finished folders</a>
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>What it looks like when it is done</h2>
+      <div class="mock">
+        <div class="left">
+          <strong>Outlook</strong>
+          <div>Inbox</div>
+          <div class="in">📁 01 Apple</div>
+          <div class="in">📁 02 Google</div>
+          <div class="in">📁 03 GitHub</div>
+          <div class="in">📁 04 Cursor</div>
+          <div>📁 Companies</div>
+          <div class="in">📁 Cloud</div>
+          <div class="in">📁 Brakes</div>
+          <div class="in">📁 Other companies</div>
+          <div>📁 People</div>
+          <div class="in">📁 Me</div>
+          <div class="in">📁 David Metcalfe</div>
+          <div class="in">📁 Other people</div>
+        </div>
+        <div class="right">
+          <p>Open a folder on the left. Only that company’s mail shows.</p>
+          <p><b>GitHub</b> — pull requests, Copilot</p>
+          <p><b>Cursor</b> — Cursor and cloud agent mail</p>
+          <p><b>Apple / Google</b> — Apple ID, App Store, Google account</p>
+          <p><b>Brakes / Bidfood / Nisbets</b> — kitchen suppliers</p>
+          <p>Any other firm in the mailbox gets its own folder. One-off shops go in <b>Other companies</b>.</p>
+          <p>Friends and family go under <b>People</b>. Your own copies go in <b>Me</b>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>If the black window cannot sign in</h2>
+      <ol class="big">
+        <li>Open classic desktop Outlook (turn <b>New Outlook</b> off) and double-click
+            <span class="key">SETUP-OUTLOOK-FOLDERS.bat</span>.</li>
+        <li>Or add folders by hand on the web: right-click Inbox → Create new folder →
+            <span class="key">Companies</span>, then one folder per company.
+            Rules are listed in <span class="key">outlook/RULES-TO-ADD.txt</span>.</li>
+      </ol>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "parent_folder": "Companies",
+  "other_folder": "Other companies",
+  "people_folder": "People",
+  "other_people": "Other people",
+  "folders": {
+    "Amazon": 1,
+    "Apple": 2,
+    "Barclays": 1,
+    "Bidfood": 1,
+    "Brakes": 1,
+    "Cloud": 2,
+    "Cursor": 2,
+    "Cypad": 1,
+    "Freshbeans": 2,
+    "GitHub": 3,
+    "GoDaddy": 1,
+    "Google": 2,
+    "HMRC": 1,
+    "Microsoft": 1,
+    "NHS": 1,
+    "Nisbets": 1,
+    "OpenAI": 1,
+    "Other companies": 1,
+    "PayPal": 1,
+    "People / Other people": 2,
+    "RoyalMail": 1,
+    "Stripe": 1,
+    "Vedanta": 1
+  },
+  "left_in_inbox": 0,
+  "filed": 31,
+  "inbox_subjects": [],
+  "source_folder_ids": [
+    "AQMkADAwATZiZmYAZC1hMDYzLWExNmQtMDACLTAwCgAuAAADiEv2l+AK0EaTAOdRsYr5vAEAikQfPHlIwUG3S+T9livOIAAGukJK2QAAAA=="
+  ]
+}
