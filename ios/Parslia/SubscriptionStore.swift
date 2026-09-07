@@ -7,6 +7,8 @@ final class SubscriptionStore: ObservableObject {
     @Published private(set) var introEligibleProductIDs: Set<String> = []
     @Published private(set) var tier: EntitlementTier = .free
     @Published private(set) var hasAIImageBooster = false
+    @Published private(set) var signedTransactions: [String] = []
+    @Published var accountToken: UUID?
     @Published private(set) var isLoading = false
     @Published var message: String?
     private var updates: Task<Void, Never>?
@@ -58,15 +60,19 @@ final class SubscriptionStore: ObservableObject {
     }
 
     func purchase(_ product: Product) async {
+        guard let accountToken else {
+            message = "Sign in as your workspace manager before subscribing."
+            return
+        }
         isLoading = true
         defer { isLoading = false }
         do {
-            switch try await product.purchase() {
+            switch try await product.purchase(options: [.appAccountToken(accountToken)]) {
             case .success(let result):
                 let transaction = try verified(result)
                 await transaction.finish()
                 await refreshEntitlements()
-                message = "Your subscription is active."
+                message = "Apple confirmed your purchase. Your workspace is being updated."
             case .pending: message = "Purchase pending approval."
             case .userCancelled: break
             @unknown default: break
@@ -86,11 +92,13 @@ final class SubscriptionStore: ObservableObject {
     func refreshEntitlements() async {
         var best: EntitlementTier = .free
         var booster = false
+        var signed: [String] = []
         for await result in Transaction.currentEntitlements {
             guard let transaction = try? verified(result),
                   transaction.revocationDate == nil,
                   transaction.expirationDate.map({ $0 > Date() }) ?? true,
                   let plan = SubscriptionPlan(rawValue: transaction.productID) else { continue }
+            signed.append(result.jwsRepresentation)
             if let planTier = plan.tier {
                 best = max(best, planTier)
             } else if plan == .aiImageBoosterMonthly {
@@ -99,6 +107,7 @@ final class SubscriptionStore: ObservableObject {
         }
         tier = best
         hasAIImageBooster = booster
+        signedTransactions = signed.sorted()
     }
 
     private func observeTransactions() -> Task<Void, Never> {
