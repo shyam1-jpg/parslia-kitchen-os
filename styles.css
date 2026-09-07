@@ -179,6 +179,7 @@ h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.12;
 .section-dark { background: var(--green-deep); color: var(--warm-white); }
 .section-accent { background: linear-gradient(135deg, var(--green-2), var(--green-deep)); color: var(--warm-white); }
 .section-head { max-width: 720px; margin: 0 auto 52px; text-align: center; }
+.section-head .sop-cta { justify-content: center; margin-top: 28px; }
 .section-head-left { margin: 0 0 8px; text-align: left; }
 .section-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.7rem); }
 .section-head p { font-size: 1.1rem; margin: 16px 0 0; color: var(--muted); }
