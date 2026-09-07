@@ -34,7 +34,7 @@ final class StoreKitWorkspaceTests: XCTestCase {
         XCTAssertTrue(store.signedTransactions.isEmpty)
 
         store.setAccountToken(token)
-        try session.refundTransaction(identifier: purchase.identifier)
+        try session.refundTransaction(identifier: UInt(purchase.id))
         await store.refreshEntitlements()
         XCTAssertEqual(store.tier, .free)
         XCTAssertFalse(store.hasAIImageBooster)
