@@ -1,6 +1,7 @@
 import SwiftUI
 import StoreKit
 import WebKit
+import AuthenticationServices
 
 struct RootView: View {
     @EnvironmentObject private var store: SubscriptionStore
@@ -29,6 +30,17 @@ struct RootView: View {
 struct ParsliaWebView: UIViewRepresentable {
     private static let appHost = "parslia-kitchen-os-667132.onhercules.app"
 
+    static func authenticationCallbackURL(_ callback: URL) -> URL? {
+        guard callback.scheme == "parslia", callback.host == "auth",
+              callback.path == "/callback", callback.user == nil,
+              callback.password == nil, callback.port == nil,
+              var destination = URLComponents(url: callback, resolvingAgainstBaseURL: false) else { return nil }
+        destination.scheme = "https"
+        destination.host = appHost
+        destination.path = "/auth/callback"
+        return destination.url
+    }
+
     let url: URL
     let entitlement: EntitlementTier
     let hasAIImageBooster: Bool
@@ -45,10 +57,15 @@ struct ParsliaWebView: UIViewRepresentable {
     func makeUIView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
+        let initialEntitlement = Self.entitlementJavaScript(
+            entitlement: entitlement,
+            hasAIImageBooster: hasAIImageBooster
+        ) ?? ""
         let purchaseBridge = WKUserScript(
             source: """
             if (window.location.hostname === "\(Self.appHost)") {
                 window.ParsliaNativeStorefront = 'apple';
+                \(initialEntitlement)
                 window.parsliaNativePurchase = function() {
                     window.webkit.messageHandlers.parsliaPurchase.postMessage({});
                 };
@@ -63,11 +80,19 @@ struct ParsliaWebView: UIViewRepresentable {
                         }
                     });
                 };
-                new MutationObserver(removeWebOnlyOffers).observe(document.documentElement, {
-                    childList: true,
-                    subtree: true
-                });
-                document.addEventListener('DOMContentLoaded', removeWebOnlyOffers);
+                // At document start the root element may not exist yet.
+                const observeOffers = function() {
+                    removeWebOnlyOffers();
+                    new MutationObserver(removeWebOnlyOffers).observe(document.documentElement, {
+                        childList: true,
+                        subtree: true
+                    });
+                };
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', observeOffers, { once: true });
+                } else {
+                    observeOffers();
+                }
             }
             """,
             injectionTime: .atDocumentStart,
@@ -112,7 +137,9 @@ struct ParsliaWebView: UIViewRepresentable {
         return "window.ParsliaNativeEntitlement=\(json);window.dispatchEvent(new CustomEvent('parslia-entitlement-changed',{detail:window.ParsliaNativeEntitlement}));"
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler, ASWebAuthenticationPresentationContextProviding {
+        private var authenticationSession: ASWebAuthenticationSession?
+        private weak var authenticationWindow: UIWindow?
         private var entitlement: EntitlementTier
         private var hasAIImageBooster: Bool
         private let onPurchaseRequested: () -> Void
@@ -145,11 +172,58 @@ struct ParsliaWebView: UIViewRepresentable {
             injectEntitlement(into: webView)
         }
 
+        func webView(
+            _ webView: WKWebView,
+            decidePolicyFor navigationAction: WKNavigationAction,
+            decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+        ) {
+            guard navigationAction.targetFrame?.isMainFrame == true,
+                  let url = navigationAction.request.url,
+                  url.scheme == "https",
+                  url.host == "01krrzfrr3vvk2szh1vb8knxwh.hercules-auth.com",
+                  URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.contains(
+                    URLQueryItem(name: "redirect_uri", value: "parslia://auth/callback")
+                  ) == true else {
+                decisionHandler(.allow)
+                return
+            }
+            decisionHandler(.cancel)
+            guard authenticationSession == nil else { return }
+            authenticationWindow = webView.window
+            let session = ASWebAuthenticationSession(url: url, callbackURLScheme: "parslia") { [weak self, weak webView] callback, _ in
+                DispatchQueue.main.async {
+                    self?.authenticationSession = nil
+                    guard let webView else { return }
+                    guard let callback,
+                          let callbackURL = ParsliaWebView.authenticationCallbackURL(callback) else {
+                        // Reset the web OIDC redirect-in-progress state after cancellation.
+                        webView.reload()
+                        return
+                    }
+                    // The web OIDC client retains its PKCE verifier and validates state.
+                    webView.load(URLRequest(url: callbackURL))
+                }
+            }
+            session.presentationContextProvider = self
+            authenticationSession = session
+            if !session.start() {
+                authenticationSession = nil
+                webView.reload()
+            }
+        }
+
+        func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+            authenticationWindow ?? ASPresentationAnchor()
+        }
+
         func userContentController(
             _ userContentController: WKUserContentController,
             didReceive message: WKScriptMessage
         ) {
-            guard message.name == "parsliaPurchase" else { return }
+            guard message.name == "parsliaPurchase",
+                  message.frameInfo.isMainFrame,
+                  message.frameInfo.securityOrigin.protocol == "https",
+                  message.frameInfo.securityOrigin.host == ParsliaWebView.appHost else { return }
             onPurchaseRequested()
         }
     }
