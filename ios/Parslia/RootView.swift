@@ -1,9 +1,11 @@
 import SwiftUI
 import StoreKit
 import WebKit
+import AuthenticationServices
 
 struct RootView: View {
     @EnvironmentObject private var store: SubscriptionStore
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showPlans = false
 
     var body: some View {
@@ -12,6 +14,8 @@ struct RootView: View {
                 url: URL(string: "https://parslia-kitchen-os-667132.onhercules.app/")!,
                 entitlement: store.tier,
                 hasAIImageBooster: store.hasAIImageBooster,
+                signedTransactions: store.signedTransactions,
+                onAccountTokenChanged: { store.setAccountToken($0) },
                 onPurchaseRequested: { showPlans = true }
             )
                 .navigationTitle("Parslia")
@@ -22,6 +26,9 @@ struct RootView: View {
                     }
                 }
                 .sheet(isPresented: $showPlans) { PaywallView() }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .active { Task { await store.refreshEntitlements() } }
+                }
         }
     }
 }
@@ -29,15 +36,30 @@ struct RootView: View {
 struct ParsliaWebView: UIViewRepresentable {
     private static let appHost = "parslia-kitchen-os-667132.onhercules.app"
 
+    static func authenticationCallbackURL(_ callback: URL) -> URL? {
+        guard callback.scheme == "parslia", callback.host == "auth",
+              callback.path == "/callback", callback.user == nil,
+              callback.password == nil, callback.port == nil,
+              var destination = URLComponents(url: callback, resolvingAgainstBaseURL: false) else { return nil }
+        destination.scheme = "https"
+        destination.host = appHost
+        destination.path = "/auth/callback"
+        return destination.url
+    }
+
     let url: URL
     let entitlement: EntitlementTier
     let hasAIImageBooster: Bool
+    let signedTransactions: [String]
+    let onAccountTokenChanged: (UUID?) -> Void
     let onPurchaseRequested: () -> Void
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
             entitlement: entitlement,
             hasAIImageBooster: hasAIImageBooster,
+            signedTransactions: signedTransactions,
+            onAccountTokenChanged: onAccountTokenChanged,
             onPurchaseRequested: onPurchaseRequested
         )
     }
@@ -45,10 +67,16 @@ struct ParsliaWebView: UIViewRepresentable {
     func makeUIView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
+        let initialEntitlement = Self.entitlementJavaScript(
+            entitlement: entitlement,
+            hasAIImageBooster: hasAIImageBooster,
+            signedTransactions: signedTransactions
+        ) ?? ""
         let purchaseBridge = WKUserScript(
             source: """
             if (window.location.hostname === "\(Self.appHost)") {
                 window.ParsliaNativeStorefront = 'apple';
+                \(initialEntitlement)
                 window.parsliaNativePurchase = function() {
                     window.webkit.messageHandlers.parsliaPurchase.postMessage({});
                 };
@@ -63,11 +91,22 @@ struct ParsliaWebView: UIViewRepresentable {
                         }
                     });
                 };
-                new MutationObserver(removeWebOnlyOffers).observe(document.documentElement, {
-                    childList: true,
-                    subtree: true
-                });
-                document.addEventListener('DOMContentLoaded', removeWebOnlyOffers);
+                // At document start the root element may not exist yet.
+                const observeOffers = function() {
+                    removeWebOnlyOffers();
+                    new MutationObserver(removeWebOnlyOffers).observe(document.documentElement, {
+                        childList: true,
+                        subtree: true
+                    });
+                };
+                window.parsliaSetAccountToken = function(token) {
+                    window.webkit.messageHandlers.parsliaPurchase.postMessage({accountToken: token});
+                };
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', observeOffers, { once: true });
+                } else {
+                    observeOffers();
+                }
             }
             """,
             injectionTime: .atDocumentStart,
@@ -85,7 +124,8 @@ struct ParsliaWebView: UIViewRepresentable {
     func updateUIView(_ uiView: WKWebView, context: Context) {
         context.coordinator.update(
             entitlement: entitlement,
-            hasAIImageBooster: hasAIImageBooster
+            hasAIImageBooster: hasAIImageBooster,
+            signedTransactions: signedTransactions
         )
         context.coordinator.injectEntitlement(into: uiView)
     }
@@ -97,7 +137,8 @@ struct ParsliaWebView: UIViewRepresentable {
 
     private static func entitlementJavaScript(
         entitlement: EntitlementTier,
-        hasAIImageBooster: Bool
+        hasAIImageBooster: Bool,
+        signedTransactions: [String]
     ) -> String? {
         let plan = switch entitlement {
         case .free: "free"
@@ -107,36 +148,46 @@ struct ParsliaWebView: UIViewRepresentable {
         }
         let features = ParsliaFeature.allCases.filter { $0.isAvailable(with: entitlement) }.map(\.rawValue)
         let addOns = hasAIImageBooster ? ["aiImageBooster"] : []
-        let data = try? JSONSerialization.data(withJSONObject: ["plan": plan, "features": features, "addOns": addOns])
+        let data = try? JSONSerialization.data(withJSONObject: ["plan": plan, "features": features, "addOns": addOns, "signedTransactions": signedTransactions])
         guard let data, let json = String(data: data, encoding: .utf8) else { return nil }
         return "window.ParsliaNativeEntitlement=\(json);window.dispatchEvent(new CustomEvent('parslia-entitlement-changed',{detail:window.ParsliaNativeEntitlement}));"
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler, ASWebAuthenticationPresentationContextProviding {
+        private var authenticationSession: ASWebAuthenticationSession?
+        private weak var authenticationWindow: UIWindow?
         private var entitlement: EntitlementTier
         private var hasAIImageBooster: Bool
+        private var signedTransactions: [String]
+        private let onAccountTokenChanged: (UUID?) -> Void
         private let onPurchaseRequested: () -> Void
 
         init(
             entitlement: EntitlementTier,
             hasAIImageBooster: Bool,
+            signedTransactions: [String],
+            onAccountTokenChanged: @escaping (UUID?) -> Void,
             onPurchaseRequested: @escaping () -> Void
         ) {
             self.entitlement = entitlement
             self.hasAIImageBooster = hasAIImageBooster
+            self.signedTransactions = signedTransactions
+            self.onAccountTokenChanged = onAccountTokenChanged
             self.onPurchaseRequested = onPurchaseRequested
         }
 
-        func update(entitlement: EntitlementTier, hasAIImageBooster: Bool) {
+        func update(entitlement: EntitlementTier, hasAIImageBooster: Bool, signedTransactions: [String]) {
             self.entitlement = entitlement
             self.hasAIImageBooster = hasAIImageBooster
+            self.signedTransactions = signedTransactions
         }
 
         func injectEntitlement(into webView: WKWebView) {
             guard webView.url?.host == ParsliaWebView.appHost else { return }
             guard let script = ParsliaWebView.entitlementJavaScript(
                 entitlement: entitlement,
-                hasAIImageBooster: hasAIImageBooster
+                hasAIImageBooster: hasAIImageBooster,
+                signedTransactions: signedTransactions
             ) else { return }
             webView.evaluateJavaScript(script)
         }
@@ -145,11 +196,62 @@ struct ParsliaWebView: UIViewRepresentable {
             injectEntitlement(into: webView)
         }
 
+        func webView(
+            _ webView: WKWebView,
+            decidePolicyFor navigationAction: WKNavigationAction,
+            decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+        ) {
+            guard navigationAction.targetFrame?.isMainFrame == true,
+                  let url = navigationAction.request.url,
+                  url.scheme == "https",
+                  url.host == "01krrzfrr3vvk2szh1vb8knxwh.hercules-auth.com",
+                  URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.contains(
+                    URLQueryItem(name: "redirect_uri", value: "parslia://auth/callback")
+                  ) == true else {
+                decisionHandler(.allow)
+                return
+            }
+            decisionHandler(.cancel)
+            guard authenticationSession == nil else { return }
+            authenticationWindow = webView.window
+            let session = ASWebAuthenticationSession(url: url, callbackURLScheme: "parslia") { [weak self, weak webView] callback, _ in
+                DispatchQueue.main.async {
+                    self?.authenticationSession = nil
+                    guard let webView else { return }
+                    guard let callback,
+                          let callbackURL = ParsliaWebView.authenticationCallbackURL(callback) else {
+                        // Reset the web OIDC redirect-in-progress state after cancellation.
+                        webView.reload()
+                        return
+                    }
+                    // The web OIDC client retains its PKCE verifier and validates state.
+                    webView.load(URLRequest(url: callbackURL))
+                }
+            }
+            session.presentationContextProvider = self
+            authenticationSession = session
+            if !session.start() {
+                authenticationSession = nil
+                webView.reload()
+            }
+        }
+
+        func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+            authenticationWindow ?? ASPresentationAnchor()
+        }
+
         func userContentController(
             _ userContentController: WKUserContentController,
             didReceive message: WKScriptMessage
         ) {
-            guard message.name == "parsliaPurchase" else { return }
+            guard message.name == "parsliaPurchase",
+                  message.frameInfo.isMainFrame,
+                  message.frameInfo.securityOrigin.protocol == "https",
+                  message.frameInfo.securityOrigin.host == ParsliaWebView.appHost else { return }
+            if let body = message.body as? [String: Any], body.keys.contains("accountToken") {
+                onAccountTokenChanged((body["accountToken"] as? String).flatMap(UUID.init(uuidString:)))
+                return
+            }
             onPurchaseRequested()
         }
     }
@@ -198,12 +300,16 @@ struct PaywallView: View {
 
     @ViewBuilder private var corePlans: some View {
         ForEach(store.coreProducts) { product in
-            PlanCard(product: product, introEligible: store.isIntroEligible(product)) {
+            PlanCard(product: product, introEligible: store.isIntroEligible(product), isEnabled: store.accountToken != nil) {
                 Task { await store.purchase(product) }
             }
         }
         if store.coreProducts.isEmpty && !store.isLoading {
             unavailableProductsMessage("Plans are currently unavailable from the App Store.")
+        }
+        if store.accountToken == nil {
+            Text("Sign in as your workspace manager to subscribe.")
+                .font(.subheadline).foregroundStyle(.secondary)
         }
     }
 
@@ -218,7 +324,7 @@ struct PaywallView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         if !store.addOnProducts.isEmpty {
             ForEach(store.addOnProducts) { product in
-                PlanCard(product: product, introEligible: false, isEnabled: store.tier != .free) {
+                PlanCard(product: product, introEligible: false, isEnabled: store.tier != .free && store.accountToken != nil) {
                     Task { await store.purchase(product) }
                 }
             }
@@ -258,10 +364,10 @@ struct PaywallView: View {
             HStack {
                 Link("Privacy Policy", destination: URL(string: "https://parslia.app/privacy.html")!)
                 Text("•")
-                Link("Terms of Use", destination: URL(string: "https://parslia.app/terms.html")!)
+                Link("Terms of Use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
             }
             .font(.footnote)
-            Text("Payment is charged to your Apple Account after the free trial. Cancellation takes effect at the end of the current billing period. Features remain available while Apple reports a verified active entitlement.")
+            Text("Payment is charged to your Apple Account at purchase, or after an eligible free trial. Cancellation takes effect at the end of the current billing period. Features remain available while Apple reports a verified active entitlement.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

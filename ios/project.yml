@@ -24,6 +24,9 @@ targets:
         CFBundleDisplayName: Parslia
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleURLTypes:
+          - CFBundleURLName: app.parslia.kitchen.auth
+            CFBundleURLSchemes: [parslia]
         UILaunchScreen: {}
         NSCameraUsageDescription: Parslia uses the camera only when you choose to add a kitchen image.
         NSMicrophoneUsageDescription: Parslia uses the microphone only when you choose voice input.
@@ -34,6 +37,9 @@ targets:
   ParsliaTests:
     type: bundle.unit-test
     platform: iOS
-    sources: [ParsliaTests]
+    sources:
+      - ParsliaTests
+      - path: Parslia/Parslia.storekit
+        buildPhase: resources
     dependencies:
       - target: Parslia

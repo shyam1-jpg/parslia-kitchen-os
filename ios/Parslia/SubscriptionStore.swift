@@ -7,9 +7,12 @@ final class SubscriptionStore: ObservableObject {
     @Published private(set) var introEligibleProductIDs: Set<String> = []
     @Published private(set) var tier: EntitlementTier = .free
     @Published private(set) var hasAIImageBooster = false
+    @Published private(set) var signedTransactions: [String] = []
+    @Published private(set) var accountToken: UUID?
     @Published private(set) var isLoading = false
     @Published var message: String?
     private var updates: Task<Void, Never>?
+    private var entitlementRefreshID = UUID()
 
     func start() async {
         guard updates == nil else { return }
@@ -19,6 +22,16 @@ final class SubscriptionStore: ObservableObject {
     }
 
     deinit { updates?.cancel() }
+
+    func setAccountToken(_ token: UUID?) {
+        guard accountToken != token else { return }
+        accountToken = token
+        entitlementRefreshID = UUID()
+        tier = .free
+        hasAIImageBooster = false
+        signedTransactions = []
+        Task { await refreshEntitlements() }
+    }
 
     func loadProducts() async {
         isLoading = true
@@ -58,15 +71,19 @@ final class SubscriptionStore: ObservableObject {
     }
 
     func purchase(_ product: Product) async {
+        guard let accountToken else {
+            message = "Sign in as your workspace manager before subscribing."
+            return
+        }
         isLoading = true
         defer { isLoading = false }
         do {
-            switch try await product.purchase() {
+            switch try await product.purchase(options: [.appAccountToken(accountToken)]) {
             case .success(let result):
                 let transaction = try verified(result)
                 await transaction.finish()
                 await refreshEntitlements()
-                message = "Your subscription is active."
+                message = "Apple confirmed your purchase. Your workspace is being updated."
             case .pending: message = "Purchase pending approval."
             case .userCancelled: break
             @unknown default: break
@@ -78,27 +95,36 @@ final class SubscriptionStore: ObservableObject {
         do {
             try await AppStore.sync()
             await refreshEntitlements()
-            message = tier == .free && !hasAIImageBooster ? "No active subscription was found." : "Purchases restored."
+            message = tier == .free && !hasAIImageBooster ? "No active subscription was found for this workspace." : "Apple purchases restored. Your workspace is being updated."
         } catch { message = "Purchases could not be restored."
         }
     }
 
     func refreshEntitlements() async {
+        let refreshID = UUID()
+        entitlementRefreshID = refreshID
+        let currentAccountToken = accountToken
         var best: EntitlementTier = .free
         var booster = false
+        var signed: [String] = []
         for await result in Transaction.currentEntitlements {
             guard let transaction = try? verified(result),
+                  let accountToken = currentAccountToken,
+                  transaction.appAccountToken == accountToken,
                   transaction.revocationDate == nil,
                   transaction.expirationDate.map({ $0 > Date() }) ?? true,
                   let plan = SubscriptionPlan(rawValue: transaction.productID) else { continue }
+            signed.append(result.jwsRepresentation)
             if let planTier = plan.tier {
                 best = max(best, planTier)
             } else if plan == .aiImageBoosterMonthly {
                 booster = true
             }
         }
+        guard entitlementRefreshID == refreshID, accountToken == currentAccountToken else { return }
         tier = best
-        hasAIImageBooster = booster
+        hasAIImageBooster = booster && best != .free
+        signedTransactions = signed.sorted()
     }
 
     private func observeTransactions() -> Task<Void, Never> {
