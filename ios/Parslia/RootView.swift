@@ -14,7 +14,7 @@ struct RootView: View {
                 entitlement: store.tier,
                 hasAIImageBooster: store.hasAIImageBooster,
                 signedTransactions: store.signedTransactions,
-                onAccountTokenChanged: { store.accountToken = $0 },
+                onAccountTokenChanged: { store.setAccountToken($0) },
                 onPurchaseRequested: { showPlans = true }
             )
                 .navigationTitle("Parslia")
