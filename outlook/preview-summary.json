@@ -1,0 +1,27 @@
+{
+  "parent_folder": "Companies",
+  "folders": {
+    "Amazon": 1,
+    "Apple": 2,
+    "Brakes": 1,
+    "Cloud": 2,
+    "Cursor": 2,
+    "Cypad": 1,
+    "Freshbeans": 2,
+    "GitHub": 3,
+    "GoDaddy": 1,
+    "Google": 2,
+    "Microsoft": 1,
+    "OpenAI": 1,
+    "PayPal": 1,
+    "Stripe": 1,
+    "Vedanta": 1
+  },
+  "left_in_inbox": 3,
+  "filed": 22,
+  "inbox_subjects": [
+    "Are you coming Sunday?",
+    "See you after shift",
+    "You won a prize"
+  ]
+}
