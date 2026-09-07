@@ -90,7 +90,7 @@ final class SubscriptionStore: ObservableObject {
         do {
             try await AppStore.sync()
             await refreshEntitlements()
-            message = tier == .free && !hasAIImageBooster ? "No active subscription was found." : "Purchases restored."
+            message = tier == .free && !hasAIImageBooster ? "No active subscription was found for this workspace." : "Apple purchases restored. Your workspace is being updated."
         } catch { message = "Purchases could not be restored."
         }
     }
@@ -114,7 +114,7 @@ final class SubscriptionStore: ObservableObject {
             }
         }
         tier = best
-        hasAIImageBooster = booster
+        hasAIImageBooster = booster && best != .free
         signedTransactions = signed.sorted()
     }
 

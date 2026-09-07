@@ -5,6 +5,7 @@ import AuthenticationServices
 
 struct RootView: View {
     @EnvironmentObject private var store: SubscriptionStore
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showPlans = false
 
     var body: some View {
@@ -25,6 +26,9 @@ struct RootView: View {
                     }
                 }
                 .sheet(isPresented: $showPlans) { PaywallView() }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .active { Task { await store.refreshEntitlements() } }
+                }
         }
     }
 }
@@ -360,10 +364,10 @@ struct PaywallView: View {
             HStack {
                 Link("Privacy Policy", destination: URL(string: "https://parslia.app/privacy.html")!)
                 Text("•")
-                Link("Terms of Use", destination: URL(string: "https://parslia.app/terms.html")!)
+                Link("Terms of Use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
             }
             .font(.footnote)
-            Text("Payment is charged to your Apple Account after the free trial. Cancellation takes effect at the end of the current billing period. Features remain available while Apple reports a verified active entitlement.")
+            Text("Payment is charged to your Apple Account at purchase, or after an eligible free trial. Cancellation takes effect at the end of the current billing period. Features remain available while Apple reports a verified active entitlement.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

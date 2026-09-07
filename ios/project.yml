@@ -37,6 +37,9 @@ targets:
   ParsliaTests:
     type: bundle.unit-test
     platform: iOS
-    sources: [ParsliaTests]
+    sources:
+      - ParsliaTests
+      - path: Parslia/Parslia.storekit
+        buildPhase: resources
     dependencies:
       - target: Parslia
