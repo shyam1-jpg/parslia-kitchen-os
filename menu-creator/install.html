@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#2f6b4f" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Menu Creator" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+<title>Install Menu Creator</title>
+<style>
+  :root{--bg:#f4f1ea;--panel:#fff;--ink:#1f2a24;--muted:#6b7770;--accent:#2f6b4f;--gold:#b08a3e;--line:#e2ddd2;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;}
+  .wrap{max-width:520px;margin:0 auto;padding:28px 20px 48px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 10px 30px rgba(31,42,36,.08);}
+  .logo{width:72px;height:72px;border-radius:18px;margin-bottom:16px;}
+  h1{margin:0 0 8px;font-size:24px;}
+  .sub{color:var(--muted);margin:0 0 20px;font-size:15px;}
+  .steps{margin:0;padding:0;list-style:none;}
+  .steps li{padding:14px 0;border-top:1px solid var(--line);font-size:15px;}
+  .steps li:first-child{border-top:none;padding-top:0;}
+  .steps strong{color:var(--accent);}
+  .btn{
+    display:block;width:100%;text-align:center;margin-top:20px;padding:14px 18px;
+    border:none;border-radius:12px;background:var(--accent);color:#fff;
+    font-size:16px;font-weight:700;text-decoration:none;cursor:pointer;
+  }
+  .btn:hover{filter:brightness(1.05);}
+  .note{margin-top:18px;padding:12px 14px;background:#e7f0ea;border-radius:10px;font-size:13px;color:#2a4a38;}
+  .platform{margin-top:16px;font-size:14px;color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <img class="logo" src="icons/icon-192.png" alt="Menu Creator icon" width="72" height="72" />
+    <h1>Menu Creator</h1>
+    <p class="sub">Install on your phone so it opens like a real app — works offline after first visit.</p>
+
+    <ol class="steps" id="steps">
+      <li><strong>iPhone / iPad (Safari):</strong> Tap Share (□↑) → scroll → <strong>Add to Home Screen</strong> → Add.</li>
+      <li><strong>Android (Chrome):</strong> Tap menu (⋮) → <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>
+    </ol>
+
+    <a class="btn" href="./index.html">Open Menu Creator</a>
+
+    <p class="note">Share this page link (not a zip file) with anyone who needs the app on their phone.</p>
+    <p class="platform" id="hint"></p>
+  </div>
+</div>
+<script>
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const hint = document.getElementById("hint");
+if(isIOS){
+  hint.textContent = "Tip: You must use Safari on iPhone — Chrome cannot install home-screen apps.";
+} else if(/Android/i.test(navigator.userAgent)){
+  hint.textContent = "Tip: Use Chrome for the easiest Install app button.";
+}
+if("serviceWorker" in navigator && location.protocol !== "file:"){
+  navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+}
+</script>
+</body>
+</html>
