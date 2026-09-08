@@ -1,0 +1,14 @@
+{
+  "name": "kiteline-billing",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kiteline payment system — Stripe Checkout, webhooks, invoice grants, Academy billing.",
+  "scripts": {
+    "test": "node --test tests/billing.test.js && node tests/e2e-demo.js",
+    "demo": "node demo/server.js",
+    "apply": "node scripts/apply-to-kitline1.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
