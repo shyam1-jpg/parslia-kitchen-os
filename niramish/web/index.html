@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1f3a2e">
+  <title>Niramish — Pure recipe studio</title>
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <p class="eyebrow">Niramish</p>
+      <h1>Photograph a recipe.<br>Build a pure house database.</h1>
+      <p class="lede">Milk and cheese stay. Onion, garlic, alliums, meat, fish, eggs and other animal products are swapped. Amounts and method are shifted so the stored recipe is not a copy of the page.</p>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab is-active" data-tab="capture">Capture</button>
+      <button class="tab" data-tab="library">Library</button>
+      <button class="tab" data-tab="ethos">Ethos</button>
+    </nav>
+
+    <main>
+      <section id="capture" class="panel is-active">
+        <label class="shutter">
+          <input id="photo" type="file" accept="image/*" capture="environment">
+          <span class="shutter-dot"></span>
+          <strong>Photograph the page</strong>
+          <small>Use the iPhone camera, or choose a photo of a recipe card.</small>
+        </label>
+        <details class="paste">
+          <summary>Or paste recipe text</summary>
+          <textarea id="paste" rows="8" placeholder="Palak Paneer&#10;&#10;Cottage cheese cooked in spinach-based gravy and fresh Indian spices is a household staple.&#10;&#10;Cuisine: Punjabi  Course: Main Course-Veg  Prep: 11-15 minutes  Cook: 11-15 minutes  Serves: 4  Taste: Mild  Difficulty: Medium&#10;&#10;Ingredients&#10;• 250 grams paneer&#10;• 1 large onion&#10;• 1 tablespoon chopped garlic&#10;&#10;Method&#10;1. Heat oil in a non-stick pan.&#10;2. Add onion and garlic and mix well.&#10;3. Serve immediately."></textarea>
+          <button id="scan-text" class="primary" type="button">Build house recipe</button>
+        </details>
+        <p id="status" class="status" hidden></p>
+        <article id="review" class="review" hidden></article>
+      </section>
+
+      <section id="library" class="panel">
+        <form id="search-form" class="search">
+          <input id="search" type="search" placeholder="Search the house database" enterkeyhint="search">
+        </form>
+        <div id="library-list" class="cards"></div>
+      </section>
+
+      <section id="ethos" class="panel">
+        <article class="ethos-card">
+          <h2>What stays</h2>
+          <p>Milk, cheese, cream, butter, ghee, yogurt, curd, buttermilk and paneer.</p>
+        </article>
+        <article class="ethos-card">
+          <h2>What never goes in</h2>
+          <ul>
+            <li>Onion, garlic, chives, spring onion, green onion, leeks, shallots, scallions and the rest of that family</li>
+            <li>Meat, poultry, fish and seafood</li>
+            <li>Eggs and mayonnaise</li>
+            <li>Honey, gelatin, lard and other animal products that are not milk or cheese</li>
+          </ul>
+        </article>
+        <article class="ethos-card">
+          <h2>How the database is built</h2>
+          <p>Each photo is read, forbidden foods are swapped, quantities are nudged, and the method is rephrased. You confirm the house version before it is saved.</p>
+        </article>
+      </section>
+    </main>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

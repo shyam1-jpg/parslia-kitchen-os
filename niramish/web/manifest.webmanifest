@@ -1,0 +1,10 @@
+{
+  "name": "Niramish",
+  "short_name": "Niramish",
+  "description": "Photograph a recipe and store a pure house version.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4efe4",
+  "theme_color": "#1f3a2e",
+  "icons": []
+}
