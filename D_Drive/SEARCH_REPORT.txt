@@ -1,0 +1,17 @@
+Shyam / Sham overtime search — 2023 to 2026
+===========================================
+
+Verdict: CANNOT CONFIRM
+No Cypad / Excel timesheet for Shyam Prasad was found in this cloud environment for 2023–2026. Extra hours cannot be compared with 1500 or 1800 until the Cypad export is pasted into the 'Paste Cypad Timesheet' sheet or dropped into chat.
+
+Spreadsheets scanned: 0
+Timesheet-like files: 0
+Matched Sham/Shyam hour rows: 0
+Folders searched: /workspace; /opt/cursor/artifacts; /tmp/cursor
+
+Windows C: and D: are not attached to this cloud VM.
+Cypad timesheet Excel was not in GitHub or this workspace.
+Kiteline.uk Vedanta store clock data is empty.
+
+Copy D_Drive/ onto D:\ on the PC, then paste the Cypad export.
+No spreadsheets found.
