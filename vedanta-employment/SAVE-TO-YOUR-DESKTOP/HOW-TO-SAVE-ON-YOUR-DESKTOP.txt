@@ -1,0 +1,36 @@
+Save these Word files on YOUR Desktop
+=====================================
+
+These are Microsoft Word files (.docx). Open them in Microsoft Word.
+
+Yashar — start with this one:
+  Yashar_Daily_Follow_Sheet.docx
+
+Also here:
+  Vedanta_Kitchen_Work_Formula.docx
+  Vedanta_Kitchen_Employment_Template.docx
+
+On your computer (Windows):
+1. Download the .docx file.
+2. Open it in Microsoft Word.
+3. Click File.
+4. Click Save As.
+5. Click This PC.
+6. Click Desktop.
+7. Click Save.
+
+Or:
+1. Download the .docx file (it often goes to Downloads).
+2. Right-click the file.
+3. Click Cut or Copy.
+4. Right-click an empty space on your Desktop.
+5. Click Paste.
+
+On a Mac:
+1. Download the .docx file.
+2. Open it in Microsoft Word.
+3. Click File > Save As.
+4. Choose Desktop.
+5. Click Save.
+
+Do not open the file only in a web preview. Open it in Word, then Save As to Desktop.
