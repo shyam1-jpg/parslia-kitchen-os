@@ -16,6 +16,9 @@ It is a standalone work pack for The Vedanta hospitality team. It is not softwar
 | `03-Kitchen-Work-Formula-and-Coverage-Email.md` | Shyam’s professional email: 35 years’ experience, step-by-step daily formula, and coverage options for **10 / 20 / 30 / 50** guests — including a leaner idea if the budget is tight. |
 | `print/Kitchen-Work-Formula.html` | Printable version of that email. |
 | `word/Vedanta_Kitchen_Work_Formula_and_Coverage.docx` | Word file of the email and formula — send or print this. |
+| `04-Yashar-Daily-Follow-Sheet.md` | **Yashar’s action list:** what to learn, what to do, how to follow the daily. |
+| `print/Yashar-Daily-Follow.html` | Printable wall / pocket follow sheet for Yashar. |
+| `word/Yashar_Daily_Follow_Sheet.docx` | Word copy of Yashar’s daily follow sheet. |
 
 ## Working baseline
 
