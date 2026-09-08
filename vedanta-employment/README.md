@@ -19,6 +19,9 @@ It is a standalone work pack for The Vedanta hospitality team. It is not softwar
 | `04-Yashar-Daily-Follow-Sheet.md` | **Yashar’s action list:** what to learn, what to do, how to follow the daily. |
 | `print/Yashar-Daily-Follow.html` | Printable wall / pocket follow sheet for Yashar. |
 | `word/Yashar_Daily_Follow_Sheet.docx` | Word copy of Yashar’s daily follow sheet. |
+| `SAVE-TO-YOUR-DESKTOP/OPEN_THIS_Yashar_Follow.rtf` | **If Word will not open the old file, open this.** Word or WordPad. Then File → Save As → Desktop. |
+| `SAVE-TO-YOUR-DESKTOP/OPEN_THIS_Yashar_Follow.docx` | Simple clean Word file (no extra parts). |
+| `SAVE-TO-YOUR-DESKTOP/OPEN_THIS_Yashar_Follow.html` | Opens in any internet browser if Word is not installed. |
 
 ## Working baseline
 
@@ -27,7 +30,7 @@ The correct working figure for this pilot is **20 guests**.
 
 ## How to use
 
-1. For Word / HR / printing: open `word/Vedanta_Kitchen_Employment_Template.docx`.
+1. If a Word file will not open, use `SAVE-TO-YOUR-DESKTOP/OPEN_THIS_Yashar_Follow.rtf` (Word or WordPad).
 2. Overtype yellow fields in Part C for a new post. Keep **20 guests** unless the GM reissues the house figure.
 3. File > Save As > Word Template (*.dotx) if you want a clean master. A `.dotx` copy is already in the same folder.
 4. Read the professional response first if you want the markdown version.
