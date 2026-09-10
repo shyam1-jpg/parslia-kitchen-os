@@ -199,6 +199,7 @@ h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.12;
 .card-icon { width: 50px; height: 50px; border-radius: 13px; display: grid; place-items: center; font-size: 1.4rem; background: var(--soft); margin-bottom: 16px; }
 .card h3 { font-size: 1.2rem; color: var(--green-deep); }
 .card p { margin: 8px 0 0; color: var(--muted); font-size: .95rem; }
+.report-inline { margin-top: 16px; width: auto; white-space: nowrap; }
 
 /* Steps */
 .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
@@ -215,6 +216,12 @@ h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.12;
 .module-icon { display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; background: rgba(184,115,51,.18); font-size: 1.1rem; margin-bottom: 12px; }
 .module-card h3 { font-size: 1rem; color: var(--warm-white); margin-bottom: 6px; }
 .module-card p { margin: 0; font-size: .88rem; color: rgba(247,244,234,.72); line-height: 1.45; }
+.module-report {
+  display: inline-block; margin-top: 12px; padding: 0; border: 0; background: none;
+  color: var(--copper); font: inherit; font-size: .82rem; font-weight: 650;
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.module-report:hover { color: #fff; }
 
 /* App preview screens */
 .screen-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
@@ -251,8 +258,8 @@ h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.12;
 .contact-form { background: #fff; border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow-lg); }
 .field { margin-bottom: 16px; }
 .field label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 7px; color: var(--green-deep); }
-.field input, .field textarea { width: 100%; padding: 13px 15px; border-radius: 10px; border: 1px solid rgba(6,63,50,.2); font: inherit; color: var(--text); background: var(--warm-white); transition: border .2s, box-shadow .2s; }
-.field input:focus, .field textarea:focus { outline: none; border-color: var(--green-2); box-shadow: 0 0 0 3px rgba(15,107,79,.18); }
+.field input, .field textarea, .field select { width: 100%; padding: 13px 15px; border-radius: 10px; border: 1px solid rgba(6,63,50,.2); font: inherit; color: var(--text); background: var(--warm-white); transition: border .2s, box-shadow .2s; }
+.field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--green-2); box-shadow: 0 0 0 3px rgba(15,107,79,.18); }
 .field textarea { resize: vertical; }
 .contact-form .btn { width: 100%; }
 .form-note { margin: 12px 0 0; font-size: .95rem; min-height: 1.2em; }
@@ -270,6 +277,40 @@ h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.12;
 .footer-links a:hover { color: var(--copper); }
 .footer-bottom { padding-top: 22px; }
 .footer-bottom p { margin: 0; font-size: .88rem; color: rgba(247,244,234,.6); }
+
+/* Report an Issue — generative AI content */
+.report-fab {
+  position: fixed; right: 20px; bottom: 20px; z-index: 90;
+  padding: 12px 18px; border: 0; border-radius: 999px;
+  background: var(--green-deep); color: var(--warm-white);
+  font: inherit; font-weight: 700; font-size: .92rem;
+  box-shadow: var(--shadow-lg); cursor: pointer;
+}
+.report-fab:hover { background: var(--green-2); }
+.report-dialog {
+  position: relative;
+  border: none; border-radius: var(--radius); padding: 28px 26px 24px;
+  max-width: 480px; width: calc(100% - 32px);
+  box-shadow: var(--shadow-lg); color: var(--text);
+}
+.report-dialog::backdrop { background: rgba(16, 35, 29, .55); }
+.report-dialog h2 { color: var(--green-deep); font-size: 1.45rem; margin-bottom: 8px; }
+.report-dialog-lead { margin: 0 0 18px; color: var(--muted); font-size: .95rem; }
+.report-dialog .btn { width: 100%; }
+.report-dialog-close {
+  position: absolute; top: 12px; right: 14px;
+  width: 36px; height: 36px; border: 0; border-radius: 50%;
+  background: var(--soft); color: var(--green-deep);
+  font-size: 1.4rem; line-height: 1; cursor: pointer;
+}
+.report-dialog-close:hover { background: var(--border); }
+.report-dialog[open] { position: fixed; }
+.legal-page .contact-form { margin: 24px 0 8px; max-width: 520px; }
+.legal-page .contact-form .btn { width: 100%; }
+
+@media (max-width: 600px) {
+  .report-fab { right: 14px; bottom: 14px; padding: 11px 14px; font-size: .85rem; }
+}
 
 /* Responsive */
 @media (max-width: 980px) {

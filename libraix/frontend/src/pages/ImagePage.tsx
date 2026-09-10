@@ -7,6 +7,7 @@ import { imageApi } from "../lib/api";
 import { friendlyError } from "../lib/errors";
 import { ImageGenerating } from "../components/ImageGenerating";
 import { useSpeechInput } from "../lib/useSpeechInput";
+import { ReportAiContentButton, ReportAiContentFab } from "../components/ReportAiContent";
 
 export function ImagePage() {
   const { user, logout } = useAuth();
@@ -174,6 +175,13 @@ export function ImagePage() {
               )}
               <p className="model-disclosure">Generated using Libraix Image through Libraix</p>
               <div className="image-result-actions">
+                <ReportAiContentButton
+                  feature="Image Studio"
+                  excerpt={revisedPrompt || prompt}
+                  className="btn btn-ghost btn-sm"
+                >
+                  Report AI content
+                </ReportAiContentButton>
                 <a href={imageUrl} download="libraix-image.png" className="btn btn-ghost btn-sm">Download (optional)</a>
                 <button
                   type="button"
@@ -211,6 +219,7 @@ export function ImagePage() {
           )}
         </div>
       </main>
+      <ReportAiContentFab feature="Image Studio" />
     </div>
   );
 }
