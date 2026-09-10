@@ -1,0 +1,63 @@
+{
+  "id": "/",
+  "name": "Parslia Kitchen OS",
+  "short_name": "Parslia",
+  "description": "Kitchen OS for professional kitchens — recipes, menus, allergens, stock and rota, plus AI Image and AI Voice Finder.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "lang": "en-GB",
+  "dir": "ltr",
+  "theme_color": "#063F32",
+  "background_color": "#F7F4EA",
+  "categories": ["business", "food", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Report an Issue",
+      "short_name": "Report",
+      "description": "Report inappropriate AI-generated content",
+      "url": "/report.html",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Help and Support",
+      "short_name": "Support",
+      "description": "Parslia support and AI content reporting",
+      "url": "/support.html",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

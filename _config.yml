@@ -1,0 +1,3 @@
+# GitHub Pages / Jekyll: publish the PWA manifest as a static file.
+include:
+  - manifest.webmanifest
