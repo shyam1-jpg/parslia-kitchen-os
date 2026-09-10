@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PublicNav, Footer } from "../components/Layout";
 import { useAuth } from "../lib/auth";
+import { ReportAiContentDialog } from "../components/ReportAiContent";
 
 export function SupportPage() {
   const { user } = useAuth();
@@ -10,6 +11,7 @@ export function SupportPage() {
   const [body, setBody] = useState("");
   const [requestType, setRequestType] = useState<"export" | "deletion" | "correction" | "other">("other");
   const [tab, setTab] = useState<"support" | "privacy">("support");
+  const [reportOpen, setReportOpen] = useState(() => window.location.hash === "#report-ai");
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -62,7 +64,7 @@ export function SupportPage() {
       <PublicNav />
       <main className="legal-page support-page">
         <h1>Help &amp; support</h1>
-        <p>Contact Libraix support or submit a privacy request (GDPR).</p>
+        <p>Contact Libraix support, report inappropriate AI-generated content, or submit a privacy request (GDPR).</p>
 
         <div className="admin-tabs" style={{ marginBottom: 24 }}>
           <button className={`admin-tab ${tab === "support" ? "active" : ""}`} onClick={() => { setTab("support"); setMsg(""); setError(""); }}>Support</button>
@@ -73,12 +75,31 @@ export function SupportPage() {
         {error && <div className="error-banner">{error}</div>}
 
         {tab === "support" ? (
-          <form onSubmit={submitSupport} className="auth-form">
-            <label>Email<input type="email" className="input" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
-            <label>Subject<input className="input" required value={subject} onChange={(e) => setSubject(e.target.value)} /></label>
-            <label>Message<textarea className="input" rows={6} required value={body} onChange={(e) => setBody(e.target.value)} /></label>
-            <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? "Sending…" : "Send support request"}</button>
-          </form>
+          <>
+            <section id="report-ai" className="report-ai-support">
+              <h2>Report AI-generated content</h2>
+              <p>
+                If chat, Image Studio, Live Voice or another Libraix model produces content that is
+                harmful, offensive, wrong or otherwise inappropriate, report it here. You can also
+                use <strong>Report an Issue</strong> next to AI output in the workspace.
+              </p>
+              <button type="button" className="btn btn-primary" onClick={() => setReportOpen(true)}>
+                Report an Issue
+              </button>
+            </section>
+            <form onSubmit={submitSupport} className="auth-form">
+              <label>Email<input type="email" className="input" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+              <label>Subject<input className="input" required value={subject} onChange={(e) => setSubject(e.target.value)} /></label>
+              <label>Message<textarea className="input" rows={6} required value={body} onChange={(e) => setBody(e.target.value)} /></label>
+              <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? "Sending…" : "Send support request"}</button>
+            </form>
+            <ReportAiContentDialog
+              open={reportOpen}
+              onClose={() => setReportOpen(false)}
+              feature="Help & support"
+              defaultEmail={email}
+            />
+          </>
         ) : (
           <form onSubmit={submitPrivacy} className="auth-form">
             <label>Email<input type="email" className="input" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>

@@ -58,6 +58,7 @@ export function Footer() {
         <Link to="/accessibility">Accessibility</Link>
         <Link to="/contact">Contact</Link>
         <Link to="/support">Support</Link>
+        <Link to="/support#report-ai">Report an Issue</Link>
         <CookieSettingsLink />
       </div>
       <p className="footer-identity">

@@ -37,6 +37,7 @@ import {
 import { friendlyError } from "../lib/errors";
 import { BRAND } from "../lib/brand";
 import { OnboardingModal, hasCompletedOnboarding } from "../components/OnboardingModal";
+import { ReportAiContentButton, ReportAiContentFab } from "../components/ReportAiContent";
 
 const ASSISTANT_UI: Record<
   string,
@@ -1232,6 +1233,7 @@ export function AppPage() {
             {messages.some((m) => m.role === "assistant") && (
               <button type="button" className="btn btn-ghost btn-sm" onClick={regenerateLast} disabled={loading || streaming}>Regenerate</button>
             )}
+            <ReportAiContentButton feature="Chat" className="btn btn-ghost btn-sm" />
             {user?.plan !== "free" && (
               <button
                 type="button"
@@ -1366,7 +1368,7 @@ export function AppPage() {
                     <button className="msg-action" onClick={() => branchFromMessage(m.id)}>Branch</button>
                   </div>
                 )}
-                {m.role === "assistant" && m.content && (
+                {m.role === "assistant" && (m.content || m.imageUrl) && (
                   <div className="msg-actions">
                     {m.modelLabel && <span className="model-disclosure">{m.modelLabel}</span>}
                     {speechOut.supported && (
@@ -1384,6 +1386,7 @@ export function AppPage() {
                       </button>
                     )}
                     <button className="msg-action" onClick={() => copyMessage(m.content)}><IconCopy /> Copy</button>
+                    <ReportAiContentButton feature="Chat" excerpt={m.content} />
                     {m.content.length > 280 && (
                       <button
                         className="msg-action"
@@ -1526,6 +1529,7 @@ export function AppPage() {
           setCanvasOpen(false);
         }}
       />
+      <ReportAiContentFab feature="Chat" />
     </div>
   );
 }

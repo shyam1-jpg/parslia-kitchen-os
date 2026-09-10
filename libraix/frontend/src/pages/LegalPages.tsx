@@ -182,6 +182,11 @@ export function AiLimitationsPage() {
         <li>Images may be synthetic — do not use to deceive others.</li>
       </ul>
       <p>Depending on the model selected, your prompt may be sent to a third-party AI provider to generate a response.</p>
+      <p>
+        If AI-generated output is harmful, offensive, wrong or otherwise inappropriate, use
+        {" "}<Link to="/support#report-ai">Report an Issue</Link>{" "}
+        next to the content or from Help &amp; support.
+      </p>
     </LegalShell>
   );
 }

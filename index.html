@@ -55,6 +55,8 @@
         <a href="#modules">Modules</a>
         <a href="#get-app">App Store</a>
         <a href="#early-access">Early Access</a>
+        <a href="support.html">Help</a>
+        <a href="report.html">Report an Issue</a>
         <a class="btn btn-primary btn-sm" href="#get-app">Get the app</a>
       </nav>
 
@@ -67,6 +69,8 @@
       <a href="#modules">Modules</a>
       <a href="#get-app">App Store</a>
       <a href="#early-access">Early Access</a>
+      <a href="support.html">Help</a>
+      <a href="report.html">Report an Issue</a>
       <a class="btn btn-primary" href="#get-app">Get the app</a>
     </nav>
   </header>
@@ -179,8 +183,18 @@
           <p>Everything a busy food team needs to plan, prepare and stay compliant — connected in one place.</p>
         </div>
         <div class="card-grid">
-          <article class="card"><div class="card-icon">&#128247;</div><h3>AI Image</h3><p>Generate professional dish and recipe photos with AI — ready for menus, boards and training.</p></article>
-          <article class="card"><div class="card-icon">&#127908;</div><h3>AI Voice Finder</h3><p>Speak to find recipes, ingredients and kitchen info hands-free during busy prep and service.</p></article>
+          <article class="card" id="ai-image">
+            <div class="card-icon">&#128247;</div>
+            <h3>AI Image</h3>
+            <p>Generate professional dish and recipe photos with AI — ready for menus, boards and training.</p>
+            <button type="button" class="btn btn-outline btn-sm report-inline" data-open-report data-report-feature="AI Image">Report AI content</button>
+          </article>
+          <article class="card" id="ai-voice-finder">
+            <div class="card-icon">&#127908;</div>
+            <h3>AI Voice Finder</h3>
+            <p>Speak to find recipes, ingredients and kitchen info hands-free during busy prep and service.</p>
+            <button type="button" class="btn btn-outline btn-sm report-inline" data-open-report data-report-feature="AI Voice Finder">Report AI content</button>
+          </article>
           <article class="card"><div class="card-icon">&#128218;</div><h3>Recipe Library</h3><p>Create, store, scale and print professional recipes.</p></article>
           <article class="card"><div class="card-icon">&#128197;</div><h3>Menu Planner</h3><p>Plan breakfast, lunch, dinner, retreats, events and buffets.</p></article>
           <article class="card"><div class="card-icon">&#9888;&#65039;</div><h3>Allergen Control</h3><p>Show clear allergen information for dishes and menus.</p></article>
@@ -218,8 +232,18 @@
         </div>
         <div class="module-grid">
           <article class="module-card"><span class="module-icon">&#128200;</span><h3>Dashboard</h3><p>See today's kitchen at a glance.</p></article>
-          <article class="module-card"><span class="module-icon">&#128247;</span><h3>AI Image</h3><p>AI dish photos for recipes and menus.</p></article>
-          <article class="module-card"><span class="module-icon">&#127908;</span><h3>AI Voice Finder</h3><p>Find recipes and info by voice.</p></article>
+          <article class="module-card">
+            <span class="module-icon">&#128247;</span>
+            <h3>AI Image</h3>
+            <p>AI dish photos for recipes and menus.</p>
+            <button type="button" class="module-report" data-open-report data-report-feature="AI Image">Report AI content</button>
+          </article>
+          <article class="module-card">
+            <span class="module-icon">&#127908;</span>
+            <h3>AI Voice Finder</h3>
+            <p>Find recipes and info by voice.</p>
+            <button type="button" class="module-report" data-open-report data-report-feature="AI Voice Finder">Report AI content</button>
+          </article>
           <article class="module-card"><span class="module-icon">&#128218;</span><h3>Recipes</h3><p>Store, scale and print recipes.</p></article>
           <article class="module-card"><span class="module-icon">&#128197;</span><h3>Menu Planner</h3><p>Plan services, events and buffets.</p></article>
           <article class="module-card"><span class="module-icon">&#9888;&#65039;</span><h3>Allergens</h3><p>Clear allergen info on every dish.</p></article>
@@ -441,16 +465,59 @@
         <a href="#get-app">App Store</a>
         <a href="#early-access">Early Access</a>
         <a href="mailto:hello@parslia.app">Contact</a>
+        <a href="support.html">Help &amp; Support</a>
+        <a href="report.html">Report an Issue</a>
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
         <a href="subscription-terms.html">Subscriptions</a>
-        <a href="support.html">Support</a>
       </nav>
     </div>
     <div class="container footer-bottom">
       <p>&copy; 2026 Parslia. All rights reserved.</p>
     </div>
   </footer>
+
+  <button type="button" class="report-fab" data-open-report aria-haspopup="dialog" aria-controls="reportIssueDialog">
+    Report an Issue
+  </button>
+
+  <dialog class="report-dialog" id="reportIssueDialog" aria-labelledby="reportDialogTitle">
+    <button type="button" class="report-dialog-close" data-close-report aria-label="Close report form">&times;</button>
+    <h2 id="reportDialogTitle">Report an Issue</h2>
+    <p class="report-dialog-lead">
+      Use this form to report inappropriate AI-generated content from AI Image, AI Voice Finder or other Parslia AI tools.
+    </p>
+    <form class="report-form" id="reportIssueForm" novalidate>
+      <div class="field">
+        <label for="reportFeature">Which AI feature?</label>
+        <select id="reportFeature" name="feature">
+          <option value="AI Image">AI Image</option>
+          <option value="AI Voice Finder">AI Voice Finder</option>
+          <option value="Other AI output">Other AI output</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="reportReason">Why are you reporting this?</label>
+        <select id="reportReason" name="reason" required>
+          <option value="">Select a reason</option>
+          <option value="harmful">Harmful</option>
+          <option value="offensive">Offensive</option>
+          <option value="wrong">Wrong or misleading</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="reportDetails">Describe the AI-generated content</label>
+        <textarea id="reportDetails" name="details" rows="4" required placeholder="What did the AI produce, and why is it inappropriate?"></textarea>
+      </div>
+      <div class="field">
+        <label for="reportEmail">Your email (optional, for follow-up)</label>
+        <input type="email" id="reportEmail" name="email" autocomplete="email">
+      </div>
+      <button type="submit" class="btn btn-primary">Submit report</button>
+      <p class="form-note" id="reportFormNote" role="status" aria-live="polite"></p>
+    </form>
+  </dialog>
 
   <script src="script.js"></script>
 </body>

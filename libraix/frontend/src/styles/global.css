@@ -2335,3 +2335,71 @@ html[data-theme="light"] .public-nav {
 .share-kicker { font-size: 12px; color: var(--dim); margin: 0; }
 .share-header h1 { font-size: 20px; margin: 2px 0 0; font-family: var(--font-display); }
 .share-body { max-width: 780px; margin: 0 auto; padding: 28px 20px 80px; display: grid; gap: 16px; }
+
+.app-shell .report-ai-fab { bottom: 96px; }
+.report-ai-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 80;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent, #c4a574);
+  color: #14110e;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+.report-ai-fab:hover { filter: brightness(1.08); }
+.report-ai-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.report-ai-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(8, 7, 6, 0.72);
+  cursor: pointer;
+}
+.report-ai-card {
+  position: relative;
+  z-index: 1;
+  width: min(460px, 100%);
+  background: var(--surface, #14110e);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+.report-ai-card h2 { margin: 0; font-size: 22px; }
+.report-ai-lead { margin: 0; color: var(--muted); font-size: 14px; }
+.report-ai-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-size: 22px;
+  cursor: pointer;
+}
+.report-ai-form { display: flex; flex-direction: column; gap: 12px; }
+.report-ai-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.report-ai-support { margin: 0 0 28px; }
+.report-ai-support h2 { font-size: 1.2rem; margin: 0 0 8px; }
+.report-ai-support p { color: var(--muted); margin: 0 0 14px; }
