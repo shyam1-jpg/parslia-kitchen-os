@@ -41,7 +41,8 @@ jobs:
           echo "STATUS_PYTHON=$STATUS_VENV/bin/python" >> "$GITHUB_ENV"
 
       - name: Read current Apple status
-        run: "$STATUS_PYTHON" scripts/app_store_status.py | tee app-store-status.txt
+        run: |
+          "$STATUS_PYTHON" scripts/app_store_status.py | tee app-store-status.txt
 
       - name: Save status report
         uses: actions/upload-artifact@v4
