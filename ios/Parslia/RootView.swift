@@ -21,6 +21,14 @@ struct RootView: View {
                 .navigationTitle("Parslia")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        HStack(spacing: 8) {
+                            ParsliaBrandMark(size: 30)
+                            Text("Parslia")
+                                .font(.headline)
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         Button(store.tier == .free ? "View plans" : "Manage plan") { showPlans = true }
                     }
@@ -30,6 +38,19 @@ struct RootView: View {
                     if phase == .active { Task { await store.refreshEntitlements() } }
                 }
         }
+    }
+}
+
+struct ParsliaBrandMark: View {
+    let size: CGFloat
+
+    var body: some View {
+        Image("ParsliaBrand")
+            .resizable()
+            .scaledToFit()
+            .frame(width: size, height: size)
+            .clipShape(RoundedRectangle(cornerRadius: size * 0.22, style: .continuous))
+            .accessibilityHidden(true)
     }
 }
 
@@ -288,6 +309,7 @@ struct PaywallView: View {
 
     private var paywallHeader: some View {
         Group {
+            ParsliaBrandMark(size: 76)
             Text("Choose your Parslia plan")
                 .font(.largeTitle.bold())
                 .multilineTextAlignment(.center)
