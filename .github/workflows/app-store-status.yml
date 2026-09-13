@@ -1,0 +1,47 @@
+name: Apple App Store Status
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  status:
+    name: Read App Store Connect status
+    runs-on: macos-15
+    timeout-minutes: 10
+    env:
+      APP_STORE_APP_ID: "6797909735"
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+    steps:
+      - name: Check out Parslia
+        uses: actions/checkout@v4
+
+      - name: Verify read-only status secrets
+        shell: bash
+        run: |
+          missing=0
+          for secret_name in APP_STORE_CONNECT_ISSUER_ID APP_STORE_CONNECT_KEY_ID APP_STORE_CONNECT_PRIVATE_KEY; do
+            if [ -z "${!secret_name}" ]; then
+              echo "Missing required GitHub secret: $secret_name"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Install JWT dependency
+        run: python3 -m pip install --disable-pip-version-check --quiet "PyJWT[crypto]==2.10.1"
+
+      - name: Read current Apple status
+        run: python3 scripts/app_store_status.py | tee app-store-status.txt
+
+      - name: Save status report
+        uses: actions/upload-artifact@v4
+        with:
+          name: parslia-app-store-status
+          path: app-store-status.txt
+          if-no-files-found: error
+          retention-days: 14

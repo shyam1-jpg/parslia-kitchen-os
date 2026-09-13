@@ -1,4 +1,5 @@
 node_modules/
+__pycache__/
 .netlify/
 libraix/frontend/.vite/
 ios/Parslia.xcodeproj/

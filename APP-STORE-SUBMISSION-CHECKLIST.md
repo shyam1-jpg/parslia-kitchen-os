@@ -1,6 +1,6 @@
 # Parslia iOS App Store submission checklist
 
-Updated 13 August 2026. App Store Connect app ID: `6797909735`. Bundle ID: `app.parslia.kitchen`.
+Updated 14 September 2026. App Store Connect app ID: `6797909735`. Bundle ID: `app.parslia.kitchen`.
 
 Production Hercules application URL: `https://parslia-kitchen-os-667132.onhercules.app/`.
 
@@ -31,7 +31,7 @@ Production Hercules application URL: `https://parslia-kitchen-os-667132.onhercul
 - All four public pages are published and verified. The account holder should still have the legal drafts reviewed for the final business entity wording.
 - Free Apps Agreement: **Active**, 3 August 2026–4 August 2027.
 - Paid Apps Agreement: **New**. Apple requires the account holder to update the legal entity, sign the agreement, complete banking and submit the required tax forms before paid subscriptions can be sold.
-- EU Digital Services Act trader status: **not completed**. The account holder must complete Apple’s compliance flow truthfully.
+- EU Digital Services Act trader contact verification: **approved**. Apple confirmed that the verified trader information is live on the App Store in the European Union.
 
 ## App Privacy — published 12 August 2026
 
@@ -81,7 +81,7 @@ Draft declaration: “Parslia displays content created and owned by Parslia, con
 - App Privacy answers are fully configured and published; data is declared as linked where applicable and not used for tracking.
 - Content Rights is intentionally left for the account holder’s truthful legal confirmation.
 - Build 11 is uploaded, **Valid**, App Store eligible and attached to version 1.0. It contains the final native entitlement-navigation and purchase-paywall bridge fixes.
-- Paid Apps Agreement, legal-entity update, banking, tax, DSA trader status and Content Rights are the remaining account-holder actions.
+- Paid Apps Agreement, legal-entity update, banking, tax and Content Rights remain account-holder actions unless App Store Connect now shows each item as complete. DSA trader contact verification is complete.
 
 ## Feature entitlement decision
 
