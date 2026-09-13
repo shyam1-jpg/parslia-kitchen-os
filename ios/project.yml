@@ -29,6 +29,7 @@ targets:
             CFBundleURLSchemes: [parslia]
         UILaunchScreen: {}
         NSCameraUsageDescription: Parslia uses the camera only when you choose to add a kitchen image.
+        NSPhotoLibraryUsageDescription: Parslia uses your photo library only when you choose an image to add to your kitchen workspace.
         NSMicrophoneUsageDescription: Parslia uses the microphone only when you choose voice input.
         ITSAppUsesNonExemptEncryption: false
     scheme:
