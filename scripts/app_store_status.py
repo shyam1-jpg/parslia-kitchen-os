@@ -76,6 +76,17 @@ def related_id(resource: dict, name: str) -> str | None:
     return data.get("id") if isinstance(data, dict) else None
 
 
+def relationship_labels(resource: dict) -> list[str]:
+    labels: list[str] = []
+    for name, relationship in resource.get("relationships", {}).items():
+        data = relationship.get("data")
+        linked = data if isinstance(data, list) else [data]
+        for item in linked:
+            if isinstance(item, dict) and item.get("type") and item.get("id"):
+                labels.append(f"{name}={item['type']}/{item['id']}")
+    return sorted(labels)
+
+
 def report_app() -> None:
     response = api_get(
         f"/apps/{APP_ID}",
@@ -170,6 +181,15 @@ def report_review_submissions() -> None:
             f"version_state={version_attributes.get('appStoreState') or version_attributes.get('appVersionState') or 'NONE'} | "
             f"items={','.join(item_states) if item_states else 'NONE'}"
         )
+        for link in item_links:
+            item = items.get(link.get("id", ""), {})
+            item_attributes = item.get("attributes", {})
+            relationships = relationship_labels(item)
+            print(
+                "    "
+                f"item={item.get('id')} | state={item_attributes.get('state', 'UNKNOWN')} | "
+                f"relationships={';'.join(relationships) if relationships else 'NONE'}"
+            )
 
 
 def report_subscriptions() -> None:
