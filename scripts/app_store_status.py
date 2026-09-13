@@ -119,7 +119,7 @@ def report_versions_and_builds() -> None:
         build_attributes = build.get("attributes", {})
         print(
             "  "
-            f"{attributes.get('versionString')} | "
+            f"{attributes.get('versionString')} | id={version.get('id')} | "
             f"state={attributes.get('appStoreState') or attributes.get('appVersionState')} | "
             f"release={attributes.get('releaseType')} | "
             f"build={build_attributes.get('version', 'NONE')} | "
@@ -157,7 +157,9 @@ def report_review_submissions() -> None:
             "limit": 20,
             "limit[items]": 50,
             "fields[reviewSubmissions]": "platform,submittedDate,state,items,appStoreVersionForReview",
-            "fields[reviewSubmissionItems]": "state,appStoreVersion",
+            "fields[reviewSubmissionItems]": (
+                "state,appStoreVersion,subscriptionVersion,subscriptionGroupVersion,inAppPurchaseVersion"
+            ),
             "fields[appStoreVersions]": "versionString,appStoreState,appVersionState,platform",
         },
     )
@@ -217,6 +219,27 @@ def report_subscriptions() -> None:
                 f"{attributes.get('productId')} | {attributes.get('name')} | "
                 f"state={attributes.get('state')} | period={attributes.get('subscriptionPeriod')} | "
                 f"level={attributes.get('groupLevel')} | id={subscription.get('id')}"
+            )
+            versions = api_get(
+                f"/subscriptions/{subscription.get('id')}/versions",
+                **{"limit": 50},
+            )
+            for version in versions.get("data", []):
+                print(
+                    "      "
+                    f"draft_version={version.get('id')} | "
+                    f"attributes={json.dumps(version.get('attributes', {}), sort_keys=True)}"
+                )
+
+        group_versions = api_get(
+            f"/subscriptionGroups/{group.get('id')}/versions",
+            **{"limit": 50},
+        )
+        for version in group_versions.get("data", []):
+            print(
+                "    "
+                f"group_draft_version={version.get('id')} | "
+                f"attributes={json.dumps(version.get('attributes', {}), sort_keys=True)}"
             )
 
 
