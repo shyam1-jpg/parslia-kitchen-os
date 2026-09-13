@@ -32,11 +32,16 @@ jobs:
           done
           exit "$missing"
 
-      - name: Install JWT dependency
-        run: python3 -m pip install --disable-pip-version-check --quiet "PyJWT[crypto]==2.10.1"
+      - name: Install JWT dependency in an isolated environment
+        shell: bash
+        run: |
+          STATUS_VENV="$RUNNER_TEMP/app-store-status-venv"
+          python3 -m venv "$STATUS_VENV"
+          "$STATUS_VENV/bin/python" -m pip install --disable-pip-version-check --quiet "PyJWT[crypto]==2.10.1"
+          echo "STATUS_PYTHON=$STATUS_VENV/bin/python" >> "$GITHUB_ENV"
 
       - name: Read current Apple status
-        run: python3 scripts/app_store_status.py | tee app-store-status.txt
+        run: "$STATUS_PYTHON" scripts/app_store_status.py | tee app-store-status.txt
 
       - name: Save status report
         uses: actions/upload-artifact@v4
