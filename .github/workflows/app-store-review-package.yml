@@ -1,0 +1,72 @@
+name: Apple Review Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Prepare a complete draft or submit the audited draft
+        required: true
+        type: choice
+        options:
+          - prepare
+          - submit
+      build_number:
+        description: Valid App Store Connect build number (required for prepare)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  review-package:
+    name: ${{ inputs.operation }} Apple review package
+    runs-on: macos-15
+    timeout-minutes: 10
+    env:
+      APP_STORE_APP_ID: "6797909735"
+      APP_STORE_VERSION: "1.0"
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+    steps:
+      - name: Check out Parslia
+        uses: actions/checkout@v4
+
+      - name: Verify App Store Connect secrets
+        shell: bash
+        run: |
+          missing=0
+          for secret_name in APP_STORE_CONNECT_ISSUER_ID APP_STORE_CONNECT_KEY_ID APP_STORE_CONNECT_PRIVATE_KEY; do
+            if [ -z "${!secret_name}" ]; then
+              echo "Missing required GitHub secret: $secret_name"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Validate workflow inputs
+        shell: bash
+        run: |
+          if [ "${{ inputs.operation }}" = "prepare" ] && [ -z "${{ inputs.build_number }}" ]; then
+            echo "build_number is required for prepare"
+            exit 1
+          fi
+
+      - name: Install JWT dependency in an isolated environment
+        shell: bash
+        run: |
+          REVIEW_VENV="$RUNNER_TEMP/app-store-review-venv"
+          python3 -m venv "$REVIEW_VENV"
+          "$REVIEW_VENV/bin/python" -m pip install --disable-pip-version-check --quiet "PyJWT[crypto]==2.10.1"
+          echo "REVIEW_PYTHON=$REVIEW_VENV/bin/python" >> "$GITHUB_ENV"
+
+      - name: Prepare complete Apple review draft
+        if: inputs.operation == 'prepare'
+        run: |
+          "$REVIEW_PYTHON" scripts/app_store_prepare.py prepare --build-number "${{ inputs.build_number }}"
+
+      - name: Submit audited Apple review draft
+        if: inputs.operation == 'submit'
+        run: |
+          "$REVIEW_PYTHON" scripts/app_store_prepare.py submit
