@@ -197,7 +197,32 @@ def cancel_unresolved_submissions() -> None:
     raise RuntimeError("Apple did not finish canceling the prior submission within three minutes")
 
 
-def create_version(resource_type: str, relationship_name: str, relationship_type: str, related_id: str) -> str:
+def existing_or_create_version(
+    resource_type: str,
+    relationship_name: str,
+    relationship_type: str,
+    related_id: str,
+) -> str:
+    parent_path = "subscriptionGroups" if relationship_type == "subscriptionGroups" else "subscriptions"
+    existing = api_get(
+        f"/{parent_path}/{related_id}/versions",
+        **{"limit": 50},
+    ).get("data", [])
+    reusable = [
+        item
+        for item in existing
+        if item.get("attributes", {}).get("state") in {"READY_FOR_REVIEW", "DEVELOPER_REJECTED"}
+    ]
+    if len(reusable) == 1:
+        item = reusable[0]
+        print(
+            f"Reusing {resource_type} {item.get('id')} "
+            f"in state {item.get('attributes', {}).get('state')}"
+        )
+        return str(item["id"])
+    if reusable:
+        raise RuntimeError(f"Multiple reusable {resource_type} resources exist for {related_id}")
+
     response = api_request(
         "POST",
         f"/{resource_type}",
@@ -302,11 +327,15 @@ def prepare(build_number: str) -> None:
 
     group_ids, subscription_ids = current_catalog()
     group_versions = [
-        create_version("subscriptionGroupVersions", "subscriptionGroup", "subscriptionGroups", group_id)
+        existing_or_create_version(
+            "subscriptionGroupVersions", "subscriptionGroup", "subscriptionGroups", group_id
+        )
         for group_id in group_ids
     ]
     subscription_versions = [
-        create_version("subscriptionVersions", "subscription", "subscriptions", subscription_id)
+        existing_or_create_version(
+            "subscriptionVersions", "subscription", "subscriptions", subscription_id
+        )
         for subscription_id in subscription_ids
     ]
     submission_id = create_review_submission()
