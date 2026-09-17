@@ -73,7 +73,7 @@ export interface ResolvedTurn {
 /** Gather memory, project files, weather, and web search in parallel where possible. */
 export async function prepareTurnContext(user: SafeUser, req: AiRequest): Promise<TurnContext> {
   const skipMemory = req.useMemory === false || req.routerMode === "private";
-  const memoryCtx = skipMemory ? "" : await getMemoryContext(user.id, req.projectId, req.message);
+  const memoryCtx = skipMemory ? "" : await getMemoryContext(user.id, req.projectId, req.message, req.conversationId);
   const wantsWeather = isWeatherQuery(req.message);
   const wantsWeb = wantsLiveSources(req.message, req.routerMode);
 
@@ -329,6 +329,9 @@ export async function* runTurnStream(
   const turn = await prepareContextForRequest(user, req);
   const { model, fallback } = resolveTurnModel(user, req);
   const messages = buildChatMessages(req, turn);
+
+  // Disclose the routed model before tokens so the thread can label the reply while it streams.
+  yield { model };
 
   if (turn.agentStatus) yield turn.agentStatus;
 

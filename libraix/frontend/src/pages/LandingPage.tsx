@@ -125,7 +125,7 @@ export function LandingPage() {
       <section className="section luxury-cta-band">
         <h2 className="section-title">Start with free chat</h2>
         <p className="section-sub">
-          {freeDaily} messages + 5 minutes Live Voice per day on Free. Pro unlocks unlimited voice.
+          {freeDaily} messages + 5 minutes Live Voice per day on Free. Pro (£9/mo) adds more messages, all live models, and unlimited voice.
         </p>
         <Link to="/login?mode=signup" className="btn btn-primary">
           Create free account

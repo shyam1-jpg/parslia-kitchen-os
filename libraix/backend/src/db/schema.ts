@@ -136,7 +136,36 @@ export function initDb() {
   migrateShipAllFeatures();
   migrateVoiceUsage();
   migrateEmbeddings();
+  migrateMessageModelMeta();
+  migrateStickyWorkspace();
+  migrateShareSnapshots();
   seedDefaultSiteConfig();
+}
+
+/** Per-message model so a thread can mix models and still show who answered after reload. */
+function migrateMessageModelMeta() {
+  const cols = db.prepare("PRAGMA table_info(messages)").all() as { name: string }[];
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has("model_id")) db.exec("ALTER TABLE messages ADD COLUMN model_id TEXT");
+  if (!names.has("model_label")) db.exec("ALTER TABLE messages ADD COLUMN model_label TEXT");
+}
+
+/** Last project / conversation / model so the workspace restores context across sessions. */
+function migrateStickyWorkspace() {
+  const cols = db.prepare("PRAGMA table_info(user_preferences)").all() as { name: string }[];
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has("last_project_id")) db.exec("ALTER TABLE user_preferences ADD COLUMN last_project_id TEXT");
+  if (!names.has("last_conversation_id")) db.exec("ALTER TABLE user_preferences ADD COLUMN last_conversation_id TEXT");
+  if (!names.has("last_model_id")) db.exec("ALTER TABLE user_preferences ADD COLUMN last_model_id TEXT");
+}
+
+/** Snapshot shared chats at share-time so later private turns are not leaked on the public link. */
+function migrateShareSnapshots() {
+  const cols = db.prepare("PRAGMA table_info(shared_chats)").all() as { name: string }[];
+  if (!cols.length) return;
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has("snapshot_json")) db.exec("ALTER TABLE shared_chats ADD COLUMN snapshot_json TEXT");
+  if (!names.has("title")) db.exec("ALTER TABLE shared_chats ADD COLUMN title TEXT");
 }
 
 /** Vector embeddings for RAG (document chunks) and memory recall. Stored as JSON text. */

@@ -66,6 +66,9 @@ router.patch("/preferences", (req, res) => {
     memoryEnabled: z.boolean().optional(),
     privacyMode: z.enum(["standard", "temporary", "business"]).optional(),
     routerMode: z.string().optional(),
+    lastProjectId: z.string().nullable().optional(),
+    lastConversationId: z.string().nullable().optional(),
+    lastModelId: z.string().nullable().optional(),
   });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });

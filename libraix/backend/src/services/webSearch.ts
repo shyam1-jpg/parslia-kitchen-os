@@ -95,12 +95,14 @@ export async function searchWeb(query: string): Promise<SearchResult[]> {
   const cached = getCachedSources(query, "web");
   if (cached?.length) return cached;
 
-  const serper = await searchViaSerper(query);
+  const serperP = searchViaSerper(query);
+  const ddgP = searchViaDuckDuckGo(query);
+  const serper = await serperP;
   if (serper.length) {
     setCachedSources(query, "web", serper);
     return serper;
   }
-  const ddg = await searchViaDuckDuckGo(query);
+  const ddg = await ddgP;
   if (ddg.length) setCachedSources(query, "web", ddg);
   return ddg;
 }

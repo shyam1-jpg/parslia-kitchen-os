@@ -74,6 +74,7 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   createdAt: string;
+  modelId?: string | null;
   modelLabel?: string;
   imageUrl?: string;
   imageGenerating?: boolean;
@@ -228,10 +229,10 @@ export const chatApi = {
     }),
   getConversation: (id: string) =>
     api<{ conversation: Conversation; messages: ChatMessage[] }>(`/api/conversations/${id}`),
-  addMessage: (conversationId: string, role: "user" | "assistant", content: string) =>
+  addMessage: (conversationId: string, role: "user" | "assistant", content: string, meta?: { modelId?: string; modelLabel?: string }) =>
     api<ChatMessage>(`/api/conversations/${conversationId}/messages`, {
       method: "POST",
-      body: JSON.stringify({ role, content }),
+      body: JSON.stringify({ role, content, modelId: meta?.modelId, modelLabel: meta?.modelLabel }),
     }),
   deleteConversation: (id: string) =>
     api<{ ok: boolean }>(`/api/conversations/${id}`, { method: "DELETE" }),
@@ -254,6 +255,11 @@ export const chatApi = {
     api<{ ok: boolean; conversation?: Conversation }>(`/api/conversations/${id}`, {
       method: "PATCH",
       body: JSON.stringify({ projectId }),
+    }),
+  setConversationModel: (id: string, modelId: string) =>
+    api<{ ok: boolean; conversation?: Conversation }>(`/api/conversations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ modelId }),
     }),
   editMessage: (conversationId: string, messageId: string, content: string) =>
     api<{ ok: boolean; messages: ChatMessage[] }>(`/api/conversations/${conversationId}/messages/${messageId}`, {

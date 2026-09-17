@@ -222,6 +222,18 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
       }
       if (typeof chunk === "object" && chunk && "model" in chunk) {
         model = chunk.model ?? model;
+        if (model) {
+          res.write(
+            `data: ${JSON.stringify({
+              meta: {
+                modelId: model.id,
+                displayName: model.displayName,
+                provider: model.provider,
+                providerModelId: model.providerModelId,
+              },
+            })}\n\n`
+          );
+        }
         continue;
       }
       res.write(`data: ${JSON.stringify({ delta: chunk })}\n\n`);

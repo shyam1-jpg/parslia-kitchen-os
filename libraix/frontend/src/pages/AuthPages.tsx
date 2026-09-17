@@ -317,7 +317,7 @@ export function PricingPage() {
       <section className="section">
         <div className="section-label">Pricing</div>
         <h1 className="section-title">Simple, honest pricing</h1>
-        <p className="section-sub">Start free. Upgrade when you need more. Cancel anytime.</p>
+        <p className="section-sub">Start free for everyday chat. Pro unlocks more messages, every live model, and unlimited Live Voice.</p>
 
         {checkoutMsg && (
           <div className="info-banner" style={{ maxWidth: 720, margin: "0 auto 24px" }}>{checkoutMsg}</div>
@@ -340,9 +340,10 @@ export function PricingPage() {
             <h3>Pro</h3>
             <div className="price-amount">£9<span>/mo</span></div>
             <ul className="price-features">
-              <li>✓ All live & beta models</li>
+              <li>✓ All live &amp; beta models in one thread</li>
               <li>✓ {proPlan?.dailyMessages ?? 500} messages per day</li>
               <li>✓ Unlimited Live Voice</li>
+              <li>✓ Projects, memory, and share links included</li>
             </ul>
             <button type="button" className="btn btn-primary" style={{ width: "100%" }} disabled={checkoutLoading} onClick={() => startCheckout("pro")}>
               {checkoutLoading ? "Please wait…" : user ? "Start Pro — £9/mo" : "Sign up for Pro"}

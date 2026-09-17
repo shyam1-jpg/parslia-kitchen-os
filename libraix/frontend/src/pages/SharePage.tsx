@@ -8,7 +8,7 @@ import { friendlyError } from "../lib/errors";
 export function SharePage() {
   const { token = "" } = useParams();
   const [title, setTitle] = useState("");
-  const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
+  const [messages, setMessages] = useState<{ role: string; content: string; modelLabel?: string | null }[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -49,6 +49,11 @@ export function SharePage() {
                 m.content
               )}
             </div>
+            {m.role === "assistant" && m.modelLabel && (
+              <div className="msg-actions">
+                <span className="model-disclosure">{m.modelLabel}</span>
+              </div>
+            )}
           </div>
         ))}
       </main>

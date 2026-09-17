@@ -74,7 +74,12 @@ function keywordScore(content: string, terms: string[]): number {
  * Build memory system context. When `query` is provided, rank by embeddings (if available)
  * plus keyword overlap; otherwise prefer durable identity/prefs.
  */
-export async function getMemoryContext(userId: string, projectId?: string, query?: string): Promise<string> {
+export async function getMemoryContext(
+  userId: string,
+  projectId?: string,
+  query?: string,
+  conversationId?: string
+): Promise<string> {
   const prefs = db
     .prepare("SELECT memory_enabled, privacy_mode FROM user_preferences WHERE user_id = ?")
     .get(userId) as { memory_enabled: number; privacy_mode: string } | undefined;
@@ -90,6 +95,12 @@ export async function getMemoryContext(userId: string, projectId?: string, query
   if (!memories.length) return "";
 
   let selected = memories;
+
+  const durable = memories
+    .filter((m) => categoryRank(m.category) <= 3)
+    .sort((a, b) => categoryRank(a.category) - categoryRank(b.category));
+  const threadKey = conversationId ? `Conversation focus (${conversationId.slice(0, 8)})` : null;
+  const thread = threadKey ? memories.filter((m) => m.content.startsWith(threadKey) || (m.category === "auto:thread" && m.content.includes(conversationId!.slice(0, 8)))) : [];
 
   if (query?.trim()) {
     const terms = query
@@ -112,19 +123,23 @@ export async function getMemoryContext(userId: string, projectId?: string, query
       .all(...(projectId ? [userId, projectId] : [userId])) as Array<{ id: string; embedding: string | null }>;
     const embById = new Map(rows.map((r) => [r.id, deserializeEmbedding(r.embedding)]));
 
-    selected = [...memories]
+    const ranked = [...memories]
       .map((m) => {
         const kw = terms.length ? keywordScore(m.content, terms) : 0;
         const emb = embById.get(m.id);
         const sem = queryVec && emb ? cosineSimilarity(queryVec, emb) * 100 : 0;
-        const durable = 20 - categoryRank(m.category);
-        return { m, score: sem + kw + durable };
+        const durableBoost = 20 - categoryRank(m.category);
+        return { m, score: sem + kw + durableBoost };
       })
       .sort((a, b) => b.score - a.score)
-      .slice(0, 20)
       .map((x) => x.m);
+
+    const pinnedIds = new Set([...durable.slice(0, 8), ...thread].map((m) => m.id));
+    selected = [...durable.slice(0, 8), ...thread, ...ranked.filter((m) => !pinnedIds.has(m.id))].slice(0, 20);
   } else {
-    selected = [...memories].sort((a, b) => categoryRank(a.category) - categoryRank(b.category)).slice(0, 20);
+    selected = [...durable, ...thread, ...memories.filter((m) => categoryRank(m.category) > 3 && !thread.some((t) => t.id === m.id))]
+      .filter((m, i, arr) => arr.findIndex((x) => x.id === m.id) === i)
+      .slice(0, 20);
   }
 
   return (
@@ -143,21 +158,47 @@ export function getUserPreferences(userId: string) {
     memoryEnabled: row!.memory_enabled === 1,
     privacyMode: row!.privacy_mode as string,
     routerMode: row!.router_mode as string,
+    lastProjectId: (row!.last_project_id as string | null) ?? null,
+    lastConversationId: (row!.last_conversation_id as string | null) ?? null,
+    lastModelId: (row!.last_model_id as string | null) ?? null,
   };
 }
 
-export function updateUserPreferences(userId: string, updates: { memoryEnabled?: boolean; privacyMode?: string; routerMode?: string }) {
+export function updateUserPreferences(
+  userId: string,
+  updates: {
+    memoryEnabled?: boolean;
+    privacyMode?: string;
+    routerMode?: string;
+    lastProjectId?: string | null;
+    lastConversationId?: string | null;
+    lastModelId?: string | null;
+  }
+) {
+  db.prepare("INSERT INTO user_preferences (user_id) VALUES (?) ON CONFLICT(user_id) DO NOTHING").run(userId);
   if (updates.memoryEnabled !== undefined) {
-    db.prepare("INSERT INTO user_preferences (user_id, memory_enabled) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET memory_enabled = ?, updated_at = datetime('now')")
-      .run(userId, updates.memoryEnabled ? 1 : 0, updates.memoryEnabled ? 1 : 0);
+    db.prepare("UPDATE user_preferences SET memory_enabled = ?, updated_at = datetime('now') WHERE user_id = ?")
+      .run(updates.memoryEnabled ? 1 : 0, userId);
   }
   if (updates.privacyMode) {
-    db.prepare("INSERT INTO user_preferences (user_id, privacy_mode) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET privacy_mode = ?, updated_at = datetime('now')")
-      .run(userId, updates.privacyMode, updates.privacyMode);
+    db.prepare("UPDATE user_preferences SET privacy_mode = ?, updated_at = datetime('now') WHERE user_id = ?")
+      .run(updates.privacyMode, userId);
   }
   if (updates.routerMode) {
-    db.prepare("INSERT INTO user_preferences (user_id, router_mode) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET router_mode = ?, updated_at = datetime('now')")
-      .run(userId, updates.routerMode, updates.routerMode);
+    db.prepare("UPDATE user_preferences SET router_mode = ?, updated_at = datetime('now') WHERE user_id = ?")
+      .run(updates.routerMode, userId);
+  }
+  if (updates.lastProjectId !== undefined) {
+    db.prepare("UPDATE user_preferences SET last_project_id = ?, updated_at = datetime('now') WHERE user_id = ?")
+      .run(updates.lastProjectId, userId);
+  }
+  if (updates.lastConversationId !== undefined) {
+    db.prepare("UPDATE user_preferences SET last_conversation_id = ?, updated_at = datetime('now') WHERE user_id = ?")
+      .run(updates.lastConversationId, userId);
+  }
+  if (updates.lastModelId !== undefined) {
+    db.prepare("UPDATE user_preferences SET last_model_id = ?, updated_at = datetime('now') WHERE user_id = ?")
+      .run(updates.lastModelId, userId);
   }
 }
 

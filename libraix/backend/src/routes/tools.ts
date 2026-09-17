@@ -48,9 +48,17 @@ router.post("/parse-document", async (req, res) => {
       msg === "NO_TEXT_EXTRACTED" ||
       msg === "NO_TEXT_EXTRACTED_SCANNED_PDF" ||
       msg === "LEGACY_DOC_UNSUPPORTED"
-        ? 400
+        ? 400 :
+      msg === "PDF_PARSE_TIMEOUT"
+        ? 504
         : 502;
-    res.status(status).json({ error: msg });
+    const hint =
+      msg === "PDF_PARSE_TIMEOUT"
+        ? "That PDF took too long to read. Try a smaller file or a text-based PDF."
+        : msg === "PDF_PARSE_FAILED"
+          ? "Could not read that PDF. Try another file or export it as text/DOCX."
+          : undefined;
+    res.status(status).json({ error: msg, hint });
   }
 });
 
@@ -97,7 +105,10 @@ router.post("/search", async (req, res) => {
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "SEARCH_FAILED";
-    res.status(502).json({ error: msg });
+    res.status(502).json({
+      error: msg,
+      hint: "Web search didn’t return results. Try a shorter query, or check the search API key on the server.",
+    });
   }
 });
 
@@ -145,8 +156,21 @@ router.post("/analyse-link", async (req, res) => {
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "ANALYSIS_FAILED";
-    const status = ["INVALID_URL", "URL_NOT_ALLOWED", "NO_PAGE_TEXT"].includes(msg) ? 400 : 502;
-    res.status(status).json({ error: msg });
+    const status =
+      ["INVALID_URL", "URL_NOT_ALLOWED", "NO_PAGE_TEXT", "PAGE_BLOCKED"].includes(msg) ? 400 :
+      msg === "PAGE_TIMEOUT" || msg === "URL_UNREACHABLE" ? 504 :
+      502;
+    const hint =
+      msg === "PAGE_TIMEOUT"
+        ? "That page took too long to load. Try again, or paste the text instead."
+        : msg === "PAGE_BLOCKED"
+          ? "The site blocked automated access. Copy the relevant text into chat instead."
+        : msg === "NO_PAGE_TEXT"
+          ? "No readable text was found on that page."
+        : msg === "URL_NOT_ALLOWED" || msg === "INVALID_URL"
+          ? "That link can’t be analysed. Use a public http(s) webpage."
+        : "Couldn’t analyse that page. Try again in a moment.";
+    res.status(status).json({ error: msg, hint });
   }
 });
 
@@ -188,11 +212,25 @@ router.post("/youtube", async (req, res) => {
       url: parsed.data.url,
       summary: response.content,
       truncated: transcript.truncated,
+      source: transcript.source,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "YOUTUBE_FAILED";
-    const status = msg === "INVALID_YOUTUBE_URL" || msg === "NO_TRANSCRIPT" ? 400 : 502;
-    res.status(status).json({ error: msg });
+    const status =
+      msg === "INVALID_YOUTUBE_URL" || msg === "NO_TRANSCRIPT" || msg === "YOUTUBE_PRIVATE" || msg === "YOUTUBE_UNAVAILABLE"
+        ? 400
+        : 502;
+    const hint =
+      msg === "INVALID_YOUTUBE_URL"
+        ? "That doesn’t look like a YouTube link."
+        : msg === "YOUTUBE_PRIVATE"
+          ? "This video looks private or age-restricted, so captions aren’t available."
+        : msg === "YOUTUBE_UNAVAILABLE"
+          ? "YouTube couldn’t play this video (removed or region-locked)."
+        : msg === "NO_TRANSCRIPT"
+          ? "No captions were found for this video. Try a video with subtitles on."
+        : "Couldn’t summarise that video. Try again in a moment.";
+    res.status(status).json({ error: msg, hint });
   }
 });
 

@@ -83,7 +83,7 @@ export const workspaceApi = {
       body: JSON.stringify({ conversationId }),
     }),
   getShared: (token: string) =>
-    api<{ title: string; messages: { role: string; content: string; createdAt: string }[] }>(
+    api<{ title: string; messages: { role: string; content: string; createdAt: string; modelLabel?: string | null }[] }>(
       `/api/workspace/share/${token}`
     ),
 

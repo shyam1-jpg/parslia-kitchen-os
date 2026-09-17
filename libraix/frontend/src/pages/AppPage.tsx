@@ -97,6 +97,10 @@ const ASSISTANT_UI: Record<
   },
 };
 
+function formatModelLabel(displayName: string, provider: string) {
+  return `Generated using ${displayName} (${provider}) through Libraix`;
+}
+
 function groupConversations(conversations: Conversation[]) {
   const now = new Date();
   const today = now.toDateString();
@@ -139,6 +143,8 @@ export function AppPage() {
   const [loading, setLoading] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [pendingRestoreId, setPendingRestoreId] = useState<string | null>(null);
   const [showCompare, setShowCompare] = useState(false);
   const [routerHint, setRouterHint] = useState("");
   const [assistants, setAssistants] = useState<{ id: string; name: string; systemPrompt: string }[]>([]);
@@ -163,6 +169,9 @@ export function AppPage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
   const abortCtrlRef = useRef<AbortController | null>(null);
+  const restoredChatRef = useRef(false);
+  const restoredModelRef = useRef<string | null>(null);
+  const prefsReadyRef = useRef(false);
 
   const speechOut = useSpeechOutput();
   const { setSpeechLocale: setTtsLocale } = speechOut;
@@ -250,8 +259,22 @@ export function AppPage() {
     fetch("/api/health", { credentials: "include" }).catch(() => {});
     chatApi.models().then((d) => {
       setModels(d.models);
-      const first = d.models.find((m) => m.available !== false && m.capabilities.chat) ?? d.models.find((m) => m.capabilities.chat);
+      const stored = restoredModelRef.current;
+      const match = stored ? d.models.find((m) => m.id === stored && m.capabilities.chat && m.available !== false) : undefined;
+      const first = match ?? d.models.find((m) => m.available !== false && m.capabilities.chat) ?? d.models.find((m) => m.capabilities.chat);
       if (first) setModelId(first.id);
+    });
+    advancedApi.memoryPreferences().then((prefs) => {
+      if (prefs.routerMode && prefs.routerMode !== "private") setRouterMode(prefs.routerMode);
+      if (prefs.lastModelId) {
+        restoredModelRef.current = prefs.lastModelId;
+        setModelId(prefs.lastModelId);
+      }
+      if (prefs.lastProjectId) setActiveProjectId(prefs.lastProjectId);
+      if (prefs.lastConversationId) setPendingRestoreId(prefs.lastConversationId);
+      prefsReadyRef.current = true;
+    }).catch(() => {
+      prefsReadyRef.current = true;
     });
     catalogApi.get().then((c) => setAssistants(c.assistants.map((a) => ({ id: a.id, name: a.name, systemPrompt: a.systemPrompt })))).catch(() => {});
     advancedApi.routerModes().then((d) => setRouterModes(d.modes)).catch(() => {});
@@ -343,6 +366,8 @@ export function AppPage() {
           ? "This PDF looks scanned (no extractable text). Try a text-based PDF or DOCX."
           : code === "LEGACY_DOC_UNSUPPORTED"
             ? "Legacy .doc isn’t supported — save as .docx or PDF and try again."
+            : code === "PDF_PARSE_TIMEOUT"
+              ? "That PDF took too long to read. Try a smaller file or a text-based PDF."
             : "Could not read file";
       setError(friendlyError(code, hint));
     } finally {
@@ -386,6 +411,10 @@ export function AppPage() {
     list.map((m) => {
       if (m.role !== "assistant") return m;
       let next = { ...m };
+      if (!next.modelLabel && next.modelId) {
+        const model = models.find((x) => x.id === next.modelId);
+        if (model) next.modelLabel = formatModelLabel(model.displayName, model.provider);
+      }
       const weather = extractWeatherCard(next.content);
       if (weather.weather) {
         next = { ...next, content: weather.text, weatherCard: weather.weather };
@@ -420,6 +449,11 @@ export function AppPage() {
   }, [conversations, searchQuery, folderFilter]);
 
   const grouped = groupConversations(filteredConversations);
+  const lastAssistantId = [...messages].reverse().find((m) => m.role === "assistant" && (m.content || m.imageUrl))?.id;
+
+  const persistWorkspace = useCallback((updates: { lastProjectId?: string | null; lastConversationId?: string | null; lastModelId?: string | null; routerMode?: string }) => {
+    advancedApi.updateMemoryPreferences(updates).catch(() => {});
+  }, []);
 
   const selectConversation = async (id: string) => {
     setActiveId(id);
@@ -428,15 +462,26 @@ export function AppPage() {
     setMessages(hydrateMessages(data.messages));
     setModelId(data.conversation.modelId);
     setActiveProjectId(data.conversation.projectId ?? null);
+    persistWorkspace({ lastConversationId: id, lastModelId: data.conversation.modelId, lastProjectId: data.conversation.projectId ?? null });
   };
 
   const newChat = async () => {
+    restoredChatRef.current = true;
     const conv = await chatApi.createConversation(modelId, undefined, activeProjectId);
     setConversations((prev) => [conv, ...prev]);
     setActiveId(conv.id);
     setMessages([]);
     setSidebarOpen(false);
+    persistWorkspace({ lastConversationId: conv.id, lastModelId: modelId, lastProjectId: activeProjectId });
   };
+
+  useEffect(() => {
+    if (restoredChatRef.current || activeId || !pendingRestoreId || !conversations.length) return;
+    const found = conversations.find((c) => c.id === pendingRestoreId);
+    if (!found) return;
+    restoredChatRef.current = true;
+    void selectConversation(found.id).catch(() => {});
+  }, [conversations, activeId, pendingRestoreId]);
 
   const renameChat = async (id: string, currentTitle: string) => {
     const title = window.prompt("Rename conversation", currentTitle);
@@ -488,6 +533,18 @@ export function AppPage() {
     URL.revokeObjectURL(url);
   };
 
+  const shareConversation = async (id: string) => {
+    try {
+      const r = await workspaceApi.shareChat(id);
+      await navigator.clipboard.writeText(r.url);
+      setError("");
+      setNotice(`Share link copied — later messages in this chat stay private. ${r.url}`);
+      window.setTimeout(() => setNotice(""), 8000);
+    } catch (e) {
+      setError(friendlyError(e instanceof Error ? e.message : "", "Could not share"));
+    }
+  };
+
   const regenerateLast = async () => {
     if (!activeId || streaming || loading) return;
     const lastUser = [...messages].reverse().find((m) => m.role === "user");
@@ -495,8 +552,9 @@ export function AppPage() {
     try {
       await chatApi.regenerateConversation(activeId);
       const data = await chatApi.getConversation(activeId);
-      setMessages(hydrateMessages(data.messages));
-      await sendMessage(lastUser.content, true);
+      const hydrated = hydrateMessages(data.messages);
+      setMessages(hydrated);
+      await sendMessage(lastUser.content, true, undefined, hydrated);
     } catch {
       setError("Could not regenerate response.");
     }
@@ -508,10 +566,23 @@ export function AppPage() {
     if (!content?.trim() || content === current) return;
     try {
       const { messages: updated } = await chatApi.editMessage(activeId, messageId, content.trim());
-      setMessages(hydrateMessages(updated));
-      await sendMessage(content.trim(), true);
+      const hydrated = hydrateMessages(updated);
+      setMessages(hydrated);
+      await sendMessage(content.trim(), true, undefined, hydrated);
     } catch {
       setError("Could not edit message.");
+    }
+  };
+
+  const editAssistantReply = async (messageId: string, current: string) => {
+    if (!activeId) return;
+    const content = window.prompt("Edit this reply", current);
+    if (!content?.trim() || content === current) return;
+    try {
+      const { messages: updated } = await chatApi.editMessage(activeId, messageId, content.trim());
+      setMessages(hydrateMessages(updated));
+    } catch {
+      setError("Could not edit reply.");
     }
   };
 
@@ -530,17 +601,18 @@ export function AppPage() {
 
   const handleProjectSelect = async (projectId: string | null) => {
     setActiveProjectId(projectId);
+    persistWorkspace({ lastProjectId: projectId });
     if (activeId) {
       await chatApi.setConversationProject(activeId, projectId);
       loadConversations();
     }
   };
 
-  const sendMessage = async (text?: string, resendOnly = false, modeOverride?: string) => {
+  const sendMessage = async (text?: string, resendOnly = false, modeOverride?: string, historyOverride?: ChatMessage[]) => {
     const content = (text ?? input).trim();
     if (!content || loading || streaming) return;
     if (usage?.limitReached) {
-      setError("Daily message limit reached. Upgrade to Pro for more.");
+      setError("Daily message limit reached. Pro (£9/mo) adds more messages, all live models, and unlimited Live Voice.");
       return;
     }
 
@@ -581,6 +653,7 @@ export function AppPage() {
       convId = conv.id;
       setActiveId(convId);
       setConversations((prev) => [conv, ...prev]);
+      persistWorkspace({ lastConversationId: convId, lastModelId: modelId, lastProjectId: activeProjectId });
     }
 
     const userMsg: ChatMessage = {
@@ -634,7 +707,7 @@ export function AppPage() {
                 : m
             )
           );
-          chatApi.addMessage(convId, "assistant", fullContent).catch(() => {});
+          chatApi.addMessage(convId, "assistant", fullContent, { modelLabel }).catch(() => {});
           setImageMode(false);
           refresh().catch(() => {});
           loadConversations();
@@ -651,7 +724,8 @@ export function AppPage() {
 
       // Save user message in parallel — don't block first token
       const saveUser = resendOnly ? Promise.resolve() : chatApi.addMessage(convId, "user", content).catch(() => {});
-      const history = (resendOnly ? messages : [...messages, userMsg])
+      const historySource = historyOverride ?? messages;
+      const history = (resendOnly ? historySource : [...historySource, userMsg])
         .filter((m) => m.content && !m.imageGenerating)
         .map((m) => ({ role: m.role, content: m.content }));
 
@@ -661,6 +735,7 @@ export function AppPage() {
 
       let fullContent = "";
       let modelLabel = "";
+      let usedModelId = "";
       let messageSources: ChatMessage["sources"];
       let weatherCard: ChatMessage["weatherCard"];
       let raf = 0;
@@ -673,6 +748,7 @@ export function AppPage() {
                   ...m,
                   content: fullContent || (weatherCard ? "" : "Thinking…"),
                   modelLabel: modelLabel || m.modelLabel,
+                  modelId: usedModelId || m.modelId,
                   sources: messageSources,
                   weatherCard: weatherCard ?? m.weatherCard,
                 }
@@ -709,7 +785,11 @@ export function AppPage() {
           }
           if (typeof chunk === "object" && chunk.meta) {
             if (chunk.meta.displayName && chunk.meta.provider) {
-              modelLabel = `Generated using ${chunk.meta.displayName} (${chunk.meta.provider}) through Libraix`;
+              modelLabel = formatModelLabel(chunk.meta.displayName, chunk.meta.provider);
+            }
+            if (chunk.meta.modelId) {
+              usedModelId = chunk.meta.modelId;
+              setModelId(chunk.meta.modelId);
             }
             if (chunk.meta.sources?.length) messageSources = chunk.meta.sources;
             if (chunk.meta.weatherCard) weatherCard = chunk.meta.weatherCard;
@@ -746,7 +826,7 @@ export function AppPage() {
         if (fullContent && fullContent !== "Thinking…") {
           await saveUser;
           const toSave = weatherCard ? `${encodeWeatherMarker(weatherCard)}\n\n${fullContent}` : fullContent;
-          await chatApi.addMessage(convId, "assistant", toSave).catch(() => {});
+          await chatApi.addMessage(convId, "assistant", toSave, { modelId: usedModelId || undefined, modelLabel: modelLabel || undefined }).catch(() => {});
         }
         await refresh().catch(() => {});
         return;
@@ -765,14 +845,17 @@ export function AppPage() {
         });
         fullContent = result.content;
         modelLabel = result.displayName
-          ? `Generated using ${result.displayName} (${result.provider ?? "provider"}) through Libraix`
+          ? formatModelLabel(result.displayName, result.provider ?? "provider")
           : "";
-        if (result.modelId) setModelId(result.modelId);
+        if (result.modelId) {
+          usedModelId = result.modelId;
+          setModelId(result.modelId);
+        }
         weatherCard = result.weatherCard ?? weatherCard;
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId
-              ? { ...m, content: fullContent, modelLabel, imageUrl: result.imageUrl, sources: result.sources, weatherCard }
+              ? { ...m, content: fullContent, modelLabel, modelId: usedModelId || m.modelId, imageUrl: result.imageUrl, sources: result.sources, weatherCard }
               : m
           )
         );
@@ -783,8 +866,9 @@ export function AppPage() {
       await saveUser;
       if (fullContent && fullContent !== "Thinking…") {
         const toSave = weatherCard ? `${encodeWeatherMarker(weatherCard)}\n\n${fullContent}` : fullContent;
-        await chatApi.addMessage(convId, "assistant", toSave);
+        await chatApi.addMessage(convId, "assistant", toSave, { modelId: usedModelId || undefined, modelLabel: modelLabel || undefined });
       }
+      if (usedModelId) persistWorkspace({ lastModelId: usedModelId, lastConversationId: convId });
       await refresh();
       loadConversations();
     } catch (err) {
@@ -1097,15 +1181,7 @@ export function AppPage() {
                           type="button"
                           className="icon-btn conv-action-btn"
                           title="Share link"
-                          onClick={async () => {
-                            try {
-                              const r = await workspaceApi.shareChat(c.id);
-                              await navigator.clipboard.writeText(r.url);
-                              setError(`Share link copied: ${r.url}`);
-                            } catch (e) {
-                              setError(friendlyError(e instanceof Error ? e.message : "", "Could not share"));
-                            }
-                          }}
+                          onClick={() => void shareConversation(c.id)}
                         >
                           🔗
                         </button>
@@ -1143,7 +1219,11 @@ export function AppPage() {
         <header className="top-bar">
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <button className="icon-btn mobile-menu-btn" onClick={() => setSidebarOpen(true)}><IconMenu /></button>
-            <select className="model-select" value={routerMode} onChange={(e) => setRouterMode(e.target.value)}>
+            <select className="model-select" value={routerMode} onChange={(e) => {
+              const next = e.target.value;
+              setRouterMode(next);
+              if (prefsReadyRef.current) persistWorkspace({ routerMode: next });
+            }}>
               {routerModes.map((m) => (
                 <option key={m.id} value={m.id}>{m.label}</option>
               ))}
@@ -1151,7 +1231,12 @@ export function AppPage() {
             <select
               className="model-select"
               value={modelId}
-              onChange={(e) => setModelId(e.target.value)}
+              onChange={(e) => {
+                const next = e.target.value;
+                setModelId(next);
+                persistWorkspace({ lastModelId: next });
+                if (activeId) chatApi.setConversationModel(activeId, next).catch(() => {});
+              }}
               disabled={routerMode === "auto"}
               title={routerMode === "auto" ? "Switch to Manual to pick a model" : "Choose AI model"}
             >
@@ -1233,6 +1318,11 @@ export function AppPage() {
             {messages.some((m) => m.role === "assistant") && (
               <button type="button" className="btn btn-ghost btn-sm" onClick={regenerateLast} disabled={loading || streaming}>Regenerate</button>
             )}
+            {activeId && messages.length > 0 && (
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => void shareConversation(activeId)} disabled={loading || streaming} title="Copy a read-only link to this chat">
+                Share
+              </button>
+            )}
             <ReportAiContentButton feature="Chat" className="btn btn-ghost btn-sm" />
             {user?.plan !== "free" && (
               <button
@@ -1248,7 +1338,7 @@ export function AppPage() {
               <Link
                 to="/pricing"
                 className="btn btn-primary btn-sm"
-                title="Pro: more messages, unlimited Live Voice, and all live models"
+                title="Pro: more messages, all live models, and unlimited Live Voice"
               >
                 Go Pro — £9/mo
               </Link>
@@ -1289,6 +1379,7 @@ export function AppPage() {
           </div>
         )}
         {verifyNotice && <div className="info-banner" style={{ margin: "0 24px" }}>{verifyNotice}</div>}
+        {notice && <div className="info-banner" style={{ margin: "0 24px" }}>{notice}</div>}
         {user?.billingStatus === "past_due" && (
           <div className="error-banner" style={{ margin: "0 24px" }}>
             Payment failed — <Link to="/app/billing">update billing</Link> to keep Pro features.
@@ -1386,6 +1477,12 @@ export function AppPage() {
                       </button>
                     )}
                     <button className="msg-action" onClick={() => copyMessage(m.content)}><IconCopy /> Copy</button>
+                    {m.id === lastAssistantId && !streaming && !loading && (
+                      <>
+                        <button className="msg-action" onClick={() => void regenerateLast()} title="Regenerate this reply">Regenerate</button>
+                        <button className="msg-action" onClick={() => void editAssistantReply(m.id, m.content)} title="Edit this reply">Edit</button>
+                      </>
+                    )}
                     <ReportAiContentButton feature="Chat" excerpt={m.content} />
                     {m.content.length > 280 && (
                       <button
@@ -1479,7 +1576,7 @@ export function AppPage() {
                     <span>Live Voice used up for today (5 min Free). </span>
                   )}
                   {(usage.limitReached || usage.voiceLimitReached) && (
-                    <Link to="/pricing">Upgrade to Pro</Link>
+                    <Link to="/pricing">Upgrade to Pro — more messages, all models, unlimited voice</Link>
                   )}
                   {showUsageDetails && !usage.limitReached && (
                     <span>

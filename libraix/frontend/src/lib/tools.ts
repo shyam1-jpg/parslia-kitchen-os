@@ -171,8 +171,8 @@ export const toolsApi = {
       body: JSON.stringify({ url, question }),
     }),
 
-  youtube: (url: string, question?: string) =>
-    api<{ videoId: string; url: string; summary: string; truncated: boolean }>("/api/tools/youtube", {
+    youtube: (url: string, question?: string) =>
+    api<{ videoId: string; url: string; summary: string; truncated: boolean; source?: string }>("/api/tools/youtube", {
       method: "POST",
       body: JSON.stringify({ url, question }),
     }),
