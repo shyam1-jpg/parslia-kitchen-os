@@ -18,7 +18,7 @@ const ERROR_LABELS: Record<string, string> = {
   HTTP_502: "Connection timed out. Try a shorter message or wait a few seconds and retry.",
   HTTP_503: "Service temporarily unavailable. Please try again shortly.",
   ABORTED: "Stopped.",
-  REQUEST_TIMED_OUT: "Reply timed out. The server may be waking up — tap send again in a few seconds.",
+  REQUEST_TIMED_OUT: "Libraix didn’t hear back in time. Retry — the server may be waking up.",
   NO_TEXT_EXTRACTED_SCANNED_PDF: "This PDF looks scanned (no extractable text). Try a text PDF or DOCX.",
   LEGACY_DOC_UNSUPPORTED: "Legacy .doc isn’t supported — save as .docx or PDF and try again.",
   FILE_TYPE_NOT_SUPPORTED: "Unsupported file type. Use PDF, DOCX, RTF, or text.",
@@ -51,6 +51,18 @@ export function friendlyError(code: string, fallback?: string): string {
     return ERROR_LABELS[code] ?? "Connection error. Please try again.";
   }
   return ERROR_LABELS[code] ?? fallback ?? code;
+}
+
+/** Retry the stream once when no tokens arrived (timeouts, proxy 502s, dropped sockets). */
+export function isRetryableStreamError(code: string): boolean {
+  return (
+    code === "REQUEST_TIMED_OUT" ||
+    code === "STREAM_FAILED" ||
+    code === "PROVIDER_UNAVAILABLE" ||
+    code === "PROVIDER_ERROR" ||
+    code.startsWith("HTTP_") ||
+    /failed to fetch|network|econnreset|socket/i.test(code)
+  );
 }
 
 export async function readApiError(res: Response): Promise<string> {
