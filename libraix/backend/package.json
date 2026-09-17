@@ -7,7 +7,9 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "seed:owner": "tsx scripts/seed-owner.ts"
+    "seed:owner": "tsx scripts/seed-owner.ts",
+    "test": "node --import tsx --test src/services/*.test.ts",
+    "verify:chat": "tsx scripts/verify-chat-upgrades.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

@@ -28,7 +28,7 @@ export function ensureSourceCacheTable() {
   `);
 }
 
-export function getCachedSources(query: string, provider: string): SearchResult[] | null {
+export function getCachedJson<T>(query: string, provider: string): T | null {
   ensureSourceCacheTable();
   const hash = hashSourceQuery(query);
   const row = db
@@ -39,19 +39,13 @@ export function getCachedSources(query: string, provider: string): SearchResult[
     .get(hash, provider) as { results_json: string } | undefined;
   if (!row) return null;
   try {
-    const parsed = JSON.parse(row.results_json) as SearchResult[];
-    return Array.isArray(parsed) ? parsed : null;
+    return JSON.parse(row.results_json) as T;
   } catch {
     return null;
   }
 }
 
-export function setCachedSources(
-  query: string,
-  provider: string,
-  results: SearchResult[],
-  ttlSec = DEFAULT_TTL_SEC
-): void {
+export function setCachedJson<T>(query: string, provider: string, value: T, ttlSec = DEFAULT_TTL_SEC): void {
   ensureSourceCacheTable();
   const hash = hashSourceQuery(query);
   const expiresAt = new Date(Date.now() + ttlSec * 1000).toISOString();
@@ -63,7 +57,21 @@ export function setCachedSources(
        query_text = excluded.query_text,
        expires_at = excluded.expires_at,
        created_at = datetime('now')`
-  ).run(hash, provider, normalizeSourceQuery(query), JSON.stringify(results), expiresAt);
+  ).run(hash, provider, normalizeSourceQuery(query), JSON.stringify(value), expiresAt);
+}
+
+export function getCachedSources(query: string, provider: string): SearchResult[] | null {
+  const parsed = getCachedJson<SearchResult[]>(query, provider);
+  return Array.isArray(parsed) ? parsed : null;
+}
+
+export function setCachedSources(
+  query: string,
+  provider: string,
+  results: SearchResult[],
+  ttlSec = DEFAULT_TTL_SEC
+): void {
+  setCachedJson(query, provider, results, ttlSec);
 }
 
 export function wikiCacheTtlSec() {

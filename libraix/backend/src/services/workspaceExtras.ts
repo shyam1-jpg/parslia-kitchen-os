@@ -127,31 +127,87 @@ export function deleteCustomAssistant(userId: string, id: string) {
 
 /* ── Share links ────────────────────────────────────────────── */
 
-export function createShareLink(userId: string, conversationId: string) {
+type SharedSnapshotMessage = {
+  role: string;
+  content: string;
+  createdAt: string;
+  modelLabel?: string | null;
+};
+
+function snapshotConversation(userId: string, conversationId: string) {
   const conv = getConversation(userId, conversationId);
   if (!conv) return null;
+  return {
+    title: conv.title,
+    capturedAt: new Date().toISOString(),
+    messages: getMessages(conversationId).map((m) => ({
+      role: m.role,
+      content: m.content,
+      createdAt: m.createdAt,
+      modelLabel: m.modelLabel ?? null,
+    })),
+  };
+}
+
+export function createShareLink(userId: string, conversationId: string) {
+  const snapshot = snapshotConversation(userId, conversationId);
+  if (!snapshot) return null;
+  const payload = JSON.stringify(snapshot);
   const existing = db
     .prepare("SELECT token FROM shared_chats WHERE conversation_id = ? AND user_id = ?")
     .get(conversationId, userId) as { token: string } | undefined;
-  if (existing) return { token: existing.token, conversationId };
+  if (existing) {
+    db.prepare(
+      "UPDATE shared_chats SET snapshot_json = ?, title = ? WHERE conversation_id = ? AND user_id = ?"
+    ).run(payload, snapshot.title, conversationId, userId);
+    return { token: existing.token, conversationId };
+  }
   const id = uuid();
   const token = randomBytes(18).toString("base64url");
   db.prepare(
-    "INSERT INTO shared_chats (id, token, conversation_id, user_id) VALUES (?, ?, ?, ?)"
-  ).run(id, token, conversationId, userId);
+    "INSERT INTO shared_chats (id, token, conversation_id, user_id, snapshot_json, title) VALUES (?, ?, ?, ?, ?, ?)"
+  ).run(id, token, conversationId, userId, payload, snapshot.title);
   return { token, conversationId };
 }
 
 export function getSharedChat(token: string) {
   const row = db
     .prepare(
-      `SELECT sc.token, sc.conversation_id as conversationId, sc.user_id as userId, c.title
+      `SELECT sc.token, sc.conversation_id as conversationId, sc.user_id as userId, sc.snapshot_json as snapshotJson,
+              COALESCE(sc.title, c.title) as title
        FROM shared_chats sc
        JOIN conversations c ON c.id = sc.conversation_id
        WHERE sc.token = ?`
     )
-    .get(token) as { token: string; conversationId: string; userId: string; title: string } | undefined;
+    .get(token) as {
+    token: string;
+    conversationId: string;
+    userId: string;
+    title: string;
+    snapshotJson: string | null;
+  } | undefined;
   if (!row) return null;
+
+  if (row.snapshotJson) {
+    try {
+      const snap = JSON.parse(row.snapshotJson) as { title?: string; messages?: SharedSnapshotMessage[] };
+      if (Array.isArray(snap.messages)) {
+        return {
+          token: row.token,
+          title: snap.title || row.title,
+          messages: snap.messages.map((m) => ({
+            role: m.role,
+            content: m.content,
+            createdAt: m.createdAt,
+            modelLabel: m.modelLabel ?? null,
+          })),
+        };
+      }
+    } catch {
+      /* fall through to live messages for legacy rows */
+    }
+  }
+
   return {
     token: row.token,
     title: row.title,
@@ -159,6 +215,7 @@ export function getSharedChat(token: string) {
       role: m.role,
       content: m.content,
       createdAt: m.createdAt,
+      modelLabel: m.modelLabel ?? null,
     })),
   };
 }

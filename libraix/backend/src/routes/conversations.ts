@@ -6,6 +6,7 @@ import {
   createConversation,
   getConversation,
   getMessages,
+  getMessage,
   addMessage,
   deleteConversation,
   updateConversationTitle,
@@ -14,6 +15,7 @@ import {
   deleteMessagesAfter,
   deleteMessagesFrom,
   branchConversation,
+  updateConversationModel,
 } from "../services/conversations.js";
 import { findUserById, toSafeUser } from "../services/users.js";
 import { getUsage } from "../services/usage.js";
@@ -60,12 +62,17 @@ router.patch("/:id", requireAuth, (req, res) => {
     archived?: boolean;
     projectId?: string | null;
     folderId?: string | null;
+    modelId?: string;
   };
   const userId = req.session.userId!;
   const id = paramId(req);
 
   if (body.title) {
     const ok = updateConversationTitle(userId, id, body.title);
+    if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
+  }
+  if (body.modelId) {
+    const ok = updateConversationModel(userId, id, body.modelId);
     if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
   }
   if (
@@ -100,14 +107,22 @@ router.get("/:id/export", requireAuth, (req, res) => {
 });
 
 router.post("/:id/messages", requireAuth, (req, res) => {
-  const schema = z.object({ role: z.enum(["user", "assistant"]), content: z.string() });
+  const schema = z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string(),
+    modelId: z.string().max(80).optional(),
+    modelLabel: z.string().max(240).optional(),
+  });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "INVALID_INPUT" });
 
   const conv = getConversation(req.session.userId!, paramId(req));
   if (!conv) return res.status(404).json({ error: "NOT_FOUND" });
 
-  const msg = addMessage(conv.id, parsed.data.role, parsed.data.content);
+  const msg = addMessage(conv.id, parsed.data.role, parsed.data.content, {
+    modelId: parsed.data.modelId,
+    modelLabel: parsed.data.modelLabel,
+  });
   res.status(201).json(msg);
 });
 
@@ -119,9 +134,16 @@ router.patch("/:id/messages/:messageId", requireAuth, (req, res) => {
   const conv = getConversation(req.session.userId!, paramId(req));
   if (!conv) return res.status(404).json({ error: "NOT_FOUND" });
 
-  const ok = updateMessage(conv.id, req.params.messageId as string, parsed.data.content);
+  const existing = getMessage(conv.id, req.params.messageId as string);
+  if (!existing) return res.status(404).json({ error: "NOT_FOUND" });
+
+  const ok = updateMessage(conv.id, existing.id, parsed.data.content);
   if (!ok) return res.status(404).json({ error: "NOT_FOUND" });
-  deleteMessagesAfter(conv.id, req.params.messageId as string);
+  // Editing a user turn drops later replies so the next send regenerates from there.
+  // Editing an assistant reply is an in-place correction and keeps the rest of the thread.
+  if (existing.role === "user") {
+    deleteMessagesAfter(conv.id, existing.id);
+  }
   res.json({ ok: true, messages: getMessages(conv.id) });
 });
 

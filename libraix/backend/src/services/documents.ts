@@ -44,11 +44,17 @@ function detectLegalDocument(filename: string, text: string): boolean {
 async function extractPdf(buffer: Buffer): Promise<{ text: string; pageCount?: number }> {
   const { PDFParse } = await import("pdf-parse");
   const parser = new PDFParse({ data: buffer });
+  const timeout = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error("PDF_PARSE_TIMEOUT")), 20_000);
+  });
   try {
-    const result = await parser.getText();
+    const result = await Promise.race([parser.getText(), timeout]);
     return { text: result.text ?? "", pageCount: result.pages?.length ?? result.total };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "PDF_PARSE_FAILED";
+    throw new Error(msg === "PDF_PARSE_TIMEOUT" ? "PDF_PARSE_TIMEOUT" : "PDF_PARSE_FAILED");
   } finally {
-    await parser.destroy();
+    await parser.destroy().catch(() => {});
   }
 }
 

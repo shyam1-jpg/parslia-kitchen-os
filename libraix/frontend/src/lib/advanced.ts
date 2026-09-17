@@ -102,9 +102,30 @@ export const advancedApi = {
   deleteMemory: (id: string) => api<{ ok: boolean }>(`/api/memory/${id}`, { method: "DELETE" }),
   deleteAllMemories: () => api<{ deleted: number }>("/api/memory", { method: "DELETE" }),
   memoryPreferences: () =>
-    api<{ memoryEnabled: boolean; privacyMode: string; routerMode: string }>("/api/memory/preferences"),
-  updateMemoryPreferences: (body: { memoryEnabled?: boolean; privacyMode?: string; routerMode?: string }) =>
-    api<{ memoryEnabled: boolean; privacyMode: string; routerMode: string }>("/api/memory/preferences", {
+    api<{
+      memoryEnabled: boolean;
+      privacyMode: string;
+      routerMode: string;
+      lastProjectId: string | null;
+      lastConversationId: string | null;
+      lastModelId: string | null;
+    }>("/api/memory/preferences"),
+  updateMemoryPreferences: (body: {
+    memoryEnabled?: boolean;
+    privacyMode?: string;
+    routerMode?: string;
+    lastProjectId?: string | null;
+    lastConversationId?: string | null;
+    lastModelId?: string | null;
+  }) =>
+    api<{
+      memoryEnabled: boolean;
+      privacyMode: string;
+      routerMode: string;
+      lastProjectId: string | null;
+      lastConversationId: string | null;
+      lastModelId: string | null;
+    }>("/api/memory/preferences", {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
