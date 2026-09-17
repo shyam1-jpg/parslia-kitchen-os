@@ -8,7 +8,7 @@ import { ImageGenerating } from "./ImageGenerating";
 import { ChatGeneratedImage } from "./ChatGeneratedImage";
 import type { CodeArtifact } from "../lib/codeArtifacts";
 import { normalizeLanguage } from "../lib/codeArtifacts";
-import "katex/katex.min.css";
+import "katex/dist/katex.min.css";
 import "highlight.js/styles/github-dark.css";
 
 interface MarkdownMessageProps {
