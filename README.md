@@ -10,6 +10,9 @@
 | `index.html` | Full landing page |
 | `styles.css` | Styling |
 | `script.js` | Menu + early access form |
+| `menu-creator.html` | Interactive Menu Creator (week / multi-day) |
+| `menu-creator.css` | Menu Creator styles |
+| `menu-creator.js` | Week setup, meal services, save/print |
 | `assets/USE_THIS_parslia_header_logo_clean.png` | Header logo |
 | `assets/USE_THIS_parslia_app_icon_1024.png` | App icon / favicon |
 
