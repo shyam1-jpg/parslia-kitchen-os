@@ -231,38 +231,147 @@ export function utcOffsetHoursForLocal(timeZone: string, date: string, time: str
   return Math.round(offsetAt(utcMs) * 100) / 100;
 }
 
+/** Historic Indian birth cities — never trust ambiguous Open-Meteo rank (Calcutta ZA). */
+const PLACE_HARD_OVERRIDES: Record<string, GeocodedPlace> = {
+  calcutta: {
+    name: "Kolkata",
+    country: "India",
+    admin1: "West Bengal",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+    label: "Kolkata, West Bengal, India",
+  },
+  kolkatta: {
+    name: "Kolkata",
+    country: "India",
+    admin1: "West Bengal",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+    label: "Kolkata, West Bengal, India",
+  },
+  kolkata: {
+    name: "Kolkata",
+    country: "India",
+    admin1: "West Bengal",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+    label: "Kolkata, West Bengal, India",
+  },
+  bombay: {
+    name: "Mumbai",
+    country: "India",
+    admin1: "Maharashtra",
+    latitude: 19.07283,
+    longitude: 72.88261,
+    timezone: "Asia/Kolkata",
+    label: "Mumbai, Maharashtra, India",
+  },
+  madras: {
+    name: "Chennai",
+    country: "India",
+    admin1: "Tamil Nadu",
+    latitude: 13.08784,
+    longitude: 80.27847,
+    timezone: "Asia/Kolkata",
+    label: "Chennai, Tamil Nadu, India",
+  },
+  bangalore: {
+    name: "Bengaluru",
+    country: "India",
+    admin1: "Karnataka",
+    latitude: 12.97194,
+    longitude: 77.59369,
+    timezone: "Asia/Kolkata",
+    label: "Bengaluru, Karnataka, India",
+  },
+};
+
+function normalizePlaceToken(s: string): string {
+  return s.trim().toLowerCase().replace(/\./g, "").replace(/\s+/g, " ");
+}
+
 export async function geocodeBirthPlace(place: string): Promise<GeocodedPlace> {
-  const url = `${GEOCODE_URL}?name=${encodeURIComponent(place.trim())}&count=1&language=en`;
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 8_000);
-  try {
-    const res = await fetch(url, { signal: ctrl.signal });
-    if (!res.ok) throw new Error("GEOCODE_FAILED");
-    const data = (await res.json()) as {
-      results?: Array<{
-        name: string;
-        country?: string;
-        admin1?: string;
-        latitude: number;
-        longitude: number;
-        timezone?: string;
-      }>;
-    };
-    const found = data.results?.[0];
-    if (!found) throw new Error("PLACE_NOT_FOUND");
-    const label = [found.name, found.admin1, found.country].filter(Boolean).join(", ");
-    return {
-      name: found.name,
-      country: found.country,
-      admin1: found.admin1,
-      latitude: found.latitude,
-      longitude: found.longitude,
-      timezone: found.timezone || "UTC",
-      label,
-    };
-  } finally {
-    clearTimeout(timer);
+  const raw = place.trim();
+  if (!raw) throw new Error("PLACE_REQUIRED");
+
+  const cityKey = normalizePlaceToken(raw.split(",")[0] || raw);
+  const hard = PLACE_HARD_OVERRIDES[cityKey];
+  if (hard) {
+    const lower = raw.toLowerCase();
+    const forcedAway =
+      /\bsouth africa\b|\bmpumalanga\b|\bunited states\b|\bohio\b/.test(lower) &&
+      !/\bindia\b|\bwest bengal\b|\bmaharashtra\b|\btamil nadu\b|\bkarnataka\b/.test(lower);
+    if (!forcedAway) return { ...hard };
   }
+
+  // Prefer modern Indian name when aliasing, then original query.
+  const aliasName = hard?.name;
+  const queries = [aliasName ? `${aliasName}, India` : "", aliasName || "", raw, cityKey].filter(
+    (v, i, arr) => !!v && arr.indexOf(v) === i,
+  );
+
+  let lastError: Error | null = null;
+  for (const q of queries) {
+    const url = `${GEOCODE_URL}?name=${encodeURIComponent(q)}&count=8&language=en`;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8_000);
+    try {
+      const res = await fetch(url, { signal: ctrl.signal });
+      if (!res.ok) {
+        lastError = new Error("GEOCODE_FAILED");
+        continue;
+      }
+      const data = (await res.json()) as {
+        results?: Array<{
+          name: string;
+          country?: string;
+          admin1?: string;
+          latitude: number;
+          longitude: number;
+          timezone?: string;
+          population?: number;
+          country_code?: string;
+          feature_code?: string;
+        }>;
+      };
+      const hits = data.results ?? [];
+      if (!hits.length) {
+        lastError = new Error("PLACE_NOT_FOUND");
+        continue;
+      }
+      // Prefer India + high population over tiny namesakes.
+      const ranked = [...hits].sort((a, b) => {
+        const score = (h: (typeof hits)[number]) => {
+          let s = Math.log10((h.population ?? 0) + 10) * 10;
+          if (h.country_code === "IN" || /india/i.test(h.country ?? "")) s += 50;
+          if ((h.population ?? 0) > 1_000_000) s += 30;
+          if ((h.population ?? 0) < 100_000) s -= 25;
+          if (h.feature_code === "PPLA" || h.feature_code === "PPLC") s += 20;
+          return s;
+        };
+        return score(b) - score(a);
+      });
+      const found = ranked[0]!;
+      const label = [found.name, found.admin1, found.country].filter(Boolean).join(", ");
+      return {
+        name: found.name,
+        country: found.country,
+        admin1: found.admin1,
+        latitude: found.latitude,
+        longitude: found.longitude,
+        timezone: found.timezone || "UTC",
+        label,
+      };
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error("GEOCODE_FAILED");
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw lastError ?? new Error("PLACE_NOT_FOUND");
 }
 
 function planetHouseMap(chart: VedicChart): Record<string, number> {
@@ -502,12 +611,16 @@ export async function buildHoroscopeChart(input: BirthDetailsInput): Promise<Hor
 
   let place: GeocodedPlace;
   if (input.latitude != null && input.longitude != null && input.timezone) {
+    const cityKey = normalizePlaceToken((input.place || "").split(",")[0] || "");
+    const hard = PLACE_HARD_OVERRIDES[cityKey];
     place = {
-      name: input.place.trim() || "Birth place",
+      name: hard?.name || input.place.trim() || "Birth place",
+      country: hard?.country,
+      admin1: hard?.admin1,
       latitude: input.latitude,
       longitude: input.longitude,
       timezone: input.timezone,
-      label: input.place.trim() || "Birth place",
+      label: hard?.label || input.place.trim() || "Birth place",
     };
   } else {
     if (!input.place.trim()) throw new Error("PLACE_REQUIRED");
