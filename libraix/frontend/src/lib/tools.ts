@@ -41,12 +41,18 @@ export interface HoroscopeChart {
   system: string;
   note: string;
   ayanamsa: { value: number; formatted: string; system: string };
+  accuracy?: {
+    score: number;
+    label: string;
+    notes: string[];
+  };
   lagna: {
     rashi: string;
     rashiWestern: string;
     degree: string;
     nakshatra: string;
     nakshatraLord: string;
+    nakshatraNumber?: number | null;
     pada: number;
     element: string;
     quality: string;
@@ -55,8 +61,10 @@ export interface HoroscopeChart {
   moonSign: {
     rashi: string;
     rashiWestern: string;
+    rashiNumber?: number | null;
     nakshatra: string;
     nakshatraLord: string;
+    nakshatraNumber?: number | null;
     pada: number;
     summary: string;
     element: string;
@@ -67,11 +75,42 @@ export interface HoroscopeChart {
     rashiWestern: string;
     nakshatra: string;
     nakshatraLord: string;
+    nakshatraNumber?: number | null;
     pada: number;
     element: string;
     quality: string;
   };
   currentDasha: { lord: string; startDate: string; endDate: string; years: number } | null;
+  currentAntardasha?: {
+    mahaLord: string;
+    lord: string;
+    startDate: string;
+    endDate: string;
+    years: number;
+  } | null;
+  currentPratyantardasha?: {
+    mahaLord: string;
+    antarLord: string;
+    lord: string;
+    startDate: string;
+    endDate: string;
+    years: number;
+  } | null;
+  antardashas?: Array<{
+    mahaLord: string;
+    lord: string;
+    startDate: string;
+    endDate: string;
+    years: number;
+  }>;
+  pratyantardashas?: Array<{
+    mahaLord: string;
+    antarLord: string;
+    lord: string;
+    startDate: string;
+    endDate: string;
+    years: number;
+  }>;
   dashas: Array<{ lord: string; startDate: string; endDate: string; years: number }>;
   planets: Array<{
     id: string;
@@ -85,10 +124,29 @@ export interface HoroscopeChart {
     ruler: string;
     nakshatra: string;
     nakshatraLord: string;
+    nakshatraDeity?: string | null;
+    nakshatraSymbol?: string | null;
     pada: number;
     house: number | null;
     longitude: number;
+    degreeInSign?: number;
+    nakshatraProgress?: number;
     dignity: string;
+    retrograde?: boolean;
+    combust?: boolean;
+    combustionOrb?: number | null;
+  }>;
+  planetDetails?: Array<{
+    id: string;
+    degreeInSign: number;
+    nakshatraProgress: number;
+    nakshatraDeity: string | null;
+    nakshatraSymbol: string | null;
+    retrograde: boolean;
+    combust: boolean;
+    combustionOrb: number | null;
+    naturalFriends: string[];
+    naturalEnemies: string[];
   }>;
   houses: Array<{
     number: number;
@@ -117,6 +175,58 @@ export interface HoroscopeChart {
     meaning: string;
     nature: string;
   }>;
+  vedicDrishti?: Array<{
+    from: string;
+    to: string;
+    houses: number;
+    kind: string;
+    summary: string;
+  }>;
+  navamsa?: {
+    lagna: { rashi: string; rashiWestern: string; degree: string } | null;
+    planets: Array<{
+      id: string;
+      name: string;
+      short: string;
+      rashi: string;
+      rashiWestern: string;
+      house: number | null;
+      longitude: number;
+      degree: string;
+    }>;
+    houses: Array<{
+      number: number;
+      sign: string;
+      signWestern: string;
+      planets: Array<{ id: string; short: string }>;
+    }>;
+    note: string;
+  };
+  gochara?: {
+    asOf: string;
+    transitMoon: {
+      planet: string;
+      rashi: string;
+      rashiWestern: string;
+      houseFromLagna: number | null;
+      houseFromMoon: number | null;
+      note: string;
+    } | null;
+    keyTransits: Array<{
+      planet: string;
+      rashi: string;
+      rashiWestern: string;
+      houseFromLagna: number | null;
+      houseFromMoon: number | null;
+      note: string;
+    }>;
+    sadeSati: {
+      active: boolean;
+      phase: "approaching" | "peak" | "leaving" | "none";
+      summary: string;
+    };
+    note: string;
+  };
   balance: {
     elements: Record<string, number>;
     modalities: Record<string, number>;
@@ -129,6 +239,193 @@ export interface HoroscopeChart {
     midheaven: string | null;
   };
   readingContext: string;
+}
+
+export interface AshtakootMatch {
+  system: "Ashtakoot";
+  maxScore: number;
+  totalScore: number;
+  percentage: number;
+  band: "excellent" | "very-good" | "good" | "acceptable" | "challenging";
+  verdict: string;
+  recommended: boolean;
+  kootas: Array<{
+    id: string;
+    name: string;
+    score: number;
+    maxScore: number;
+    personA: string;
+    personB: string;
+    summary: string;
+    detail: string;
+    ok: boolean;
+  }>;
+  doshas: Array<{
+    id: string;
+    name: string;
+    active: boolean;
+    cancelled: boolean;
+    reason: string;
+  }>;
+  manglik: {
+    personA: boolean;
+    personB: boolean;
+    status: "none" | "both" | "one-sided";
+    note: string;
+  };
+  people: {
+    a: { name: string; nakshatra: string; pada: number; rashi: string; rashiWestern: string };
+    b: { name: string; nakshatra: string; pada: number; rashi: string; rashiWestern: string };
+  };
+  readingContext: string;
+  accuracyNote: string;
+}
+
+export interface AdvancedMatchLayer {
+  navamsa: {
+    lagnaA: string | null;
+    lagnaB: string | null;
+    sameNavamsaLagna: boolean;
+    venusHouseA: number | null;
+    venusHouseB: number | null;
+    note: string;
+  };
+  seventhHouse: {
+    signA: string | null;
+    signB: string | null;
+    lordA: string | null;
+    lordB: string | null;
+    planetsA: string[];
+    planetsB: string[];
+    note: string;
+  };
+  dashaOverlap: {
+    mahaA: string | null;
+    mahaB: string | null;
+    antarA: string | null;
+    antarB: string | null;
+    note: string;
+  };
+  readingContext: string;
+}
+
+export interface HoroscopeMatchResult {
+  match: AshtakootMatch;
+  advanced?: AdvancedMatchLayer;
+  personA: HoroscopeChart;
+  personB: HoroscopeChart;
+}
+
+type BirthBody = {
+  name?: string;
+  gender?: "female" | "male" | "other" | "unspecified";
+  date: string;
+  time: string;
+  place: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+};
+
+/** Hard overrides so historic names never geocode to the wrong country (e.g. Calcutta ZA). */
+const BIRTH_PLACE_OVERRIDES: Record<
+  string,
+  { place: string; latitude: number; longitude: number; timezone: string }
+> = {
+  calcutta: {
+    place: "Kolkata, West Bengal, India",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+  },
+  kolkatta: {
+    place: "Kolkata, West Bengal, India",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+  },
+  kolkata: {
+    place: "Kolkata, West Bengal, India",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+  },
+  bombay: {
+    place: "Mumbai, Maharashtra, India",
+    latitude: 19.07283,
+    longitude: 72.88261,
+    timezone: "Asia/Kolkata",
+  },
+  mumbai: {
+    place: "Mumbai, Maharashtra, India",
+    latitude: 19.07283,
+    longitude: 72.88261,
+    timezone: "Asia/Kolkata",
+  },
+  madras: {
+    place: "Chennai, Tamil Nadu, India",
+    latitude: 13.08784,
+    longitude: 80.27847,
+    timezone: "Asia/Kolkata",
+  },
+  chennai: {
+    place: "Chennai, Tamil Nadu, India",
+    latitude: 13.08784,
+    longitude: 80.27847,
+    timezone: "Asia/Kolkata",
+  },
+  bangalore: {
+    place: "Bengaluru, Karnataka, India",
+    latitude: 12.97194,
+    longitude: 77.59369,
+    timezone: "Asia/Kolkata",
+  },
+  bengaluru: {
+    place: "Bengaluru, Karnataka, India",
+    latitude: 12.97194,
+    longitude: 77.59369,
+    timezone: "Asia/Kolkata",
+  },
+  delhi: {
+    place: "New Delhi, Delhi, India",
+    latitude: 28.6139,
+    longitude: 77.209,
+    timezone: "Asia/Kolkata",
+  },
+  "new delhi": {
+    place: "New Delhi, Delhi, India",
+    latitude: 28.6139,
+    longitude: 77.209,
+    timezone: "Asia/Kolkata",
+  },
+};
+
+/** Resolve historic city names to India coords so production never maps Calcutta → South Africa. */
+export function resolveBirthPlace(place: string): Pick<BirthBody, "place" | "latitude" | "longitude" | "timezone"> {
+  const raw = place.trim();
+  const city = raw.split(",")[0]?.trim().toLowerCase().replace(/\./g, "") ?? "";
+  const override = BIRTH_PLACE_OVERRIDES[city];
+  if (override) {
+    // If user already typed another country explicitly, keep their text but still force India coords
+    // only when they did not clearly ask for a non-India Calcutta.
+    const lower = raw.toLowerCase();
+    const forcedAway =
+      /\bsouth africa\b|\bmpumalanga\b|\busa\b|\bunited states\b|\bohio\b|\bsuriname\b|\bbelize\b/.test(lower) &&
+      !/\bindia\b|\bwest bengal\b/.test(lower);
+    if (!forcedAway) return { ...override };
+  }
+  return { place: raw };
+}
+
+function withResolvedPlace(body: BirthBody): BirthBody {
+  const resolved = resolveBirthPlace(body.place);
+  return {
+    ...body,
+    place: resolved.place,
+    latitude: body.latitude ?? resolved.latitude,
+    longitude: body.longitude ?? resolved.longitude,
+    timezone: body.timezone ?? resolved.timezone,
+  };
 }
 
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
@@ -183,19 +480,19 @@ export const toolsApi = {
       body: JSON.stringify({ query, depth }),
     }),
 
-  horoscopeChart: (body: {
-    name?: string;
-    gender?: "female" | "male" | "other" | "unspecified";
-    date: string;
-    time: string;
-    place: string;
-    latitude?: number;
-    longitude?: number;
-    timezone?: string;
-  }) =>
+  horoscopeChart: (body: BirthBody) =>
     api<HoroscopeChart>("/api/tools/horoscope-chart", {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify(withResolvedPlace(body)),
+    }),
+
+  horoscopeMatch: (body: { personA: BirthBody; personB: BirthBody }) =>
+    api<HoroscopeMatchResult>("/api/tools/horoscope-match", {
+      method: "POST",
+      body: JSON.stringify({
+        personA: withResolvedPlace(body.personA),
+        personB: withResolvedPlace(body.personB),
+      }),
     }),
 
   search: (query: string, provider: "all" | "wikipedia" | "web" = "all") =>

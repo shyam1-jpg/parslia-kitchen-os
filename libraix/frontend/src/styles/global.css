@@ -758,6 +758,152 @@ button, input, textarea, select {
   max-width: 880px;
   margin: 0 auto;
 }
+.horoscope-mode-toggle {
+  display: inline-flex;
+  gap: 6px;
+  margin: 0 0 18px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.horoscope-mode-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}
+.horoscope-mode-btn.active {
+  background: linear-gradient(145deg, rgba(232, 213, 181, 0.22), rgba(196, 165, 116, 0.18));
+  color: var(--text);
+}
+.horoscope-person-block {
+  margin-bottom: 16px;
+}
+.horoscope-person-block h3 {
+  margin: 0 0 10px;
+  font-size: 0.98rem;
+  color: var(--c2);
+}
+.horoscope-match-result {
+  margin-bottom: 28px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at 80% 0%, rgba(212, 175, 120, 0.1), transparent 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+}
+.horoscope-match-hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.horoscope-match-hero h2 {
+  margin: 4px 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 600;
+}
+.horoscope-match-meter {
+  flex: 1;
+  min-width: 160px;
+  max-width: 280px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+.horoscope-match-meter-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #a8895a, #e8d5b5);
+}
+.horoscope-match-verdict {
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+.horoscope-match-people {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+@media (max-width: 640px) {
+  .horoscope-match-people {
+    grid-template-columns: 1fr;
+  }
+}
+.horoscope-match-people > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+.horoscope-match-people span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.horoscope-dosha-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 14px 0 8px;
+}
+.horoscope-subhead {
+  margin: 16px 0 8px;
+  font-size: 0.95rem;
+  color: var(--c2);
+}
+.badge-accuracy {
+  border-color: rgba(143, 188, 143, 0.35);
+  color: #b7d7b7;
+}
+.planet-flag {
+  display: inline-block;
+  min-width: 1.1em;
+  padding: 1px 5px;
+  margin-right: 3px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.planet-flag-r {
+  background: rgba(196, 165, 116, 0.18);
+  color: var(--c2);
+}
+.planet-flag-c {
+  background: rgba(224, 122, 109, 0.18);
+  color: #e7a399;
+}
+.horoscope-advanced-match {
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.horoscope-advanced-match ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+tr.koota-weak td {
+  background: rgba(224, 122, 109, 0.06);
+}
 .horoscope-hero h1 {
   margin: 0 0 8px;
   font-size: clamp(1.75rem, 4vw, 2.25rem);
