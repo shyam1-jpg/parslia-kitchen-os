@@ -1,0 +1,20 @@
+PC Guard — how to run
+
+1) Download latest zip:
+   https://github.com/shyam1-jpg/parslia-kitchen-os/archive/refs/heads/cursor/pc-usage-guard-d44d.zip
+
+2) Extract, then open folder: pc-guard
+
+3) Double-click: DOUBLE-CLICK-ME
+
+4) A desktop window named "PC Guard" should open.
+   - No Chrome needed
+   - No internet needed
+   - No firewall needed
+
+5) In that window click: Create test event
+
+If no window appears:
+- Look behind other windows / on the taskbar for "PC Guard"
+- Make sure the black START window is still open
+- Send a photo of the black window text
