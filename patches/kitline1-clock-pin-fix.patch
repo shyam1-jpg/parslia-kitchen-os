@@ -1,0 +1,214 @@
+From 54fe449e139eaeb7601727f52d258881ac38c331 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 28 Jul 2026 00:56:26 +0000
+Subject: [PATCH] Fix Wrong PIN on Clock In/Out for demo staff
+
+Restore documented kitchen clock PINs (Sarah 1234, etc.) on load so
+stale localStorage seeds stop rejecting valid PINs. Login password
+demo1234 is not a clock PIN. Admin/Manager can clock without PIN.
+---
+ js/store.js            | 75 +++++++++++++++++++++++++++++++++---------
+ js/views.js            | 26 +++++++++++++--
+ server/starter-pack.js |  3 ++
+ sw.js                  |  2 +-
+ 4 files changed, 88 insertions(+), 18 deletions(-)
+
+diff --git a/js/store.js b/js/store.js
+index 0266c5d..ba0d5e1 100644
+--- a/js/store.js
++++ b/js/store.js
+@@ -149,18 +149,18 @@
+       { id:'u_gov_chef', name:'Ravi Patel', role:'Head Chef', email:'ravi@govindas.demo', phone:'+44 7700 900202', siteId:'site_govindas', initials:'RP', access:'Manager', clockPin:'6666' },
+       { id:'u_gov_prep', name:'Lena Park', role:'Prep Lead', email:'prep@govindas.demo', phone:'+44 7700 900203', siteId:'site_govindas', initials:'LP', access:'Staff', clockPin:'7777' },
+       { id:'u_gov_kp', name:'Tom Hughes', role:'Kitchen Porter', email:'kp@govindas.demo', phone:'+44 7700 900204', siteId:'site_govindas', initials:'TH', access:'Staff', clockPin:'8888' },
+-      { id:'u_sarah', name:'Sarah Mitchell', role:'Head Chef', email:'sarah@kiteline.uk', siteId:'site_grove', initials:'SM', access:'Admin' },
+-      { id:'u_james', name:'James Okafor', role:'Sous Chef', email:'james@kiteline.uk', siteId:'site_grove', initials:'JO', access:'Staff' },
+-      { id:'u_lena', name:'Lena Park', role:'Kitchen Manager', email:'lena@kiteline.uk', siteId:'site_dock', initials:'LP', access:'Manager' },
+-      { id:'u_marco', name:'Marco Rossi', role:'Chef de Partie', email:'marco@kiteline.uk', siteId:'site_dock', initials:'MR', access:'Staff' },
+-      { id:'u_amy', name:'Amy Chen', role:'Compliance Lead', email:'amy@kiteline.uk', siteId:'site_quay', initials:'AC', access:'Manager' },
+-      { id:'u_david', name:'David Okonkwo', role:'Head Chef', email:'david@kiteline.uk', siteId:'site_apex', initials:'DO', access:'Manager' },
+-      { id:'u_fiona', name:'Fiona Walsh', role:'Pub Manager', email:'fiona@kiteline.uk', siteId:'site_crown', initials:'FW', access:'Manager' },
+-      { id:'u_tom', name:'Tom Hughes', role:'Head Barista', email:'tom@kiteline.uk', siteId:'site_river', initials:'TH', access:'Staff' },
+-      { id:'u_priya', name:'Priya Sharma', role:'Ops Lead', email:'priya@kiteline.uk', siteId:'site_studio', initials:'PS', access:'Manager' },
+-      { id:'u_ewan', name:'Ewan Fraser', role:'Training Chef', email:'ewan@kiteline.uk', siteId:'site_academy', initials:'EF', access:'Manager' },
+-      { id:'u_nina', name:'Nina Kostova', role:'Head Chef', email:'nina@kiteline.uk', siteId:'site_marina', initials:'NK', access:'Manager' },
+-      { id:'u_raj', name:'Raj Patel', role:'Food Court Manager', email:'raj@kiteline.uk', siteId:'site_heathrow', initials:'RP', access:'Manager' },
++      { id:'u_sarah', name:'Sarah Mitchell', role:'Head Chef', email:'sarah@kiteline.uk', siteId:'site_grove', initials:'SM', access:'Admin', clockPin:'1234' },
++      { id:'u_james', name:'James Okafor', role:'Sous Chef', email:'james@kiteline.uk', siteId:'site_grove', initials:'JO', access:'Staff', clockPin:'2345' },
++      { id:'u_lena', name:'Lena Park', role:'Kitchen Manager', email:'lena@kiteline.uk', siteId:'site_dock', initials:'LP', access:'Manager', clockPin:'3456' },
++      { id:'u_marco', name:'Marco Rossi', role:'Chef de Partie', email:'marco@kiteline.uk', siteId:'site_dock', initials:'MR', access:'Staff', clockPin:'4567' },
++      { id:'u_amy', name:'Amy Chen', role:'Compliance Lead', email:'amy@kiteline.uk', siteId:'site_quay', initials:'AC', access:'Manager', clockPin:'5678' },
++      { id:'u_david', name:'David Okonkwo', role:'Head Chef', email:'david@kiteline.uk', siteId:'site_apex', initials:'DO', access:'Manager', clockPin:'6789' },
++      { id:'u_fiona', name:'Fiona Walsh', role:'Pub Manager', email:'fiona@kiteline.uk', siteId:'site_crown', initials:'FW', access:'Manager', clockPin:'7890' },
++      { id:'u_tom', name:'Tom Hughes', role:'Head Barista', email:'tom@kiteline.uk', siteId:'site_river', initials:'TH', access:'Staff', clockPin:'8901' },
++      { id:'u_priya', name:'Priya Sharma', role:'Ops Lead', email:'priya@kiteline.uk', siteId:'site_studio', initials:'PS', access:'Manager', clockPin:'9012' },
++      { id:'u_ewan', name:'Ewan Fraser', role:'Training Chef', email:'ewan@kiteline.uk', siteId:'site_academy', initials:'EF', access:'Manager', clockPin:'1122' },
++      { id:'u_nina', name:'Nina Kostova', role:'Head Chef', email:'nina@kiteline.uk', siteId:'site_marina', initials:'NK', access:'Manager', clockPin:'2233' },
++      { id:'u_raj', name:'Raj Patel', role:'Food Court Manager', email:'raj@kiteline.uk', siteId:'site_heathrow', initials:'RP', access:'Manager', clockPin:'3344' },
+     ];
+ 
+     // LoRaWAN sensors — rich metadata for audit-grade monitoring
+@@ -933,10 +933,49 @@
+     return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+   }
+ 
++  function normalizeClockPin(pin) {
++    return String(pin || '').replace(/\D/g, '').slice(0, 4);
++  }
++
+   function rotaVerifyPin(member, pin) {
+-    const expected = member.clockPin || member.pin;
++    const expected = normalizeClockPin(member && (member.clockPin || member.pin));
+     if (!expected) return true;
+-    return String(expected) === String(pin || '').trim();
++    return expected === normalizeClockPin(pin);
++  }
++
++  // Documented demo clock PINs (NOT the login password demo1234).
++  const DEMO_CLOCK_PINS = {
++    u_sarah: '1234', u_james: '2345', u_lena: '3456', u_marco: '4567', u_amy: '5678',
++    u_david: '6789', u_fiona: '7890', u_tom: '8901', u_priya: '9012', u_ewan: '1122',
++    u_nina: '2233', u_raj: '3344', u_shyam: '1001',
++  };
++  const DEMO_CLOCK_PINS_BY_EMAIL = {
++    'sarah@kiteline.uk': '1234', 'james@kiteline.uk': '2345', 'lena@kiteline.uk': '3456',
++    'marco@kiteline.uk': '4567', 'amy@kiteline.uk': '5678', 'shyam_1@hotmail.co.uk': '1001',
++    'sample.manager@kiteline.uk': '1234', 'sample.staff@kiteline.uk': '2345',
++  };
++  const DEMO_CLOCK_PINS_BY_NAME = {
++    'sarah mitchell': '1234', 'james okafor': '2345', 'lena park': '3456', 'marco rossi': '4567',
++    'amy chen': '5678', 'shyam prasad': '1001',
++  };
++
++  function demoClockPinFor(member) {
++    if (!member) return '';
++    if (DEMO_CLOCK_PINS[member.id]) return DEMO_CLOCK_PINS[member.id];
++    const email = String(member.email || '').toLowerCase().trim();
++    if (email && DEMO_CLOCK_PINS_BY_EMAIL[email]) return DEMO_CLOCK_PINS_BY_EMAIL[email];
++    const name = String(member.name || '').toLowerCase().replace(/\s*\(sample\)\s*$/, '').trim();
++    return DEMO_CLOCK_PINS_BY_NAME[name] || '';
++  }
++
++  function rotaRestoreDemoPins(db) {
++    (db.team || []).forEach((m, idx) => {
++      const demo = demoClockPinFor(m);
++      if (demo) m.clockPin = demo;
++      else if (!normalizeClockPin(m.clockPin || m.pin)) {
++        m.clockPin = String(1000 + ((idx + 1) * 111) % 9000).padStart(4, '0').slice(0, 4);
++      }
++    });
+   }
+ 
+   function rotaSeedForSite(db, siteId) {
+@@ -950,11 +989,17 @@
+         const p = patterns[(idx + di) % patterns.length];
+         rotaSetShift(db, siteId, m.id, date, { status: 'scheduled', startTime: p.start, endTime: p.end }, 'system');
+       });
+-      if (!m.clockPin && !m.pin) m.clockPin = String(1000 + (idx + 1) * 111).slice(0, 4);
++      const demo = demoClockPinFor(m);
++      if (demo) m.clockPin = demo;
++      else if (!normalizeClockPin(m.clockPin || m.pin)) {
++        m.clockPin = String(1000 + ((idx + 1) * 111) % 9000).padStart(4, '0').slice(0, 4);
++      }
+     });
+   }
+ 
+   function rotaEnsureDemo(db) {
++    // Always restore known demo PINs so Sarah 1234 etc. work after old localStorage seeds.
++    rotaRestoreDemoPins(db);
+     const site = db.currentSite || 'site_grove';
+     if (!(db.rotaShifts || []).some(s => s.site === site)) rotaSeedForSite(db, site);
+     ['site_vedanta', 'site_govindas'].forEach((sid) => {
+diff --git a/js/views.js b/js/views.js
+index 04b2cc4..63089e4 100644
+--- a/js/views.js
++++ b/js/views.js
+@@ -4117,7 +4117,11 @@
+       </div>
+       <div class="card card-pad mb-4 text-center">
+         <div class="clock-live-time" id="clockLiveTime">--:--</div>
+-        <p class="text-sm text-ink-500 mt-1">Tap your name to clock in or out ? PIN required if set on Team</p>
++        <p class="text-sm text-ink-500 mt-1">Tap a staff card to clock in/out. Demo PINs: Sarah 1234 · James 2345 (login password demo1234 is not a clock PIN). Admin/Manager can clock without PIN.</p>
++      </div>
++      <div class="mb-4 flex flex-wrap gap-2 justify-center">
++        <button type="button" class="btn btn-primary" id="clockMeInBtn">Clock me in / out</button>
++        <span class="text-xs text-ink-400 self-center">Admin/Manager: no PIN needed</span>
+       </div>
+       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${cards || '<p class="text-ink-400">No team at this site.</p>'}</div>`;
+ 
+@@ -4129,6 +4133,22 @@
+       tick();
+       const iv = setInterval(tick, 1000);
+       const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
++      const meBtn = document.getElementById('clockMeInBtn');
++      if (meBtn) {
++        meBtn.onclick = () => {
++          if (!me) return toast('Sign in first', 'warn');
++          const member = (S.db.team || []).find(x => (x.email || '').toLowerCase() === String(me.email || '').toLowerCase())
++            || (S.db.team || []).find(x => x.id === me.id);
++          if (!member) return toast('No team profile for this login', 'warn');
++          const on = R.isClockedIn(S.db, site, member.id);
++          const res = on ? R.clockOut(S.db, site, member.id, me.email) : R.clockIn(S.db, site, member.id, me.email);
++          if (!res.ok) return toast(res.reason, 'warn');
++          S.persist();
++          if (S.logActivity) S.logActivity(member.id, on ? 'Clocked out' : 'Clocked in');
++          toast(member.name + (on ? ' clocked out' : ' clocked in'));
++          window.App.render();
++        };
++      }
+       document.querySelectorAll('[data-clock-staff]').forEach(card => {
+         const btn = card.querySelector('.clock-toggle-btn');
+         if (!btn) return;
+@@ -4146,7 +4166,9 @@
+             toast(member.name + (on ? ' clocked out' : ' clocked in'));
+             window.App.render();
+           };
+-          if (member.clockPin || member.pin) clockPinModal(member, doToggle);
++          const meAccess = me && (me.access || '');
++          const canSkipPin = meAccess === 'Admin' || meAccess === 'Manager';
++          if (!canSkipPin && (member.clockPin || member.pin)) clockPinModal(member, doToggle);
+           else doToggle();
+         };
+       });
+diff --git a/server/starter-pack.js b/server/starter-pack.js
+index ee666d2..39a8f83 100644
+--- a/server/starter-pack.js
++++ b/server/starter-pack.js
+@@ -185,6 +185,7 @@ function buildStarterPack(user, email, profile) {
+       access: 'Admin',
+       siteId,
+       initials: (initials.toUpperCase() || 'OW').slice(0, 2),
++      clockPin: '1001',
+     },
+     {
+       id: managerId,
+@@ -195,6 +196,7 @@ function buildStarterPack(user, email, profile) {
+       siteId,
+       initials: 'SM',
+       access: 'Admin',
++      clockPin: '1234',
+       _sample: true,
+     },
+     {
+@@ -205,6 +207,7 @@ function buildStarterPack(user, email, profile) {
+       siteId,
+       initials: 'JO',
+       access: 'Staff',
++      clockPin: '2345',
+       _sample: true,
+     },
+   ];
+diff --git a/sw.js b/sw.js
+index a7f494d..9c63e37 100644
+--- a/sw.js
++++ b/sw.js
+@@ -1,5 +1,5 @@
+ /* Kiteline service worker — offline app shell caching */
+-const CACHE = 'kiteline-v42';
++const CACHE = 'kiteline-v43';
+ const ASSETS = [
+   '/css/styles.css',
+   '/kiteline-logo.png?v=mark3',
+-- 
+2.43.0
+
