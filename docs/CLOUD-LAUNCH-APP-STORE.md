@@ -216,7 +216,7 @@ https://hercules.app/dashboard/app/01KRRZFRR3VVK2SZH1VB8KNXWH?threadId=01KWSDMG3
 ## One-line prompt to paste into Cloud / Hercules
 
 ```
-Open repo shyam1-jpg/parslia-kitchen-os. Follow CLOUD-LAUNCH-APP-STORE.md.
+Open repo shyam1-jpg/parslia-kitchen-os. Follow docs/CLOUD-LAUNCH-APP-STORE.md.
 1) Publish landing (DNS + GitHub Pages) so parslia.app shows index.html with launch strips, AI Image, AI Voice Finder, and #get-app App Store section.
 2) Create full /privacy and /terms pages.
 3) Wrap the Parslia web app with Capacitor iOS, use bundle id app.parslia.kitchen, icon assets/USE_THIS_parslia_app_icon_1024.png, microphone + camera privacy strings for AI Voice Finder and AI Image.
