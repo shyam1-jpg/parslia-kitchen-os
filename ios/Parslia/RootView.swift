@@ -35,7 +35,12 @@ struct RootView: View {
                 }
                 .sheet(isPresented: $showPlans) { PaywallView() }
                 .onChange(of: scenePhase) { _, phase in
-                    if phase == .active { Task { await store.refreshEntitlements() } }
+                    if phase == .active {
+                        Task {
+                            if store.products.isEmpty { await store.loadProducts() }
+                            await store.refreshEntitlements()
+                        }
+                    }
                 }
         }
     }
@@ -293,6 +298,7 @@ struct PaywallView: View {
                 Button("OK") { store.message = nil }
             } message: { Text(store.message ?? "") }
             .overlay { if store.isLoading { ProgressView().controlSize(.large) } }
+            .task { if store.products.isEmpty { await store.loadProducts() } }
         }
     }
 
@@ -326,7 +332,7 @@ struct PaywallView: View {
                 Task { await store.purchase(product) }
             }
         }
-        if store.coreProducts.isEmpty && !store.isLoading {
+        if store.coreProducts.isEmpty && !store.isLoadingProducts {
             unavailableProductsMessage("Plans are currently unavailable from the App Store.")
         }
         if store.accountToken == nil {
@@ -355,7 +361,7 @@ struct PaywallView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-        } else if !store.isLoading {
+        } else if !store.isLoadingProducts {
             unavailableProductsMessage("AI Image Booster is currently unavailable from the App Store.")
         }
     }

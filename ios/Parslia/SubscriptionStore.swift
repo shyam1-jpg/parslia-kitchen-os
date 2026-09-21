@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 import StoreKit
 
 @MainActor
@@ -10,7 +11,9 @@ final class SubscriptionStore: ObservableObject {
     @Published private(set) var signedTransactions: [String] = []
     @Published private(set) var accountToken: UUID?
     @Published private(set) var isLoading = false
+    @Published private(set) var isLoadingProducts = false
     @Published var message: String?
+    private let logger = Logger(subsystem: "app.parslia.kitchen", category: "StoreKitCatalog")
     private var updates: Task<Void, Never>?
     private var entitlementRefreshID = UUID()
 
@@ -34,10 +37,15 @@ final class SubscriptionStore: ObservableObject {
     }
 
     func loadProducts() async {
-        isLoading = true
-        defer { isLoading = false }
+        guard !isLoadingProducts else { return }
+        isLoadingProducts = true
+        defer { isLoadingProducts = false }
         do {
             let loaded = try await Product.products(for: SubscriptionPlan.allCases.map(\.rawValue))
+            logger.info("StoreKit returned \(loaded.count) of \(SubscriptionPlan.allCases.count) configured products")
+            if loaded.isEmpty {
+                logger.warning("No App Store products returned; verify bundle ID, paid agreement, product metadata and sandbox availability")
+            }
             products = loaded.sorted { lhs, rhs in
                 let li = SubscriptionPlan.allCases.firstIndex { $0.rawValue == lhs.id } ?? 99
                 let ri = SubscriptionPlan.allCases.firstIndex { $0.rawValue == rhs.id } ?? 99
@@ -52,6 +60,7 @@ final class SubscriptionStore: ObservableObject {
             }
             introEligibleProductIDs = eligible
         } catch {
+            logger.error("StoreKit product request failed: \(error.localizedDescription)")
             products = []
             introEligibleProductIDs = []
             message = "Subscriptions could not be loaded from the App Store. Check your connection and try again."
