@@ -2,7 +2,7 @@ interface ImageGeneratingProps {
   label?: string;
 }
 
-export function ImageGenerating({ label = "Rendering image…" }: ImageGeneratingProps) {
+export function ImageGenerating({ label = "Libraix is rendering…" }: ImageGeneratingProps) {
   return (
     <div className="image-generating" role="status" aria-live="polite">
       <div className="image-generating-shimmer" />
@@ -10,7 +10,7 @@ export function ImageGenerating({ label = "Rendering image…" }: ImageGeneratin
         <span className="image-generating-spinner" aria-hidden />
         {label}
       </div>
-      <p className="image-generating-hint">Fast mode — usually 10–25 seconds</p>
+      <p className="image-generating-hint">Libraix Image — usually 10–25 seconds</p>
     </div>
   );
 }

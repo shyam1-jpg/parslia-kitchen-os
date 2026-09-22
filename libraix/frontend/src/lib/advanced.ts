@@ -146,7 +146,7 @@ export const advancedApi = {
       preferredLanguage?: string;
     },
     options?: { signal?: AbortSignal; timeoutMs?: number }
-  ): AsyncGenerator<string | { meta: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string; sources?: DocumentSource[]; weatherCard?: WeatherCardData } }> {
+  ): AsyncGenerator<string | { meta: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string; sources?: DocumentSource[]; weatherCard?: WeatherCardData; status?: string } }> {
     const timeoutMs = options?.timeoutMs ?? 90_000;
     const ctrl = new AbortController();
     let timedOut = false;
@@ -180,7 +180,7 @@ export const advancedApi = {
           if (!line.startsWith("data: ")) continue;
           const payload = line.slice(6).trim();
           if (payload === "[DONE]") return;
-          let parsed: { delta?: string; error?: string; detail?: string; meta?: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string; sources?: DocumentSource[]; weatherCard?: WeatherCardData } };
+          let parsed: { delta?: string; error?: string; detail?: string; meta?: { modelId: string; displayName: string; provider: string; providerModelId: string; imageUrl?: string; type?: string; sources?: DocumentSource[]; weatherCard?: WeatherCardData; status?: string } };
           try {
             parsed = JSON.parse(payload);
           } catch {
@@ -199,6 +199,7 @@ export const advancedApi = {
                 type: meta.type,
                 sources: meta.sources,
                 weatherCard: meta.weatherCard,
+                status: meta.status,
               },
             };
           } else if (parsed.delta) yield parsed.delta;

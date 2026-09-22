@@ -5,6 +5,10 @@ export const BRAND = {
   tagline: "One AI workspace. Multiple models.",
   /** Short supporting slogan */
   slogan: "Balance meets intelligence.",
+  /** Empty chat headline */
+  emptyTitle: "What should Libraix work on?",
+  /** Empty chat supporting line */
+  emptyLede: "Fast answers, real programs, one calm workspace.",
   /** Longer SEO / share description */
   description:
     "Libraix is a private AI workspace — Super mode, Agent tools, Live Voice, Live Vision, Deep Research, and model compare in one calm place. Free to start.",
