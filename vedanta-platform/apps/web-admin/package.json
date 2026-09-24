@@ -1,0 +1,7 @@
+{
+  "name": "web-admin",
+  "private": true,
+  "scripts": { "dev": "next dev", "build": "next build", "start": "next start" },
+  "dependencies": { "next": "15.5.2", "react": "19.1.1", "react-dom": "19.1.1" },
+  "devDependencies": { "typescript": "5.9.2", "@types/react": "19.1.12", "@types/node": "22.17.2" }
+}

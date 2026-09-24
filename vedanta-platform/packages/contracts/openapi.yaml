@@ -1,0 +1,266 @@
+openapi: 3.1.0
+info:
+  title: Vedanta Platform API
+  version: 0.1.0
+  description: |
+    Transactional API for the Vedanta Oway Retreat platform. Follows §23 of the Master
+    Specification: UUID ids, ISO dates, decimal money, Idempotency-Key on POST,
+    version/ETag optimistic concurrency, problem-details errors, cursor pagination.
+    Only command endpoints change state.
+servers:
+  - url: https://api.vedanta.example/v1
+security: [{ bearerAuth: [] }]
+
+paths:
+  /properties/{propertyId}/availability:
+    get:
+      summary: Room-type availability for a date range
+      parameters:
+        - { $ref: '#/components/parameters/PropertyId' }
+        - { name: arrival, in: query, required: true, schema: { type: string, format: date } }
+        - { name: departure, in: query, required: true, schema: { type: string, format: date } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        room_type_id: { type: string, format: uuid }
+                        code: { type: string }
+                        available: { type: integer, description: Minimum free rooms across all nights }
+
+  /properties/{propertyId}/reservations:
+    post:
+      summary: Create a reservation (as ENQUIRY, OPTION or CONFIRMED)
+      parameters:
+        - { $ref: '#/components/parameters/PropertyId' }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReservationCreate' }
+      responses:
+        '201':
+          headers: { ETag: { schema: { type: string } } }
+          content: { application/json: { schema: { $ref: '#/components/schemas/Reservation' } } }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Problem' }
+    get:
+      summary: List reservations
+      parameters:
+        - { $ref: '#/components/parameters/PropertyId' }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: arrival_from, in: query, schema: { type: string, format: date } }
+        - { name: arrival_to, in: query, schema: { type: string, format: date } }
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, default: 50, maximum: 200 } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/Reservation' } }
+                  next_cursor: { type: [string, 'null'] }
+
+  /reservations/{reservationId}:
+    get:
+      summary: Get a reservation
+      parameters: [{ $ref: '#/components/parameters/ReservationId' }]
+      responses:
+        '200':
+          headers: { ETag: { schema: { type: string } } }
+          content: { application/json: { schema: { $ref: '#/components/schemas/Reservation' } } }
+
+  /reservations/{reservationId}/commands/{command}:
+    post:
+      summary: Transition reservation state
+      description: command is one of hold, confirm, check_in, check_out, cancel, mark_no_show.
+      parameters:
+        - { $ref: '#/components/parameters/ReservationId' }
+        - { name: command, in: path, required: true, schema: { type: string, enum: [hold, confirm, check_in, check_out, cancel, mark_no_show] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+        - { $ref: '#/components/parameters/IfMatch' }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+                option_expires_at: { type: string, format: date-time }
+      responses:
+        '200': { content: { application/json: { schema: { $ref: '#/components/schemas/Reservation' } } } }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /reservations/{reservationId}/room-assignment:
+    put:
+      summary: Assign a physical room
+      parameters:
+        - { $ref: '#/components/parameters/ReservationId' }
+        - { $ref: '#/components/parameters/IfMatch' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [room_id]
+              properties: { room_id: { type: string, format: uuid } }
+      responses:
+        '200': { description: Assigned }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /rooms/{roomId}/commands/{command}:
+    post:
+      summary: Transition room housekeeping state
+      parameters:
+        - { name: roomId, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: command, in: path, required: true, schema: { type: string, enum: [start_cleaning, finish_cleaning, pass_inspection, fail_inspection, set_out_of_service, set_out_of_order, restore] } }
+        - { $ref: '#/components/parameters/IfMatch' }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+                safety_check_passed: { type: boolean }
+      responses:
+        '200': { content: { application/json: { schema: { $ref: '#/components/schemas/Room' } } } }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /properties/{propertyId}/rooms:
+    get:
+      summary: Housekeeping board — all rooms with status
+      parameters: [{ $ref: '#/components/parameters/PropertyId' }]
+      responses:
+        '200': { content: { application/json: { schema: { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/Room' } } } } } } }
+
+  /guests:
+    post:
+      summary: Create a guest (person + profile)
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/GuestCreate' } } }
+      responses:
+        '201': { content: { application/json: { schema: { $ref: '#/components/schemas/Guest' } } } }
+
+  /guests/{personId}/diet:
+    put:
+      summary: Record or replace dietary and allergen declaration (audited safety record)
+      parameters:
+        - { name: personId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/DietProfile' } } }
+      responses:
+        '200': { description: Recorded }
+
+  /audit:
+    get:
+      summary: Query the audit log
+      parameters:
+        - { name: entity_type, in: query, schema: { type: string } }
+        - { name: entity_id, in: query, schema: { type: string, format: uuid } }
+        - { name: cursor, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Audit events, newest first }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    PropertyId: { name: propertyId, in: path, required: true, schema: { type: string, format: uuid } }
+    ReservationId: { name: reservationId, in: path, required: true, schema: { type: string, format: uuid } }
+    IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string } }
+    IfMatch: { name: If-Match, in: header, required: true, schema: { type: string }, description: Current version/ETag }
+  responses:
+    Conflict:
+      description: State or version conflict
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Problem:
+      description: Validation error
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+  schemas:
+    Problem:
+      type: object
+      properties:
+        code: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string, description: Safe message for end users }
+        trace_id: { type: string }
+        errors: { type: array, items: { type: object, properties: { field: { type: string }, message: { type: string } } } }
+    ReservationCreate:
+      type: object
+      required: [arrival, departure, room_type_id, adults, status]
+      properties:
+        status: { type: string, enum: [ENQUIRY, OPTION, CONFIRMED] }
+        guest_id: { type: string, format: uuid }
+        group_id: { type: string, format: uuid }
+        arrival: { type: string, format: date }
+        departure: { type: string, format: date }
+        room_type_id: { type: string, format: uuid }
+        rate_plan_id: { type: string, format: uuid }
+        adults: { type: integer, minimum: 1 }
+        children: { type: integer, minimum: 0, default: 0 }
+        source: { type: string, default: DIRECT }
+        external_ref: { type: string }
+    Reservation:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        confirmation_code: { type: string, example: VOR-10482 }
+        status: { type: string }
+        arrival: { type: string, format: date }
+        departure: { type: string, format: date }
+        room_type_id: { type: string, format: uuid }
+        room_id: { type: [string, 'null'], format: uuid }
+        primary_guest_id: { type: string, format: uuid }
+        currency: { type: string }
+        total_amount: { type: string, example: "435.00" }
+        version: { type: integer }
+    Room:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        number: { type: string }
+        room_type_code: { type: string }
+        status: { type: string }
+        version: { type: integer }
+    GuestCreate:
+      type: object
+      required: [given_name, family_name]
+      properties:
+        given_name: { type: string }
+        family_name: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        marketing_consent: { type: boolean, default: false }
+    Guest:
+      allOf:
+        - { $ref: '#/components/schemas/GuestCreate' }
+        - type: object
+          properties: { id: { type: string, format: uuid } }
+    DietProfile:
+      type: object
+      properties:
+        diet: { type: array, items: { type: string } }
+        allergens:
+          type: array
+          items:
+            type: string
+            enum: [celery, cereals_gluten, crustaceans, eggs, fish, lupin, milk, molluscs, mustard, nuts, peanuts, sesame, soya, sulphites]
+          description: UK 14 regulated allergens
+        severity: { type: string, enum: [PREFERENCE, INTOLERANCE, ALLERGY, ANAPHYLAXIS] }
+        notes: { type: string }
