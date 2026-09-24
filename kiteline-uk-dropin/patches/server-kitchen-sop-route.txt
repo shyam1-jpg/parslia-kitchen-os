@@ -1,0 +1,25 @@
+# Exact kitline1 server.js insert (after the vedanta-rota block)
+
+    // Kiteline Kitchen SOP (PWA under site/kitchen-sop/)
+    if (url.pathname === '/kitchen-sop') {
+      res.writeHead(302, security.securityHeaders({ Location: '/kitchen-sop/', 'Cache-Control': 'no-store' }));
+      return res.end();
+    }
+    if (url.pathname === '/kitchen-sop/') {
+      return serveFile(res, path.join(ROOT, 'site', 'kitchen-sop', 'index.html'));
+    }
+    if (url.pathname === '/kitchen-sop/sw.js') {
+      res.writeHead(200, security.securityHeaders({
+        'Content-Type': 'text/javascript',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Service-Worker-Allowed': '/kitchen-sop/',
+      }));
+      try {
+        return res.end(fs.readFileSync(path.join(ROOT, 'site', 'kitchen-sop', 'sw.js')));
+      } catch {
+        return send(res, 404, { error: 'Not found' }, null, req);
+      }
+    }
+
+# Also add filePath.includes('kitchen-sop') to the serveFile no-cache list
+# alongside vedanta-rota / vedanta-ordering / academy / menu-creator.
