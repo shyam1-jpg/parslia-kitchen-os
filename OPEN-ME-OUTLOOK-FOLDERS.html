@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OPEN ME — Outlook company folders</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #0b1f36;
+      color: #1b1b1b;
+    }
+    .page { max-width: 980px; margin: 0 auto; padding: 28px 16px 64px; }
+    h1 { color: #fff; font-size: 34px; margin: 0 0 10px; }
+    .lead { color: #d5e4f3; font-size: 20px; margin: 0 0 22px; line-height: 1.4; }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin: 0 0 18px;
+    }
+    .warn {
+      background: #fff4cc;
+      border: 2px solid #e0b400;
+      font-size: 20px;
+      line-height: 1.45;
+    }
+    h2 { margin: 0 0 12px; font-size: 22px; color: #0f2744; }
+    ol.big { margin: 0; padding-left: 28px; font-size: 18px; line-height: 1.55; }
+    ol.big li { margin: 0 0 10px; }
+    .mock {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 280px;
+      border: 1px solid #d8e1ea;
+      border-radius: 10px;
+      overflow: hidden;
+      font-size: 15px;
+    }
+    .left { background: #f3f6f9; padding: 14px 12px; }
+    .left strong { display: block; margin-bottom: 8px; }
+    .left div { padding: 5px 8px; }
+    .left .in { padding-left: 22px; }
+    .right { padding: 16px 18px; }
+    .right p { margin: 0 0 8px; color: #5c6b7a; }
+    code, .key {
+      background: #e7f2fb;
+      padding: 1px 7px;
+      border-radius: 4px;
+      font-family: Consolas, monospace;
+    }
+    a.btn {
+      display: inline-block;
+      background: #0f6cbd;
+      color: #fff;
+      text-decoration: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      margin: 8px 8px 0 0;
+    }
+    .muted { color: #5c6b7a; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Your company email folders</h1>
+    <p class="lead">They are <b>not</b> on the Windows desktop. They live <b>inside Outlook</b>, on the <b>left</b> side.</p>
+
+    <div class="card warn">
+      <b>If you only see one email filling the whole page,</b> the folder list is hidden.
+      That is why you cannot see GitHub, Cursor, Cloud, Apple, or Google yet.
+    </div>
+
+    <div class="card">
+      <h2>1. Show the folder list in Outlook</h2>
+      <ol class="big">
+        <li>Open <b>Outlook</b> on this computer.</li>
+        <li>Click <b>View</b> at the top.</li>
+        <li>Click <b>Folder Pane</b> → <b>Normal</b>.
+          <div class="muted">New Outlook: click the folder icon on the far left, then look for Inbox.</div>
+        </li>
+        <li>You should now see <b>Inbox</b> on the left — not only one email.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>2. Create the first folder so you can see it</h2>
+      <ol class="big">
+        <li>On the left, <b>right-click Inbox</b>.</li>
+        <li>Click <b>New Folder</b> (or Create new folder).</li>
+        <li>Type <span class="key">GitHub</span> and press Enter.</li>
+        <li>Repeat for <span class="key">Cursor</span>, <span class="key">Cloud</span>,
+            <span class="key">Apple</span>, <span class="key">Google</span>.</li>
+      </ol>
+      <p>Those names now show under Inbox. That is the “neat” list.</p>
+    </div>
+
+    <div class="card">
+      <h2>What it looks like</h2>
+      <div class="mock">
+        <div class="left">
+          <strong>Outlook</strong>
+          <div>📥 Inbox</div>
+          <div>📁 Companies</div>
+          <div class="in">📁 GitHub</div>
+          <div class="in">📁 Cursor</div>
+          <div class="in">📁 Cloud</div>
+          <div class="in">📁 Apple</div>
+          <div class="in">📁 Google</div>
+          <div class="in">📁 Microsoft</div>
+        </div>
+        <div class="right">
+          <p>Open a folder on the left. Only that company’s mail shows.</p>
+          <p><b>GitHub</b> — pull requests, Copilot, security</p>
+          <p><b>Cursor</b> — Cursor and cloud agent mail</p>
+          <p><b>Cloud</b> — Render, Netlify, Azure, AWS</p>
+          <p><b>Apple</b> — Apple ID, App Store</p>
+          <p><b>Google</b> — Google account, Play</p>
+          <p>Friends and family stay in Inbox.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. Auto-drop new mail into those folders</h2>
+      <p>Desktop Outlook (classic):</p>
+      <ol class="big">
+        <li>Keep Outlook open.</li>
+        <li>Double-click <span class="key">SETUP-OUTLOOK-FOLDERS.bat</span> (same folder as this page, or inside the <span class="key">outlook</span> folder).</li>
+        <li>Press <b>Y</b>. It creates the rest of the folders, moves old company mail, and adds rules for new mail.</li>
+      </ol>
+      <p>Or do it on the web (same Hotmail account):</p>
+      <p>
+        <a class="btn" href="https://outlook.live.com/mail/0/inbox">Open Outlook on the web</a>
+      </p>
+      <ol class="big">
+        <li>Sign in.</li>
+        <li>Left list → right-click <b>Inbox</b> → <b>Create new folder</b> → name it <span class="key">GitHub</span>.</li>
+        <li>Repeat for Cursor, Cloud, Apple, Google.</li>
+        <li>Settings (gear) → <b>Mail</b> → <b>Rules</b> → <b>Add new rule</b>.</li>
+        <li>Example: name <span class="key">GitHub</span>, condition “sender includes <span class="key">github.com</span>”, action “Move to GitHub”.</li>
+      </ol>
+    </div>
+  </div>
+</body>
+</html>

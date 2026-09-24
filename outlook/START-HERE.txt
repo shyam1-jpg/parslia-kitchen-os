@@ -1,0 +1,45 @@
+If you cannot see the folders
+=============================
+
+They are NOT on the Windows desktop.
+They are INSIDE Outlook, on the LEFT side.
+
+If one email fills the whole page:
+  Outlook → View → Folder Pane → Normal
+
+Then create one folder so you can see it:
+  Right-click Inbox → New Folder → type GitHub
+
+Full picture + clicks:  OPEN-ME-OUTLOOK-FOLDERS.html
+  (double-click that file — it is in the project root)
+
+To put the helper on your Desktop:
+  Double-click  PUT-OUTLOOK-SETUP-ON-DESKTOP.bat
+
+
+On your PC — auto-file company mail
+===================================
+
+1. Open Outlook (desktop). Turn OFF "New Outlook" if you see that switch.
+2. Double-click  SETUP-OUTLOOK-FOLDERS.bat
+3. Press Y
+
+Creates Inbox → Companies → GitHub, Cursor, Cloud, Apple, Google, …
+Moves matching mail. Adds rules for new mail.
+Friends stay in Inbox.
+
+
+Outlook on the web
+==================
+
+https://outlook.live.com/mail/
+
+Right-click Inbox → Create new folder → GitHub
+Repeat: Cursor, Cloud, Apple, Google
+Settings → Mail → Rules → Add new rule
+(see outlook/RULES-TO-ADD.txt)
+
+
+Add another company later
+=========================
+Edit outlook/companies.csv  then run the .bat again.
