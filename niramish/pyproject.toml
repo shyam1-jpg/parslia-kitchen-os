@@ -1,0 +1,11 @@
+[project]
+name = "niramish"
+version = "1.0.0"
+description = "Photograph a recipe, then store a house version that follows a lacto-vegetarian no-allium ethos."
+requires-python = ">=3.11"
+readme = "README.md"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
