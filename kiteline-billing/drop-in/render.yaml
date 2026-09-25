@@ -1,0 +1,101 @@
+# Kiteline — deploy to Render (https://render.com)
+# Connect this repo → Blueprint → kiteline.uk custom domain + free SSL
+# Set APP_URL=https://kiteline.uk in Render env + Stripe webhook on /api/billing/webhook
+services:
+  - type: web
+    name: kiteline
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install
+    startCommand: node server/server.js
+    healthCheckPath: /health
+    domains:
+      - kiteline.uk
+      - www.kiteline.uk
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RENDER
+        value: "true"
+      - key: OWNER_EMAIL
+        value: shyam_1@hotmail.co.uk
+      - key: OWNER_NAME
+        value: Shyam Prasad
+      - key: OWNER_PASSWORD
+        sync: false
+      - key: INGEST_KEY
+        generateValue: true
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        value: shyam.prasad@thevedanta.org
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        value: Kiteline <shyam.prasad@thevedanta.org>
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_FROM_NUMBER
+        sync: false
+      - key: NOTIFY_PHONE
+        sync: false
+      - key: VEDANTA_REPORTS_ENABLED
+        value: "false"
+      - key: NOTIFY_TO
+        sync: false
+      - key: APP_URL
+        value: https://kiteline.uk
+      - key: DEMO_MODE
+        value: "false"
+      - key: SHOW_RESET_LINK
+        value: "true"
+      - key: REQUIRE_EMAIL_VERIFY
+        value: "false"
+      - key: ACADEMY_REQUIRE_EMAIL_VERIFY
+        value: "false"
+      - key: ACADEMY_REPLY_TO
+        value: contact@kiteline.uk
+      # Set ACADEMY_REQUIRE_EMAIL_VERIFY=true only when kiteline.uk SMTP is reliable
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: RECIPE_AI_ENABLED
+        sync: false
+      - key: RECIPE_AI_ADDON_GBP
+        value: "12"
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_IMAGE_MODEL
+        value: dall-e-3
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_USERS_1
+        sync: false
+      - key: STRIPE_PRICE_USERS_5
+        sync: false
+      - key: STRIPE_PRICE_USERS_10
+        sync: false
+      - key: STRIPE_PRICE_USERS_20
+        sync: false
+      - key: STRIPE_PRICE_USERS_50
+        sync: false
+      - key: STRIPE_PRICE_RECIPE_AI
+        sync: false
+      - key: STRIPE_PRICE_ACADEMY_STARTER
+        sync: false
+      - key: STRIPE_PRICE_ACADEMY_PRO
+        sync: false
+      - key: BILLING_DEV_MODE
+        value: "false"
+      - key: TRIAL_DAYS
+        value: "14"
+      - key: VEDANTA_REPORT_EMAIL
+        value: Operation@thevedanta.org
+      - key: VEDANTA_FB_PROJECT
+        value: the-vedanta
