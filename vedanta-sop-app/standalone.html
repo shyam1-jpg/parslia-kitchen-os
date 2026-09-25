@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0A3A2A" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="description" content="Vedanta Limited vegetarian kitchen SOP pocket app — no onion, no garlic." />
+  <title>Vedanta Limited · Veg SOP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <style>
+/* Vedanta Limited pocket SOP — mobile-first */
+:root {
+  --ink: #0a3a2a;
+  --ink-soft: #1a4f3c;
+  --teal: #0d7377;
+  --mist: #d9e4ea;
+  --paper: #f3f7f9;
+  --line: rgba(10, 58, 42, 0.12);
+  --warn: #9a3412;
+  --warn-bg: #ffedd5;
+  --ok: #0f766e;
+  --shadow: 0 12px 40px rgba(10, 58, 42, 0.12);
+  --radius: 18px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --tab-h: calc(64px + var(--safe-b));
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Figtree", system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(120% 80% at 10% -10%, #b7d0d8 0%, transparent 55%),
+    radial-gradient(90% 70% at 100% 0%, #c5ddd4 0%, transparent 45%),
+    linear-gradient(165deg, #cfdce3 0%, var(--mist) 40%, #e8eef1 100%);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  position: relative;
+  padding-bottom: var(--tab-h);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  gap: 8px;
+  align-items: center;
+  padding: calc(10px + var(--safe-t)) 14px 12px;
+  background: rgba(243, 247, 249, 0.88);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar-text {
+  min-width: 0;
+  text-align: center;
+}
+
+.brand-mark {
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+  font-weight: 600;
+}
+
+.screen-title {
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.icon-btn[hidden] {
+  visibility: hidden;
+}
+
+.search-bar {
+  padding: 8px 14px 0;
+}
+
+.search-bar[hidden] {
+  display: none;
+}
+
+.search-bar input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  font: inherit;
+  font-size: 1rem;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.main {
+  padding: 16px 14px 28px;
+  animation: rise 0.35s ease both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 28px 22px 24px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.35), transparent 40%),
+    linear-gradient(160deg, #0a3a2a 0%, #0d5c52 55%, #0d7377 100%);
+  color: #f3f7f9;
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -40% 30%;
+  height: 140%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.16), transparent 60%);
+  pointer-events: none;
+}
+
+.hero-brand {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 7vw, 2.2rem);
+  line-height: 1.05;
+  margin: 0 0 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero p {
+  margin: 0;
+  max-width: 28ch;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  opacity: 0.92;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-meta {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgba(243, 247, 249, 0.14);
+  border: 1px solid rgba(243, 247, 249, 0.22);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.section-label {
+  margin: 8px 2px 10px;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-soft);
+  opacity: 0.7;
+}
+
+.sop-list {
+  display: grid;
+  gap: 10px;
+}
+
+.sop-row {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(243, 247, 249, 0.86);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sop-row:active {
+  transform: scale(0.985);
+}
+
+.sop-glyph {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, #0d7377, #0a3a2a);
+  color: #f3f7f9;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.sop-row strong {
+  display: block;
+  font-size: 0.98rem;
+  margin-bottom: 2px;
+}
+
+.sop-row span {
+  display: block;
+  font-size: 0.84rem;
+  color: rgba(10, 58, 42, 0.72);
+  line-height: 1.35;
+}
+
+.chev {
+  color: var(--teal);
+  font-size: 1.2rem;
+  opacity: 0.7;
+}
+
+.warn-banner {
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  background: var(--warn-bg);
+  color: var(--warn);
+  border: 1px solid rgba(154, 52, 18, 0.18);
+  margin-bottom: 14px;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.rule-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rule-list li {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(243, 247, 249, 0.9);
+  border: 1px solid var(--line);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.rule-list li::before {
+  content: "•";
+  color: var(--teal);
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.detail-head {
+  margin-bottom: 14px;
+}
+
+.detail-code {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--teal);
+  margin-bottom: 4px;
+}
+
+.detail-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  line-height: 1.15;
+}
+
+.detail-head p {
+  margin: 8px 0 0;
+  color: rgba(10, 58, 42, 0.72);
+}
+
+.block {
+  margin-bottom: 12px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: rgba(243, 247, 249, 0.92);
+  border: 1px solid var(--line);
+}
+
+.block h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.block p {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.block ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 8px;
+}
+
+.block li {
+  line-height: 1.4;
+  font-size: 0.94rem;
+}
+
+.install-panel {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(243, 247, 249, 0.92);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.install-panel h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+}
+
+.install-panel p {
+  margin: 0 0 12px;
+  line-height: 1.45;
+  color: rgba(10, 58, 42, 0.8);
+}
+
+.install-panel ol {
+  margin: 0 0 16px;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 8px;
+}
+
+.install-panel li {
+  line-height: 1.4;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 50px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #0d7377, #0a3a2a);
+  color: #f3f7f9;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.btn-ghost {
+  margin-top: 10px;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: rgba(10, 58, 42, 0.65);
+}
+
+.tabbar {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(480px, 100%);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  padding: 8px 8px calc(8px + var(--safe-b));
+  background: rgba(243, 247, 249, 0.94);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--line);
+  z-index: 30;
+}
+
+.tab {
+  border: none;
+  background: transparent;
+  color: rgba(10, 58, 42, 0.55);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 8px 4px;
+  border-radius: 14px;
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+}
+
+.tab.active {
+  color: var(--ink);
+  background: rgba(13, 115, 119, 0.12);
+}
+
+.tab-ico {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+@media (min-width: 720px) {
+  body {
+    padding: 24px 0;
+  }
+
+  .app {
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+    background: rgba(243, 247, 249, 0.35);
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="topbar" id="topbar">
+      <button type="button" class="icon-btn" id="backBtn" hidden aria-label="Back">←</button>
+      <div class="topbar-text">
+        <p class="brand-mark" id="brandMark">Vedanta Limited</p>
+        <h1 class="screen-title" id="screenTitle">Veg SOP</h1>
+      </div>
+      <button type="button" class="icon-btn" id="searchToggle" aria-label="Search">⌕</button>
+    </header>
+    <div class="search-bar" id="searchBar" hidden>
+      <input type="search" id="searchInput" placeholder="Search SOPs…" autocomplete="off" enterkeyhint="search" />
+    </div>
+    <main class="main" id="main"></main>
+    <nav class="tabbar" aria-label="Primary">
+      <button type="button" class="tab active" data-tab="home" aria-current="page">
+        <span class="tab-ico">⌂</span><span>Home</span>
+      </button>
+      <button type="button" class="tab" data-tab="sops">
+        <span class="tab-ico">☰</span><span>SOPs</span>
+      </button>
+      <button type="button" class="tab" data-tab="rules">
+        <span class="tab-ico">!</span><span>Rules</span>
+      </button>
+      <button type="button" class="tab" data-tab="install">
+        <span class="tab-ico">↓</span><span>Install</span>
+      </button>
+    </nav>
+  </div>
+  <script>
+/* Vedanta Limited — Pocket SOP App data (offline) */
+window.VEDANTA_SOP_DATA = {
+  company: "Vedanta Limited",
+  appName: "Vedanta Veg SOP",
+  tagline: "Pocket kitchen standards — no onion, no garlic.",
+  version: "1.1",
+  hardRules: [
+    "No onion — raw, cooked, powder, paste, or garnish",
+    "No garlic — cloves, paste, powder, infused oil, or garlic salt",
+    "No other alliums — shallot, leek, chives, spring onion",
+    "No meat, fish, egg, or animal gelatin",
+    "No chai SOP in this pack — tea is out of scope",
+    "Use hing (asafoetida) for onion/garlic aroma"
+  ],
+  sops: [
+    {
+      id: "vv-00",
+      code: "VV-00",
+      title: "Master diet & kitchen rules",
+      blurb: "What is allowed, forbidden, and how to escalate.",
+      icon: "rules",
+      sections: [
+        {
+          h: "Purpose",
+          body: "Define the diet and kitchen behaviour standard for all food prepared, stored, or served under Vedanta Limited vegetarian programme rules."
+        },
+        {
+          h: "Scope",
+          body: "Applies to all staff, contractors, volunteers, and suppliers who enter food areas or handle ingredients for Vedanta Limited vegetarian operations."
+        },
+        {
+          h: "Definitions",
+          bullets: [
+            "Vedanta Limited vegetarian — lacto-veg: no onion, no garlic, no other alliums, no eggs, no meat, no fish",
+            "Allium — onion, garlic, shallot, leek, chives, spring onion, and any powder, paste, oil, or stock made from them",
+            "Hing — asafoetida; approved aromatic substitute",
+            "Contaminated item — food, utensil, or surface that contacted a forbidden ingredient"
+          ]
+        },
+        {
+          h: "Allowed (examples)",
+          bullets: [
+            "Dairy: milk, yogurt, paneer, ghee, butter, cream (where policy allows)",
+            "Grains, pulses, rice, flours, breads without onion/garlic",
+            "Vegetables and fruits (except alliums)",
+            "Nuts, seeds, coconut",
+            "Spices: cumin, coriander, turmeric, chilli, mustard, fenugreek, curry leaves, ginger, hing",
+            "Verified allium-free pastes, sauces, and spice mixes only"
+          ]
+        },
+        {
+          h: "Forbidden (absolute)",
+          bullets: [
+            "Alliums: onion, garlic, shallot, leek, chives, spring onion, garlic oil, onion powder",
+            "Animal flesh: meat, poultry, fish, shellfish",
+            "Egg: whole egg, egg powder, egg mayonnaise unless vegan-verified",
+            "Hidden allium in pastes, jarred sauces, veg stock cubes",
+            "Utensils or boards used for onion/garlic without deep clean"
+          ]
+        },
+        {
+          h: "Kitchen behaviour",
+          bullets: [
+            "Wash hands before work and after produce or waste",
+            "Clean uniform, hair restraint, closed shoes",
+            "No personal onion/garlic food in prep or cook areas",
+            "Read every label before opening a new ingredient",
+            "Quarantine onion/garlic if found — report to Kitchen Manager",
+            "Chai / tea station is not part of this SOP pack"
+          ]
+        },
+        {
+          h: "Escalation",
+          bullets: [
+            "Allium on recipe card → stop dish, correct card, remake if needed",
+            "Guest asks for onion/garlic → explain standard; offer approved alternative",
+            "Cross-contamination → discard food, deep-clean, log incident"
+          ]
+        }
+      ]
+    },
+    {
+      id: "vv-01",
+      code: "VV-01",
+      title: "How to work",
+      blurb: "Shift flow from clock-in to hand-over.",
+      icon: "work",
+      sections: [
+        {
+          h: "Before you start",
+          bullets: [
+            "Clock in / sign the site rota",
+            "Clean uniform, apron, hair restraint, non-slip shoes",
+            "Wash hands 20 seconds",
+            "Read day board: menus, covers, allergens, diet tags",
+            "Check fridge / freezer temps and log them",
+            "Confirm no onion, garlic, or alliums on pass or prep tables"
+          ]
+        },
+        {
+          h: "Roles",
+          bullets: [
+            "Head Chef / Manager — menu, diet compliance, pass check",
+            "Lead cook — hot line, hing tadka, timing",
+            "Prep cook — veg, dals, rice, sauces (allium-free)",
+            "Pastry / mithai — no egg unless vegan line",
+            "Steward — wash-up, deep clean, waste",
+            "Runner — plating assist, buffet replenishment"
+          ]
+        },
+        {
+          h: "During prep",
+          bullets: [
+            "Work from approved recipe only — never add onion for taste",
+            "Mise: wash → peel → cut → weigh → label → cover → chill",
+            "Keep hing and spices labelled and dry",
+            "Taste with a clean spoon only",
+            "If recipe lists onion/garlic — stop and escalate",
+            "Batch dals/rice early; finish tadka near service"
+          ]
+        },
+        {
+          h: "During service",
+          bullets: [
+            "Plate to approved standard",
+            "Call allergens and diet status on the pass",
+            "Never garnish with spring onion, fried onion, or garlic chips",
+            "Keep walkways clear; use VV-02 for heavy lifts",
+            "Wash hands before returning to the line"
+          ]
+        },
+        {
+          h: "End of block",
+          bullets: [
+            "Clean station (VV-07)",
+            "Label leftovers (VV-04)",
+            "Restock hing and verified spices",
+            "Hand over tickets and low stock",
+            "Sign closing checks; clock out"
+          ]
+        }
+      ]
+    },
+    {
+      id: "vv-02",
+      code: "VV-02",
+      title: "How to lift",
+      blurb: "Safe manual handling for pots, sacks, crates.",
+      icon: "lift",
+      sections: [
+        {
+          h: "Before you lift — TILE",
+          bullets: [
+            "Task — can a trolley or two people do it instead?",
+            "Individual — are you fit and injury-free today?",
+            "Load — weight, shape, hot/cold, spill or sharp risk?",
+            "Environment — dry floor, clear path, lit, door propped?",
+            "If unsafe — do not lift alone"
+          ]
+        },
+        {
+          h: "Safe technique",
+          bullets: [
+            "Stand close; feet shoulder-width; one foot slightly forward",
+            "Bend hips and knees; keep back naturally straight",
+            "Firm grip under the load",
+            "Lift with the legs — no jerk",
+            "Keep load close to the body",
+            "Turn by moving the feet — never twist the spine",
+            "Set down by bending knees"
+          ]
+        },
+        {
+          h: "Kitchen loads",
+          bullets: [
+            "Full hot pot / kadai — two people if heavy or hot",
+            "Rice / flour sack (20–25 kg) — sack truck preferred",
+            "Dairy crates — trolley; stack below chin",
+            "Oil / ghee tins — two hands; never by spout alone",
+            "Gas cylinder — trained staff only; chain when stored",
+            "Hot trays — dry cloths / oven gloves; call “hot behind”",
+            "Waste bins — do not overfill; bend knees for bags"
+          ]
+        },
+        {
+          h: "Never",
+          bullets: [
+            "Lift boiling liquid alone above waist height",
+            "Climb on crates to reach high shelves",
+            "Carry loads that block your view",
+            "Catch a falling hot pan bare-handed",
+            "Twist while holding a full hotel pan"
+          ]
+        },
+        {
+          h: "After an incident",
+          bullets: [
+            "Stop work if injured",
+            "Notify first aid / manager",
+            "Log in accident book",
+            "No heavy lifts until cleared"
+          ]
+        }
+      ]
+    },
+    {
+      id: "vv-03",
+      code: "VV-03",
+      title: "Receiving & goods-in",
+      blurb: "Accept only diet-safe deliveries.",
+      icon: "receive",
+      sections: [
+        {
+          h: "Delivery bay",
+          bullets: [
+            "Clear receiving table; sanitiser, thermometer, rejection tags ready",
+            "Use trolley / sack truck (VV-02)",
+            "Match delivery note to purchase order",
+            "Check packaging: sealed, clean, no pests, in date",
+            "Diet scan labels for onion, garlic, alliums, egg, meat, fish, gelatin",
+            "Reject forbidden goods — tag, photo, return, log",
+            "Chilled ≤ 5 °C; frozen hard-frozen",
+            "Store accepted goods within 15 minutes",
+            "Wash hands after outer packaging"
+          ]
+        },
+        {
+          h: "High-risk checks",
+          bullets: [
+            "Spice pastes — written onion/garlic-free cert",
+            "Stock cubes — allium-free only",
+            "Sauces — label check every new batch",
+            "Bread / wraps — no garlic dough or onion topping",
+            "Ready sauces — reject without specification on file"
+          ]
+        },
+        {
+          h: "Rejection script",
+          body: "“Thank you — we operate under Vedanta Limited vegetarian rules with no onion and no garlic. This item lists [ingredient]. We cannot accept it. Please take it back and note our rejection.”"
+        }
+      ]
+    },
+    {
+      id: "vv-04",
+      code: "VV-04",
+      title: "Storage & labelling",
+      blurb: "Zones, labels, temps, leftovers.",
+      icon: "store",
+      sections: [
+        {
+          h: "Zones",
+          bullets: [
+            "Dry — flours, rice, pulses, sealed spices, hing, oils",
+            "Chill — dairy, cut veg, leftovers, sauces",
+            "Freeze — approved frozen veg, paneer if used frozen",
+            "Quarantine — suspect or rejected goods; never cook from here"
+          ]
+        },
+        {
+          h: "Every label must show",
+          bullets: [
+            "Product name",
+            "Diet tag: Vedanta Limited veg · No onion · No garlic",
+            "Prep date / time",
+            "Use-by / day dots per site policy",
+            "Allergens",
+            "Initials of person who labelled"
+          ]
+        },
+        {
+          h: "Temps & leftovers",
+          bullets: [
+            "Fridge 0–5 °C · Freezer ≤ −18 °C · Hot hold ≥ 63 °C",
+            "Log twice per shift or per local law",
+            "Cool leftovers quickly in shallow containers",
+            "Reheat once only to steaming hot (≥ 75 °C core unless local rule differs)",
+            "Never refresh leftovers with onion or garlic",
+            "FIFO on dry and chill stock"
+          ]
+        }
+      ]
+    },
+    {
+      id: "vv-05",
+      code: "VV-05",
+      title: "Prep & cooking",
+      blurb: "Flavour with hing — never onion or garlic.",
+      icon: "cook",
+      sections: [
+        {
+          h: "Prep rules",
+          bullets: [
+            "Wash produce; scrub roots",
+            "Colour-coded boards per site code",
+            "Uniform cuts for even cooking",
+            "Hold cut veg chilled and covered",
+            "Do not tip spice tins over steam"
+          ]
+        },
+        {
+          h: "Flavour without onion/garlic",
+          bullets: [
+            "Hing tadka — oil/ghee → cumin or mustard → pinch hing → pour",
+            "Ginger–chilli for sharpness",
+            "Tomato base for body",
+            "Toast cumin, coriander, fennel for depth",
+            "Coconut / cashew for creamy gravies",
+            "Curry leaf for aroma",
+            "Never use garlic paste, ginger-garlic paste, onion paste, or fried onion"
+          ]
+        },
+        {
+          h: "Cook sequence",
+          bullets: [
+            "Confirm recipe tagged Vedanta Limited vegetarian / allium-free",
+            "Heat fat → whole spices → hing (do not burn)",
+            "Add veg / pulses / liquids",
+            "Season; simmer to texture",
+            "Finish with coriander, lemon, or ghee as allowed",
+            "Taste with clean spoon — adjust salt/spice only"
+          ]
+        },
+        {
+          h: "Stop-work if",
+          bullets: [
+            "A jar or paste lists onion or garlic mid-service",
+            "Fried onion garnish arrives from another station",
+            "Guest allergy conflicts — check allergen sheet; do not guess"
+          ]
+        }
+      ]
+    },
+    {
+      id: "vv-06",
+      code: "VV-06",
+      title: "Service & plating",
+      blurb: "Pass checks and guest wording.",
+      icon: "serve",
+      sections: [
+        {
+          h: "Pass checklist",
+          bullets: [
+            "Correct dish for ticket",
+            "Diet tag matches guest / event",
+            "No onion, garlic, shallot, or spring onion",
+            "Allergen flags called",
+            "Temperature and garnish correct",
+            "Clean rim before service"
+          ]
+        },
+        {
+          h: "Plating",
+          bullets: [
+            "Follow approved plating photo / standard",
+            "Garnish: coriander, non-allium microgreens, lemon, seeds — never fried onion or garlic chips",
+            "Buffet label: Vedanta Limited vegetarian · No onion · No garlic + allergens",
+            "Change utensils between dishes"
+          ]
+        },
+        {
+          h: "Guest replies",
+          bullets: [
+            "“Can you add garlic?” → We do not use garlic or onion; we can increase ginger, chilli, or hing",
+            "Jain / sattvic ask → confirm site policy; this standard is no onion/garlic lacto-veg",
+            "Allergy → check allergen sheet; do not improvise"
+          ]
+        },
+        {
+          h: "Out of scope",
+          body: "Beverage chai / tea service is not covered by this SOP pack."
+        }
+      ]
+    },
+    {
+      id: "vv-07",
+      code: "VV-07",
+      title: "Cleaning & closing",
+      blurb: "Clean-as-you-go and end-of-shift close.",
+      icon: "clean",
+      sections: [
+        {
+          h: "Clean-as-you-go",
+          bullets: [
+            "Wipe spills immediately",
+            "Change dirty cloths; use sanitiser per chart",
+            "Wash boards between raw and cooked tasks",
+            "Keep aisles clear for safe lifting"
+          ]
+        },
+        {
+          h: "Closing sequence",
+          bullets: [
+            "Safe-set unused equipment",
+            "Store food labelled; discard past policy",
+            "Wash, rinse, sanitise; air-dry",
+            "Clean cook line, pass, prep, sinks",
+            "Empty bins using VV-02 lift technique",
+            "Sweep then mop; dry wet patches",
+            "Final fridge temps",
+            "Confirm no onion/garlic left in Vedanta Limited zones",
+            "Complete closing checklist; lock stores"
+          ]
+        }
+      ]
+    },
+    {
+      id: "vv-08",
+      code: "VV-08",
+      title: "Cross-contamination control",
+      blurb: "Keep alliums and non-veg out of the line.",
+      icon: "shield",
+      sections: [
+        {
+          h: "Barriers",
+          bullets: [
+            "Colour-coded boards, knives, cloths, boxes",
+            "Separate hing spice kit — never shared with garlic kitchen",
+            "Separate fryers / oils",
+            "Separate storage; quarantine unknowns",
+            "If staff worked a garlic line first — change apron and wash hands",
+            "Recipes tagged; printouts match live cards"
+          ]
+        },
+        {
+          h: "What counts as contamination",
+          bullets: [
+            "Onion knife used on tomato without wash",
+            "Garlic tadka spoon dipped into dal",
+            "Fryer oil after garlic naan",
+            "Hands after peeling garlic, before washing",
+            "Onion juice left on a board, rinsed only with cold water"
+          ]
+        },
+        {
+          h: "Corrective action",
+          bullets: [
+            "Stop the batch",
+            "Discard contaminated food — do not scrape and serve",
+            "Deep clean tools and surfaces",
+            "Remake from clean mise",
+            "Log incident",
+            "Retrain or supplier CAPA as needed"
+          ]
+        },
+        {
+          h: "Weekly audit",
+          bullets: [
+            "Hing kits intact and labelled?",
+            "Any onion/garlic in vegetarian fridges?",
+            "Buffet labels still say No onion / No garlic?",
+            "Shared fryer risk this week?",
+            "VV-00 and VV-02 sign-offs current?"
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+  </script>
+  <script>
+(function () {
+  "use strict";
+
+  var DATA = window.VEDANTA_SOP_DATA;
+  var main = document.getElementById("main");
+  var screenTitle = document.getElementById("screenTitle");
+  var brandMark = document.getElementById("brandMark");
+  var backBtn = document.getElementById("backBtn");
+  var searchToggle = document.getElementById("searchToggle");
+  var searchBar = document.getElementById("searchBar");
+  var searchInput = document.getElementById("searchInput");
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+
+  var state = {
+    tab: "home",
+    sopId: null,
+    query: "",
+    searchOpen: false,
+    deferredPrompt: null
+  };
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function findSop(id) {
+    for (var i = 0; i < DATA.sops.length; i++) {
+      if (DATA.sops[i].id === id) return DATA.sops[i];
+    }
+    return null;
+  }
+
+  function filteredSops() {
+    var q = state.query.trim().toLowerCase();
+    if (!q) return DATA.sops;
+    return DATA.sops.filter(function (sop) {
+      var blob = (sop.code + " " + sop.title + " " + sop.blurb).toLowerCase();
+      sop.sections.forEach(function (sec) {
+        blob += " " + sec.h;
+        if (sec.body) blob += " " + sec.body;
+        if (sec.bullets) blob += " " + sec.bullets.join(" ");
+      });
+      return blob.indexOf(q) !== -1;
+    });
+  }
+
+  function sopRowsHtml(list) {
+    if (!list.length) {
+      return '<div class="empty">No SOPs match that search.</div>';
+    }
+    return (
+      '<div class="sop-list">' +
+      list
+        .map(function (sop) {
+          return (
+            '<button type="button" class="sop-row" data-open="' +
+            escapeHtml(sop.id) +
+            '">' +
+            '<span class="sop-glyph">' +
+            escapeHtml(sop.code) +
+            "</span>" +
+            "<div><strong>" +
+            escapeHtml(sop.title) +
+            "</strong><span>" +
+            escapeHtml(sop.blurb) +
+            "</span></div>" +
+            '<span class="chev" aria-hidden="true">›</span>' +
+            "</button>"
+          );
+        })
+        .join("") +
+      "</div>"
+    );
+  }
+
+  function renderHome() {
+    screenTitle.textContent = "Veg SOP";
+    brandMark.textContent = DATA.company;
+    backBtn.hidden = true;
+    main.innerHTML =
+      '<section class="hero">' +
+      '<h2 class="hero-brand">' +
+      escapeHtml(DATA.company) +
+      "</h2>" +
+      "<p>" +
+      escapeHtml(DATA.tagline) +
+      "</p>" +
+      '<div class="hero-meta">' +
+      '<span class="chip">No onion</span>' +
+      '<span class="chip">No garlic</span>' +
+      '<span class="chip">Hing OK</span>' +
+      '<span class="chip">v' +
+      escapeHtml(DATA.version) +
+      "</span>" +
+      "</div></section>" +
+      '<p class="section-label">Quick open</p>' +
+      sopRowsHtml(DATA.sops.slice(0, 4)) +
+      '<p class="section-label" style="margin-top:18px">All procedures</p>' +
+      '<button type="button" class="btn" id="gotoSops">Open full SOP list</button>';
+  }
+
+  function renderSops() {
+    screenTitle.textContent = "All SOPs";
+    brandMark.textContent = DATA.company;
+    backBtn.hidden = true;
+    main.innerHTML =
+      '<div class="warn-banner">Hard rule: no onion, no garlic, no other alliums. Chai SOP is out of scope.</div>' +
+      '<p class="section-label">' +
+      filteredSops().length +
+      " procedures</p>" +
+      sopRowsHtml(filteredSops());
+  }
+
+  function renderRules() {
+    screenTitle.textContent = "Hard rules";
+    brandMark.textContent = DATA.company;
+    backBtn.hidden = true;
+    main.innerHTML =
+      '<div class="warn-banner">Non-negotiable for every Vedanta Limited vegetarian kitchen.</div>' +
+      '<ul class="rule-list">' +
+      DATA.hardRules
+        .map(function (r) {
+          return "<li>" + escapeHtml(r) + "</li>";
+        })
+        .join("") +
+      "</ul>";
+  }
+
+  function renderInstall() {
+    screenTitle.textContent = "Install";
+    brandMark.textContent = "Pocket app";
+    backBtn.hidden = true;
+    var canPrompt = !!state.deferredPrompt;
+    main.innerHTML =
+      '<div class="install-panel">' +
+      "<h2>Add to your phone</h2>" +
+      "<p>Works on Android and iPhone. Install once, then open offline like a normal app.</p>" +
+      "<h3 style=\"margin:0 0 8px;font-size:0.95rem\">Android (Chrome)</h3>" +
+      "<ol>" +
+      "<li>Open this page in Chrome.</li>" +
+      "<li>Tap the menu ⋮ → <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>" +
+      "<li>Confirm. The Vedanta SOP icon appears on your home screen.</li>" +
+      "</ol>" +
+      "<h3 style=\"margin:0 0 8px;font-size:0.95rem\">iPhone / iPad (Safari)</h3>" +
+      "<ol>" +
+      "<li>Open this page in Safari (not Chrome).</li>" +
+      "<li>Tap the Share button □↑.</li>" +
+      "<li>Scroll and tap <strong>Add to Home Screen</strong>.</li>" +
+      "<li>Tap Add. Open it from your home screen anytime.</li>" +
+      "</ol>" +
+      '<button type="button" class="btn" id="installBtn"' +
+      (canPrompt ? "" : " disabled") +
+      ">" +
+      (canPrompt ? "Install now" : "Use browser menu to install") +
+      "</button>" +
+      '<button type="button" class="btn btn-ghost" id="offlineHint">Works offline after first open</button>' +
+      "</div>";
+  }
+
+  function renderDetail(sop) {
+    screenTitle.textContent = sop.code;
+    brandMark.textContent = DATA.company;
+    backBtn.hidden = false;
+    var sections = sop.sections
+      .map(function (sec) {
+        var inner = "";
+        if (sec.body) inner += "<p>" + escapeHtml(sec.body) + "</p>";
+        if (sec.bullets && sec.bullets.length) {
+          inner +=
+            "<ul>" +
+            sec.bullets
+              .map(function (b) {
+                return "<li>" + escapeHtml(b) + "</li>";
+              })
+              .join("") +
+            "</ul>";
+        }
+        return (
+          '<article class="block"><h3>' +
+          escapeHtml(sec.h) +
+          "</h3>" +
+          inner +
+          "</article>"
+        );
+      })
+      .join("");
+
+    main.innerHTML =
+      '<div class="detail-head">' +
+      '<div class="detail-code">' +
+      escapeHtml(sop.code) +
+      "</div>" +
+      "<h2>" +
+      escapeHtml(sop.title) +
+      "</h2>" +
+      "<p>" +
+      escapeHtml(sop.blurb) +
+      "</p></div>" +
+      sections;
+  }
+
+  function setTabActive(tab) {
+    tabs.forEach(function (btn) {
+      var on = btn.getAttribute("data-tab") === tab;
+      btn.classList.toggle("active", on);
+      if (on) btn.setAttribute("aria-current", "page");
+      else btn.removeAttribute("aria-current");
+    });
+  }
+
+  function render() {
+    main.style.animation = "none";
+    // eslint-disable-next-line no-unused-expressions
+    main.offsetHeight;
+    main.style.animation = "";
+
+    if (state.sopId) {
+      var sop = findSop(state.sopId);
+      if (sop) {
+        setTabActive("sops");
+        renderDetail(sop);
+        return;
+      }
+      state.sopId = null;
+    }
+
+    setTabActive(state.tab);
+    if (state.tab === "home") renderHome();
+    else if (state.tab === "sops") renderSops();
+    else if (state.tab === "rules") renderRules();
+    else renderInstall();
+  }
+
+  function goTab(tab) {
+    state.tab = tab;
+    state.sopId = null;
+    if (tab !== "sops") {
+      state.searchOpen = false;
+      searchBar.hidden = true;
+    }
+    render();
+  }
+
+  document.querySelector(".tabbar").addEventListener("click", function (e) {
+    var btn = e.target.closest(".tab");
+    if (!btn) return;
+    goTab(btn.getAttribute("data-tab"));
+  });
+
+  backBtn.addEventListener("click", function () {
+    state.sopId = null;
+    state.tab = "sops";
+    render();
+  });
+
+  searchToggle.addEventListener("click", function () {
+    state.tab = "sops";
+    state.sopId = null;
+    state.searchOpen = !state.searchOpen;
+    searchBar.hidden = !state.searchOpen;
+    render();
+    if (state.searchOpen) searchInput.focus();
+  });
+
+  searchInput.addEventListener("input", function () {
+    state.query = searchInput.value;
+    state.tab = "sops";
+    state.sopId = null;
+    render();
+  });
+
+  main.addEventListener("click", function (e) {
+    var open = e.target.closest("[data-open]");
+    if (open) {
+      state.sopId = open.getAttribute("data-open");
+      searchBar.hidden = true;
+      state.searchOpen = false;
+      render();
+      window.scrollTo(0, 0);
+      return;
+    }
+    if (e.target.id === "gotoSops") {
+      goTab("sops");
+      return;
+    }
+    if (e.target.id === "installBtn" && state.deferredPrompt) {
+      state.deferredPrompt.prompt();
+      state.deferredPrompt.userChoice.finally(function () {
+        state.deferredPrompt = null;
+        render();
+      });
+    }
+  });
+
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    state.deferredPrompt = e;
+  });
+
+  // service worker omitted in standalone preview build
+
+  render();
+})();
+
+  </script>
+</body>
+</html>
