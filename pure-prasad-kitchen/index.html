@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pure Prasad Kitchen | Everyday Ayurvedic Ideas</title>
+  <meta name="description" content="Pure Prasad Kitchen — a new Ayurvedic kitchen idea every day. Calm cooking, digestion-friendly habits, and prasad-minded meals." />
+  <meta name="theme-color" content="#0b3d2e" />
+  <link rel="canonical" href="https://pureprasadkitchen.com/" />
+  <meta property="og:title" content="Pure Prasad Kitchen" />
+  <meta property="og:description" content="Everyday Ayurvedic kitchen ideas — something new each day." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="ppk-header">
+    <div class="wrap ppk-header-inner">
+      <a class="ppk-brand" href="./" aria-label="Pure Prasad Kitchen home">
+        <span class="ppk-brand-name">Pure Prasad Kitchen</span>
+        <span class="ppk-brand-tag">Ayurveda · everyday</span>
+      </a>
+      <nav class="ppk-nav" aria-label="Primary">
+        <a href="#today">Today</a>
+        <a href="#more-ideas">More ideas</a>
+        <a href="#auto-setup">Auto setup</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="ppk-hero" aria-label="Pure Prasad Kitchen">
+      <div class="wrap">
+        <div class="ppk-hero-panel">
+          <span class="ppk-kicker">Daily Ayurvedic kitchen</span>
+          <h1>Pure Prasad Kitchen</h1>
+          <p class="ppk-hero-lead">
+            Something new every day — a calm Ayurvedic idea for real home cooking,
+            digestion, and food cooked with care.
+          </p>
+          <div class="ppk-cta-row">
+            <a class="ppk-btn ppk-btn-gold" href="#today">See today’s idea</a>
+            <a class="ppk-btn ppk-btn-ghost" href="#auto-setup">How auto daily works</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ppk-daily" id="today">
+      <div class="wrap">
+        <div class="ppk-daily-head" data-reveal>
+          <div>
+            <h2>Today’s Ayurvedic idea</h2>
+            <p class="ppk-status" id="ppkStatus">Loading today’s idea…</p>
+          </div>
+          <div class="ppk-date" id="ppkDate"></div>
+        </div>
+
+        <article class="ppk-idea-board" data-reveal aria-live="polite">
+          <span class="ppk-theme" id="ppkTheme">Ayurvedic idea</span>
+          <h3 class="ppk-idea-title" id="ppkTitle">Loading…</h3>
+          <p class="ppk-idea-body" id="ppkIdea"></p>
+          <p class="ppk-action" id="ppkAction"></p>
+          <p class="ppk-meta" id="ppkMeta"></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="ppk-section" id="more-ideas">
+      <div class="wrap" data-reveal>
+        <h2>More ideas from the bank</h2>
+        <p>120 kitchen-friendly Ayurvedic prompts rotate automatically by calendar day. Come back tomorrow for a new one.</p>
+        <ul class="ppk-archive" id="ppkArchive"></ul>
+      </div>
+    </section>
+
+    <section class="ppk-auto" id="auto-setup">
+      <div class="wrap" data-reveal>
+        <div class="ppk-auto-box">
+          <h2>Auto setup — already on</h2>
+          <p>
+            This page picks a <strong>new idea every day</strong> from the tip bank (no login needed).
+            For AI-written fresh tips that update <code>content/today.json</code> each morning,
+            turn on the Cursor Automation using the prompt in the repo.
+          </p>
+          <ol>
+            <li>Open <a href="https://cursor.com/automations" target="_blank" rel="noopener">cursor.com/automations</a></li>
+            <li>Create a <strong>Scheduled</strong> automation (daily cron, e.g. <code>0 7 * * *</code>)</li>
+            <li>Point the automation at the Pure Prasad Kitchen files only (`pure-prasad-kitchen/`)</li>
+            <li>Paste the prompt from <code>.cursor/automations/pure-prasad-daily.md</code></li>
+            <li>Save &amp; activate — each run writes a new tip and can open a PR</li>
+          </ol>
+          <p>Pure Prasad Kitchen is its own brand — not Parslia, not Menu Creator.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="ppk-footer">
+    <div class="wrap">
+      <p class="ppk-disclaimer">
+        Educational kitchen wellness ideas inspired by Ayurvedic traditions. Not medical advice.
+        Adapt to your body and any clinician guidance you follow.
+      </p>
+      <p>© Pure Prasad Kitchen · pureprasadkitchen.com</p>
+    </div>
+  </footer>
+
+  <script src="daily.js"></script>
+</body>
+</html>

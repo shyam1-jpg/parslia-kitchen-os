@@ -1,0 +1,36 @@
+name: Pure Prasad Kitchen daily tip
+
+on:
+  schedule:
+    # 07:00 UTC every day
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pure-prasad-daily
+  cancel-in-progress: false
+
+jobs:
+  rotate-tip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Rotate today's Ayurvedic tip
+        run: python3 scripts/rotate-pure-prasad-daily.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pure-prasad-kitchen/content/today.json pure-prasad-kitchen/content/tips.json
+          if git diff --staged --quiet; then
+            echo "No tip change for today"
+            exit 0
+          fi
+          git commit -m "Pure Prasad Kitchen: daily Ayurvedic idea $(date -u +%F)"
+          git push

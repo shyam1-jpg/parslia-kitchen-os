@@ -1,0 +1,29 @@
+---
+description: Never mix Parslia, Pure Prasad Kitchen, Menu Creator, Kiteline, or Libraix
+alwaysApply: true
+---
+
+# Keep products separate (always)
+
+Products in this monorepo must never be mixed in UI, nav, logos, or marketing copy.
+
+| Product | Touch only |
+|---------|------------|
+| Parslia | Root marketing (`index.html`, `styles.css`, `script.js`, `assets/`) |
+| Pure Prasad Kitchen | `pure-prasad-kitchen/` |
+| Menu Creator | `menu-creator/` and related menu patches |
+| Libraix | `libraix/` |
+| Kiteline | Explicit Kiteline/patch work only |
+
+## Forbidden
+
+- Linking Menu Creator or Pure Prasad from the Parslia landing nav/hero/features
+- Parslia branding on Menu Creator or Pure Prasad pages
+- Calling unrelated tools “part of Parslia”
+- Single PRs that cross-wire two customer-facing brands
+
+## Required
+
+- One product per task / PR title
+- Read `PRODUCTS.md` and `AGENTS.md` before cross-folder edits
+- If the user names a product, stay inside that product’s folder wall

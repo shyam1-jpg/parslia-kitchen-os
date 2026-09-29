@@ -1,5 +1,8 @@
 # Parslia Kitchen OS — where everything is
 
+**Brands are separate.** See `PRODUCTS.md`.  
+Do not put Pure Prasad Kitchen or Menu Creator into the Parslia landing nav.
+
 ## The real landing page (Hercules / GitHub)
 
 | Item | Location |
