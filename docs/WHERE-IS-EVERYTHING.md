@@ -5,7 +5,7 @@
 | Item | Location |
 |------|----------|
 | **GitHub repo** | https://github.com/shyam1-jpg/parslia-kitchen-os |
-| **Local copy** | `C:\Users\shyam prasad\Desktop\parslia-kitchen-os\` |
+| **Local copy** | `C:\Users\shyam prasad\Desktop\01-Parslia\parslia-kitchen-os\` |
 | **Main page** | `index.html` + `styles.css` + `script.js` |
 | **GitHub Pages** | Configured for **parslia.app** (deployed 6 Jul 2026) |
 
@@ -47,11 +47,13 @@ GitHub Pages is set to `parslia.app`, but **GoDaddy DNS still points to GoDaddy*
 
 ## Other folders (not the main page)
 
-| Folder | What it is |
-|--------|------------|
-| `Desktop\parslia-site\` | Cursor copy (simpler) — **use GitHub repo instead** |
-| `Desktop\parslia-brand\` | Logo SVGs only |
-| `kitchen-os\` | **Kiteline** — separate product, not Parslia |
+| Folder | What it is | After tidy |
+|--------|------------|------------|
+| `Desktop\parslia-site\` | Cursor copy (simpler) — **use GitHub repo instead** | Move to `06-Archive` |
+| `Desktop\parslia-brand\` | Logo SVGs only | Move to `05-Media` |
+| `kitchen-os\` | **Kiteline** — separate product, not Parslia | Move to `03-Kiteline` |
+
+Full Desktop layout → **`docs/DESKTOP-ORGANIZATION.md`**
 
 ---
 
@@ -77,7 +79,7 @@ GitHub Pages is set to `parslia.app`, but **GoDaddy DNS still points to GoDaddy*
 
 ## Video reference
 
-`Downloads\Parshilia.mp4` — brand promo (logo + app on tablet + kitchen photos)
+`05-Media\Parshilia.mp4` (move from `Downloads\Parshilia.mp4` when you tidy Desktop)
 
 ## Hercules (online, login required)
 
@@ -88,15 +90,24 @@ https://hercules.app/dashboard/app/01KRRZFRR3VVK2SZH1VB8KNXWH?threadId=01KWSDMG3
 ## Launch + App Store (give to Cloud)
 
 **Full step-by-step for Hercules / Cursor Cloud:**  
-→ `CLOUD-LAUNCH-APP-STORE.md`
+→ `docs/CLOUD-LAUNCH-APP-STORE.md`
 
 Landing already has launch strips + App Store section (`#get-app`).  
 Apple submission still needs the owner’s Apple Developer account (Cloud cannot log in as you).
 
+## Organize your Windows Desktop
+
+Messy Desktop folders? Follow:  
+→ **`docs/DESKTOP-ORGANIZATION.md`**
+
+Repo folder map:  
+→ **`docs/FILE-MAP.md`**
+
 ## Next steps
 
 1. Fix GoDaddy DNS → GitHub Pages (landing page goes live)
-2. Give `CLOUD-LAUNCH-APP-STORE.md` to Cloud / Hercules
+2. Give `docs/CLOUD-LAUNCH-APP-STORE.md` to Cloud / Hercules
 3. Create full privacy + terms pages before App Store submit
 4. Capacitor iOS wrap + TestFlight + App Store Connect
 5. Add `server/` backend for auth, payments, newsletter
+6. Tidy Desktop using `docs/DESKTOP-ORGANIZATION.md`

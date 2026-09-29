@@ -6,9 +6,9 @@ import json
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-JSON_PATH = ROOT / "vegetarian-recipes.json"
-OUT_PATH = ROOT / "vegetarian-recipes.txt"
+RECIPES_DIR = Path(__file__).resolve().parent
+JSON_PATH = RECIPES_DIR / "vegetarian-recipes.json"
+OUT_PATH = RECIPES_DIR / "vegetarian-recipes.txt"
 
 BRAND_PATTERNS = [
     r"This is a Sanjeev Kapoor exclusive recipe\.?",
