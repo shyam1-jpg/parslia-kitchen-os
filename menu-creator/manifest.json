@@ -1,0 +1,32 @@
+{
+  "id": "/menu-creator/",
+  "name": "Menu Creator",
+  "short_name": "Menu Creator",
+  "description": "Design printable restaurant menus offline. Paste menus, save to library, print or export to Word.",
+  "start_url": "/menu-creator/",
+  "scope": "/menu-creator/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#2f6b4f",
+  "background_color": "#f4f1ea",
+  "icons": [
+    {
+      "src": "/menu-creator/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/menu-creator/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/menu-creator/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
