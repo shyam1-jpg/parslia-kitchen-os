@@ -195,7 +195,7 @@ export const toolsApi = {
   }) =>
     api<HoroscopeChart>("/api/tools/horoscope-chart", {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify(withResolvedBirthPlace(body)),
     }),
 
   search: (query: string, provider: "all" | "wikipedia" | "web" = "all") =>
@@ -209,6 +209,72 @@ export const toolsApi = {
       body: JSON.stringify({ query, provider }),
     }),
 };
+
+/** Force historic Indian cities to correct coords (fixes Calcutta → South Africa bug). */
+const BIRTH_PLACE_OVERRIDES: Record<
+  string,
+  { place: string; latitude: number; longitude: number; timezone: string }
+> = {
+  calcutta: {
+    place: "Kolkata, West Bengal, India",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+  },
+  kolkatta: {
+    place: "Kolkata, West Bengal, India",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+  },
+  kolkata: {
+    place: "Kolkata, West Bengal, India",
+    latitude: 22.56263,
+    longitude: 88.36304,
+    timezone: "Asia/Kolkata",
+  },
+  bombay: {
+    place: "Mumbai, Maharashtra, India",
+    latitude: 19.07283,
+    longitude: 72.88261,
+    timezone: "Asia/Kolkata",
+  },
+  madras: {
+    place: "Chennai, Tamil Nadu, India",
+    latitude: 13.08784,
+    longitude: 80.27847,
+    timezone: "Asia/Kolkata",
+  },
+  bangalore: {
+    place: "Bengaluru, Karnataka, India",
+    latitude: 12.97194,
+    longitude: 77.59369,
+    timezone: "Asia/Kolkata",
+  },
+};
+
+function withResolvedBirthPlace<T extends {
+  place: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+}>(body: T): T {
+  const city = body.place.trim().split(",")[0]?.trim().toLowerCase().replace(/\./g, "") ?? "";
+  const override = BIRTH_PLACE_OVERRIDES[city];
+  if (!override) return body;
+  const lower = body.place.toLowerCase();
+  const forcedAway =
+    /\bsouth africa\b|\bmpumalanga\b|\bunited states\b|\bohio\b/.test(lower) &&
+    !/\bindia\b|\bwest bengal\b/.test(lower);
+  if (forcedAway) return body;
+  return {
+    ...body,
+    place: override.place,
+    latitude: body.latitude ?? override.latitude,
+    longitude: body.longitude ?? override.longitude,
+    timezone: body.timezone ?? override.timezone,
+  };
+}
 
 export function detectUrls(text: string): string[] {
   const matches = text.match(/https?:\/\/[^\s<>"']+/gi) ?? [];
