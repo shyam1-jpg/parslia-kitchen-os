@@ -1,0 +1,18 @@
+{
+  "name": "@parslia/connectors",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tenant-isolated connector runtime for Parslia Kitchen OS. Not deployed to the Hercules app.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test --test-reporter=spec test/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "typescript": "^5.9.2"
+  }
+}
