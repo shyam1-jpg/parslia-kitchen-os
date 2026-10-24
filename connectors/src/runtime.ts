@@ -24,6 +24,8 @@ const LOCATION = /^[A-Za-z0-9_.:-]{1,80}$/;
 
 export interface ConnectedSystemsOptions {
   store?: ConnectionStore;
+  /** Explicit opt-in for disposable tests/demos. Never enable in production. */
+  allowInMemoryStore?: boolean;
   fetchImpl?: typeof fetch;
   now?: () => Date;
   sleep?: (ms: number) => Promise<void>;
@@ -78,6 +80,9 @@ export class ConnectedSystems {
   private readonly inflight = new Map<string, Inflight>();
 
   constructor(options: ConnectedSystemsOptions = {}) {
+    if ((!options.store || options.store instanceof MemoryStore) && !options.allowInMemoryStore) {
+      throw new ConnectorError("validation", "Supply durable storage; memory storage requires explicit test/demo opt-in.");
+    }
     this.store = options.store ?? new MemoryStore();
     this.fetchImpl = options.fetchImpl ?? fetch;
     this.now = options.now ?? (() => new Date());
@@ -165,12 +170,19 @@ export class ConnectedSystems {
     const settings = asRecord(
       connector.parseSettings(mergeSettings(current.settings, patch), { allowLoopback: this.allowLoopback }),
     );
+    const destinationChanged = current.settings.baseUrl !== settings.baseUrl ||
+      canonical(current.settings.auth) !== canonical(settings.auth);
+    if (destinationChanged) this.store.putSecret(actor.companyId, connectionId, null);
     const secret = this.store.getSecret(actor.companyId, connectionId);
     const updated = this.store.updateConnection(actor.companyId, connectionId, {
       settings,
       updatedAt: this.now().toISOString(),
     });
     if (!updated) throw new ConnectorError("not_found", "Connection not found.");
+    if (destinationChanged) {
+      this.audit(actor, "updateSettings", connectionId, "Destination/auth changed; credential removed; reconnect required.");
+      return this.saveStatus(updated, "auth_expired", "Reconnect after changing the destination or authentication settings.");
+    }
     if (!connector.secretMatches(settings, secret)) {
       return this.saveStatus(updated, "auth_expired", "Reconnect with a credential for the new auth mode.");
     }
@@ -545,3 +557,4 @@ function assertLocation(value: string | null | undefined): string | null {
   if (!LOCATION.test(value)) throw new ConnectorError("validation", "Location id is invalid.");
   return value;
 }
+

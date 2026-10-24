@@ -1,6 +1,6 @@
 import { ConnectorError } from "./errors.ts";
 import type { ActionSafety, HttpCall, HttpResult, RetryPolicy } from "./types.ts";
-import { redact, safeTarget } from "./validate.ts";
+import { safeTarget } from "./validate.ts";
 
 const RETRY_STATUSES = new Set([408, 429, 502, 503, 504]);
 
@@ -32,6 +32,7 @@ export async function requestJson(call: HttpCall, deps: HttpDependencies): Promi
         headers: call.headers,
         body: call.body,
         signal: controller.signal,
+        redirect: "error",
       });
       const declared = Number(response.headers.get("content-length") ?? "0");
       if (Number.isFinite(declared) && declared > 1_000_000) {
@@ -39,12 +40,26 @@ export async function requestJson(call: HttpCall, deps: HttpDependencies): Promi
           httpStatus: response.status,
         });
       }
-      const text = await response.text();
-      if (text.length > 1_000_000) {
-        throw new ConnectorError("upstream", `Response from ${safeTarget(call.url)} was larger than 1 MB.`, {
-          httpStatus: response.status,
-        });
+      const chunks: Uint8Array[] = [];
+      let size = 0;
+      const reader = response.body?.getReader();
+      if (reader) {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            size += value.byteLength;
+            if (size > 1_000_000) {
+              await reader.cancel();
+              throw new ConnectorError("upstream", "Response exceeded 1 MB.");
+            }
+            chunks.push(value);
+          }
+        } finally {
+          reader.releaseLock();
+        }
       }
+      const text = Buffer.concat(chunks).toString("utf8");
       const parsed = parseBody(text);
       if (response.status === 401 || response.status === 403) {
         throw new ConnectorError(
@@ -62,10 +77,9 @@ export async function requestJson(call: HttpCall, deps: HttpDependencies): Promi
         return { status: response.status, body: parsed.value, attempts: attempt };
       }
       const retryable = safety === "read" && RETRY_STATUSES.has(response.status);
-      const snippet = redact(text);
       const error = new ConnectorError(
         "upstream",
-        `The other system returned ${response.status} for ${safeTarget(call.url)}.${snippet ? ` ${snippet}` : ""}`,
+        `The other system returned ${response.status} for ${safeTarget(call.url)}.`,
         { retryable, httpStatus: response.status },
       );
       if (retryable && attempt < maxAttempts) {
@@ -122,3 +136,4 @@ function backoff(base: number, attempt: number, random: () => number): number {
   const spread = 0.8 + random() * 0.4;
   return Math.min(2000, Math.round(base * attempt * spread));
 }
+

@@ -15,7 +15,7 @@ const KEY_A = "vk_company_a_key_9f3a";
 const KEY_B = "vk_company_b_key_77c1";
 
 function service(store = new MemoryStore()) {
-  return new ConnectedSystems({ store, allowLoopback: true, now, random: () => 0 });
+  return new ConnectedSystems({ allowInMemoryStore: true, store, allowLoopback: true, now, random: () => 0 });
 }
 
 const vedantaBody = {
@@ -344,7 +344,7 @@ test("parallel syncs with one idempotency key call the booking system once", asy
 });
 
 test("rejects public URL tricks and a credential with a line break", async () => {
-  const systems = new ConnectedSystems({ allowLoopback: false, now });
+  const systems = new ConnectedSystems({ allowInMemoryStore: true, allowLoopback: false, now });
   await assert.rejects(
     () =>
       systems.activate(ownerA, {
@@ -379,3 +379,4 @@ test("rejects public URL tricks and a credential with a line break", async () =>
     (error: unknown) => error instanceof ConnectorError && error.code === "validation",
   );
 });
+
