@@ -31,7 +31,7 @@ test("10,000 stored connections stay company-scoped, and 40 concurrent reads sta
     }
   }
   assert.equal(store.connectionCount(), 10_000);
-  const systems = new ConnectedSystems({ store, allowLoopback: true, now: () => new Date("2026-10-21T12:00:00.000Z"), random: () => 0 });
+  const systems = new ConnectedSystems({ allowInMemoryStore: true, store, allowLoopback: true, now: () => new Date("2026-10-21T12:00:00.000Z"), random: () => 0 });
   const owner: Actor = { companyId: "co_0", userId: "owner_0", role: "owner" };
   const listedAt = performance.now();
   const listed = systems.list(owner);
@@ -107,3 +107,4 @@ test("10,000 stored connections stay company-scoped, and 40 concurrent reads sta
     await mock.close();
   }
 });
+

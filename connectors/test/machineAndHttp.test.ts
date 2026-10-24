@@ -87,7 +87,7 @@ test("a read times out and stops after the configured attempts", async () => {
 
 test("manual temperature is recorded once and never calls the network", async () => {
   let fetched = 0;
-  const systems = new ConnectedSystems({
+  const systems = new ConnectedSystems({ allowInMemoryStore: true,
     allowLoopback: true,
     now,
     fetchImpl: async () => {
@@ -160,7 +160,7 @@ test("the runtime does not retry a machine command even if the connector asks fo
       return { kind: "status", status: "connected", error: null };
     },
   };
-  const systems = new ConnectedSystems({ allowLoopback: true, now, extraConnectors: [probe], random: () => 0 });
+  const systems = new ConnectedSystems({ allowInMemoryStore: true, allowLoopback: true, now, extraConnectors: [probe], random: () => 0 });
   try {
     const connection = await systems.activate(owner, {
       displayName: "Pulse",
@@ -179,3 +179,4 @@ test("the runtime does not retry a machine command even if the connector asks fo
     await mock.close();
   }
 });
+
