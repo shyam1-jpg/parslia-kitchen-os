@@ -1,0 +1,927 @@
+{
+ "_note": "Single source of truth for partners. Affiliate IDs are NEVER stored here: set the env var named in aff_id_env at build time. If it is unset or a YOUR_* placeholder, the build uses fallback_url (a plain link) so nothing breaks.",
+ "partners": [
+  {
+   "id": "kayak",
+   "name": "Kayak",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Kayak Affiliate Network",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_KAYAK",
+   "fallback_url": "https://www.kayak.com/",
+   "has_program": true,
+   "label_en": "Kayak",
+   "label_hi": "Kayak",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "skyscanner",
+   "name": "Skyscanner",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Skyscanner (Impact)",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_SKYSCANNER",
+   "fallback_url": "https://www.skyscanner.net/",
+   "has_program": true,
+   "label_en": "Skyscanner",
+   "label_hi": "Skyscanner",
+   "verticals": [
+    "flights"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "booking",
+   "name": "Booking.com",
+   "vertical": "hotels",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Booking.com Affiliate Partner",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_BOOKING",
+   "fallback_url": "https://www.booking.com/",
+   "has_program": true,
+   "label_en": "Booking.com",
+   "label_hi": "Booking.com",
+   "verticals": [
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "expedia",
+   "name": "Expedia",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Expedia Group",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_EXPEDIA",
+   "fallback_url": "https://www.expedia.com/",
+   "has_program": true,
+   "label_en": "Expedia",
+   "label_hi": "Expedia",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "agoda",
+   "name": "Agoda",
+   "vertical": "hotels",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Agoda Partners",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_AGODA",
+   "fallback_url": "https://www.agoda.com/",
+   "has_program": true,
+   "label_en": "Agoda",
+   "label_hi": "Agoda",
+   "verticals": [
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "trip",
+   "name": "Trip.com",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Trip.com / Travelpayouts",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_TRIP",
+   "fallback_url": "https://www.trip.com/",
+   "has_program": true,
+   "label_en": "Trip.com",
+   "label_hi": "Trip.com",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "kiwi",
+   "name": "Kiwi.com",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Travelpayouts",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_KIWI",
+   "fallback_url": "https://www.kiwi.com/",
+   "has_program": true,
+   "label_en": "Kiwi.com",
+   "label_hi": "Kiwi.com",
+   "verticals": [
+    "flights"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "priceline",
+   "name": "Priceline",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "CJ",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_PRICELINE",
+   "fallback_url": "https://www.priceline.com/",
+   "has_program": true,
+   "label_en": "Priceline",
+   "label_hi": "Priceline",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "hotwire",
+   "name": "Hotwire",
+   "vertical": "hotels",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Expedia Group",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_HOTWIRE",
+   "fallback_url": "https://www.hotwire.com/",
+   "has_program": true,
+   "label_en": "Hotwire",
+   "label_hi": "Hotwire",
+   "verticals": [
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "orbitz",
+   "name": "Orbitz",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Expedia Group",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_ORBITZ",
+   "fallback_url": "https://www.orbitz.com/",
+   "has_program": true,
+   "label_en": "Orbitz",
+   "label_hi": "Orbitz",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "travelocity",
+   "name": "Travelocity",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Expedia Group",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_TRAVELOCITY",
+   "fallback_url": "https://www.travelocity.com/",
+   "has_program": true,
+   "label_en": "Travelocity",
+   "label_hi": "Travelocity",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "cheapoair",
+   "name": "CheapOair",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Direct",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_CHEAPOAIR",
+   "fallback_url": "https://www.cheapoair.com/",
+   "has_program": true,
+   "label_en": "CheapOair",
+   "label_hi": "CheapOair",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "makemytrip",
+   "name": "MakeMyTrip",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Cuelinks",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_MAKEMYTRIP",
+   "fallback_url": "https://www.makemytrip.com/",
+   "has_program": true,
+   "label_en": "MakeMyTrip",
+   "label_hi": "MakeMyTrip",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "airbnb",
+   "name": "Airbnb",
+   "vertical": "hotels",
+   "regions": [
+    "worldwide"
+   ],
+   "network": null,
+   "deeplink_template": null,
+   "aff_id_env": null,
+   "fallback_url": "https://www.airbnb.com/",
+   "has_program": false,
+   "label_en": "Airbnb",
+   "label_hi": "Airbnb",
+   "verticals": [
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "vrbo",
+   "name": "Vrbo",
+   "vertical": "hotels",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Expedia Group",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_VRBO",
+   "fallback_url": "https://www.vrbo.com/",
+   "has_program": true,
+   "label_en": "Vrbo",
+   "label_hi": "Vrbo",
+   "verticals": [
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "hotelscom",
+   "name": "Hotels.com",
+   "vertical": "hotels",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Expedia Group",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_HOTELSCOM",
+   "fallback_url": "https://www.hotels.com/",
+   "has_program": true,
+   "label_en": "Hotels.com",
+   "label_hi": "Hotels.com",
+   "verticals": [
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "momondo",
+   "name": "Momondo",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Kayak Affiliate Network",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_MOMONDO",
+   "fallback_url": "https://www.momondo.com/",
+   "has_program": true,
+   "label_en": "Momondo",
+   "label_hi": "Momondo",
+   "verticals": [
+    "flights"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "cheapflights",
+   "name": "Cheapflights",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Kayak Affiliate Network",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_CHEAPFLIGHTS",
+   "fallback_url": "https://www.cheapflights.com/",
+   "has_program": true,
+   "label_en": "Cheapflights",
+   "label_hi": "Cheapflights",
+   "verticals": [
+    "flights"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "hostelworld",
+   "name": "Hostelworld",
+   "vertical": "hotels",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Travelpayouts",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_HOSTELWORLD",
+   "fallback_url": "https://www.hostelworld.com/",
+   "has_program": true,
+   "label_en": "Hostelworld",
+   "label_hi": "Hostelworld",
+   "verticals": [
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "edreams",
+   "name": "eDreams",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Awin",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_EDREAMS",
+   "fallback_url": "https://www.edreams.com/",
+   "has_program": true,
+   "label_en": "eDreams",
+   "label_hi": "eDreams",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "opodo",
+   "name": "Opodo",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Awin",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_OPODO",
+   "fallback_url": "https://www.opodo.co.uk/",
+   "has_program": true,
+   "label_en": "Opodo",
+   "label_hi": "Opodo",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "lastminute",
+   "name": "lastminute.com",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Awin",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_LASTMINUTE",
+   "fallback_url": "https://www.lastminute.com/",
+   "has_program": true,
+   "label_en": "lastminute.com",
+   "label_hi": "lastminute.com",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "yatra",
+   "name": "Yatra",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Cuelinks (paused)",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_YATRA",
+   "fallback_url": "https://www.yatra.com/",
+   "has_program": true,
+   "label_en": "Yatra",
+   "label_hi": "Yatra",
+   "verticals": [
+    "flights"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "traveloka",
+   "name": "Traveloka",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Not public",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_TRAVELOKA",
+   "fallback_url": "https://www.traveloka.com/",
+   "has_program": true,
+   "label_en": "Traveloka",
+   "label_hi": "Traveloka",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "rakuten",
+   "name": "Rakuten Travel",
+   "vertical": "hotels",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Travelpayouts",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_RAKUTEN",
+   "fallback_url": "https://travel.rakuten.com/",
+   "has_program": true,
+   "label_en": "Rakuten Travel",
+   "label_hi": "Rakuten Travel",
+   "verticals": [
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "ctrip",
+   "name": "Ctrip",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Trip.com Group",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_CTRIP",
+   "fallback_url": "https://www.ctrip.com/",
+   "has_program": true,
+   "label_en": "Ctrip",
+   "label_hi": "Ctrip",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "google",
+   "name": "Google Flights & Hotels",
+   "vertical": "flights",
+   "regions": [
+    "worldwide"
+   ],
+   "network": null,
+   "deeplink_template": null,
+   "aff_id_env": null,
+   "fallback_url": "https://www.google.com/travel/flights",
+   "has_program": false,
+   "label_en": "Google Flights & Hotels",
+   "label_hi": "Google Flights & Hotels",
+   "verticals": [
+    "flights",
+    "hotels"
+   ],
+   "homepage_logo": true
+  },
+  {
+   "id": "trainline",
+   "name": "Trainline",
+   "vertical": "trains",
+   "regions": [
+    "europe",
+    "uk"
+   ],
+   "network": "Partnerize",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_TRAINLINE",
+   "fallback_url": "https://www.thetrainline.com/",
+   "has_program": true,
+   "label_en": "Trainline",
+   "label_hi": "ट्रेनलाइन"
+  },
+  {
+   "id": "omio",
+   "name": "Omio",
+   "vertical": "trains",
+   "regions": [
+    "europe"
+   ],
+   "network": "Direct",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_OMIO",
+   "fallback_url": "https://www.omio.com/",
+   "has_program": true,
+   "label_en": "Omio",
+   "label_hi": "ओमियो"
+  },
+  {
+   "id": "raileurope",
+   "name": "Rail Europe",
+   "vertical": "trains",
+   "regions": [
+    "europe"
+   ],
+   "network": "Travelpayouts",
+   "deeplink_template": "https://tp.media/r?marker={AFF_ID}&u={url}",
+   "aff_id_env": "VG_AFF_RAILEUROPE",
+   "fallback_url": "https://www.raileurope.com/",
+   "has_program": true,
+   "label_en": "Rail Europe",
+   "label_hi": "रेल यूरोप"
+  },
+  {
+   "id": "12go",
+   "name": "12Go",
+   "vertical": "trains",
+   "regions": [
+    "asia",
+    "india"
+   ],
+   "network": "Travelpayouts",
+   "deeplink_template": "https://tp.media/r?marker={AFF_ID}&u={url}",
+   "aff_id_env": "VG_AFF_12GO",
+   "fallback_url": "https://12go.asia/",
+   "has_program": true,
+   "label_en": "12Go",
+   "label_hi": "12Go"
+  },
+  {
+   "id": "jrpass",
+   "name": "JRPass.com",
+   "vertical": "trains",
+   "regions": [
+    "japan"
+   ],
+   "network": "Direct",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_JRPASS",
+   "fallback_url": "https://www.jrpass.com/",
+   "has_program": true,
+   "label_en": "JRPass.com",
+   "label_hi": "JRPass.com"
+  },
+  {
+   "id": "ixigo",
+   "name": "ixigo Trains",
+   "vertical": "trains",
+   "regions": [
+    "india"
+   ],
+   "network": "Cuelinks",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_IXIGO",
+   "fallback_url": "https://www.ixigo.com/trains",
+   "has_program": true,
+   "label_en": "ixigo Trains",
+   "label_hi": "ixigo ट्रेन"
+  },
+  {
+   "id": "irctc",
+   "name": "IRCTC",
+   "vertical": "trains",
+   "regions": [
+    "india"
+   ],
+   "network": null,
+   "deeplink_template": null,
+   "aff_id_env": null,
+   "fallback_url": "https://www.irctc.co.in/",
+   "has_program": false,
+   "label_en": "IRCTC",
+   "label_hi": "IRCTC"
+  },
+  {
+   "id": "amtrak",
+   "name": "Amtrak",
+   "vertical": "trains",
+   "regions": [
+    "us"
+   ],
+   "network": null,
+   "deeplink_template": null,
+   "aff_id_env": null,
+   "fallback_url": "https://www.amtrak.com/",
+   "has_program": false,
+   "label_en": "Amtrak",
+   "label_hi": "Amtrak"
+  },
+  {
+   "id": "viarail",
+   "name": "VIA Rail",
+   "vertical": "trains",
+   "regions": [
+    "us"
+   ],
+   "network": null,
+   "deeplink_template": null,
+   "aff_id_env": null,
+   "fallback_url": "https://www.viarail.ca/",
+   "has_program": false,
+   "label_en": "VIA Rail",
+   "label_hi": "VIA Rail"
+  },
+  {
+   "id": "flixbus",
+   "name": "FlixBus",
+   "vertical": "buses",
+   "regions": [
+    "europe",
+    "us"
+   ],
+   "network": "Awin",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_FLIXBUS",
+   "fallback_url": "https://www.flixbus.com/",
+   "has_program": true,
+   "label_en": "FlixBus",
+   "label_hi": "FlixBus"
+  },
+  {
+   "id": "busbud",
+   "name": "Busbud",
+   "vertical": "buses",
+   "regions": [
+    "us",
+    "europe",
+    "worldwide"
+   ],
+   "network": "CJ",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_BUSBUD",
+   "fallback_url": "https://www.busbud.com/",
+   "has_program": true,
+   "label_en": "Busbud",
+   "label_hi": "Busbud"
+  },
+  {
+   "id": "redbus",
+   "name": "redBus",
+   "vertical": "buses",
+   "regions": [
+    "india"
+   ],
+   "network": "Cuelinks",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_REDBUS",
+   "fallback_url": "https://www.redbus.in/",
+   "has_program": true,
+   "label_en": "redBus",
+   "label_hi": "redBus"
+  },
+  {
+   "id": "12gobus",
+   "name": "12Go Buses",
+   "vertical": "buses",
+   "regions": [
+    "asia"
+   ],
+   "network": "Travelpayouts",
+   "deeplink_template": "https://tp.media/r?marker={AFF_ID}&u={url}",
+   "aff_id_env": "VG_AFF_12GOBUS",
+   "fallback_url": "https://12go.asia/",
+   "has_program": true,
+   "label_en": "12Go Buses",
+   "label_hi": "12Go बस"
+  },
+  {
+   "id": "greyhound",
+   "name": "Greyhound",
+   "vertical": "buses",
+   "regions": [
+    "us"
+   ],
+   "network": "Awin (via FlixBus)",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_GREYHOUND",
+   "fallback_url": "https://www.greyhound.com/",
+   "has_program": true,
+   "label_en": "Greyhound",
+   "label_hi": "Greyhound"
+  },
+  {
+   "id": "nationalexpress",
+   "name": "National Express",
+   "vertical": "buses",
+   "regions": [
+    "uk"
+   ],
+   "network": null,
+   "deeplink_template": null,
+   "aff_id_env": null,
+   "fallback_url": "https://www.nationalexpress.com/",
+   "has_program": false,
+   "label_en": "National Express",
+   "label_hi": "National Express"
+  },
+  {
+   "id": "kiwitaxi",
+   "name": "Kiwitaxi",
+   "vertical": "transfers",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Travelpayouts",
+   "deeplink_template": "https://tp.media/r?marker={AFF_ID}&u={url}",
+   "aff_id_env": "VG_AFF_KIWITAXI",
+   "fallback_url": "https://kiwitaxi.com/",
+   "has_program": true,
+   "label_en": "Kiwitaxi",
+   "label_hi": "Kiwitaxi"
+  },
+  {
+   "id": "welcomepickups",
+   "name": "Welcome Pickups",
+   "vertical": "transfers",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Travelpayouts",
+   "deeplink_template": "https://tp.media/r?marker={AFF_ID}&u={url}",
+   "aff_id_env": "VG_AFF_WELCOMEPICKUPS",
+   "fallback_url": "https://www.welcomepickups.com/",
+   "has_program": true,
+   "label_en": "Welcome Pickups",
+   "label_hi": "Welcome Pickups"
+  },
+  {
+   "id": "gettransfer",
+   "name": "GetTransfer",
+   "vertical": "transfers",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Travelpayouts",
+   "deeplink_template": "https://tp.media/r?marker={AFF_ID}&u={url}",
+   "aff_id_env": "VG_AFF_GETTRANSFER",
+   "fallback_url": "https://gettransfer.com/",
+   "has_program": true,
+   "label_en": "GetTransfer",
+   "label_hi": "GetTransfer"
+  },
+  {
+   "id": "holidaytaxis",
+   "name": "Holiday Taxis",
+   "vertical": "transfers",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Travelpayouts",
+   "deeplink_template": "https://tp.media/r?marker={AFF_ID}&u={url}",
+   "aff_id_env": "VG_AFF_HOLIDAYTAXIS",
+   "fallback_url": "https://www.holidaytaxis.com/",
+   "has_program": true,
+   "label_en": "Holiday Taxis",
+   "label_hi": "Holiday Taxis"
+  },
+  {
+   "id": "uber",
+   "name": "Uber",
+   "vertical": "transfers",
+   "regions": [
+    "worldwide"
+   ],
+   "network": null,
+   "deeplink_template": null,
+   "aff_id_env": null,
+   "fallback_url": "https://www.uber.com/",
+   "has_program": false,
+   "label_en": "Uber",
+   "label_hi": "Uber"
+  },
+  {
+   "id": "ola",
+   "name": "Ola",
+   "vertical": "transfers",
+   "regions": [
+    "india"
+   ],
+   "network": null,
+   "deeplink_template": null,
+   "aff_id_env": null,
+   "fallback_url": "https://www.olacabs.com/",
+   "has_program": false,
+   "label_en": "Ola",
+   "label_hi": "Ola"
+  },
+  {
+   "id": "bolt",
+   "name": "Bolt",
+   "vertical": "transfers",
+   "regions": [
+    "europe"
+   ],
+   "network": null,
+   "deeplink_template": null,
+   "aff_id_env": null,
+   "fallback_url": "https://bolt.eu/",
+   "has_program": false,
+   "label_en": "Bolt",
+   "label_hi": "Bolt"
+  },
+  {
+   "id": "discovercars",
+   "name": "DiscoverCars",
+   "vertical": "cars",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Direct (Post Affiliate Pro)",
+   "deeplink_template": "https://www.discovercars.com/?a_aid={AFF_ID}",
+   "aff_id_env": "VG_AFF_DISCOVERCARS",
+   "fallback_url": "https://www.discovercars.com/",
+   "has_program": true,
+   "label_en": "DiscoverCars",
+   "label_hi": "DiscoverCars"
+  },
+  {
+   "id": "economybookings",
+   "name": "Economy Bookings",
+   "vertical": "cars",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Travelpayouts / Direct",
+   "deeplink_template": "https://tp.media/r?marker={AFF_ID}&u={url}",
+   "aff_id_env": "VG_AFF_ECONOMYBOOKINGS",
+   "fallback_url": "https://www.economybookings.com/",
+   "has_program": true,
+   "label_en": "Economy Bookings",
+   "label_hi": "Economy Bookings"
+  },
+  {
+   "id": "rentalcars",
+   "name": "Rentalcars.com",
+   "vertical": "cars",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Adpump",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_RENTALCARS",
+   "fallback_url": "https://www.rentalcars.com/",
+   "has_program": true,
+   "label_en": "Rentalcars.com",
+   "label_hi": "Rentalcars.com"
+  },
+  {
+   "id": "qeeq",
+   "name": "QEEQ",
+   "vertical": "cars",
+   "regions": [
+    "worldwide"
+   ],
+   "network": "Direct",
+   "deeplink_template": null,
+   "aff_id_env": "VG_AFF_QEEQ",
+   "fallback_url": "https://www.qeeq.com/",
+   "has_program": true,
+   "label_en": "QEEQ",
+   "label_hi": "QEEQ"
+  }
+ ]
+}
