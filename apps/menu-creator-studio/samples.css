@@ -16,3 +16,4 @@
 .capture-grid figure {margin:0}
 .capture-grid img {display:block;width:100%;height:auto;border-radius:.4rem;box-shadow:0 2px 8px #25382a20}
 .capture-grid figcaption {font-size:.85rem;margin-top:.6rem}
+.style-guide{margin:3rem 0}.styles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:1rem}.styles figure{margin:0}.styles figcaption{font-weight:600;margin-bottom:.5rem}.style-paper{background:white;color:black;padding:1.5rem;border:1px solid #d8dbd4;font:normal .85rem/1.45 Arial,sans-serif}.style-paper b{font:normal 2rem Georgia,serif;display:block;margin-bottom:1.2rem}.style-paper strong{display:block;margin-bottom:.35rem}.type-modern b{font:bold 2rem Arial,sans-serif}.type-garden b,.type-garden strong{color:#215738}
