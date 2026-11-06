@@ -11,3 +11,8 @@
 .classic .dish em {font:normal 2.9cqw Georgia,serif;white-space:nowrap}
 .classic .notes {font:normal 2.8cqw/1.55 Georgia,serif;margin-top:1.8%}
 @media print {.printpage .sheet.classic {width:210mm;height:297mm;padding:17mm 11mm;print-color-adjust:exact}}
+.captures {margin-top:3rem}
+.capture-grid {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.65fr);align-items:start;gap:clamp(.75rem,3vw,2rem);background:#eeeae1;padding:clamp(.8rem,3vw,2rem)}
+.capture-grid figure {margin:0}
+.capture-grid img {display:block;width:100%;height:auto;border-radius:.4rem;box-shadow:0 2px 8px #25382a20}
+.capture-grid figcaption {font-size:.85rem;margin-top:.6rem}
