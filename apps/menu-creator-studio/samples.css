@@ -1,1 +1,13 @@
 .gallery,.walk{margin-top:3rem;border-top:1px solid #cbd6cb;padding-top:1.5rem}.papers{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr));gap:1.25rem}.sample{display:block;text-decoration:none}.sample span{display:block;padding:.7rem 0;text-decoration:underline}.mat{padding:8%;background:#e2e8dd}.sample:nth-child(2) .mat{background:#ebe2d7}.sheet{box-sizing:border-box;background:white;color:#202523;aspect-ratio:210/297;padding:8%;font-family:Arial,sans-serif;container-type:inline-size;box-shadow:0 3px 12px #14251f20}.menutitle{font:normal 6.8cqw Georgia,serif;margin:0 0 8%}.garden .menutitle,.garden strong{color:#215638}.modern .menutitle{font:700 6.8cqw Arial,sans-serif}.course{font-size:2.65cqw;line-height:1.45;margin-bottom:6%}.course strong{display:block;font-size:3.2cqw;margin-bottom:2%}.walk{display:grid;grid-template-columns:minmax(140px,220px) 1fr;gap:clamp(1rem,5vw,4rem);align-items:center}.walk figure{margin:0}.walk img{display:block;width:100%;height:auto;border:1px solid #cbd6cb;border-radius:1.1rem}.walk figcaption{font-size:.8rem;margin-top:.6rem}.walk h3{margin-bottom:.2rem}.walk p{margin-top:.3rem}.printpage{max-width:800px;margin:auto;padding:1rem}.printpage nav{display:flex;justify-content:space-between;padding:1rem 0}.printpage button{cursor:pointer}.printpage .sheet{border:1px solid #ddd}@media(max-width:530px){.walk{grid-template-columns:1fr}.walk figure{max-width:180px}}@page{size:A4;margin:0}@media print{body,.printpage{margin:0;padding:0;max-width:none}.printpage nav{display:none}.printpage .sheet{box-shadow:none;border:0;width:210mm;height:297mm;padding:17mm}}
+.sheet.classic {background:#fffdf7;color:#302b23;text-align:center;position:relative;padding:8% 5%;border:0}
+.classic::before {content:"";position:absolute;inset:3.4%;border:3px double #a59879;pointer-events:none}
+.classic .menuhead {padding:4% 0 5%;margin:0 auto 3%;width:80%;border-bottom:1px solid #aa997b}
+.classic .menutitle {font:italic 8.6cqw/1.05 Georgia,serif;margin:0;color:#314735}
+.classic .diet,.classic .course strong {font:600 2.25cqw/1.3 system-ui,sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#685334}
+.classic .diet {margin-top:4%}
+.classic .course {margin:5.5% 0 0}
+.classic .course strong {margin:0 0 1.8%}
+.classic .dish {font:normal 4.4cqw/1.25 Georgia,serif;color:#293d2e}
+.classic .dish em {font:normal 2.9cqw Georgia,serif;white-space:nowrap}
+.classic .notes {font:normal 2.8cqw/1.55 Georgia,serif;margin-top:1.8%}
+@media print {.printpage .sheet.classic {width:210mm;height:297mm;padding:17mm 11mm;print-color-adjust:exact}}
