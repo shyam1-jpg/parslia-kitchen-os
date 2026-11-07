@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { toolsApi, type ResearchResult, type SourceHit } from "../lib/tools";
 import { workspaceApi, type CustomAssistant, type PromptItem } from "../lib/workspaceApi";
 import { friendlyError } from "../lib/errors";
+import { clearCodeDraft, readCodeDraft } from "../lib/codeArtifacts";
+import { htmlPreviewDocument, runJavaScript } from "../lib/codeSandbox";
 
 export function SearchWorkspace() {
   const [tab, setTab] = useState<"search" | "research">("search");
@@ -382,31 +384,32 @@ export function LibraryWorkspace() {
   );
 }
 
-/** Browser sandboxed JS runner (+ tips for Python via AI) */
+/** Browser sandboxed JS runner (+ HTML preview). Python still goes through Libraix chat. */
 export function CodeWorkspace() {
-  const [code, setCode] = useState(`// Libraix Code Sandbox\nconst name = "Libraix";\nconsole.log("Hello from", name);\n\n// Return a value to see it below:\nreturn 2 + 2;`);
+  const [code, setCode] = useState(
+    `// Libraix Code\nconst name = "Libraix";\nconsole.log("Hello from", name);\n\n// Return a value to see it below:\nreturn 2 + 2;`
+  );
+  const [filename, setFilename] = useState("index.js");
   const [output, setOutput] = useState("");
   const [running, setRunning] = useState(false);
+  const [preview, setPreview] = useState(false);
+
+  useEffect(() => {
+    const draft = readCodeDraft();
+    if (!draft) return;
+    setCode(draft.code);
+    setFilename(draft.filename);
+    clearCodeDraft();
+  }, []);
+
+  const looksHtml = /<html[\s>]|<!DOCTYPE html/i.test(code) || filename.endsWith(".html");
 
   const run = () => {
     setRunning(true);
-    const logs: string[] = [];
-    const fakeConsole = {
-      log: (...args: unknown[]) => logs.push(args.map(String).join(" ")),
-      error: (...args: unknown[]) => logs.push("Error: " + args.map(String).join(" ")),
-      warn: (...args: unknown[]) => logs.push("Warn: " + args.map(String).join(" ")),
-    };
-    try {
-      // eslint-disable-next-line no-new-func
-      const fn = new Function("console", `"use strict";\n${code}`);
-      const result = fn(fakeConsole);
-      if (result !== undefined) logs.push("→ " + String(result));
-      setOutput(logs.join("\n") || "(no output)");
-    } catch (e) {
-      setOutput((e instanceof Error ? e.message : String(e)));
-    } finally {
-      setRunning(false);
-    }
+    const result = runJavaScript(code);
+    setOutput(result.output);
+    setPreview(false);
+    setRunning(false);
   };
 
   return (
@@ -414,20 +417,34 @@ export function CodeWorkspace() {
       <Link to="/app" className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }}>
         ← Chat
       </Link>
-      <h1>Code Sandbox</h1>
+      <p className="welcome-kicker">Libraix</p>
+      <h1>Libraix Code</h1>
       <p className="tagline">
-        Run JavaScript safely in your browser. For Python/data work, use the Coding Expert assistant in chat.
+        Run JavaScript in your browser or preview HTML. For Python and other languages, ask Libraix in chat — then Open in Code.
       </p>
+      <p className="dim" style={{ marginBottom: 8 }}>{filename}</p>
       <textarea className="code-editor input" rows={14} value={code} onChange={(e) => setCode(e.target.value)} spellCheck={false} />
-      <div style={{ display: "flex", gap: 8, margin: "12px 0" }}>
+      <div style={{ display: "flex", gap: 8, margin: "12px 0", flexWrap: "wrap" }}>
         <button className="btn btn-primary" onClick={run} disabled={running}>
-          {running ? "Running…" : "Run"}
+          {running ? "Running…" : "Run JavaScript"}
+        </button>
+        {looksHtml && (
+          <button className="btn btn-ghost" onClick={() => setPreview((v) => !v)}>
+            {preview ? "Hide preview" : "Preview HTML"}
+          </button>
+        )}
+        <button type="button" className="btn btn-ghost" onClick={() => void navigator.clipboard.writeText(code)}>
+          Copy
         </button>
         <button className="btn btn-ghost" onClick={() => setCode("")}>
           Clear
         </button>
       </div>
-      <pre className="code-output">{output || "Output appears here."}</pre>
+      {preview && looksHtml ? (
+        <iframe className="canvas-preview sandbox-preview" title="Libraix preview" sandbox="allow-scripts" srcDoc={htmlPreviewDocument(code, "html")} />
+      ) : (
+        <pre className="code-output">{output || "Output appears here."}</pre>
+      )}
     </div>
   );
 }

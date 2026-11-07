@@ -61,8 +61,8 @@ export function OnboardingModal({ assistants, onComplete }: OnboardingModalProps
 
         {step === 1 && (
           <>
-            <h2 id="onboard-title">Choose a companion</h2>
-            <p className="onboard-copy">Optional — or skip for a general assistant.</p>
+            <h2 id="onboard-title">How should Libraix start?</h2>
+            <p className="onboard-copy">Optional — skip for a general assistant, or pick Coding for programs.</p>
             <div className="onboard-choices">
               <button
                 type="button"
