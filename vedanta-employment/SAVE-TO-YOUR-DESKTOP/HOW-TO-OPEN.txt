@@ -1,0 +1,14 @@
+If the old Word file will not open, use THESE files instead.
+
+1. First try:  OPEN_THIS_Yashar_Follow.rtf
+   Double-click it. Word or WordPad will open it.
+   Then File > Save As > Desktop > Word Document (*.docx) if you want.
+
+2. Or double-click:  OPEN_THIS_Yashar_Follow.docx
+   This is a simple Word file (no extra parts).
+
+3. If Word is not on the computer:  OPEN_THIS_Yashar_Follow.html
+   Double-click. It opens in your internet browser. Print it from there.
+
+Do not use the old .dotx file. Do not open a web preview of the file.
+Right-click the downloaded file > Open with > Word  or  WordPad.
