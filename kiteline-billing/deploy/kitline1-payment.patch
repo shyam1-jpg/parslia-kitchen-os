@@ -1,0 +1,1831 @@
+diff -ruN '--exclude=.git' '--exclude=node_modules' kitline1/js/api.js kitline1-work/js/api.js
+--- kitline1/js/api.js	2026-08-24 19:44:10.425416772 +0000
++++ kitline1-work/js/api.js	2026-08-24 19:48:07.200228852 +0000
+@@ -107,8 +107,12 @@
+     async getWaitlist() { return req('GET', '/waitlist'); },
+     async billingConfig() { return req('GET', '/billing/config'); },
+     async billingStatus() { return req('GET', '/billing/status'); },
+-    async billingCheckout(plan, email) { return req('POST', '/billing/checkout', { plan, email }); },
++    async billingCheckout(plan, email, interval) { return req('POST', '/billing/checkout', { plan, email, interval }); },
+     async billingPortal() { return req('POST', '/billing/portal', {}); },
++    async billingInvoices() { return req('GET', '/billing/invoices'); },
++    async billingAdminCustomers() { return req('GET', '/billing/admin/customers'); },
++    async billingAdminGrant(email, plan, months, note) { return req('POST', '/billing/admin/grant', { email, plan, months, note, source: 'invoice' }); },
++    async billingAdminRevoke(email, reason) { return req('POST', '/billing/admin/revoke', { email, reason }); },
+     async recipeAi(action, body) { return req('POST', '/recipe-ai/' + action, body); },
+     async recipeAiStatus() { return req('GET', '/recipe-ai/status'); },
+     async recipeAiSaveKey(openaiApiKey) { return req('PUT', '/recipe-ai/settings', { openaiApiKey }); },
+diff -ruN '--exclude=.git' '--exclude=node_modules' kitline1/js/views.js kitline1-work/js/views.js
+--- kitline1/js/views.js	2026-08-24 19:44:10.429416778 +0000
++++ kitline1-work/js/views.js	2026-08-24 19:48:29.292195156 +0000
+@@ -3301,10 +3301,24 @@
+           <h3 class="font-bold mb-1">Billing</h3>
+           <p class="text-sm text-ink-500 mb-2" id="billingLine">Checking subscription?</p>
+           <p class="text-xs text-ink-400 mb-3 hidden" id="billingTeamLine"></p>
++          <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3 hidden" id="billingPastDue"></p>
+           <div class="flex flex-wrap gap-2" id="billingPlanBtns"></div>
+           <button class="btn btn-ghost btn-sm hidden mt-2" id="billPortal">Manage subscription</button>
++          <div id="billingInvoices" class="mt-3 text-xs text-ink-500"></div>
+           <p class="text-xs text-ink-400 mt-3" id="billingHint"></p>
+         </div>
++        <div class="card card-pad hidden" id="billingAdminCard">
++          <h3 class="font-bold mb-2">Owner billing</h3>
++          <p class="text-xs text-ink-500 mb-3">Activate a kitchen by invoice without Stripe Checkout.</p>
++          <label class="label">Customer email</label>
++          <input id="billGrantEmail" class="input mb-2" placeholder="chef@kitchen.uk">
++          <label class="label">Plan</label>
++          <select id="billGrantPlan" class="select mb-2"></select>
++          <label class="label">Months</label>
++          <input id="billGrantMonths" class="input mb-3" type="number" min="1" value="1">
++          <button class="btn btn-primary w-full" id="billGrantBtn">Grant invoice plan</button>
++          <p class="text-xs text-ink-400 mt-2" id="billGrantHint"></p>
++        </div>
+         <div class="card card-pad">
+           <h3 class="font-bold mb-3">Active Products</h3>
+           ${prod.map(([k,l])=>`<label class="flex items-center justify-between py-2 cursor-pointer"><span class="text-sm font-medium">${l}</span><input type="checkbox" data-prod="${k}" ${o.products[k]?'checked':''} class="w-5 h-5 accent-brand-600"></label>`).join('')}
+@@ -3620,6 +3634,9 @@
+       const billHint = document.getElementById('billingHint');
+       const billPlanBtns = document.getElementById('billingPlanBtns');
+       const billPortal = document.getElementById('billPortal');
++      const billPastDue = document.getElementById('billingPastDue');
++      const billInvoices = document.getElementById('billingInvoices');
++      const billAdminCard = document.getElementById('billingAdminCard');
+       async function startCheckout(plan) {
+         const email = (window.Api && window.Api.email()) || prompt('Your Kiteline email:', '') || '';
+         if (!email) return;
+@@ -3629,15 +3646,15 @@
+           else toast(r.error || 'Checkout failed', 'error');
+         } catch (e) { toast(e.message || 'Checkout failed', 'error'); }
+       }
+-      function renderPlanButtons(plans, active) {
++      function renderPlanButtons(plans, enabled) {
+         if (!billPlanBtns || !plans || !plans.length) return;
+         billPlanBtns.innerHTML = plans.map(p => `
+-          <button type="button" class="btn btn-primary btn-sm billing-plan-btn" data-plan="${escapeHtml(p.id)}">${escapeHtml(p.maxUsers)} users ? ${escapeHtml(p.display)}</button>
++          <button type="button" class="btn btn-primary btn-sm billing-plan-btn" data-plan="${escapeHtml(p.id)}">${escapeHtml(p.maxUsers)} users · ${escapeHtml(p.maxSites || 1)} site${(p.maxSites || 1) === 1 ? '' : 's'} — ${escapeHtml(p.display)}</button>
+         `).join('');
+         billPlanBtns.querySelectorAll('.billing-plan-btn').forEach(btn => {
+           btn.onclick = () => startCheckout(btn.dataset.plan);
+         });
+-        if (active) billPlanBtns.classList.add('hidden');
++        if (!enabled) billPlanBtns.querySelectorAll('button').forEach(btn => { btn.classList.remove('btn-primary'); btn.classList.add('btn-ghost'); });
+       }
+       if (billPortal) billPortal.onclick = async () => {
+         billPortal.disabled = true;
+@@ -3653,35 +3670,62 @@
+           const sub = st.subscription || {};
+           const trial = st.trial || {};
+           const plans = st.plans || [];
++          if (billAdminCard && st.owner) {
++            billAdminCard.classList.remove('hidden');
++            const planSel = document.getElementById('billGrantPlan');
++            if (planSel) planSel.innerHTML = plans.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} — ${escapeHtml(p.display)}</option>`).join('');
++            const grantBtn = document.getElementById('billGrantBtn');
++            if (grantBtn) grantBtn.onclick = async () => {
++              const email = (document.getElementById('billGrantEmail') || {}).value || '';
++              const plan = (document.getElementById('billGrantPlan') || {}).value || 'users_5';
++              const months = Number((document.getElementById('billGrantMonths') || {}).value || 1);
++              const hint = document.getElementById('billGrantHint');
++              try {
++                const r = await window.Api.billingAdminGrant(email.trim(), plan, months, 'Owner invoice grant');
++                if (hint) hint.textContent = r.ok ? 'Plan granted for ' + email : (r.error || 'Grant failed');
++                toast(r.ok ? 'Invoice plan granted' : (r.error || 'Grant failed'), r.ok ? 'ok' : 'error');
++              } catch (e) { if (hint) hint.textContent = e.message; toast(e.message || 'Grant failed', 'error'); }
++            };
++          }
++          if (billInvoices && Array.isArray(st.invoices) && st.invoices.length) {
++            billInvoices.innerHTML = '<p class="font-semibold mb-1">Recent invoices</p>' + st.invoices.slice(0, 5).map(inv => {
++              const amt = '£' + ((inv.amountPence || 0) / 100).toFixed(2);
++              return '<div>' + amt + ' · ' + escapeHtml(inv.status || '') + (inv.source ? ' · ' + escapeHtml(inv.source) : '') + '</div>';
++            }).join('');
++          }
++          if (sub.status === 'past_due' && billPastDue) {
++            billPastDue.textContent = 'Your last payment failed. Update the card in Manage subscription to keep access.';
++            billPastDue.classList.remove('hidden');
++          }
+           if (!st.enabled) {
+-            billLine.textContent = 'Online checkout not configured ? contact support for an invoice.';
+-            billHint.textContent = 'Add STRIPE_SECRET_KEY on the server to enable Subscribe buttons.';
++            billLine.textContent = 'Online checkout not configured — contact support for an invoice.';
++            billHint.textContent = 'Owner can grant a plan from this page, or add STRIPE_SECRET_KEY on the server.';
+             renderPlanButtons(plans, false);
+             return;
+           }
+           if (trial.active && !trial.exempt) {
+-            billLine.textContent = 'Free trial ? ' + trial.daysLeft + ' day' + (trial.daysLeft === 1 ? '' : 's') + ' left (up to ' + (trial.maxUsers || st.maxUsers || 5) + ' users)';
++            billLine.textContent = 'Free trial — ' + trial.daysLeft + ' day' + (trial.daysLeft === 1 ? '' : 's') + ' left (up to ' + (trial.maxUsers || st.maxUsers || 5) + ' users)';
+             if (billTeamLine) {
+-              billTeamLine.textContent = 'Team seats: ' + (st.teamCount || S.db.team.length) + ' / ' + (st.maxUsers || trial.maxUsers || 5) + ' during trial.';
++              billTeamLine.textContent = 'Team seats: ' + (st.teamCount || S.db.team.length) + ' / ' + (st.maxUsers || trial.maxUsers || 5) + ' · sites: ' + (st.siteCount || 1) + ' / ' + (st.maxSites || 1) + '.';
+               billTeamLine.classList.remove('hidden');
+             }
+             billHint.textContent = 'Subscribe before trial ends to keep access. Pick a plan below.';
+-            renderPlanButtons(plans, false);
++            renderPlanButtons(plans, true);
+             return;
+           }
+-          if (sub.status === 'active') {
+-            billLine.textContent = 'Plan: ' + (sub.orgPlan || sub.plan || 'Active') + (sub.currentPeriodEnd ? ' ? renews ' + fmt.date(sub.currentPeriodEnd) : '');
++          if (sub.status === 'active' || sub.status === 'trialing' || sub.status === 'past_due') {
++            billLine.textContent = 'Plan: ' + (sub.orgPlan || sub.plan || 'Active') + (sub.currentPeriodEnd ? ' — renews ' + fmt.date(sub.currentPeriodEnd) : '') + (sub.source === 'invoice' ? ' (invoice)' : '');
+             if (billTeamLine && st.maxUsers) {
+-              billTeamLine.textContent = 'Team seats: ' + (st.teamCount || S.db.team.length) + ' / ' + st.maxUsers + ' users on this plan.';
++              billTeamLine.textContent = 'Team seats: ' + (st.teamCount || S.db.team.length) + ' / ' + st.maxUsers + ' · sites: ' + (st.siteCount || 0) + ' / ' + (st.maxSites || 1) + '.';
+               billTeamLine.classList.remove('hidden');
+             }
+-            billPortal.classList.remove('hidden');
+-            billHint.textContent = 'Need more users? Upgrade via Stripe portal or pick a larger plan below.';
+-            renderPlanButtons(plans, false);
++            if (sub.stripeCustomerId) billPortal.classList.remove('hidden');
++            billHint.textContent = 'Need more users or sites? Upgrade below' + (sub.stripeCustomerId ? ' or manage in the Stripe portal.' : '.');
++            renderPlanButtons(plans, st.enabled);
+           } else {
+-            billLine.textContent = 'No active subscription ? choose a plan by team size.';
+-            renderPlanButtons(plans, false);
+-            billHint.textContent = 'Price scales with users ? larger teams get a lower per-user rate. Secure payment via Stripe.';
++            billLine.textContent = 'No active subscription — choose a plan by team size.';
++            renderPlanButtons(plans, st.enabled);
++            billHint.textContent = 'Price scales with users. Larger teams include more sites. Secure payment via Stripe.';
+           }
+         }).catch(() => { billLine.textContent = 'Sign in on the server to view billing.'; });
+       } else if (billLine) billLine.textContent = 'Run npm start for billing.';
+diff -ruN '--exclude=.git' '--exclude=node_modules' kitline1/render.yaml kitline1-work/render.yaml
+--- kitline1/render.yaml	2026-08-24 19:44:10.441416796 +0000
++++ kitline1-work/render.yaml	2026-08-24 19:48:07.192228865 +0000
+@@ -73,6 +73,28 @@
+         value: dall-e-3
+       - key: STRIPE_SECRET_KEY
+         sync: false
++      - key: STRIPE_WEBHOOK_SECRET
++        sync: false
++      - key: STRIPE_PRICE_USERS_1
++        sync: false
++      - key: STRIPE_PRICE_USERS_5
++        sync: false
++      - key: STRIPE_PRICE_USERS_10
++        sync: false
++      - key: STRIPE_PRICE_USERS_20
++        sync: false
++      - key: STRIPE_PRICE_USERS_50
++        sync: false
++      - key: STRIPE_PRICE_RECIPE_AI
++        sync: false
++      - key: STRIPE_PRICE_ACADEMY_STARTER
++        sync: false
++      - key: STRIPE_PRICE_ACADEMY_PRO
++        sync: false
++      - key: BILLING_DEV_MODE
++        value: "false"
++      - key: TRIAL_DAYS
++        value: "14"
+       - key: VEDANTA_REPORT_EMAIL
+         value: Operation@thevedanta.org
+       - key: VEDANTA_FB_PROJECT
+diff -ruN '--exclude=.git' '--exclude=node_modules' kitline1/server/academy/billing.js kitline1-work/server/academy/billing.js
+--- kitline1/server/academy/billing.js	2026-08-24 19:44:10.441416796 +0000
++++ kitline1-work/server/academy/billing.js	2026-08-24 19:47:55.704248952 +0000
+@@ -1,38 +1,72 @@
+ 'use strict';
+ 
+-const billing = require('../billing');
++/**
++ * Kiteline Academy payments — one-time course checkout + monthly Starter/Pro subscriptions.
++ * Drop-in replacement for kitline1/server/academy/billing.js
++ */
++
++function loadBilling() {
++  try { return require('../billing'); } catch {}
++  return require('./billing');
++}
++
++const billing = loadBilling();
++
++const ACADEMY_PLANS = {
++  academy_starter: {
++    id: 'academy_starter',
++    name: 'Kiteline Academy Starter',
++    description: 'Beginner courses, progress tracking, email support',
++    amount: 999,
++    currency: 'gbp',
++    interval: 'month',
++  },
++  academy_pro: {
++    id: 'academy_pro',
++    name: 'Kiteline Academy Pro Student',
++    description: 'All courses, Code Lab, certificates, priority support',
++    amount: 1999,
++    currency: 'gbp',
++    interval: 'month',
++  },
++};
++
++const PLAN_ALIASES = {
++  starter: 'academy_starter',
++  'starter — £9.99/month': 'academy_starter',
++  pro: 'academy_pro',
++  'pro student': 'academy_pro',
++  'pro student — £19.99/month': 'academy_pro',
++};
+ 
+ function stripeKey() {
+   return process.env.STRIPE_SECRET_KEY || '';
+ }
+ 
+-async function stripeRequest(path, params) {
+-  const key = stripeKey();
+-  if (!key) throw new Error('Stripe is not configured — add STRIPE_SECRET_KEY');
+-  const body = new URLSearchParams(params).toString();
+-  const res = await fetch('https://api.stripe.com/v1' + path, {
+-    method: 'POST',
+-    headers: {
+-      Authorization: 'Bearer ' + key,
+-      'Content-Type': 'application/x-www-form-urlencoded',
+-    },
+-    body,
+-  });
+-  const data = await res.json().catch(() => ({}));
+-  if (!res.ok) throw new Error((data.error && data.error.message) || 'Stripe HTTP ' + res.status);
+-  return data;
++function isConfigured() {
++  return billing.isConfigured();
+ }
+ 
+-function isConfigured() {
+-  return !!stripeKey();
++function resolveAcademyPlan(titleOrId) {
++  const raw = String(titleOrId || '').trim();
++  const key = PLAN_ALIASES[raw.toLowerCase()] || raw;
++  return ACADEMY_PLANS[key] || null;
++}
++
++async function stripeRequest(path, params) {
++  return billing.stripeRequest(path, params);
+ }
+ 
+ async function createCourseCheckout({ email, courseTitle, amountPence, baseUrl }) {
+   if (!isConfigured()) {
+     throw new Error('Online payment not configured — email contact@kiteline.uk');
+   }
++  const plan = resolveAcademyPlan(courseTitle);
++  if (plan) {
++    return createPlanCheckout({ email, planId: plan.id, baseUrl });
++  }
+   const amount = Math.max(100, Number(amountPence) || 0);
+-  const base = (baseUrl || 'https://kiteline.uk').replace(/\/$/, '');
++  const base = (baseUrl || billing.appBaseUrl()).replace(/\/$/, '');
+   const session = await stripeRequest('/checkout/sessions', {
+     mode: 'payment',
+     'line_items[0][price_data][currency]': 'gbp',
+@@ -42,36 +76,121 @@
+     customer_email: email,
+     client_reference_id: email,
+     'metadata[type]': 'academy_course',
++    'metadata[product]': 'academy',
+     'metadata[email]': email,
+     'metadata[courseTitle]': courseTitle,
+     'metadata[amountPence]': String(amount),
+     success_url: base + '/academy/?checkout=success&session_id={CHECKOUT_SESSION_ID}',
+     cancel_url: base + '/academy/?checkout=cancel',
+   });
+-  return { url: session.url, sessionId: session.id };
++  return { url: session.url, sessionId: session.id, mode: 'payment' };
++}
++
++async function createPlanCheckout({ email, planId, baseUrl }) {
++  if (!isConfigured()) {
++    throw new Error('Online payment not configured — email contact@kiteline.uk');
++  }
++  const plan = ACADEMY_PLANS[planId] || resolveAcademyPlan(planId);
++  if (!plan) throw new Error('Unknown Academy plan');
++  const em = (email || '').toLowerCase().trim();
++  const base = (baseUrl || billing.appBaseUrl()).replace(/\/$/, '');
++  const envPrice = plan.id === 'academy_starter'
++    ? process.env.STRIPE_PRICE_ACADEMY_STARTER
++    : process.env.STRIPE_PRICE_ACADEMY_PRO;
++  const params = {
++    mode: 'subscription',
++    customer_email: em,
++    client_reference_id: em,
++    allow_promotion_codes: 'true',
++    'metadata[type]': 'academy_plan',
++    'metadata[product]': 'academy',
++    'metadata[email]': em,
++    'metadata[plan]': plan.id,
++    'subscription_data[metadata][type]': 'academy_plan',
++    'subscription_data[metadata][product]': 'academy',
++    'subscription_data[metadata][email]': em,
++    'subscription_data[metadata][plan]': plan.id,
++    success_url: base + '/academy/?checkout=success&session_id={CHECKOUT_SESSION_ID}',
++    cancel_url: base + '/academy/?checkout=cancel',
++  };
++  if (envPrice) {
++    params['line_items[0][price]'] = envPrice;
++    params['line_items[0][quantity]'] = '1';
++  } else {
++    params['line_items[0][quantity]'] = '1';
++    params['line_items[0][price_data][currency]'] = plan.currency;
++    params['line_items[0][price_data][unit_amount]'] = String(plan.amount);
++    params['line_items[0][price_data][recurring][interval]'] = plan.interval;
++    params['line_items[0][price_data][product_data][name]'] = plan.name;
++    params['line_items[0][price_data][product_data][description]'] = plan.description;
++  }
++  const session = await stripeRequest('/checkout/sessions', params);
++  return { url: session.url, sessionId: session.id, mode: 'subscription', plan: plan.id };
++}
++
++function ensureAcademySubs(db) {
++  if (!db.academySubscriptions) db.academySubscriptions = {};
+ }
+ 
+ async function handleCheckoutCompleted(session, db, writeDb, addEnrollment) {
+   const meta = session.metadata || {};
+-  if (meta.type !== 'academy_course') return false;
+   const email = (meta.email || session.customer_email || session.client_reference_id || '').toLowerCase();
+-  const courseTitle = meta.courseTitle || 'Kitline Academy course';
+-  const amountPence = Number(meta.amountPence || session.amount_total || 0);
+   if (!email) return false;
+-  await addEnrollment(db, {
+-    email,
+-    courseTitle,
+-    amountPence,
+-    paid: true,
+-    stripeSessionId: session.id,
+-  });
++
++  if (meta.type === 'academy_plan' || meta.product === 'academy' && ACADEMY_PLANS[meta.plan]) {
++    ensureAcademySubs(db);
++    db.academySubscriptions[email] = {
++      email,
++      plan: meta.plan,
++      status: 'active',
++      stripeCustomerId: session.customer,
++      stripeSubscriptionId: session.subscription || null,
++      updatedAt: new Date().toISOString(),
++    };
++    writeDb(db);
++    console.log('[academy-billing] Subscribed:', email, meta.plan);
++    return true;
++  }
++
++  if (meta.type !== 'academy_course') return false;
++  const courseTitle = meta.courseTitle || 'Kiteline Academy course';
++  const amountPence = Number(meta.amountPence || session.amount_total || 0);
++  if (typeof addEnrollment === 'function') {
++    await addEnrollment(db, {
++      email,
++      courseTitle,
++      amountPence,
++      paid: true,
++      stripeSessionId: session.id,
++    });
++  } else {
++    db.academyEnrollments = db.academyEnrollments || [];
++    db.academyEnrollments.push({
++      email,
++      courseTitle,
++      amountPence,
++      paid: true,
++      stripeSessionId: session.id,
++      at: new Date().toISOString(),
++    });
++  }
+   writeDb(db);
+   console.log('[academy-billing] Enrolled:', email, courseTitle);
+   return true;
+ }
+ 
++function getAcademySubscription(db, email) {
++  ensureAcademySubs(db);
++  return db.academySubscriptions[(email || '').toLowerCase().trim()] || null;
++}
++
+ module.exports = {
++  ACADEMY_PLANS,
+   isConfigured,
+   createCourseCheckout,
++  createPlanCheckout,
+   handleCheckoutCompleted,
++  getAcademySubscription,
++  resolveAcademyPlan,
++  stripeKey,
+ };
+diff -ruN '--exclude=.git' '--exclude=node_modules' kitline1/server/academy/SETUP.md kitline1-work/server/academy/SETUP.md
+--- kitline1/server/academy/SETUP.md	2026-08-24 19:44:10.441416796 +0000
++++ kitline1-work/server/academy/SETUP.md	2026-08-24 19:48:51.824165779 +0000
+@@ -35,7 +35,10 @@
+ 
+ ## Stripe Academy courses
+ 
+-Checkout uses one-time **payment** mode. Webhook metadata `type=academy_course` grants enrolment.
++- Individual courses use one-time **payment** mode (`metadata.type=academy_course`).
++- Starter (£9.99/mo) and Pro Student (£19.99/mo) use **subscription** mode (`metadata.type=academy_plan`).
++- Same webhook as Kiteline: `https://kiteline.uk/api/billing/webhook`
++- Optional Price IDs: `STRIPE_PRICE_ACADEMY_STARTER`, `STRIPE_PRICE_ACADEMY_PRO`
+ 
+ ## Security features enabled
+ 
+diff -ruN '--exclude=.git' '--exclude=node_modules' kitline1/server/billing.js kitline1-work/server/billing.js
+--- kitline1/server/billing.js	2026-08-24 19:44:10.445416801 +0000
++++ kitline1-work/server/billing.js	2026-08-24 19:47:55.704248952 +0000
+@@ -1,10 +1,50 @@
+ 'use strict';
+ 
+-const tenants = require('./tenants');
++/**
++ * Kiteline payment system — subscriptions, invoices, Stripe Checkout, webhooks.
++ * Drop-in replacement for kitline1/server/billing.js (copy this file there).
++ */
+ 
+ const crypto = require('crypto');
+ 
+-/** Monthly plans — price scales with team size; larger tiers get a lower per-user rate. Amounts in pence (GBP). */
++function tenantsApi() {
++  if (module.exports._tenants) return module.exports._tenants;
++  try {
++    return require('./tenants');
++  } catch {
++    return {
++      getStateForUser(db, email) {
++        const user = db.users && db.users[(email || '').toLowerCase().trim()];
++        if (!user || !user.tenantId) return null;
++        return (db.tenants && db.tenants[user.tenantId]) || null;
++      },
++    };
++  }
++}
++
++function recipeAiAccess() {
++  if (module.exports._recipeAi) return module.exports._recipeAi;
++  try {
++    return require('./recipe-ai-access');
++  } catch {
++    return {
++      ADDON_ID: 'recipe_ai',
++      addonCatalog() {
++        return {
++          id: 'recipe_ai',
++          name: 'Recipe AI Assistant',
++          description: 'AI ingredients, method steps & food photos',
++          amount: Number(process.env.RECIPE_AI_ADDON_GBP || 12) * 100,
++          currency: 'gbp',
++        };
++      },
++      activateKitelineAddon() {},
++      deactivateKitelineAddon() {},
++    };
++  }
++}
++
++/** Monthly plans — amounts in pence (GBP). Site allowances match kiteline.uk commercial spec. */
+ const PLANS = {
+   users_1: {
+     id: 'users_1',
+@@ -13,6 +53,7 @@
+     amount: 1900,
+     currency: 'gbp',
+     maxUsers: 1,
++    maxSites: 1,
+     orgPlan: 'Kiteline Starter (1 user)',
+   },
+   users_5: {
+@@ -22,51 +63,67 @@
+     amount: 4000,
+     currency: 'gbp',
+     maxUsers: 5,
++    maxSites: 1,
+     orgPlan: 'Kiteline Team (5 users)',
+     popular: true,
+   },
+   users_10: {
+     id: 'users_10',
+     name: 'Kiteline Team 10',
+-    description: 'Up to 10 users · 1 site · all modules',
++    description: 'Up to 10 users · 2 sites · all modules',
+     amount: 7200,
+     currency: 'gbp',
+     maxUsers: 10,
++    maxSites: 2,
+     orgPlan: 'Kiteline Team (10 users)',
+   },
+   users_20: {
+     id: 'users_20',
+     name: 'Kiteline Team 20',
+-    description: 'Up to 20 users · multi-site · all modules',
++    description: 'Up to 20 users · 5 sites · all modules',
+     amount: 13000,
+     currency: 'gbp',
+     maxUsers: 20,
++    maxSites: 5,
+     orgPlan: 'Kiteline Team (20 users)',
+   },
+   users_50: {
+     id: 'users_50',
+     name: 'Kiteline Team 50',
+-    description: 'Up to 50 users · multi-site · volume discount',
++    description: 'Up to 50 users · 10 sites · volume discount',
+     amount: 27500,
+     currency: 'gbp',
+     maxUsers: 50,
++    maxSites: 10,
+     orgPlan: 'Kiteline Team (50 users)',
+     volumeDiscount: true,
+   },
+ };
+ 
+-/** Legacy plan ids from older pricing page / settings */
+ const PLAN_ALIASES = {
+   solo: 'users_1',
++  starter: 'users_1',
+   team: 'users_5',
++  team5: 'users_5',
++  team10: 'users_10',
++  team20: 'users_20',
++  team50: 'users_50',
+ };
+ 
++const PAID_STATUSES = new Set(['active', 'trialing', 'past_due']);
+ const TRIAL_DAYS = Number(process.env.TRIAL_DAYS || 14);
+ const TRIAL_MAX_USERS = Number(process.env.TRIAL_MAX_USERS || 5);
++const PAST_DUE_GRACE_DAYS = Number(process.env.BILLING_PAST_DUE_GRACE_DAYS || 7);
++const DEV_KEY = 'sk_test_kiteline_dev';
+ 
+-function recipeAiAccess() {
+-  return require('./recipe-ai-access');
+-}
++const envPriceKeys = {
++  users_1: 'STRIPE_PRICE_USERS_1',
++  users_5: 'STRIPE_PRICE_USERS_5',
++  users_10: 'STRIPE_PRICE_USERS_10',
++  users_20: 'STRIPE_PRICE_USERS_20',
++  users_50: 'STRIPE_PRICE_USERS_50',
++  recipe_ai: 'STRIPE_PRICE_RECIPE_AI',
++};
+ 
+ function ownerEmail() {
+   return (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
+@@ -76,6 +133,67 @@
+   return (email || '').toLowerCase().trim() === ownerEmail();
+ }
+ 
++function secretKey() {
++  return (process.env.STRIPE_SECRET_KEY || '').trim();
++}
++
++function webhookSecret() {
++  return (process.env.STRIPE_WEBHOOK_SECRET || '').trim();
++}
++
++function isDevMode() {
++  const key = secretKey();
++  return process.env.BILLING_DEV_MODE === 'true' || key === DEV_KEY;
++}
++
++function isConfigured() {
++  return !!secretKey() || isDevMode();
++}
++
++function appBaseUrl() {
++  return (process.env.APP_URL || 'http://localhost:4001').replace(/\/$/, '');
++}
++
++function resolvePlanId(plan) {
++  const id = (plan || '').trim();
++  return PLAN_ALIASES[id] || id;
++}
++
++function planById(id) {
++  return PLANS[resolvePlanId(id)] || null;
++}
++
++function annualAmount(plan) {
++  return plan.amount * 10;
++}
++
++function stripePriceId(planId) {
++  const envKey = envPriceKeys[planId];
++  return (envKey && process.env[envKey]) || '';
++}
++
++function planCatalog() {
++  return Object.values(PLANS).map((p) => {
++    const perUser = Math.round(p.amount / p.maxUsers);
++    return {
++      id: p.id,
++      name: p.name,
++      description: p.description,
++      amount: p.amount,
++      annualAmount: annualAmount(p),
++      annualDisplay: '£' + (annualAmount(p) / 100) + '/yr',
++      currency: p.currency,
++      maxUsers: p.maxUsers,
++      maxSites: p.maxSites,
++      display: '£' + (p.amount / 100) + '/mo',
++      perUserDisplay: '£' + (perUser / 100).toFixed(perUser % 100 === 0 ? 0 : 2) + '/user',
++      popular: !!p.popular,
++      volumeDiscount: !!p.volumeDiscount,
++      stripePriceId: stripePriceId(p.id) || null,
++    };
++  });
++}
++
+ function ensureTrial(user) {
+   if (!user) return user;
+   if (!user.trialEndsAt) {
+@@ -112,9 +230,50 @@
+   };
+ }
+ 
++function ensureStore(db) {
++  if (!db.subscriptions) db.subscriptions = {};
++  if (!db.invoices) db.invoices = [];
++  if (!db.billingEvents) db.billingEvents = {};
++  if (!db.billingDevSessions) db.billingDevSessions = {};
++}
++
++function orgForUser(db, email) {
++  const state = tenantsApi().getStateForUser(db, email);
++  return state && state.org;
++}
++
++function tenantIdForUser(db, email) {
++  const user = db.users && db.users[(email || '').toLowerCase().trim()];
++  return (user && user.tenantId) || null;
++}
++
++function getSubscription(db, email) {
++  if (!email) return null;
++  ensureStore(db);
++  const em = email.toLowerCase().trim();
++  const direct = db.subscriptions[em];
++  if (direct) return direct;
++  const tid = tenantIdForUser(db, em);
++  if (!tid) return null;
++  for (const sub of Object.values(db.subscriptions)) {
++    if (sub && sub.tenantId === tid && PAID_STATUSES.has(sub.status)) return sub;
++  }
++  return null;
++}
++
++function isPaidStatus(status, sub) {
++  if (status === 'active' || status === 'trialing') return true;
++  if (status === 'past_due') {
++    if (!sub || !sub.pastDueSince) return true;
++    const since = new Date(sub.pastDueSince).getTime();
++    return Date.now() - since < PAST_DUE_GRACE_DAYS * 86400000;
++  }
++  return false;
++}
++
+ function hasActiveSubscription(db, email) {
+   const sub = getSubscription(db, email);
+-  return sub && sub.status === 'active';
++  return !!(sub && isPaidStatus(sub.status, sub));
+ }
+ 
+ function canAccess(db, email) {
+@@ -123,38 +282,36 @@
+   if (process.env.DEMO_MODE === 'true') return true;
+   if (isOwner(em)) return true;
+   if (hasActiveSubscription(db, em)) return true;
+-  const user = db.users[em];
++  const user = db.users && db.users[em];
+   if (!user) return false;
+   return getTrialInfo(user).active;
+ }
+ 
+-function orgForUser(db, email) {
+-  const state = tenants.getStateForUser(db, email);
+-  return state && state.org;
+-}
+-
+ function syncOrgAccess(db, email) {
+   const org = orgForUser(db, email);
+   if (!org) return;
+   const em = (email || '').toLowerCase().trim();
+-  if (isOwner(em)) {
+-    const sub = getSubscription(db, em);
+-    if (sub && sub.status === 'active' && sub.orgPlan) {
+-      org.plan = sub.orgPlan;
+-      if (sub.maxUsers) org.maxUsers = sub.maxUsers;
+-    } else if (/free trial/i.test(org.plan || '')) {
+-      org.plan = 'Complete Kiteline';
+-    }
++  const sub = getSubscription(db, em);
++  if (isOwner(em) && !(sub && isPaidStatus(sub.status, sub))) {
++    if (/free trial/i.test(org.plan || '')) org.plan = 'Complete Kiteline';
+     delete org.trialEndsAt;
+     return;
+   }
+-  if (hasActiveSubscription(db, em)) return;
+-  const user = db.users[em];
++  if (sub && isPaidStatus(sub.status, sub)) {
++    if (sub.orgPlan) org.plan = sub.orgPlan;
++    if (sub.maxUsers) org.maxUsers = sub.maxUsers;
++    if (sub.maxSites) org.maxSites = sub.maxSites;
++    delete org.trialEndsAt;
++    return;
++  }
++  const user = db.users && db.users[em];
+   if (!user) return;
+   const trial = getTrialInfo(user);
+   if (trial.active) {
+     org.maxUsers = TRIAL_MAX_USERS;
++    org.maxSites = 1;
+     org.trialEndsAt = trial.endsAt;
++    if (!org.plan || /demo/i.test(org.plan)) org.plan = 'Free trial';
+   }
+ }
+ 
+@@ -162,56 +319,97 @@
+   const em = (email || '').toLowerCase().trim();
+   if (isOwner(em)) return { exempt: true, reason: 'owner' };
+   if (hasActiveSubscription(db, em)) return { exempt: true, reason: 'subscription' };
+-  const user = db.users[em];
++  const user = db.users && db.users[em];
+   if (!user) return { active: false, expired: true, daysLeft: 0 };
+   const trial = getTrialInfo(user);
+   return { exempt: false, ...trial };
+ }
+ 
+-function resolvePlanId(plan) {
+-  const id = (plan || '').trim();
+-  return PLAN_ALIASES[id] || id;
++function getUserLimit(db, email) {
++  const sub = getSubscription(db, email);
++  if (sub && isPaidStatus(sub.status, sub) && sub.maxUsers) return sub.maxUsers;
++  const user = db.users && db.users[(email || '').toLowerCase().trim()];
++  if (user && getTrialInfo(user).active) return TRIAL_MAX_USERS;
++  const org = orgForUser(db, email);
++  if (org && org.maxUsers) return org.maxUsers;
++  return null;
+ }
+ 
+-function secretKey() {
+-  return process.env.STRIPE_SECRET_KEY || '';
++function getSiteLimit(db, email) {
++  const sub = getSubscription(db, email);
++  if (sub && isPaidStatus(sub.status, sub) && sub.maxSites) return sub.maxSites;
++  const user = db.users && db.users[(email || '').toLowerCase().trim()];
++  if (user && getTrialInfo(user).active) return 1;
++  const org = orgForUser(db, email);
++  if (org && org.maxSites) return org.maxSites;
++  return 1;
+ }
+ 
+-function webhookSecret() {
+-  return process.env.STRIPE_WEBHOOK_SECRET || '';
++function remainingTrialDays(user) {
++  if (!user) return TRIAL_DAYS;
++  const info = getTrialInfo(user);
++  if (!info.active) return 0;
++  return info.daysLeft;
+ }
+ 
+-function isConfigured() {
+-  return !!secretKey();
++function applySubscription(db, email, patch) {
++  ensureStore(db);
++  const key = email.toLowerCase().trim();
++  const tenantId = tenantIdForUser(db, key);
++  db.subscriptions[key] = Object.assign({}, db.subscriptions[key] || {}, patch, {
++    email: key,
++    tenantId: patch.tenantId || tenantId || (db.subscriptions[key] && db.subscriptions[key].tenantId) || null,
++    updatedAt: new Date().toISOString(),
++  });
++  syncOrgAccess(db, key);
++  return db.subscriptions[key];
+ }
+ 
+-function appBaseUrl() {
+-  return (process.env.APP_URL || 'http://localhost:4001').replace(/\/$/, '');
++function recordInvoice(db, invoice) {
++  ensureStore(db);
++  const id = invoice.id || invoice.stripeInvoiceId || ('inv_' + crypto.randomBytes(6).toString('hex'));
++  const existing = db.invoices.findIndex((row) => row.id === id || (invoice.stripeInvoiceId && row.stripeInvoiceId === invoice.stripeInvoiceId));
++  const row = Object.assign({ id, createdAt: new Date().toISOString() }, invoice, { id });
++  if (existing >= 0) db.invoices[existing] = Object.assign({}, db.invoices[existing], row);
++  else db.invoices.unshift(row);
++  return row;
+ }
+ 
+-function planById(id) {
+-  return PLANS[id] || null;
++function invoicesForEmail(db, email) {
++  ensureStore(db);
++  const em = (email || '').toLowerCase().trim();
++  const tid = tenantIdForUser(db, em);
++  return db.invoices.filter((inv) => inv.email === em || (tid && inv.tenantId === tid));
+ }
+ 
+-function planCatalog() {
+-  return Object.values(PLANS).map((p) => {
+-    const perUser = Math.round(p.amount / p.maxUsers);
+-    return {
+-      id: p.id,
+-      name: p.name,
+-      description: p.description,
+-      amount: p.amount,
+-      currency: p.currency,
+-      maxUsers: p.maxUsers,
+-      display: '£' + (p.amount / 100) + '/mo',
+-      perUserDisplay: '£' + (perUser / 100).toFixed(perUser % 100 === 0 ? 0 : 2) + '/user',
+-      popular: !!p.popular,
+-      volumeDiscount: !!p.volumeDiscount,
+-    };
+-  });
++function findEmailByCustomer(db, customerId) {
++  if (!customerId) return null;
++  ensureStore(db);
++  for (const [email, sub] of Object.entries(db.subscriptions)) {
++    if (sub.stripeCustomerId === customerId) return email;
++  }
++  return null;
++}
++
++function listCustomers(db) {
++  ensureStore(db);
++  return Object.values(db.subscriptions).sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
++}
++
++const devStore = {
++  customers: {},
++  subscriptions: {},
++  sessions: {},
++  invoices: {},
++  portal: {},
++};
++
++function devId(prefix) {
++  return prefix + '_' + crypto.randomBytes(8).toString('hex');
+ }
+ 
+ async function stripeRequest(path, params) {
++  if (isDevMode()) return devStripeRequest(path, params);
+   const key = secretKey();
+   if (!key) throw new Error('Stripe is not configured — add STRIPE_SECRET_KEY to server/.env');
+   const body = new URLSearchParams(params).toString();
+@@ -228,91 +426,149 @@
+   return data;
+ }
+ 
+-function ensureSubscriptions(db) {
+-  if (!db.subscriptions) db.subscriptions = {};
+-}
+-
+-function getSubscription(db, email) {
+-  if (!email) return null;
+-  ensureSubscriptions(db);
+-  return db.subscriptions[email.toLowerCase()] || null;
++async function stripeGet(path) {
++  if (isDevMode()) return devStripeGet(path);
++  const key = secretKey();
++  const res = await fetch('https://api.stripe.com/v1' + path, {
++    headers: { Authorization: 'Bearer ' + key },
++  });
++  const data = await res.json().catch(() => ({}));
++  if (!res.ok) throw new Error((data.error && data.error.message) || 'Stripe HTTP ' + res.status);
++  return data;
+ }
+ 
+-function getUserLimit(db, email) {
+-  const em = (email || '').toLowerCase().trim();
+-  const sub = getSubscription(db, em);
+-  if (sub && sub.status === 'active' && sub.maxUsers) return sub.maxUsers;
+-  const user = db.users[em];
+-  if (user) {
+-    const trial = getTrialInfo(user);
+-    if (trial.active) return TRIAL_MAX_USERS;
++function devStripeRequest(path, params) {
++  const p = params || {};
++  if (path === '/checkout/sessions') {
++    const id = devId('cs_test');
++    const customer = p.customer_email ? (devStore.customers[p.customer_email] || devId('cus_test')) : devId('cus_test');
++    if (p.customer_email) devStore.customers[p.customer_email] = customer;
++    const subscription = p.mode === 'subscription' ? devId('sub_test') : null;
++    const session = {
++      id,
++      object: 'checkout.session',
++      mode: p.mode || 'subscription',
++      status: 'open',
++      payment_status: 'unpaid',
++      customer,
++      customer_email: p.customer_email || null,
++      client_reference_id: p.client_reference_id || null,
++      subscription,
++      url: appBaseUrl() + '/api/billing/dev/pay?session_id=' + id,
++      success_url: p.success_url,
++      cancel_url: p.cancel_url,
++      metadata: {
++        plan: p['metadata[plan]'] || '',
++        email: p['metadata[email]'] || p.customer_email || '',
++        maxUsers: p['metadata[maxUsers]'] || '',
++        maxSites: p['metadata[maxSites]'] || '',
++        product: p['metadata[product]'] || '',
++        type: p['metadata[type]'] || '',
++        interval: p['metadata[interval]'] || 'month',
++        courseTitle: p['metadata[courseTitle]'] || '',
++        amountPence: p['metadata[amountPence]'] || '',
++      },
++      amount_total: Number(p['line_items[0][price_data][unit_amount]'] || 0),
++    };
++    if (subscription) {
++      devStore.subscriptions[subscription] = {
++        id: subscription,
++        object: 'subscription',
++        status: 'active',
++        customer,
++        current_period_end: Math.floor(Date.now() / 1000) + 30 * 86400,
++        metadata: session.metadata,
++      };
++    }
++    devStore.sessions[id] = session;
++    return session;
+   }
+-  const org = orgForUser(db, em);
+-  if (org && org.maxUsers) return org.maxUsers;
+-  return null;
++  if (path === '/billing_portal/sessions') {
++    const id = devId('bps_test');
++    const session = {
++      id,
++      url: appBaseUrl() + '/api/billing/dev/portal?customer=' + encodeURIComponent(p.customer || ''),
++      customer: p.customer,
++    };
++    devStore.portal[id] = session;
++    return session;
++  }
++  throw new Error('Unsupported Stripe path in dev mode: ' + path);
+ }
+ 
+-function findEmailByCustomer(db, customerId) {
+-  if (!customerId) return null;
+-  ensureSubscriptions(db);
+-  for (const [email, sub] of Object.entries(db.subscriptions)) {
+-    if (sub.stripeCustomerId === customerId) return email;
++function devStripeGet(path) {
++  const subMatch = path.match(/^\/subscriptions\/([^/?]+)/);
++  if (subMatch) {
++    const sub = devStore.subscriptions[subMatch[1]];
++    if (!sub) throw new Error('No such subscription');
++    return sub;
+   }
+-  return null;
++  const sessMatch = path.match(/^\/checkout\/sessions\/([^/?]+)/);
++  if (sessMatch) {
++    const session = devStore.sessions[sessMatch[1]];
++    if (!session) throw new Error('No such checkout session');
++    return session;
++  }
++  throw new Error('Unsupported Stripe GET in dev mode: ' + path);
+ }
+ 
+-function applySubscription(db, email, patch) {
+-  ensureSubscriptions(db);
+-  const key = email.toLowerCase();
+-  db.subscriptions[key] = Object.assign({}, db.subscriptions[key] || {}, patch, {
+-    email: key,
+-    updatedAt: new Date().toISOString(),
+-  });
+-  const org = orgForUser(db, key);
+-  if (org) {
+-    const owner = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase();
+-    if (key === owner || !db.subscriptions[key].orgSynced) {
+-      if (patch.status === 'active' && patch.orgPlan) {
+-        org.plan = patch.orgPlan;
+-        if (patch.maxUsers) org.maxUsers = patch.maxUsers;
+-        db.subscriptions[key].orgSynced = true;
+-      } else if (patch.status === 'canceled') {
+-        org.plan = 'Demo / trial';
+-        delete org.maxUsers;
+-      }
+-    }
++function checkoutLineItems(plan, interval) {
++  const yearly = interval === 'year';
++  const amount = yearly ? annualAmount(plan) : plan.amount;
++  const priceId = yearly ? '' : stripePriceId(plan.id);
++  if (priceId) {
++    return {
++      'line_items[0][price]': priceId,
++      'line_items[0][quantity]': '1',
++    };
+   }
++  return {
++    'line_items[0][quantity]': '1',
++    'line_items[0][price_data][currency]': plan.currency,
++    'line_items[0][price_data][unit_amount]': String(amount),
++    'line_items[0][price_data][recurring][interval]': yearly ? 'year' : 'month',
++    'line_items[0][price_data][product_data][name]': plan.name + (yearly ? ' (annual)' : ''),
++    'line_items[0][price_data][product_data][description]': plan.description,
++  };
+ }
+ 
+-async function createCheckout({ plan, email }) {
++async function createCheckout({ plan, email, interval, user }) {
++  if (!isConfigured()) {
++    throw new Error('Online checkout not configured — email contact@kiteline.uk for an invoice.');
++  }
+   const planId = resolvePlanId(plan);
+   const p = PLANS[planId];
+   if (!p) throw new Error('Unknown plan — pick a tier from the pricing page');
+   const em = (email || '').toLowerCase().trim();
+   if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) throw new Error('Valid email required');
+-
++  const billingInterval = interval === 'year' ? 'year' : 'month';
+   const base = appBaseUrl();
+-  const session = await stripeRequest('/checkout/sessions', {
+-    mode: 'subscription',
+-    'customer_email': em,
+-    'client_reference_id': em,
+-    'metadata[plan]': p.id,
+-    'metadata[email]': em,
+-    'metadata[maxUsers]': String(p.maxUsers),
+-    'subscription_data[metadata][plan]': p.id,
+-    'subscription_data[metadata][email]': em,
+-    'subscription_data[metadata][maxUsers]': String(p.maxUsers),
+-    'line_items[0][quantity]': '1',
+-    'line_items[0][price_data][currency]': p.currency,
+-    'line_items[0][price_data][unit_amount]': String(p.amount),
+-    'line_items[0][price_data][recurring][interval]': 'month',
+-    'line_items[0][price_data][product_data][name]': p.name,
+-    'line_items[0][price_data][product_data][description]': p.description,
+-    success_url: base + '/billing-success.html?session_id={CHECKOUT_SESSION_ID}',
+-    cancel_url: base + '/pricing.html?checkout=cancel',
+-  });
+-
+-  return { url: session.url, sessionId: session.id, plan: p.id };
++  const trialDays = remainingTrialDays(user);
++  const params = Object.assign(
++    {
++      mode: 'subscription',
++      customer_email: em,
++      client_reference_id: em,
++      allow_promotion_codes: 'true',
++      billing_address_collection: 'auto',
++      'metadata[plan]': p.id,
++      'metadata[email]': em,
++      'metadata[maxUsers]': String(p.maxUsers),
++      'metadata[maxSites]': String(p.maxSites),
++      'metadata[interval]': billingInterval,
++      'subscription_data[metadata][plan]': p.id,
++      'subscription_data[metadata][email]': em,
++      'subscription_data[metadata][maxUsers]': String(p.maxUsers),
++      'subscription_data[metadata][maxSites]': String(p.maxSites),
++      'subscription_data[metadata][interval]': billingInterval,
++      success_url: base + '/billing-success.html?session_id={CHECKOUT_SESSION_ID}',
++      cancel_url: base + '/pricing.html?checkout=cancel',
++    },
++    checkoutLineItems(p, billingInterval)
++  );
++  if (trialDays > 0) params['subscription_data[trial_period_days]'] = String(trialDays);
++  const session = await stripeRequest('/checkout/sessions', params);
++  return { url: session.url, sessionId: session.id, plan: p.id, interval: billingInterval, devMode: isDevMode() };
+ }
+ 
+ async function createRecipeAiCheckout({ email }) {
+@@ -323,26 +579,34 @@
+   const em = (email || '').toLowerCase().trim();
+   if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) throw new Error('Valid email required');
+   const base = appBaseUrl();
+-  const session = await stripeRequest('/checkout/sessions', {
++  const priceId = stripePriceId('recipe_ai');
++  const params = {
+     mode: 'subscription',
+-    'customer_email': em,
+-    'client_reference_id': em,
++    customer_email: em,
++    client_reference_id: em,
++    allow_promotion_codes: 'true',
+     'metadata[plan]': recipeAiAccess().ADDON_ID,
+     'metadata[email]': em,
+     'metadata[product]': 'recipe_ai',
+     'subscription_data[metadata][plan]': recipeAiAccess().ADDON_ID,
+     'subscription_data[metadata][email]': em,
+     'subscription_data[metadata][product]': 'recipe_ai',
+-    'line_items[0][quantity]': '1',
+-    'line_items[0][price_data][currency]': addon.currency,
+-    'line_items[0][price_data][unit_amount]': String(addon.amount),
+-    'line_items[0][price_data][recurring][interval]': 'month',
+-    'line_items[0][price_data][product_data][name]': addon.name,
+-    'line_items[0][price_data][product_data][description]': addon.description,
+     success_url: base + '/billing-success.html?session_id={CHECKOUT_SESSION_ID}&addon=recipe_ai',
+     cancel_url: base + '/app#settings',
+-  });
+-  return { url: session.url, sessionId: session.id, plan: recipeAiAccess().ADDON_ID };
++  };
++  if (priceId) {
++    params['line_items[0][price]'] = priceId;
++    params['line_items[0][quantity]'] = '1';
++  } else {
++    params['line_items[0][quantity]'] = '1';
++    params['line_items[0][price_data][currency]'] = addon.currency || 'gbp';
++    params['line_items[0][price_data][unit_amount]'] = String(addon.amount);
++    params['line_items[0][price_data][recurring][interval]'] = 'month';
++    params['line_items[0][price_data][product_data][name]'] = addon.name;
++    params['line_items[0][price_data][product_data][description]'] = addon.description;
++  }
++  const session = await stripeRequest('/checkout/sessions', params);
++  return { url: session.url, sessionId: session.id, plan: recipeAiAccess().ADDON_ID, devMode: isDevMode() };
+ }
+ 
+ async function createPortalSession(email, db) {
+@@ -353,17 +617,24 @@
+     customer: sub.stripeCustomerId,
+     return_url: base + '/app#settings',
+   });
+-  return { url: session.url };
++  return { url: session.url, devMode: isDevMode() };
++}
++
++function signWebhook(rawBody, secret, timestamp) {
++  const t = String(timestamp || Math.floor(Date.now() / 1000));
++  const expected = crypto.createHmac('sha256', secret).update(t + '.' + rawBody, 'utf8').digest('hex');
++  return 't=' + t + ',v1=' + expected;
+ }
+ 
+ function verifyWebhookSignature(rawBody, sigHeader) {
+   const secret = webhookSecret();
++  if (isDevMode() && !secret) return true;
+   if (!secret) return false;
+   if (!sigHeader) return false;
+   const parts = {};
+-  sigHeader.split(',').forEach((bit) => {
++  String(sigHeader).split(',').forEach((bit) => {
+     const i = bit.indexOf('=');
+-    if (i > 0) parts[bit.slice(0, i)] = bit.slice(i + 1);
++    if (i > 0) parts[bit.slice(0, i).trim()] = bit.slice(i + 1).trim();
+   });
+   const timestamp = parts.t;
+   const v1 = parts.v1;
+@@ -380,89 +651,120 @@
+ }
+ 
+ async function fetchStripeSubscription(subscriptionId) {
+-  const key = secretKey();
+-  const res = await fetch('https://api.stripe.com/v1/subscriptions/' + subscriptionId, {
+-    headers: { Authorization: 'Bearer ' + key },
+-  });
+-  const data = await res.json().catch(() => ({}));
+-  if (!res.ok) throw new Error((data.error && data.error.message) || 'Stripe subscription fetch failed');
+-  return data;
++  return stripeGet('/subscriptions/' + subscriptionId);
+ }
+ 
+ function subscriptionFromStripe(sub, planHint) {
+   const plan = resolvePlanId(planHint || (sub.metadata && sub.metadata.plan) || 'users_5');
+   const p = PLANS[plan] || PLANS.users_5;
+   const maxUsers = Number(sub.metadata && sub.metadata.maxUsers) || p.maxUsers;
++  const maxSites = Number(sub.metadata && sub.metadata.maxSites) || p.maxSites;
+   return {
+     plan: p.id,
+     orgPlan: p.orgPlan,
+     maxUsers,
++    maxSites,
+     status: sub.status,
++    source: 'stripe',
++    interval: (sub.metadata && sub.metadata.interval) || 'month',
+     stripeCustomerId: sub.customer,
+     stripeSubscriptionId: sub.id,
+     currentPeriodEnd: sub.current_period_end
+       ? new Date(sub.current_period_end * 1000).toISOString()
+       : null,
++    pastDueSince: sub.status === 'past_due' ? new Date().toISOString() : null,
+   };
+ }
+ 
++function seenEvent(db, eventId) {
++  ensureStore(db);
++  if (!eventId) return false;
++  if (db.billingEvents[eventId]) return true;
++  db.billingEvents[eventId] = { id: eventId, at: new Date().toISOString() };
++  const keys = Object.keys(db.billingEvents);
++  if (keys.length > 500) {
++    keys.slice(0, keys.length - 400).forEach((k) => { delete db.billingEvents[k]; });
++  }
++  return false;
++}
++
++async function activateFromCheckoutSession(session, db, writeDb) {
++  if (session.metadata && (session.metadata.type === 'academy_course' || session.metadata.product === 'academy')) {
++    if (module.exports._academyCheckout) {
++      await module.exports._academyCheckout(session, db, writeDb);
++      return { academy: true };
++    }
++    let academyBilling = null;
++    try { academyBilling = require('./academy-billing'); } catch {}
++    if (!academyBilling) {
++      try { academyBilling = require('./academy/billing'); } catch {}
++    }
++    if (academyBilling && academyBilling.handleCheckoutCompleted) {
++      try {
++        let addEnrollment = module.exports._addEnrollment;
++        if (!addEnrollment) {
++          try { addEnrollment = require('./academy/store').addEnrollment; } catch {}
++        }
++        const handled = await academyBilling.handleCheckoutCompleted(session, db, writeDb, addEnrollment);
++        if (handled) return { academy: true };
++      } catch (e) {
++        console.error('[billing] academy checkout:', e.message);
++      }
++    }
++  }
++  const email = ((session.metadata && session.metadata.email) || session.customer_email || session.client_reference_id || '').toLowerCase();
++  const plan = resolvePlanId((session.metadata && session.metadata.plan) || 'users_5');
++  if (!email) return { skipped: true };
++  if (session.subscription && plan === recipeAiAccess().ADDON_ID) {
++    recipeAiAccess().activateKitelineAddon(db, email, { subscriptionId: session.subscription });
++    ensureStore(db);
++    db.subscriptions[email] = Object.assign({}, db.subscriptions[email] || {}, {
++      email,
++      recipeAiActive: true,
++      stripeCustomerId: session.customer,
++      recipeAiStripeSubscriptionId: session.subscription,
++      updatedAt: new Date().toISOString(),
++    });
++    writeDb(db);
++    return { recipeAi: true, email };
++  }
++  if (email && session.subscription) {
++    let subObj = {
++      plan,
++      orgPlan: (PLANS[plan] || PLANS.users_5).orgPlan,
++      maxUsers: (PLANS[plan] || PLANS.users_5).maxUsers,
++      maxSites: (PLANS[plan] || PLANS.users_5).maxSites,
++      status: 'active',
++      source: 'stripe',
++      stripeCustomerId: session.customer,
++      stripeSubscriptionId: session.subscription,
++    };
++    try {
++      const sub = await fetchStripeSubscription(session.subscription);
++      subObj = subscriptionFromStripe(sub, plan);
++    } catch (e) {
++      console.error('[billing] subscription fetch:', e.message);
++    }
++    applySubscription(db, email, subObj);
++    writeDb(db);
++    console.log('[billing] Subscribed:', email, subObj.plan, subObj.maxUsers + ' users');
++    return { email, plan: subObj.plan };
++  }
++  return { skipped: true };
++}
++
+ async function handleWebhook(rawBody, sigHeader, db, writeDb) {
+   if (!verifyWebhookSignature(rawBody, sigHeader)) {
+     return { ok: false, error: 'Invalid webhook signature' };
+   }
+   let event;
+   try { event = JSON.parse(rawBody); } catch { return { ok: false, error: 'Invalid JSON' }; }
++  if (seenEvent(db, event.id)) return { ok: true, type: event.type, duplicate: true };
+ 
+   if (event.type === 'checkout.session.completed') {
+     const session = event.data.object;
+-    if (session.metadata && session.metadata.type === 'academy_course') {
+-      try {
+-        const academyBilling = require('./academy/billing');
+-        const academyStore = require('./academy/store');
+-        const handled = await academyBilling.handleCheckoutCompleted(
+-          session,
+-          db,
+-          writeDb,
+-          academyStore.addEnrollment
+-        );
+-        if (handled) return { ok: true, type: event.type, academy: true };
+-      } catch (e) {
+-        console.error('[billing] academy checkout:', e.message);
+-      }
+-    }
+-    const email = ((session.metadata && session.metadata.email) || session.customer_email || session.client_reference_id || '').toLowerCase();
+-    const plan = resolvePlanId((session.metadata && session.metadata.plan) || 'users_5');
+-    if (email && session.subscription && plan === recipeAiAccess().ADDON_ID) {
+-      recipeAiAccess().activateKitelineAddon(db, email, { subscriptionId: session.subscription });
+-      ensureSubscriptions(db);
+-      db.subscriptions[email] = Object.assign({}, db.subscriptions[email] || {}, {
+-        email,
+-        recipeAiActive: true,
+-        stripeCustomerId: session.customer,
+-        recipeAiStripeSubscriptionId: session.subscription,
+-        updatedAt: new Date().toISOString(),
+-      });
+-      writeDb(db);
+-      console.log('[billing] Recipe AI subscribed:', email);
+-    } else if (email && session.subscription) {
+-      let subObj = {
+-        plan,
+-        orgPlan: (PLANS[plan] || PLANS.users_5).orgPlan,
+-        maxUsers: (PLANS[plan] || PLANS.users_5).maxUsers,
+-        status: 'active',
+-        stripeCustomerId: session.customer,
+-        stripeSubscriptionId: session.subscription,
+-      };
+-      try {
+-        const sub = await fetchStripeSubscription(session.subscription);
+-        subObj = subscriptionFromStripe(sub, plan);
+-      } catch (e) {
+-        console.error('[billing] subscription fetch:', e.message);
+-      }
+-      applySubscription(db, email, subObj);
+-      writeDb(db);
+-      console.log('[billing] Subscribed:', email, subObj.plan, subObj.maxUsers + ' users');
+-    }
++    const extra = await activateFromCheckoutSession(session, db, writeDb);
++    return Object.assign({ ok: true, type: event.type }, extra);
+   }
+ 
+   if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
+@@ -471,28 +773,259 @@
+     if (!email) email = findEmailByCustomer(db, sub.customer) || '';
+     const metaPlan = sub.metadata && sub.metadata.plan;
+     if (email && metaPlan === recipeAiAccess().ADDON_ID) {
+-      if (sub.status === 'active') {
++      if (sub.status === 'active' || sub.status === 'trialing') {
+         recipeAiAccess().activateKitelineAddon(db, email, { subscriptionId: sub.id });
+       } else {
+         recipeAiAccess().deactivateKitelineAddon(db, email);
+       }
+       writeDb(db);
+-      console.log('[billing] Recipe AI subscription:', email, sub.status);
+-      return { ok: true, type: event.type };
++      return { ok: true, type: event.type, recipeAi: true };
+     }
+     const plan = resolvePlanId(
+       (sub.metadata && sub.metadata.plan) ||
+-        (email && getSubscription(db, email) && getSubscription(db, email).plan) ||
+-        'users_5'
++      (email && getSubscription(db, email) && getSubscription(db, email).plan) ||
++      'users_5'
+     );
+     if (email) {
+       applySubscription(db, email, subscriptionFromStripe(sub, plan));
+       writeDb(db);
+-      console.log('[billing] Subscription updated:', email, sub.status);
+     }
++    return { ok: true, type: event.type, email: email || null };
+   }
+ 
+-  return { ok: true, type: event.type };
++  if (event.type === 'invoice.paid' || event.type === 'invoice.payment_failed' || event.type === 'invoice.payment_action_required') {
++    const inv = event.data.object;
++    const email = findEmailByCustomer(db, inv.customer) || ((inv.customer_email || '') + '').toLowerCase();
++    const status = event.type === 'invoice.paid' ? 'paid' : event.type === 'invoice.payment_failed' ? 'open' : 'action_required';
++    recordInvoice(db, {
++      stripeInvoiceId: inv.id,
++      email: email || null,
++      tenantId: email ? tenantIdForUser(db, email) : null,
++      amountPence: inv.amount_paid || inv.amount_due || 0,
++      currency: inv.currency || 'gbp',
++      status,
++      hostedInvoiceUrl: inv.hosted_invoice_url || null,
++      periodStart: inv.period_start ? new Date(inv.period_start * 1000).toISOString() : null,
++      periodEnd: inv.period_end ? new Date(inv.period_end * 1000).toISOString() : null,
++      source: 'stripe',
++    });
++    if (email && event.type === 'invoice.payment_failed') {
++      const existing = getSubscription(db, email) || {};
++      applySubscription(db, email, {
++        status: 'past_due',
++        pastDueSince: existing.pastDueSince || new Date().toISOString(),
++        stripeCustomerId: existing.stripeCustomerId || inv.customer,
++      });
++    }
++    if (email && event.type === 'invoice.paid') {
++      const existing = getSubscription(db, email) || {};
++      applySubscription(db, email, {
++        status: existing.status === 'canceled' ? 'active' : (existing.status || 'active'),
++        pastDueSince: null,
++        stripeCustomerId: existing.stripeCustomerId || inv.customer,
++      });
++    }
++    writeDb(db);
++    return { ok: true, type: event.type, email: email || null };
++  }
++
++  return { ok: true, type: event.type, ignored: true };
++}
++
++function grantPlan(db, { email, plan, months, source, note }) {
++  const em = (email || '').toLowerCase().trim();
++  if (!em) throw new Error('Email required');
++  const p = planById(plan) || PLANS.users_5;
++  const periodMonths = Math.max(1, Number(months) || 1);
++  const periodEnd = new Date(Date.now() + periodMonths * 30 * 86400000).toISOString();
++  const sub = applySubscription(db, em, {
++    plan: p.id,
++    orgPlan: p.orgPlan,
++    maxUsers: p.maxUsers,
++    maxSites: p.maxSites,
++    status: 'active',
++    source: source || 'invoice',
++    currentPeriodEnd: periodEnd,
++    note: note || null,
++  });
++  recordInvoice(db, {
++    email: em,
++    tenantId: tenantIdForUser(db, em),
++    amountPence: p.amount * periodMonths,
++    currency: 'gbp',
++    status: 'paid',
++    periodStart: new Date().toISOString(),
++    periodEnd,
++    source: source || 'invoice',
++    note: note || 'Manual grant',
++  });
++  return sub;
++}
++
++function revokePlan(db, { email, reason }) {
++  const em = (email || '').toLowerCase().trim();
++  if (!em) throw new Error('Email required');
++  const existing = db.subscriptions && db.subscriptions[em];
++  if (!existing) throw new Error('No subscription for that email');
++  applySubscription(db, em, {
++    status: 'canceled',
++    canceledAt: new Date().toISOString(),
++    cancelReason: reason || 'revoked',
++  });
++  const org = orgForUser(db, em);
++  if (org) {
++    org.plan = 'Demo / trial';
++    delete org.maxUsers;
++    delete org.maxSites;
++  }
++  return db.subscriptions[em];
++}
++
++async function retrieveCheckoutSession(sessionId) {
++  if (!sessionId) throw new Error('session_id required');
++  return stripeGet('/checkout/sessions/' + sessionId);
++}
++
++function completeDevCheckout(db, writeDb, sessionId) {
++  if (!isDevMode()) throw new Error('Dev checkout is disabled');
++  const session = devStore.sessions[sessionId];
++  if (!session) throw new Error('Unknown checkout session');
++  session.status = 'complete';
++  session.payment_status = 'paid';
++  const event = {
++    id: 'evt_dev_' + sessionId,
++    type: 'checkout.session.completed',
++    data: { object: session },
++  };
++  const raw = JSON.stringify(event);
++  const sig = webhookSecret() ? signWebhook(raw, webhookSecret()) : 'dev';
++  return handleWebhook(raw, sig, db, writeDb);
++}
++
++function publicConfig() {
++  return {
++    enabled: isConfigured(),
++    devMode: isDevMode(),
++    trialDays: TRIAL_DAYS,
++    trialMaxUsers: TRIAL_MAX_USERS,
++    vatCharged: false,
++    currency: 'gbp',
++    plans: planCatalog(),
++  };
++}
++
++function statusPayload(db, email, extras) {
++  const sub = getSubscription(db, email);
++  const kitchen = tenantsApi().getStateForUser(db, email);
++  const teamCount = (kitchen && kitchen.team && kitchen.team.length) || 0;
++  const siteCount = (kitchen && kitchen.sites && kitchen.sites.length) || 0;
++  return Object.assign({
++    enabled: isConfigured(),
++    devMode: isDevMode(),
++    plans: planCatalog(),
++    teamCount,
++    siteCount,
++    maxUsers: getUserLimit(db, email),
++    maxSites: getSiteLimit(db, email),
++    trial: getTrialStatus(db, email),
++    trialDays: TRIAL_DAYS,
++    subscription: sub || { status: 'none', plan: null },
++    invoices: invoicesForEmail(db, email).slice(0, 24),
++    access: canAccess(db, email),
++  }, extras || {});
++}
++
++async function tryHandlePublic({ route, method, body, query, db, writeDb }) {
++  if (route === '/billing/config' && method === 'GET') {
++    return { status: 200, body: publicConfig() };
++  }
++  if (route === '/billing/checkout' && method === 'POST') {
++    if (!isConfigured()) {
++      return { status: 503, body: { error: 'Online checkout not configured yet — email contact@kiteline.uk for an invoice.' } };
++    }
++    try {
++      const email = (body.email || '').toLowerCase().trim();
++      const user = db.users && db.users[email];
++      const result = await createCheckout({ plan: body.plan, email, interval: body.interval, user });
++      return { status: 200, body: result };
++    } catch (e) {
++      return { status: 400, body: { error: e.message || 'Checkout failed' } };
++    }
++  }
++  if (route === '/billing/session' && method === 'GET') {
++    try {
++      const session = await retrieveCheckoutSession((query && query.session_id) || (body && body.session_id));
++      return { status: 200, body: { id: session.id, status: session.status, payment_status: session.payment_status, plan: session.metadata && session.metadata.plan } };
++    } catch (e) {
++      return { status: 400, body: { error: e.message || 'Session lookup failed' } };
++    }
++  }
++  if (route === '/billing/dev/pay' && method === 'GET' && isDevMode()) {
++    try {
++      const sessionId = (query && query.session_id) || '';
++      const result = await completeDevCheckout(db, writeDb, sessionId);
++      const session = devStore.sessions[sessionId];
++      const dest = (session && session.success_url || appBaseUrl() + '/billing-success.html').replace('{CHECKOUT_SESSION_ID}', sessionId);
++      return { status: 302, body: result, redirect: dest };
++    } catch (e) {
++      return { status: 400, body: { error: e.message || 'Dev pay failed' } };
++    }
++  }
++  if (route === '/billing/dev/complete' && method === 'POST' && isDevMode()) {
++    try {
++      const result = await completeDevCheckout(db, writeDb, body.session_id);
++      return { status: 200, body: result };
++    } catch (e) {
++      return { status: 400, body: { error: e.message || 'Dev complete failed' } };
++    }
++  }
++  return null;
++}
++
++async function tryHandleAuth({ route, method, body, me, db, writeDb }) {
++  if (route === '/billing/status' && method === 'GET') {
++    ensureTrial(me);
++    syncOrgAccess(db, me.email);
++    writeDb(db);
++    return { status: 200, body: statusPayload(db, me.email, { owner: isOwner(me.email) }) };
++  }
++  if (route === '/billing/portal' && method === 'POST') {
++    if (!isConfigured()) return { status: 503, body: { error: 'Billing not configured' } };
++    try {
++      const result = await createPortalSession(me.email, db);
++      return { status: 200, body: result };
++    } catch (e) {
++      return { status: 400, body: { error: e.message || 'Portal failed' } };
++    }
++  }
++  if (route === '/billing/invoices' && method === 'GET') {
++    return { status: 200, body: { invoices: invoicesForEmail(db, me.email) } };
++  }
++  if (route === '/billing/admin/customers' && method === 'GET') {
++    if (!isOwner(me.email)) return { status: 403, body: { error: 'Owner only' } };
++    return { status: 200, body: { customers: listCustomers(db), invoices: (db.invoices || []).slice(0, 100) } };
++  }
++  if (route === '/billing/admin/grant' && method === 'POST') {
++    if (!isOwner(me.email)) return { status: 403, body: { error: 'Owner only' } };
++    try {
++      const sub = grantPlan(db, body);
++      writeDb(db);
++      return { status: 200, body: { ok: true, subscription: sub } };
++    } catch (e) {
++      return { status: 400, body: { error: e.message || 'Grant failed' } };
++    }
++  }
++  if (route === '/billing/admin/revoke' && method === 'POST') {
++    if (!isOwner(me.email)) return { status: 403, body: { error: 'Owner only' } };
++    try {
++      const sub = revokePlan(db, body);
++      writeDb(db);
++      return { status: 200, body: { ok: true, subscription: sub } };
++    } catch (e) {
++      return { status: 400, body: { error: e.message || 'Revoke failed' } };
++    }
++  }
++  return null;
+ }
+ 
+ module.exports = {
+@@ -500,15 +1033,21 @@
+   PLAN_ALIASES,
+   TRIAL_DAYS,
+   TRIAL_MAX_USERS,
++  PAST_DUE_GRACE_DAYS,
++  DEV_KEY,
+   resolvePlanId,
+   isConfigured,
++  isDevMode,
++  isOwner,
+   planCatalog,
+   planById,
++  publicConfig,
+   createCheckout,
+   createRecipeAiCheckout,
+   createPortalSession,
+   getSubscription,
+   getUserLimit,
++  getSiteLimit,
+   ensureTrial,
+   startTrial,
+   getTrialInfo,
+@@ -517,5 +1056,19 @@
+   syncOrgAccess,
+   hasActiveSubscription,
+   handleWebhook,
++  verifyWebhookSignature,
++  signWebhook,
++  grantPlan,
++  revokePlan,
++  recordInvoice,
++  invoicesForEmail,
++  listCustomers,
++  retrieveCheckoutSession,
++  completeDevCheckout,
++  tryHandlePublic,
++  tryHandleAuth,
++  statusPayload,
+   appBaseUrl,
++  stripeRequest,
++  _devStore: devStore,
+ };
+diff -ruN '--exclude=.git' '--exclude=node_modules' kitline1/server/.env.example kitline1-work/server/.env.example
+--- kitline1/server/.env.example	2026-08-24 19:44:10.441416796 +0000
++++ kitline1-work/server/.env.example	2026-08-24 19:48:07.208228839 +0000
+@@ -46,15 +46,30 @@
+ # TRIAL_DAYS=14
+ # TRIAL_MAX_USERS=5
+ 
+-# --- Stripe subscriptions (tiered by users: 1/5/10/20/50) ---
++# --- Stripe subscriptions (tiered by users: 1/5/10/20/50 + site allowances) ---
+ # Create account: https://dashboard.stripe.com
+ # Test keys start with sk_test_ / whsec_
+ # APP_URL=http://localhost:4001
+ # Production: APP_URL=https://kiteline.uk
+ # STRIPE_SECRET_KEY=sk_test_xxxxxxxx
+ # STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxx
++# Optional Stripe Dashboard Price IDs (otherwise Checkout uses inline price_data):
++# STRIPE_PRICE_USERS_1=price_...
++# STRIPE_PRICE_USERS_5=price_...
++# STRIPE_PRICE_USERS_10=price_...
++# STRIPE_PRICE_USERS_20=price_...
++# STRIPE_PRICE_USERS_50=price_...
++# STRIPE_PRICE_RECIPE_AI=price_...
++# STRIPE_PRICE_ACADEMY_STARTER=price_...
++# STRIPE_PRICE_ACADEMY_PRO=price_...
++# Local full checkout without a Stripe account:
++# BILLING_DEV_MODE=true
++# STRIPE_SECRET_KEY=sk_test_kiteline_dev
+ # Webhook endpoint: https://kiteline.uk/api/billing/webhook
+-# Events: checkout.session.completed, customer.subscription.updated, customer.subscription.deleted
++# Events: checkout.session.completed, customer.subscription.updated,
++#         customer.subscription.deleted, invoice.paid, invoice.payment_failed,
++#         invoice.payment_action_required
++# Customer portal: Stripe Dashboard → Settings → Billing → Customer portal → Enable
+ 
+ # --- Sensors pushing to /api/ingest ---
+ # INGEST_KEY=your-random-secret
+diff -ruN '--exclude=.git' '--exclude=node_modules' kitline1/server/server.js kitline1-work/server/server.js
+--- kitline1/server/server.js	2026-08-24 19:44:10.445416801 +0000
++++ kitline1-work/server/server.js	2026-08-24 19:48:07.816227831 +0000
+@@ -28,7 +28,7 @@
+   || (!isProd && process.env.DEMO_MODE !== 'false');
+ // Early access: registration open unless explicitly disabled.
+ const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
+-const APP_BUILD = '2026-07-02-pilot-sites';
++const APP_BUILD = '2026-08-24-payments';
+ const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
+ const notify = require('./notify');
+ const vedantaReports = require('./vedanta-reports');
+@@ -672,22 +672,16 @@
+     });
+   }
+ 
+-  // GET /api/billing/config — public plan list + Stripe enabled flag
+-  if (route === '/billing/config' && req.method === 'GET') {
+-    return apiSend( 200, { enabled: billing.isConfigured(), plans: billing.planCatalog() });
+-  }
+-
+-  // POST /api/billing/checkout — Stripe Checkout (email required)
+-  if (route === '/billing/checkout' && req.method === 'POST') {
+-    if (!billing.isConfigured()) {
+-      return apiSend( 503, { error: 'Online checkout not configured yet — email contact@kiteline.uk for an invoice.' });
+-    }
+-    try {
+-      const result = await billing.createCheckout({ plan: body.plan, email: body.email });
+-      return apiSend( 200, result);
+-    } catch (e) {
+-      return apiSend( 400, { error: e.message || 'Checkout failed' });
++  const billingQuery = Object.fromEntries(url.searchParams.entries());
++  const billingPublic = await billing.tryHandlePublic({
++    route, method: req.method, body, query: billingQuery, db, writeDb,
++  });
++  if (billingPublic) {
++    if (billingPublic.redirect) {
++      res.writeHead(302, { Location: billingPublic.redirect, 'Cache-Control': 'no-store' });
++      return res.end();
+     }
++    return apiSend(billingPublic.status, billingPublic.body);
+   }
+ 
+   // POST /api/waitlist — hardware interest (no payment, no stock)
+@@ -1243,37 +1237,10 @@
+     return apiSend( 200, { entries: list, summary: waitlist.summary(list) });
+   }
+ 
+-  // GET /api/billing/status — current user's subscription
+-  if (route === '/billing/status' && req.method === 'GET') {
+-    billing.ensureTrial(me);
+-    billing.syncOrgAccess(db, me.email);
+-    writeDb(db);
+-    const sub = billing.getSubscription(db, me.email);
+-    const kitchen = tenants.getStateForUser(db, me.email);
+-    const teamCount = (kitchen && kitchen.team && kitchen.team.length) || 0;
+-    const maxUsers = billing.getUserLimit(db, me.email);
+-    const trial = billing.getTrialStatus(db, me.email);
+-    return apiSend( 200, {
+-      enabled: billing.isConfigured(),
+-      plans: billing.planCatalog(),
+-      teamCount,
+-      maxUsers,
+-      trial,
+-      trialDays: billing.TRIAL_DAYS,
+-      subscription: sub || { status: 'none', plan: null },
+-    });
+-  }
+-
+-  // POST /api/billing/portal — Stripe customer portal (manage/cancel)
+-  if (route === '/billing/portal' && req.method === 'POST') {
+-    if (!billing.isConfigured()) return apiSend( 503, { error: 'Billing not configured' });
+-    try {
+-      const result = await billing.createPortalSession(me.email, db);
+-      return apiSend( 200, result);
+-    } catch (e) {
+-      return apiSend( 400, { error: e.message || 'Portal failed' });
+-    }
+-  }
++  const billingAuth = await billing.tryHandleAuth({
++    route, method: req.method, body, me, db, writeDb,
++  });
++  if (billingAuth) return apiSend(billingAuth.status, billingAuth.body);
+ 
+   // --- Recipe AI (per-company: Kiteline subscription, BYOK, or owner grant) ---
+   if (route === '/recipe-ai/status' && req.method === 'GET') {
+diff -ruN '--exclude=.git' '--exclude=node_modules' kitline1/site/billing-success.html kitline1-work/site/billing-success.html
+--- kitline1/site/billing-success.html	2026-08-24 19:44:10.461416825 +0000
++++ kitline1-work/site/billing-success.html	2026-08-24 19:48:44.624174718 +0000
+@@ -15,6 +15,7 @@
+       <img src="/kiteline-logo.png?v=mark3" alt="" class="w-14 h-14 mx-auto mb-6" width="56" height="56">
+       <h1 id="title" class="text-3xl font-black">Thank you — you're subscribed!</h1>
+       <p id="msg" class="mt-4 text-white/75">Your Kiteline subscription is active. Sign in with the <b>same email</b> you used at checkout.</p>
++      <p id="sessionLine" class="mt-2 text-sm text-white/50"></p>
+       <a href="/app#settings" id="cta" class="inline-block mt-8 px-6 py-3 rounded-xl bg-white text-brand-800 font-bold">Open Kiteline app</a>
+       <p id="hint" class="mt-6 text-sm text-white/50">Manage or cancel anytime in the app → Settings → Billing.</p>
+       <p class="mt-4 text-sm"><a href="pricing.html" class="text-brand-300 underline">Back to pricing</a></p>
+@@ -31,6 +32,22 @@
+         document.getElementById('cta').textContent = 'Open Recipes';
+         document.getElementById('hint').textContent = 'Manage in app → Settings → Recipe AI. OpenAI usage is included within your monthly limits.';
+       }
++      var sessionId = (location.search.match(/[?&]session_id=([^&]+)/) || [])[1];
++      if (sessionId) {
++        fetch('/api/billing/session?session_id=' + encodeURIComponent(sessionId))
++          .then(function (r) { return r.json(); })
++          .then(function (data) {
++            var el = document.getElementById('sessionLine');
++            if (!el) return;
++            if (data.payment_status === 'paid' || data.status === 'complete') {
++              el.textContent = 'Payment confirmed' + (data.plan ? ' · ' + data.plan : '') + '.';
++            } else if (data.error) {
++              el.textContent = 'We could not verify the session yet — sign in and check Settings → Billing.';
++            } else {
++              el.textContent = 'Checkout status: ' + (data.status || 'pending') + '.';
++            }
++          }).catch(function () {});
++      }
+     })();
+   </script>
+ </body>
+diff -ruN '--exclude=.git' '--exclude=node_modules' kitline1/site/index.html kitline1-work/site/index.html
+--- kitline1/site/index.html	2026-08-24 19:44:10.461416825 +0000
++++ kitline1-work/site/index.html	2026-08-24 19:48:44.424174973 +0000
+@@ -253,10 +253,10 @@
+         <h3 class="font-bold mt-2">Early-access customers</h3>
+         <p class="text-sm text-ink-500 mt-1">Private workspaces with your own site, team, and recipes.</p>
+       </div>
+-      <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+-        <span class="text-[10px] font-bold uppercase text-amber-800">● Next</span>
++      <div class="rounded-2xl border border-brand-200 bg-brand-50/50 p-5">
++        <span class="text-[10px] font-bold uppercase text-brand-700">✓ Ready</span>
+         <h3 class="font-bold mt-2">Card payments & plans</h3>
+-        <p class="text-sm text-ink-500 mt-1">Stripe checkout — team plans by size with member limits.</p>
++        <p class="text-sm text-ink-500 mt-1">Stripe Checkout for team plans (1–50 users, site allowances). Invoice grants until live keys are set.</p>
+       </div>
+       <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+         <span class="text-[10px] font-bold uppercase text-amber-800">● Next</span>
+diff -ruN '--exclude=.git' '--exclude=node_modules' kitline1/site/pricing.html kitline1-work/site/pricing.html
+--- kitline1/site/pricing.html	2026-08-24 19:44:10.473416843 +0000
++++ kitline1-work/site/pricing.html	2026-08-24 19:49:18.032108548 +0000
+@@ -231,9 +231,11 @@
+           ${discount ? '<p class="text-xs text-brand-700 font-semibold mt-1">' + discount + '</p>' : ''}
+           <ul class="mt-4 space-y-1.5 text-sm text-ink-600 flex-1">
+             <li>✓ Up to <b>${p.maxUsers}</b> team members</li>
++            <li>✓ Up to <b>${p.maxSites || 1}</b> site${(p.maxSites || 1) === 1 ? '' : 's'}</li>
+             <li>✓ HACCP, temps, reports</li>
+             <li>✓ MenuGuard, labels, waste</li>
+             <li>✓ Manager & staff roles</li>
++            ${p.annualDisplay ? '<li>✓ Annual: ' + p.annualDisplay + ' (2 months free)</li>' : ''}
+           </ul>
+           <div class="mt-5 space-y-2">
+             <button type="button" class="checkout-btn w-full px-4 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm" data-plan="${p.id}">Subscribe — ${p.display}</button>
