@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Print Menu Now</title>
+<style>
+:root{--ink:#1f2a24;--muted:#6b7770;--accent:#2f6b4f;--gold:#b08a3e;--bg:#f3efe6;--line:#ddd4c4}
+*{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:1100px;margin:0 auto;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+h1{margin:0 0 6px;font-size:22px}
+.banner{background:#e7f1eb;border:2px solid var(--accent);border-radius:12px;padding:12px 14px;margin-bottom:14px;grid-column:1/-1}
+.banner b{color:var(--accent)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+textarea,input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit}
+textarea{min-height:220px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-line{background:#fff;border:1px solid var(--line)}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.4;margin-top:8px}
+.page{background:#fff;border:3px double var(--gold);padding:36px 40px;min-height:900px}
+.menu-title{font-family:Georgia,serif;text-align:center;letter-spacing:.14em;text-transform:uppercase;font-size:28px;border-bottom:2px solid var(--gold);padding-bottom:10px;margin:0 0 18px}
+.dish{text-align:center;margin:0 0 20px;page-break-inside:avoid}
+.dish-name{font-family:Georgia,serif;font-size:22px;font-weight:700;margin:0 0 6px;line-height:1.25}
+.dish-desc{font-size:12px;font-style:italic;color:#6b7770;margin:0 auto 6px;max-width:520px;line-height:1.45}
+.dish-contains{font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase}
+.dish-diet{font-size:7px;color:var(--accent);font-weight:500;letter-spacing:.02em;text-transform:none;margin-top:2px;line-height:1.2}
+.diet-heading{font-family:Georgia,serif;font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:none;color:var(--accent);text-align:center;margin:14px 0 8px}
+.info{margin-top:28px;padding-top:14px;border-top:2px solid var(--gold);text-align:center}
+.info h2{font-family:Georgia,serif;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;font-size:18px;margin:0 0 8px}
+.info p{font-size:11px;line-height:1.55;max-width:480px;margin:0 auto 8px;color:#3c463f}
+.status{margin-top:8px;font-weight:700;color:var(--accent)}
+@media print{body{background:#fff}.no-print{display:none!important}.wrap{display:block;padding:0;max-width:none}.page{box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="banner no-print">
+    <b>PRINT MENU NOW</b> — use this if Kiteline Menu Creator is still broken.<br>
+    Paste → <b>Make menu</b> → <b>Print / Save PDF</b>. Dishes cannot jump into Allergen Information here.
+  </div>
+  <div class="card no-print">
+    <h1>1. Paste menu</h1>
+    <label>Menu title</label>
+    <input id="title" value="DINNER MENU"/>
+    <label style="margin-top:10px">Paste dishes here</label>
+    <textarea id="bulk" placeholder="HOMEMADE CHOCOLATE FRIDGE CAKE
+A rich chocolate fridge cake with crunchy biscuits...
+Contains: Gluten, Dairy
+Vegetarian
+
+INDIAN-SPICED CARROT PANCAKES WITH CARROT HUMMUS
+Lightly spiced carrot pancakes...
+Contains: Gluten, Sesame
+Vegan"></textarea>
+    <div class="row">
+      <button class="btn btn-primary" id="make" type="button">Make menu</button>
+      <button class="btn btn-primary" id="print" type="button">Print / Save PDF</button>
+      <button class="btn btn-line" id="clear" type="button">Clear</button>
+    </div>
+    <div class="hint">Each DISH NAME on its own line, description next, then Contains: ... Optional: Vegan / Vegetarian.</div>
+    <div class="status" id="status">Paste a menu, then click Make menu.</div>
+  </div>
+  <div class="card">
+    <div class="no-print"><h1>2. Preview</h1></div>
+    <div class="page" id="page"></div>
+  </div>
+</div>
+<script>
+const DEFAULT_INFO = "We carefully select our ingredients and prepare all dishes with attention to allergens. However, please be aware that all food is prepared in a shared kitchen where cross-contamination may occur. While we take every precaution to minimize risk, we cannot guarantee the complete absence of allergens.\n\nIf you have a severe allergy or specific dietary requirement, please speak to a member of our team before serving yourself.\n\nYou can request more information on the allergens listed below.";
+const $ = id => document.getElementById(id);
+const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toTitle(s){ return s.toLowerCase().replace(/(^|[^A-Za-zÀ-ÿ])([a-zà-ÿ])/g,(m,pre,c)=>pre+c.toUpperCase()); }
+function normAllergen(x){
+  x = x.replace(/[.;:]+$/,"").trim(); if(!x) return "";
+  const map = {none:"None",soya:"Soy",soy:"Soy",milk:"Dairy",dairy:"Dairy",gluten:"Gluten",sesame:"Sesame",mustard:"Mustard",sulphites:"Sulphur Dioxide","sulphur dioxide":"Sulphur Dioxide"};
+  return map[x.toLowerCase()] || toTitle(x);
+}
+function parseAllergens(s){
+  const parts = s.split(/,|&|\band\b/i).map(x=>x.trim()).filter(Boolean).map(normAllergen).filter(Boolean);
+  const seen=new Set(), out=[]; for(const p of parts){ const k=p.toLowerCase(); if(!seen.has(k)){ seen.add(k); out.push(p);} }
+  if(out.length && out.every(p=>p==="None")) return ["None"];
+  return out.filter(p=>p!=="None");
+}
+function dietKey(x){
+  return x.trim().toLowerCase().replace(/[^a-z-]+/g,"").replace(/^(gluten|dairy|nut)[-]?fre[e]?$/,"$1-free");
+}
+function parseDiets(s){
+  const map={
+    vegan:"Vegan",vg:"Vegan",
+    vegetarian:"Vegetarian",vegitarian:"Vegetarian",vegaterian:"Vegetarian",vegatarian:"Vegetarian",veg:"Vegetarian",
+    "gluten-free":"Gluten-Free","glutenfree":"Gluten-Free",
+    "dairy-free":"Dairy-Free","dairyfree":"Dairy-Free",
+    halal:"Halal","nut-free":"Nut-Free","nutfree":"Nut-Free"
+  };
+  return [...new Set(s.replace(/^suitable\s+for\s*:?\s*/i,"").split(/,|&|\||\band\b/i).map(x=>map[dietKey(x)]||"").filter(Boolean))];
+}
+function isDietOnlyLine(raw){
+  const cleaned=(raw||"").replace(/[()|/.,]/g," ").replace(/\s+/g," ").trim();
+  if(!cleaned) return false;
+  const words=cleaned.split(" ");
+  if(words.length>6) return false;
+  const diets=parseDiets(raw.replace(/[()|/]/g,","));
+  if(!diets.length) return false;
+  return words.every(w=>{
+    const low=w.toLowerCase().replace(/[^a-z-]/g,"");
+    return !low || ["suitable","for","and","or"].includes(low) || parseDiets(w).length>0;
+  });
+}
+function peelTrailingDiet(raw){
+  const src=(raw||"").trim();
+  if(!src) return {text:"", diet:[]};
+  const m=src.match(/^(.*?)(?:[.]\s+|\s+)((?:suitable\s+for\s+)?[A-Za-z][A-Za-z\s|/,&-]*)$/);
+  if(!m || !m[1].trim()) return {text:src, diet:[]};
+  const tail=m[2].trim();
+  if(!isDietOnlyLine(tail)) return {text:src, diet:[]};
+  return {text:m[1].replace(/[.\s]+$/,"").trim(), diet:parseDiets(tail.replace(/[()|/]/g,","))};
+}
+function applyDiet(dish, diets){
+  if(!dish || !diets || !diets.length) return;
+  dish.diet=[...new Set([...(dish.diet||[]),...diets])];
+}
+function isDietHeadingDish(d){
+  if(!d) return false;
+  if(d.section) return true;
+  const extra=(d.desc&&d.desc.trim()) || (d.allergens&&d.allergens.length);
+  return isDietOnlyLine(d.name||"") && !extra;
+}
+function parseInline(raw){
+  const m = raw.match(/^(.+?)\s*[:\-–—]\s*(Contains\s*:?\s*.+)$/i);
+  if(!m) return null;
+  let name=m[1].trim(), rest=m[2].trim(), diet=[];
+  const dm=rest.match(/[\(\[]\s*([^\)\]]+)\s*[\)\]]\.?\s*$/);
+  if(dm){ diet=parseDiets(dm[1].replace(/[|/]/g,",")); rest=rest.slice(0,dm.index).trim(); }
+  const letters=name.replace(/[^a-zA-Z]/g,"");
+  return {name:(letters.length>=2 && name===name.toUpperCase())?toTitle(name):name, desc:"", allergens:parseAllergens(rest.replace(/^contains\s*:?\s*/i,"")), diet};
+}
+function parseBulk(text){
+  let title=null, cur=null, expect=true; const dishes=[];
+  const letters=s=>s.replace(/[^a-zA-Z]/g,"");
+  const isCaps=s=>{const L=letters(s); return L.length>=2 && s===s.toUpperCase() && /[A-Z]/.test(s)};
+  const push=()=>{ if(cur&&cur.name) dishes.push(cur); cur=null; expect=true; };
+  for(const line of text.split(/\r?\n/)){
+    const raw=line.replace(/\s+/g," ").trim(); const low=raw.toLowerCase();
+    if(!raw){ expect=true; continue; }
+    if(/(allergen|dietary)\s*(&|and|information|info)/i.test(raw) || /^allergen\b/i.test(raw)) continue;
+    if(/cross-contamination|shared kitchen|severe allergy|carefully select our ingredients|request more information on the allergens listed below/i.test(raw)) continue;
+    const inline=parseInline(raw); if(inline){ push(); dishes.push(inline); continue; }
+    if(low.startsWith("contains")){ if(!cur) cur={name:"",desc:"",allergens:[],diet:[]}; cur.allergens=parseAllergens(raw.replace(/^contains\s*:?\s*/i,"")); expect=false; continue; }
+    if(low.startsWith("suitable") || isDietOnlyLine(raw)){
+      const diets=parseDiets(raw.replace(/[()|/]/g,","));
+      if(cur&&cur.name&&!cur.section&&!expect){
+        cur.diet=[...new Set([...(cur.diet||[]),...diets])]; expect=true; continue;
+      }
+      if(!expect){
+        const t=dishes.filter(x=>!x.section).pop();
+        if(t){ t.diet=[...new Set([...(t.diet||[]),...diets])]; expect=true; continue; }
+      }
+      push();
+      dishes.push({name:diets.join(" / ")||toTitle(raw), desc:"", allergens:[], diet:[], section:true});
+      continue;
+    }
+    if(/menu\s*$/i.test(raw) && !title && !dishes.length && !cur){ title=raw; continue; }
+    if(isCaps(raw) && cur && cur.name && !expect){ push(); cur={name:toTitle(raw),desc:"",allergens:[],diet:[]}; expect=false; continue; }
+    if(expect || !cur){ push(); cur={name:isCaps(raw)?toTitle(raw):raw, desc:"", allergens:[], diet:[]}; expect=false; }
+    else {
+      const peeled=peelTrailingDiet(raw);
+      cur.desc = cur.desc ? cur.desc+" "+peeled.text : peeled.text;
+      applyDiet(cur, peeled.diet);
+    }
+  }
+  push(); return {title, dishes};
+}
+function containsLine(a){
+  if(!a||!a.length) return "";
+  const list=a.filter(x=>x && x.toLowerCase()!=="none").map(x=>String(x).toUpperCase());
+  if(!list.length) return "Contains: NONE";
+  if(list.length===1) return "Contains: "+list[0];
+  return "Contains: "+list.slice(0,-1).join(", ")+" and "+list[list.length-1];
+}
+function dietLine(d){
+  if(!d||!d.length) return "";
+  return d.join(" | ");
+}
+function render(dishes, title){
+  const body = dishes.length ? dishes.map(d=> isDietHeadingDish(d) ? `
+    <div class="diet-heading">${esc(d.name)}</div>` : `
+    <div class="dish">
+      <div class="dish-name">${esc(d.name)}</div>
+      ${d.desc?`<div class="dish-desc">${esc(d.desc)}</div>`:""}
+      ${d.allergens&&d.allergens.length?`<div class="dish-contains">${esc(containsLine(d.allergens))}</div>`:""}
+      ${d.diet&&d.diet.length?`<div class="dish-diet">${esc(dietLine(d.diet))}</div>`:""}
+    </div>`).join("") : `<p style="text-align:center;color:#6b7770;font-style:italic">No dishes yet.</p>`;
+  const info = DEFAULT_INFO.split(/\n{2,}/).map(p=>`<p>${esc(p)}</p>`).join("");
+  $("page").innerHTML = `<h1 class="menu-title">${esc(title||"DINNER MENU")}</h1>${body}<div class="info"><h2>Allergen Information</h2>${info}</div>`;
+}
+$("make").onclick = () => {
+  const r = parseBulk($("bulk").value||"");
+  if(!r.dishes.length){ $("status").textContent="No dishes found. Check the format."; return; }
+  if(r.title) $("title").value = r.title;
+  render(r.dishes, $("title").value.trim()||"DINNER MENU");
+  $("status").textContent = "Ready: "+r.dishes.length+" dishes in the menu. Allergen section is disclaimer only.";
+};
+$("print").onclick = () => { if(!$("page").querySelector(".dish")){ alert("Click Make menu first."); return; } window.print(); };
+$("clear").onclick = () => { $("bulk").value=""; render([], $("title").value); $("status").textContent="Cleared."; };
+render([], "DINNER MENU");
+</script>
+</body>
+</html>
