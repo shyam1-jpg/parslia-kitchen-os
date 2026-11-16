@@ -61,6 +61,19 @@ struct ParsliaBrandMark: View {
 
 struct ParsliaWebView: UIViewRepresentable {
     private static let appHost = "parslia-kitchen-os-667132.onhercules.app"
+    private static let authenticationHosts: Set<String> = [
+        "01krrzfrr3vvk2szh1vb8knxwh.hercules-auth.com",
+        "auth.app.parslia.app"
+    ]
+
+    static func shouldUseAuthenticationSession(for url: URL) -> Bool {
+        guard url.scheme == "https", let host = url.host,
+              authenticationHosts.contains(host), url.user == nil,
+              url.password == nil, url.port == nil || url.port == 443,
+              let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return false }
+        let redirects = components.queryItems?.filter { $0.name == "redirect_uri" } ?? []
+        return redirects.count == 1 && redirects[0].value == "parslia://auth/callback"
+    }
 
     static func authenticationCallbackURL(_ callback: URL) -> URL? {
         guard callback.scheme == "parslia", callback.host == "auth",
@@ -229,11 +242,7 @@ struct ParsliaWebView: UIViewRepresentable {
         ) {
             guard navigationAction.targetFrame?.isMainFrame == true,
                   let url = navigationAction.request.url,
-                  url.scheme == "https",
-                  url.host == "01krrzfrr3vvk2szh1vb8knxwh.hercules-auth.com",
-                  URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.contains(
-                    URLQueryItem(name: "redirect_uri", value: "parslia://auth/callback")
-                  ) == true else {
+                  ParsliaWebView.shouldUseAuthenticationSession(for: url) else {
                 decisionHandler(.allow)
                 return
             }
