@@ -34,10 +34,17 @@ import {
   type Conversation,
   type ModelInfo,
 } from "../lib/api";
-import { friendlyError } from "../lib/errors";
-import { BRAND } from "../lib/brand";
+import { friendlyError, isRetryableStreamError } from "../lib/errors";
+import { BRAND, DOCUMENT_TITLE } from "../lib/brand";
 import { OnboardingModal, hasCompletedOnboarding } from "../components/OnboardingModal";
 import { ReportAiContentButton, ReportAiContentFab } from "../components/ReportAiContent";
+import {
+  extractCodeArtifacts,
+  isSubstantialArtifact,
+  pickPrimaryArtifact,
+  stashCodeDraft,
+  type CodeArtifact,
+} from "../lib/codeArtifacts";
 
 const ASSISTANT_UI: Record<
   string,
@@ -73,9 +80,14 @@ const ASSISTANT_UI: Record<
   },
   coding: {
     emoji: "💻",
-    title: "Coding Expert",
-    blurb: "Write, explain and debug code",
-    suggestions: ["Write a Python script that…", "Explain this error", "Review my function", "Build a REST API stub"],
+    title: "Libraix Coding",
+    blurb: "Write, explain, debug, and preview programs",
+    suggestions: [
+      "Write a TypeScript REST handler with validation",
+      "Fix this stack trace and explain the root cause",
+      "Refactor this function so it is easy to test",
+      "Build a small HTML/JS widget I can preview",
+    ],
   },
   business: {
     emoji: "📈",
@@ -99,6 +111,16 @@ const ASSISTANT_UI: Record<
 
 function formatModelLabel(displayName: string, provider: string) {
   return `Generated using ${displayName} (${provider}) through Libraix`;
+}
+
+function streamThinkingLabel(phase: string, modelName: string) {
+  if (phase === "retrying") return "Connection dropped — Libraix is retrying…";
+  if (phase === "preparing") {
+    return modelName ? `${modelName} is gathering context…` : "Libraix is gathering context…";
+  }
+  if (phase === "routing") return "Libraix is choosing a model…";
+  if (phase === "writing" && modelName) return `${modelName} is writing…`;
+  return "Libraix is thinking…";
 }
 
 function groupConversations(conversations: Conversation[]) {
@@ -155,6 +177,9 @@ export function AppPage() {
   const [canvasOpen, setCanvasOpen] = useState(false);
   const [canvasContent, setCanvasContent] = useState("");
   const [canvasTitle, setCanvasTitle] = useState("Canvas");
+  const [canvasLanguage, setCanvasLanguage] = useState("");
+  const [streamPhase, setStreamPhase] = useState("");
+  const [streamModelName, setStreamModelName] = useState("");
   const [theme, setTheme] = useState<ThemeMode>(() => getStoredTheme());
   const [verifyNotice, setVerifyNotice] = useState("");
   const [attachLoading, setAttachLoading] = useState(false);
@@ -172,6 +197,8 @@ export function AppPage() {
   const restoredChatRef = useRef(false);
   const restoredModelRef = useRef<string | null>(null);
   const prefsReadyRef = useRef(false);
+  const lastSendRef = useRef<{ content: string; mode?: string } | null>(null);
+  const canvasOpenRef = useRef(false);
 
   const speechOut = useSpeechOutput();
   const { setSpeechLocale: setTtsLocale } = speechOut;
@@ -209,6 +236,19 @@ export function AppPage() {
   useEffect(() => {
     setTtsLocale(speechLocale);
   }, [speechLocale, setTtsLocale]);
+
+  useEffect(() => {
+    canvasOpenRef.current = canvasOpen;
+  }, [canvasOpen]);
+
+  useEffect(() => {
+    const conv = conversations.find((c) => c.id === activeId);
+    const title = conv?.title?.trim();
+    document.title = title ? `${title} · Libraix` : DOCUMENT_TITLE;
+    return () => {
+      document.title = DOCUMENT_TITLE;
+    };
+  }, [activeId, conversations]);
 
   // Private mode ↔ memory prefs: temporary privacy skips memory read/write until you leave Private.
   const privacyBeforePrivate = useRef<string | null>(null);
@@ -455,6 +495,13 @@ export function AppPage() {
     advancedApi.updateMemoryPreferences(updates).catch(() => {});
   }, []);
 
+  const openArtifact = useCallback((artifact: CodeArtifact) => {
+    setCanvasTitle(artifact.filename);
+    setCanvasContent(artifact.code);
+    setCanvasLanguage(artifact.language);
+    setCanvasOpen(true);
+  }, []);
+
   const selectConversation = async (id: string) => {
     setActiveId(id);
     setSidebarOpen(false);
@@ -635,6 +682,9 @@ export function AppPage() {
     setError("");
     setInput("");
     setLoading(true);
+    setStreamPhase("routing");
+    setStreamModelName("");
+    lastSendRef.current = { content, mode: modeOverride };
     abortRef.current = false;
     abortCtrlRef.current?.abort();
     abortCtrlRef.current = new AbortController();
@@ -740,13 +790,14 @@ export function AppPage() {
       let weatherCard: ChatMessage["weatherCard"];
       let raf = 0;
       let abortedByUser = false;
+      let sawFirstToken = false;
       const flushUi = () => {
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId
               ? {
                   ...m,
-                  content: fullContent || (weatherCard ? "" : "Thinking…"),
+                  content: fullContent || (weatherCard ? "" : ""),
                   modelLabel: modelLabel || m.modelLabel,
                   modelId: usedModelId || m.modelId,
                   sources: messageSources,
@@ -756,54 +807,92 @@ export function AppPage() {
           )
         );
       };
-      const scheduleUi = () => {
+      const scheduleUi = (immediate = false) => {
+        if (immediate) {
+          if (raf) {
+            cancelAnimationFrame(raf);
+            raf = 0;
+          }
+          flushUi();
+          return;
+        }
         if (raf) return;
         raf = requestAnimationFrame(() => {
           raf = 0;
           flushUi();
         });
       };
-      setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "Thinking…", createdAt: new Date().toISOString() }]);
+      setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "", createdAt: new Date().toISOString() }]);
+
+      const streamBody = {
+        message: content,
+        modelId: effectiveRouterMode === "auto" ? undefined : modelId,
+        routerMode: effectiveRouterMode,
+        history,
+        systemPrompt,
+        projectId: activeProjectId ?? undefined,
+        conversationId: convId,
+        preferredLanguage: preferredLanguagePayload,
+      };
 
       try {
-        for await (const chunk of advancedApi.streamRespond(
-          {
-            message: content,
-            modelId: effectiveRouterMode === "auto" ? undefined : modelId,
-            routerMode: effectiveRouterMode,
-            history,
-            systemPrompt,
-            projectId: activeProjectId ?? undefined,
-            conversationId: convId,
-            preferredLanguage: preferredLanguagePayload,
-          },
-          { signal: abortCtrlRef.current?.signal, timeoutMs: effectiveTimeout }
-        )) {
-          if (abortRef.current) {
-            abortedByUser = true;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            for await (const chunk of advancedApi.streamRespond(streamBody, {
+              signal: abortCtrlRef.current?.signal,
+              timeoutMs: attempt === 0 ? effectiveTimeout : Math.min(effectiveTimeout, 45_000),
+            })) {
+              if (abortRef.current) {
+                abortedByUser = true;
+                break;
+              }
+              if (typeof chunk === "object" && chunk.meta) {
+                if (chunk.meta.displayName) {
+                  setStreamModelName(chunk.meta.displayName);
+                  if (chunk.meta.provider) {
+                    modelLabel = formatModelLabel(chunk.meta.displayName, chunk.meta.provider);
+                  }
+                }
+                if (chunk.meta.status) setStreamPhase(chunk.meta.status);
+                if (chunk.meta.modelId) {
+                  usedModelId = chunk.meta.modelId;
+                  setModelId(chunk.meta.modelId);
+                }
+                if (chunk.meta.sources?.length) messageSources = chunk.meta.sources;
+                if (chunk.meta.weatherCard) weatherCard = chunk.meta.weatherCard;
+                if (chunk.meta.imageUrl) {
+                  setMessages((prev) =>
+                    prev.map((m) => (m.id === assistantId ? { ...m, imageUrl: chunk.meta!.imageUrl } : m))
+                  );
+                }
+                scheduleUi(true);
+                continue;
+              }
+              if (typeof chunk === "string") {
+                const first = !sawFirstToken;
+                sawFirstToken = true;
+                if (first) setStreamPhase("writing");
+                fullContent = fullContent === "" ? chunk : fullContent + chunk;
+                scheduleUi(first);
+              }
+            }
             break;
-          }
-          if (typeof chunk === "object" && chunk.meta) {
-            if (chunk.meta.displayName && chunk.meta.provider) {
-              modelLabel = formatModelLabel(chunk.meta.displayName, chunk.meta.provider);
+          } catch (streamErr) {
+            const streamMsg = streamErr instanceof Error ? streamErr.message : "STREAM_FAILED";
+            if (streamMsg === "ABORTED") {
+              abortedByUser = true;
+              break;
             }
-            if (chunk.meta.modelId) {
-              usedModelId = chunk.meta.modelId;
-              setModelId(chunk.meta.modelId);
+            if (attempt === 0 && !fullContent.trim() && isRetryableStreamError(streamMsg)) {
+              setStreamPhase("retrying");
+              continue;
             }
-            if (chunk.meta.sources?.length) messageSources = chunk.meta.sources;
-            if (chunk.meta.weatherCard) weatherCard = chunk.meta.weatherCard;
-            if (chunk.meta.imageUrl) {
-              setMessages((prev) =>
-                prev.map((m) => (m.id === assistantId ? { ...m, imageUrl: chunk.meta!.imageUrl } : m))
-              );
+            if (streamMsg === "REQUEST_TIMED_OUT") {
+              setError(friendlyError("REQUEST_TIMED_OUT"));
+            } else {
+              console.warn("Stream failed, using non-stream fallback:", streamErr);
             }
-            scheduleUi();
-            continue;
-          }
-          if (typeof chunk === "string") {
-            fullContent = fullContent === "" ? chunk : fullContent + chunk;
-            scheduleUi();
+            break;
           }
         }
         if (raf) {
@@ -816,7 +905,7 @@ export function AppPage() {
         if (streamMsg === "ABORTED") {
           abortedByUser = true;
         } else if (streamMsg === "REQUEST_TIMED_OUT") {
-          setError("Reply timed out. The server may be waking up — tap send again.");
+          setError(friendlyError("REQUEST_TIMED_OUT"));
         } else {
           console.warn("Stream failed, using non-stream fallback:", streamErr);
         }
@@ -867,6 +956,10 @@ export function AppPage() {
       if (fullContent && fullContent !== "Thinking…") {
         const toSave = weatherCard ? `${encodeWeatherMarker(weatherCard)}\n\n${fullContent}` : fullContent;
         await chatApi.addMessage(convId, "assistant", toSave, { modelId: usedModelId || undefined, modelLabel: modelLabel || undefined });
+        const primary = pickPrimaryArtifact(extractCodeArtifacts(fullContent));
+        if (primary && isSubstantialArtifact(primary) && !canvasOpenRef.current) {
+          openArtifact(primary);
+        }
       }
       if (usedModelId) persistWorkspace({ lastModelId: usedModelId, lastConversationId: convId });
       await refresh();
@@ -878,6 +971,7 @@ export function AppPage() {
     } finally {
       setLoading(false);
       setStreaming(false);
+      setStreamPhase("");
     }
   };
 
@@ -885,6 +979,7 @@ export function AppPage() {
     abortRef.current = true;
     abortCtrlRef.current?.abort();
     setStreaming(false);
+    setStreamPhase("");
   };
 
   const runUrlTool = async (url: string) => {
@@ -1076,7 +1171,7 @@ export function AppPage() {
             <Link to="/app/horoscope" className="conv-item">✨ Horoscope</Link>
             <Link to="/app/library" className="conv-item">📚 Library</Link>
             <Link to="/app/search" className="conv-item">🔍 Search</Link>
-            <Link to="/app/code" className="conv-item">⟨/⟩ Code</Link>
+            <Link to="/app/code" className="conv-item">⟨/⟩ Libraix Code</Link>
           </div>
 
           <input
@@ -1389,25 +1484,21 @@ export function AppPage() {
         <div className="chat-area">
           {messages.length === 0 && !loading && !streaming ? (
             <div className="welcome-state">
+              <p className="welcome-kicker">{BRAND.name}</p>
               <h2>
                 {ASSISTANT_UI[assistantId]
                   ? `${ASSISTANT_UI[assistantId].emoji} ${ASSISTANT_UI[assistantId].title}`
-                  : `Ask ${BRAND.name} anything`}
+                  : BRAND.emptyTitle}
               </h2>
               <p>
-                {ASSISTANT_UI[assistantId]?.blurb ?? (
-                  <>
-                    {BRAND.tagline} ✦ Super · ⚙ Agent · 🔍 Research · 📷 Live Vision · 🎨 images.
-                  </>
-                )}
+                {ASSISTANT_UI[assistantId]?.blurb ?? BRAND.emptyLede}
               </p>
               <div className="suggestion-row">
                 {(
                   ASSISTANT_UI[assistantId]?.suggestions ?? [
+                    "Write a Python CLI that converts CSV to JSON",
                     "Super: research top AI workspace competitors and cite sources",
                     "Agent: plan a product launch checklist with tools",
-                    "Deep research: latest AI safety regulations this year",
-                    // Location stays server-side for weather; do not show city/area on the page.
                     hasHomeLocation ? "What's the weather near me?" : "What's the weather today?",
                   ]
                 ).map((s) => (
@@ -1447,6 +1538,12 @@ export function AppPage() {
                         streaming={streaming && m === messages[messages.length - 1] && m.role === "assistant" && !m.imageGenerating}
                         imageGenerating={m.imageGenerating}
                         suppressImages={Boolean(m.imageUrl)}
+                        thinkingLabel={
+                          streaming && m === messages[messages.length - 1] && m.role === "assistant"
+                            ? streamThinkingLabel(streamPhase, streamModelName)
+                            : undefined
+                        }
+                        onOpenArtifact={openArtifact}
                       />
                     </>
                   ) : (
@@ -1488,12 +1585,24 @@ export function AppPage() {
                       <button
                         className="msg-action"
                         onClick={() => {
-                          setCanvasTitle("Canvas");
+                          setCanvasTitle("Libraix Canvas");
                           setCanvasContent(m.content);
+                          setCanvasLanguage("");
                           setCanvasOpen(true);
                         }}
                       >
                         ✏ Canvas
+                      </button>
+                    )}
+                    {extractCodeArtifacts(m.content).length > 0 && (
+                      <button
+                        className="msg-action"
+                        onClick={() => {
+                          const primary = pickPrimaryArtifact(extractCodeArtifacts(m.content));
+                          if (primary) openArtifact(primary);
+                        }}
+                      >
+                        ⟨/⟩ Code
                       </button>
                     )}
                   </div>
@@ -1532,7 +1641,7 @@ export function AppPage() {
           )}
           {loading && (
             <div className="message assistant">
-              <div className="bubble loading-dots">Thinking</div>
+              <div className="bubble loading-dots">Libraix is thinking</div>
             </div>
           )}
           <div ref={chatEndRef} />
@@ -1599,7 +1708,26 @@ export function AppPage() {
                   {showUsageDetails ? "Hide usage" : "Usage"}
                 </button>
               )}
-              {error && <div className="error-banner composer-banner">{error}</div>}
+              {error && (
+                <div className="error-banner composer-banner">
+                  {error}
+                  {lastSendRef.current && (
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      style={{ marginLeft: 8 }}
+                      onClick={() => {
+                        const last = lastSendRef.current;
+                        if (!last) return;
+                        const alreadyQueued = messages.some((m) => m.role === "user" && m.content === last.content);
+                        void sendMessage(last.content, alreadyQueued, last.mode);
+                      }}
+                    >
+                      Retry
+                    </button>
+                  )}
+                </div>
+              )}
               {attachLoading && <div className="info-banner composer-banner">Reading document…</div>}
               {urlTools.length > 0 && (
                 <div className="url-tool-row composer-banner">
@@ -1619,11 +1747,16 @@ export function AppPage() {
         open={canvasOpen}
         title={canvasTitle}
         content={canvasContent}
+        language={canvasLanguage}
         onChange={setCanvasContent}
         onClose={() => setCanvasOpen(false)}
         onInsertToChat={(value) => {
           setInput(value);
           setCanvasOpen(false);
+        }}
+        onOpenSandbox={(value, language, title) => {
+          stashCodeDraft({ filename: title, language, code: value });
+          navigate("/app/code");
         }}
       />
       <ReportAiContentFab feature="Chat" />

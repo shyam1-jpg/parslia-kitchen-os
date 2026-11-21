@@ -62,29 +62,16 @@ export function getProviderAdapter(provider: string): AiProviderAdapter {
 
 export async function completeViaGateway(model: ModelDefinition, request: Omit<ProviderRequest, "model">): Promise<ProviderResponse> {
   const adapter = getProviderAdapter(model.provider);
-  const health = await adapter.healthCheck();
-  if (!health.available) {
-    throw new ProviderError(
-      health.error ?? `${model.provider} is currently unavailable`,
-      model.provider,
-      "PROVIDER_UNAVAILABLE",
-      true
-    );
-  }
   return adapter.complete({ ...request, model });
 }
 
+/**
+ * Hot path: skip healthCheck() so the first token is not delayed by a redundant
+ * availability round-trip. Adapters already throw PROVIDER_UNAVAILABLE when
+ * keys are missing.
+ */
 export async function* streamViaGateway(model: ModelDefinition, request: Omit<ProviderRequest, "model">): AsyncGenerator<string> {
   const adapter = getProviderAdapter(model.provider);
-  const health = await adapter.healthCheck();
-  if (!health.available) {
-    throw new ProviderError(
-      health.error ?? `${model.provider} is currently unavailable`,
-      model.provider,
-      "PROVIDER_UNAVAILABLE",
-      true
-    );
-  }
   if (adapter.stream) {
     yield* adapter.stream({ ...request, model });
     return;

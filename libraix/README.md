@@ -60,9 +60,13 @@ Open http://localhost:5173
 | Variable | Description |
 |----------|-------------|
 | `OPENAI_API_KEY` | Server-side OpenAI key (never exposed to browser) |
+| `ANTHROPIC_API_KEY` | Optional — Libraix Claude / Sonnet |
 | `SESSION_SECRET` | Session signing secret |
 | `FRONTEND_URL` | Frontend origin for CORS |
 | `DATABASE_PATH` | SQLite database path |
+| `LIBRAIX_STREAM_TIMING` | Set to `1` to log stream prelude / first-token ms |
+
+See `docs/SPEED.md` for before/after latency notes.
 
 ## Deployment
 

@@ -18,6 +18,14 @@ import { listConfiguredProviders } from "../providers/config.js";
 import { getCached, setCached } from "../services/cache.js";
 import { getSavedLocation, resolveLocationFromRequest, saveUserLocation } from "../services/location.js";
 import { getUserPreferences } from "../services/memory.js";
+import {
+  encodeSse,
+  markFirstByte,
+  markFirstToken,
+  sseHeaders,
+  summarizeStreamTiming,
+  type StreamTiming,
+} from "../services/streamSse.js";
 
 const router = Router();
 
@@ -164,10 +172,21 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
     return res.status(403).json({ error: "FEATURE_DISABLED" });
   }
 
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
+  for (const [key, value] of Object.entries(sseHeaders())) {
+    res.setHeader(key, value);
+  }
   res.flushHeaders?.();
+
+  const timing: StreamTiming = { startedAt: Date.now() };
+  const writeSse = (payload: unknown) => {
+    markFirstByte(timing);
+    if (payload && typeof payload === "object" && "delta" in (payload as object)) {
+      markFirstToken(timing);
+    }
+    res.write(encodeSse(payload));
+    const flushable = res as typeof res & { flush?: () => void };
+    flushable.flush?.();
+  };
 
   const heartbeat = setInterval(() => {
     res.write(": keepalive\n\n");
@@ -199,9 +218,23 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
       }).modelId
     );
 
+    // First byte before memory/tools/provider work — perceived latency.
+    if (model) {
+      writeSse({
+        meta: {
+          modelId: model.id,
+          displayName: model.displayName,
+          provider: model.provider,
+          providerModelId: model.providerModelId,
+          status: "routing",
+        },
+      });
+    }
+
     let imageMeta: { imageUrl: string; type: string } | null = null;
     let sourcesMeta: Array<{ index: number; filename: string; excerpt: string; url?: string }> | undefined;
     let weatherCardMeta: unknown;
+    let disclosedPreparing = false;
 
     for await (const chunk of streamAiResponse(user, reqBody)) {
       if (typeof chunk === "object" && chunk && "image" in chunk) {
@@ -212,8 +245,7 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
       }
       if (typeof chunk === "object" && chunk && "weatherCard" in chunk) {
         weatherCardMeta = chunk.weatherCard;
-        // Push card immediately so the UI can animate before text finishes
-        res.write(`data: ${JSON.stringify({ meta: { weatherCard: weatherCardMeta } })}\n\n`);
+        writeSse({ meta: { weatherCard: weatherCardMeta } });
         continue;
       }
       if (typeof chunk === "object" && chunk && "sources" in chunk) {
@@ -223,42 +255,44 @@ router.post("/ai/stream", requireAuth, async (req, res) => {
       if (typeof chunk === "object" && chunk && "model" in chunk) {
         model = chunk.model ?? model;
         if (model) {
-          res.write(
-            `data: ${JSON.stringify({
-              meta: {
-                modelId: model.id,
-                displayName: model.displayName,
-                provider: model.provider,
-                providerModelId: model.providerModelId,
-              },
-            })}\n\n`
-          );
+          writeSse({
+            meta: {
+              modelId: model.id,
+              displayName: model.displayName,
+              provider: model.provider,
+              providerModelId: model.providerModelId,
+              status: disclosedPreparing ? "writing" : "preparing",
+            },
+          });
+          disclosedPreparing = true;
         }
         continue;
       }
-      res.write(`data: ${JSON.stringify({ delta: chunk })}\n\n`);
+      writeSse({ delta: chunk });
     }
     if (model) {
-      res.write(
-        `data: ${JSON.stringify({
-          meta: {
-            modelId: model.id,
-            displayName: imageMeta ? "Libraix Image (DALL·E 3)" : model.displayName,
-            provider: imageMeta ? "openai" : model.provider,
-            providerModelId: imageMeta ? "dall-e-3" : model.providerModelId,
-            ...(imageMeta ?? {}),
-            ...(sourcesMeta ? { sources: sourcesMeta } : {}),
-            ...(weatherCardMeta ? { weatherCard: weatherCardMeta } : {}),
-          },
-        })}\n\n`
-      );
+      writeSse({
+        meta: {
+          modelId: model.id,
+          displayName: imageMeta ? "Libraix Image (DALL·E 3)" : model.displayName,
+          provider: imageMeta ? "openai" : model.provider,
+          providerModelId: imageMeta ? "dall-e-3" : model.providerModelId,
+          ...(imageMeta ?? {}),
+          ...(sourcesMeta ? { sources: sourcesMeta } : {}),
+          ...(weatherCardMeta ? { weatherCard: weatherCardMeta } : {}),
+        },
+      });
     }
-    res.write("data: [DONE]\n\n");
+    timing.endedAt = Date.now();
+    if (process.env.LIBRAIX_STREAM_TIMING === "1") {
+      console.log("[libraix-stream]", summarizeStreamTiming(timing));
+    }
+    writeSse("[DONE]");
     res.end();
   } catch (e) {
     const msg = e instanceof Error ? e.message : "UNKNOWN";
     const code = e instanceof ProviderError ? e.code : "PROVIDER_ERROR";
-    res.write(`data: ${JSON.stringify({ error: code, detail: msg.slice(0, 200) })}\n\n`);
+    writeSse({ error: code, detail: msg.slice(0, 200) });
     res.end();
   } finally {
     clearInterval(heartbeat);
